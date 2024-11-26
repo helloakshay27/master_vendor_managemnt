@@ -136,6 +136,7 @@ export default function ErpRfqDetailPriceTrends4h() {
 
   return (
     <>
+    
       <div className="website-content overflow-auto">
         <div className="module-data-section p-3">
           <div className="event-order-page">
