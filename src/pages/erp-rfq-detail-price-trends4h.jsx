@@ -1,6 +1,7 @@
 import React from "react";
 import { useState } from "react";
 import "bootstrap-icons/font/bootstrap-icons.css";
+import '../styles/event.css'
 import {
   BulkCounterOfferModal,
   AddEvaluationTimeModal,
