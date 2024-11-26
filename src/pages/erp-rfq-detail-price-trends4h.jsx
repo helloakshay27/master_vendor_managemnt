@@ -1,7 +1,7 @@
 import React from "react";
 import { useState } from "react";
 import "bootstrap-icons/font/bootstrap-icons.css";
-import '../styles/event.css'
+// import '../styles/event.css'
 import {
   BulkCounterOfferModal,
   AddEvaluationTimeModal,
@@ -21,6 +21,8 @@ import {
   PriceTrendsTab,
   ResponseTab,
 } from "../components";
+import Header from "../components/Header";
+import Sidebar from "../components/Sidebar";
 
 export default function ErpRfqDetailPriceTrends4h() {
   const [showModal, setShowModal] = useState(false);
@@ -136,6 +138,9 @@ export default function ErpRfqDetailPriceTrends4h() {
 
   return (
     <>
+          <Header />
+      <div className="main-content">
+        <Sidebar />
     
       <div className="website-content overflow-auto">
         <div className="module-data-section p-3">
@@ -212,6 +217,8 @@ export default function ErpRfqDetailPriceTrends4h() {
             </div>
         </div>
       </div>
+      </div>
+
     </>
   );
 }
