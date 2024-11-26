@@ -16,6 +16,8 @@ import {
   Table,
 } from "../components";
 import { auditLogColumns, auditLogData } from "../constant/data";
+import Header from "../components/Header";
+import Sidebar from "../components/Sidebar";
 
 export default function CreateRfq() {
   const [orderDetails, setOrderDetails] = useState(true);
@@ -88,7 +90,10 @@ export default function CreateRfq() {
   };
 
   return (
-    <>
+    <>      <Header/>
+    <div className="main-content">
+      <Sidebar />
+
       <div className="website-content overflow-auto">
         <div className="module-data-section p-4">
           <a href="">
@@ -136,6 +141,8 @@ export default function CreateRfq() {
           </div>
         </div>
       </div>
+      </div>
+
 
       <EventTypeModal
         show={eventTypeModal}

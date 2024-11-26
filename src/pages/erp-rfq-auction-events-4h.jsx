@@ -15,6 +15,8 @@ import {
   Table,
 } from "../components";
 import { rfqEventColumns, rfqEventData } from "../constant/data";
+import Header from "../components/Header";
+import Sidebar from "../components/Sidebar";
 
 export default function ErpRfqAuctionEvents4h() {
   const [settingShow, setSettingShow] = useState(false);
@@ -27,6 +29,9 @@ export default function ErpRfqAuctionEvents4h() {
 
   return (
     <>
+         <Header/>
+    <div className="main-content">
+      <Sidebar />
       <div className="website-content overflow-auto">
         <div className="module-data-section p-3">
           <a href="">
@@ -156,6 +161,8 @@ export default function ErpRfqAuctionEvents4h() {
           </div>
         </div>
       </div>
+      </div>
+
 
       <FilterModal show={show} handleClose={handleClose} />
       <LayoutModal show={settingShow} onHide={handleSettingClose} />

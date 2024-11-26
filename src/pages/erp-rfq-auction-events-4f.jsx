@@ -3,6 +3,8 @@ import { useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "../styles/mor.css";
 import { LayoutModal, FilterModal, BulkAction, DownloadIcon, EventProjectTable, FilterIcon, QuickFilter, SearchIcon, SettingIcon, StarIcon } from "../components";
+import Header from "../components/Header";
+import Sidebar from "../components/Sidebar";
 
 export default function ErpRfqAuctionEvents4f() {
   const [settingShow, setSettingShow] = useState(false);
@@ -15,6 +17,9 @@ export default function ErpRfqAuctionEvents4f() {
 
   return (
     <>
+      <Header/>
+    <div className="main-content">
+      <Sidebar />
         <div className="website-content overflow-auto">
           <div className="module-data-section p-3">
             <a href="">
@@ -155,6 +160,8 @@ export default function ErpRfqAuctionEvents4f() {
             </div>
           </div>
         </div>
+        </div>
+
 
       <FilterModal show={show} handleClose={handleClose} />
       <LayoutModal show={settingShow} onHide={handleSettingClose} />
