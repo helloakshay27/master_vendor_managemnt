@@ -1,5 +1,6 @@
 import React from 'react';
 import './App.css';
+import '../src/styles/mor.css'
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import Members from './pages/members';
 import ErpStockRegister13B from './pages/erp-stock-register13b';
