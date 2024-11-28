@@ -2,7 +2,18 @@ import React from "react";
 import { useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "../styles/mor.css";
-import { LayoutModal, FilterModal, BulkAction, DownloadIcon, EventProjectTable, FilterIcon, QuickFilter, SearchIcon, SettingIcon, StarIcon } from "../components";
+import {
+  LayoutModal,
+  FilterModal,
+  BulkAction,
+  DownloadIcon,
+  EventProjectTable,
+  FilterIcon,
+  QuickFilter,
+  SearchIcon,
+  SettingIcon,
+  StarIcon,
+} from "../components";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 
@@ -17,9 +28,9 @@ export default function ErpRfqAuctionEvents4f() {
 
   return (
     <>
-      <Header/>
-    <div className="main-content">
-      <Sidebar />
+      <Header />
+      <div className="main-content">
+        <Sidebar />
         <div className="website-content overflow-auto">
           <div className="module-data-section p-3">
             <a href="">
@@ -72,7 +83,7 @@ export default function ErpRfqAuctionEvents4f() {
                       <input
                         type="search"
                         id="searchInput"
-                        className="form-control tbl-search"
+                        className="tbl-search form-control"
                         placeholder="Type your keywords here"
                       />
                       <div className="input-group-append">
@@ -92,6 +103,7 @@ export default function ErpRfqAuctionEvents4f() {
                       <div className="row justify-content-end px-3">
                         <div className="col-md-3">
                           <button
+                            style={{ color: "#de7008" }}
                             className="btn btn-md"
                             onClick={handleModalShow}
                           >
@@ -99,12 +111,17 @@ export default function ErpRfqAuctionEvents4f() {
                           </button>
                         </div>
                         <div className="col-md-3">
-                          <button type="submit" className="btn btn-md">
+                          <button
+                            style={{ color: "#de7008" }}
+                            type="submit"
+                            className="btn btn-md"
+                          >
                             <StarIcon />
                           </button>
                         </div>
                         <div className="col-md-3">
                           <button
+                            style={{ color: "#de7008" }}
                             id="downloadButton"
                             type="submit"
                             className="btn btn-md"
@@ -114,29 +131,33 @@ export default function ErpRfqAuctionEvents4f() {
                         </div>
                         <div className="col-md-3">
                           <button
+                            style={{ color: "#de7008" }}
                             type="submit"
                             className="btn btn-md"
                             onClick={handleSettingModalShow}
                           >
-                            <SettingIcon color={"#8B0203"} style={{width:'25px', height:'25px'}} />
+                            <SettingIcon
+                              color={"#de7008"}
+                              style={{ width: "23px", height: "23px" }}
+                            />
                           </button>
                         </div>
                       </div>
                     </div>
                     <div className="col-md-4">
-                      <button className="purple-btn2 ">
-                        <a href="./erp-material-order-request-create.html">
-                          <span className="material-symbols-outlined align-text-top">
-                            add
-                          </span>
-                          New Event
-                        </a>
+                      <button className="purple-btn2">
+                        <span className="material-symbols-outlined align-text-top">
+                          add
+                        </span>
+                        New Event
                       </button>
                     </div>
                   </div>
                 </div>
               </div>
-              <EventProjectTable />
+              <div className="mx-3">
+                <EventProjectTable />
+              </div>
               <div className="row mt-3  px-3">
                 <div className="col-md-3">
                   <div className="form-group">
@@ -145,9 +166,11 @@ export default function ErpRfqAuctionEvents4f() {
                       className="form-control form-select per_page"
                       style={{ width: "100%" }}
                     >
-                      <option value={10} 
-// @ts-ignore
-                      selected="selected">
+                      <option
+                        value={10}
+                        // @ts-ignore
+                        selected="selected"
+                      >
                         10 Rows
                       </option>
                       <option value={20}>20 Rows</option>
@@ -160,8 +183,7 @@ export default function ErpRfqAuctionEvents4f() {
             </div>
           </div>
         </div>
-        </div>
-
+      </div>
 
       <FilterModal show={show} handleClose={handleClose} />
       <LayoutModal show={settingShow} onHide={handleSettingClose} />

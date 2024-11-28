@@ -57,6 +57,7 @@ export { default as SearchIcon } from '../components/common/Icon/SearchIcon'
 export { default as FilterIcon } from '../components/common/Icon/FilterIcon'
 export { default as StarIcon } from '../components/common/Icon/StarIcon'   
 export { default as DownloadIcon } from '../components/common/Icon/DownloadIcon'    
+export { default as NotificationIcon } from '../components/common/Icon/NotificationIcon'    
 
 // Charts
 export { default as ScatterChart } from '../components/common/Chart/ScatterChart'    

@@ -95,7 +95,7 @@ export default function CreateRfq() {
       <Sidebar />
 
       <div className="website-content overflow-auto">
-        <div className="module-data-section p-4">
+        <div className="module-data-section p-3">
           <a href="">
             Home &gt; Purchase &gt; Procurement &gt; Create RFQ &amp; Auction
           </a>

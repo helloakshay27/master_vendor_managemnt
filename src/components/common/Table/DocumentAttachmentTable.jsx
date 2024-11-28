@@ -2,6 +2,7 @@ import React from 'react'
 import Table from '../../base/Table/Table';
 import ShowIcon from '../Icon/ShowIcon';
 import { documentColumns, documentData } from '../../../constant/data';
+import EyeIcon from '../Icon/EyeIcon';
 
 export default function DocumentAttachmentTable({handleDocumentModalShow}) {
     return (
@@ -10,7 +11,7 @@ export default function DocumentAttachmentTable({handleDocumentModalShow}) {
           data={documentData}
           onActionClick={handleDocumentModalShow}
           // @ts-ignore
-          actionIcon={<ShowIcon />}
+          actionIcon={<EyeIcon />}
         />
       )
 }

@@ -81,7 +81,7 @@ export default function CreateRFQForm({
               onClick={handleSettingModalShow}
             >
               <SettingIcon
-                color={"#8B0203"}
+                color={"#de7008"}
                 style={{ width: "30px", height: "30px" }}
               />
             </button>

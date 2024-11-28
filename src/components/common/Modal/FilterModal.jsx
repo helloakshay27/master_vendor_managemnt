@@ -5,38 +5,6 @@ import { Link } from "react-router-dom";
 const FilterModal = ({ show, handleClose }) => {
   return (
     <>
-      <style type="text/css">
-        {`
-    .setting-modal .modal-dialog {
-      position: fixed;
-      right: 0;
-      top: 0;
-      margin: 0;
-      height: 100%;
-      width: 40%; /* Adjust the width to your liking */
-    }
-
-    .setting-modal .modal-content {
-      height: 100%;
-      border: 0;
-      border-radius: 0;
-    }
-
-    .modal-header {
-      border-bottom: none;
-    }
-
-    .modal-footer {
-      border-top: none;
-    }
-
-    .modal-body {
-      overflow-y: auto;
-      padding: 20px; /* Adjust padding as needed */
-    }
-  `}
-      </style>
-
       <Modal
         show={show}
         onHide={handleClose}
@@ -48,7 +16,7 @@ const FilterModal = ({ show, handleClose }) => {
           <div className="container-fluid p-0">
             <div className="border-0 d-flex justify-content-between align-items-center">
               <div className="d-flex align-items-center">
-                <button type="button" className="btn" aria-label="Close">
+                <button type="button" className="btn" aria-label="Close" onClick={handleClose}>
                   <svg
                     width="10"
                     height="16"
@@ -58,7 +26,7 @@ const FilterModal = ({ show, handleClose }) => {
                   >
                     <path
                       d="M9 1L1 9L9 17"
-                      stroke="#8B0203"
+                      stroke="#de7008"
                       strokeWidth="1.5"
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -90,7 +58,6 @@ const FilterModal = ({ show, handleClose }) => {
                     </div>
                   </h3>
                 </div>
-
                 <div className="card-body">
                   <div className="row align-items-center">
                     <div className="col-md-4">
@@ -105,7 +72,6 @@ const FilterModal = ({ show, handleClose }) => {
                         ></button>
                       </div>
                     </div>
-
                     <div className="col-md-4">
                       <div className="form-group d-flex align-items-center justify-content-around tbl-search">
                         <label className="px-1" htmlFor="project">
@@ -117,8 +83,7 @@ const FilterModal = ({ show, handleClose }) => {
                           aria-label="Close"
                         ></button>
                       </div>
-                    </div>
-
+                    </div>  
                     <div className="col-md-4">
                       <div className="form-group d-flex align-items-center justify-content-around tbl-search">
                         <p className="px-1">Sub-project</p>
@@ -340,8 +305,7 @@ const FilterModal = ({ show, handleClose }) => {
         </div>
         <div className="modal-footer justify-content-center">
           <button
-            className="btn"
-            style={{ backgroundColor: "#8b0203", color: "#fff" }}
+            className="purple-btn2"
             onClick={handleClose}
           >
             Go

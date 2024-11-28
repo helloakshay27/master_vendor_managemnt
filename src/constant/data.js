@@ -399,3 +399,23 @@ export const deliveryData = [
     supplierDeliveryQty: '40',
   },
 ];
+
+export const vendorsColumns = [
+  { label: "Select", key: "select" },
+  { label: "Supplier Type", key: "supplierType" },
+  { label: "Vendor Name", key: "vendorName" },
+  { label: "Status", key: "status" },
+];
+
+export const vendorsData = [
+  {
+    supplierType: "Cement, Waterproofing",
+    vendorName: "Sharda Chemical Pvt Ltd",
+    status: "Delivery Pending",
+  },
+  {
+    supplierType: "Tiles, Granites, Cement, Sand",
+    vendorName: "Ashirvad Ceramics",
+    status: "Not submitted Bid / Quotation",
+  },
+];
