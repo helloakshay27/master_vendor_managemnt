@@ -3,6 +3,7 @@ export { default as DynamicModalBox } from '../components/base/Modal/DynamicModa
 export { default as Table } from '../components/base/Table/Table'
 export { default as CollapsibleCards } from '../components/base/Card/CollapsibleCards'
 export { default as Accordion } from '../components/base/Accordion/Accordion'
+export { default as SelectBox } from '../components/base/Select/SelectBox'
 
 // Modals
 export { default as ActivityModal } from '../components/common/Modal/ActivityModal'

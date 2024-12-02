@@ -18,14 +18,13 @@ import ViewBOQ from './pages/view-BOQ';
 import BOQApprovalList from './pages/boq_approval_list';
 import BOQDetailsPageMaster from './pages/boq-details-page-master';
 import BOQApprovalDetails from './pages/boq-approval-details'
+import EventList from './pages/event-list';
+import CreateEvent from './pages/create-event';
 
 
 function App() {
   return (
-  
     <BrowserRouter>
-
-    
        <div>
         <Routes>
           <Route path='/' element={<Members />} />
@@ -41,6 +40,8 @@ function App() {
           <Route path='/erp-rfq-auction-events-4h' element={<ErpRfqAuctionEvents4h />} />
           <Route path='/erp-rfq-detail-price-trends4h' element={<ErpRfqDetailPriceTrends4h />} />
           <Route path='/create-rfq' element={<CreateRfq />} />
+          <Route path='/event-list' element={<EventList />} />
+          <Route path='/create-event' element={<CreateEvent />} />
           <Route path='/create-BOQ' element={<CreateBOQ />} />
           <Route path='/view-BOQ' element={<ViewBOQ />} />
           <Route path='/boq-approval-list' element={<BOQApprovalList />} />

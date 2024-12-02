@@ -5107,10 +5107,11 @@ iframe .site-content, iframe .website-content{
 }
 
 .event-input {
-  width: 90%;
+  width: 100%;
   margin-left: 10px;
   padding: 10px;
-  border: none;
+  border: 1px solid transparent;
+  border-radius: 8px;
 }
 
 /* Accordion Styles */
