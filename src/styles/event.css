@@ -901,8 +901,7 @@
   .eventList-parent {
     overflow-y: auto;
     /* height: 300px; */
-    height: 65vh;
-    padding-right: 5px;
+    height: 100%;
   }
   .eventList-parent::-webkit-scrollbar {
     width: 5px;
@@ -932,6 +931,7 @@
     padding: 9px 17px;
     border-radius: 12px 0px 12px 12px;
     box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 10px;
+    color: #000;
   }
   .eventList-p1 {
     font-size: 12px;

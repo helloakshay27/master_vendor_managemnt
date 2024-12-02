@@ -87,224 +87,221 @@ export const chartOptions = {
 };
 
 export const orderSummaryColumns = [
-  { label: 'Company', key: 'company' },
-  { label: 'Project', key: 'project' },
-  { label: 'Sub-Project', key: 'subProject' },
-  { label: 'MOR No.', key: 'morNo' },
-  { label: 'Material Sub-Type', key: 'materialSubType' },
-  { label: 'Material', key: 'material' },
-  { label: 'Material Description', key: 'materialDescription' },
-  { label: 'Material Specifications', key: 'materialSpecifications' },
-  { label: 'UOM', key: 'uom' },
-  { label: 'Order Qty', key: 'orderQty' },
-  { label: 'Min Qty', key: 'minQty' },
-  { label: 'Tick Size', key: 'tickSize' },
-  { label: 'Price Cap', key: 'priceCap' },
-  { label: 'Price', key: 'price' },
-  { label: 'Discount %', key: 'discount' },
-  { label: 'Discounted Rate', key: 'discountedRate' },
-  { label: 'Qty Available', key: 'qtyAvailable' },
-  { label: 'Participant Attachment', key: 'participantAttachment' },
-  { label: 'CGST', key: 'cgst' },
-  { label: 'SGST', key: 'sgst' },
-  { label: 'IGST', key: 'igst' },
-  { label: 'Total Amount', key: 'totalAmount' },
-  { label: 'Vendor Remarks', key: 'vendorRemarks' },
+  { label: "Company", key: "company" },
+  { label: "Project", key: "project" },
+  { label: "Sub-Project", key: "subProject" },
+  { label: "MOR No.", key: "morNo" },
+  { label: "Material Sub-Type", key: "materialSubType" },
+  { label: "Material", key: "material" },
+  { label: "Material Description", key: "materialDescription" },
+  { label: "Material Specifications", key: "materialSpecifications" },
+  { label: "UOM", key: "uom" },
+  { label: "Order Qty", key: "orderQty" },
+  { label: "Min Qty", key: "minQty" },
+  { label: "Tick Size", key: "tickSize" },
+  { label: "Price Cap", key: "priceCap" },
+  { label: "Price", key: "price" },
+  { label: "Discount %", key: "discount" },
+  { label: "Discounted Rate", key: "discountedRate" },
+  { label: "Qty Available", key: "qtyAvailable" },
+  { label: "Participant Attachment", key: "participantAttachment" },
+  { label: "CGST", key: "cgst" },
+  { label: "SGST", key: "sgst" },
+  { label: "IGST", key: "igst" },
+  { label: "Total Amount", key: "totalAmount" },
+  { label: "Vendor Remarks", key: "vendorRemarks" },
 ];
 
 export const orderSummaryData = [
   {
-    company: 'MNRL',
-    project: 'NeoValley',
-    subProject: 'Neo Valley- Building',
-    morNo: 'MOR/MAR/MAX/ 101/02/2024',
-    materialSubType: 'Tiles',
-    material: 'Plain white Tiles',
-    materialDescription: 'Plain White Sperenza Tiles',
-    materialSpecifications: '300 x 300 mm',
-    uom: 'Nos',
+    company: "MNRL",
+    project: "NeoValley",
+    subProject: "Neo Valley- Building",
+    morNo: "MOR/MAR/MAX/ 101/02/2024",
+    materialSubType: "Tiles",
+    material: "Plain white Tiles",
+    materialDescription: "Plain White Sperenza Tiles",
+    materialSpecifications: "300 x 300 mm",
+    uom: "Nos",
     orderQty: 10000,
-    minQty: '',
-    tickSize: '',
-    priceCap: '',
-    price: '',
-    discount: '',
-    discountedRate: '',
-    qtyAvailable: '',
-    participantAttachment: '',
-    cgst: '',
-    sgst: '',
-    igst: '',
-    totalAmount: '',
-    vendorRemarks: '',
+    minQty: "",
+    tickSize: "",
+    priceCap: "",
+    price: "",
+    discount: "",
+    discountedRate: "",
+    qtyAvailable: "",
+    participantAttachment: "",
+    cgst: "",
+    sgst: "",
+    igst: "",
+    totalAmount: "",
+    vendorRemarks: "",
   },
   {
-    company: 'MNRL',
-    project: 'NeoValley',
-    subProject: 'Neo Valley- Building',
-    morNo: 'MOR/MAR/MAX/ 101/02/2024',
-    materialSubType: 'Tiles',
-    material: 'Plain white Tiles',
-    materialDescription: 'Plain White Sperenza Tiles',
-    materialSpecifications: '300 x 300 mm',
-    uom: 'Nos',
+    company: "MNRL",
+    project: "NeoValley",
+    subProject: "Neo Valley- Building",
+    morNo: "MOR/MAR/MAX/ 101/02/2024",
+    materialSubType: "Tiles",
+    material: "Plain white Tiles",
+    materialDescription: "Plain White Sperenza Tiles",
+    materialSpecifications: "300 x 300 mm",
+    uom: "Nos",
     orderQty: 10000,
-    minQty: '',
-    tickSize: '',
-    priceCap: '',
-    price: '',
-    discount: '',
-    discountedRate: '',
-    qtyAvailable: '',
-    participantAttachment: '',
-    cgst: '',
-    sgst: '',
-    igst: '',
-    totalAmount: '',
-    vendorRemarks: '',
+    minQty: "",
+    tickSize: "",
+    priceCap: "",
+    price: "",
+    discount: "",
+    discountedRate: "",
+    qtyAvailable: "",
+    participantAttachment: "",
+    cgst: "",
+    sgst: "",
+    igst: "",
+    totalAmount: "",
+    vendorRemarks: "",
   },
 ];
 
-
 export const auditLogColumns = [
-  { label: 'Sr.No.', key: 'srno' },
-  { label: 'User', key: 'user' },
-  { label: 'Date', key: 'date' },
-  { label: 'Status', key: 'status' },
-  { label: 'Remark', key: 'remark' },
+  { label: "Sr.No.", key: "srno" },
+  { label: "User", key: "user" },
+  { label: "Date", key: "date" },
+  { label: "Status", key: "status" },
+  { label: "Remark", key: "remark" },
 ];
 
 export const auditLogData = [
   {
     srno: 1,
-    user: 'Pratham Shastri',
-    date: '15-02-2024',
-    status: 'Verified',
-    remark: 'Verified & Processed',
+    user: "Pratham Shastri",
+    date: "15-02-2024",
+    status: "Verified",
+    remark: "Verified & Processed",
   },
   {
     srno: 2,
-    user: 'Ananya Roy',
-    date: '16-02-2024',
-    status: 'Pending',
-    remark: 'Awaiting Review',
+    user: "Ananya Roy",
+    date: "16-02-2024",
+    status: "Pending",
+    remark: "Awaiting Review",
   },
 ];
 
-
 export const participantsTabColumns = [
-  { label: 'Name', key: 'name' },
-  { label: 'Bids Closed', key: 'bidsClosed' },
-  { label: '', key: 'blank' },
+  { label: "Name", key: "name" },
+  { label: "Bids Closed", key: "bidsClosed" },
+  { label: "", key: "blank" },
 ];
 
 export const participantsTabData = [
   {
-    name: 'AXIS ELECTRICAL COMPONENTS INDIA PRIVATE LIMITED',
-    bidsClosed: 'View Price Cap',
-    blank: '',
+    name: "AXIS ELECTRICAL COMPONENTS INDIA PRIVATE LIMITED",
+    bidsClosed: "View Price Cap",
+    blank: "",
   },
   {
-    name: 'AJAY ELECTRICALS',
-    bidsClosed: '',
-    blank: '',
+    name: "AJAY ELECTRICALS",
+    bidsClosed: "",
+    blank: "",
   },
   {
-    name: 'Ampere Electrical Services',
-    bidsClosed: 'View Price Cap',
-    blank: '',
+    name: "Ampere Electrical Services",
+    bidsClosed: "View Price Cap",
+    blank: "",
   },
   {
-    name: 'A.R. ENTERPRISE',
-    bidsClosed: '',
-    blank: '',
+    name: "A.R. ENTERPRISE",
+    bidsClosed: "",
+    blank: "",
   },
   {
-    name: 'BRAHMARI POWERTECH PRIVATE LIMITED',
-    bidsClosed: '',
-    blank: '',
+    name: "BRAHMARI POWERTECH PRIVATE LIMITED",
+    bidsClosed: "",
+    blank: "",
   },
   {
-    name: 'CAPE ELECTRIC PRIVATE LIMITED',
-    bidsClosed: 'View Price Cap',
-    blank: '',
+    name: "CAPE ELECTRIC PRIVATE LIMITED",
+    bidsClosed: "View Price Cap",
+    blank: "",
   },
   {
-    name: 'ELECTRICAL SOLUTIONS',
-    bidsClosed: '',
-    blank: '',
+    name: "ELECTRICAL SOLUTIONS",
+    bidsClosed: "",
+    blank: "",
   },
   {
-    name: 'IQRA ENTERPRISES',
-    bidsClosed: '',
-    blank: '',
+    name: "IQRA ENTERPRISES",
+    bidsClosed: "",
+    blank: "",
   },
   {
-    name: 'MAC ELECTRICALS',
-    bidsClosed: '',
-    blank: '',
+    name: "MAC ELECTRICALS",
+    bidsClosed: "",
+    blank: "",
   },
   {
-    name: 'Moksh Infra',
-    bidsClosed: '',
-    blank: '',
+    name: "Moksh Infra",
+    bidsClosed: "",
+    blank: "",
   },
 ];
 
-
 export const eventProjectColumns = [
-  { label: 'Sr.No.', key: 'srno' },
-  { label: 'Company', key: 'company' },
-  { label: 'Project', key: 'project' },
-  { label: 'Sub-Project', key: 'subProject' },
-  { label: 'MOR No.', key: 'morNo' },
-  { label: 'Approved Date', key: 'approvedDate' },
-  { label: 'Priority', key: 'priority' },
-  { label: 'Sub-Type', key: 'subType' },
-  { label: 'Assigned to', key: 'assignedTo' },
-  { label: 'Lead Time', key: 'leadTime' },
-  { label: 'Ageing', key: 'ageing' },
-  { label: 'Material', key: 'material' },
-  { label: 'UOM', key: 'uom' },
-  { label: 'Pending Qty', key: 'pendingQty' },
-  { label: 'Status', key: 'status' },
+  { label: "Sr.No.", key: "srno" },
+  { label: "Company", key: "company" },
+  { label: "Project", key: "project" },
+  { label: "Sub-Project", key: "subProject" },
+  { label: "MOR No.", key: "morNo" },
+  { label: "Approved Date", key: "approvedDate" },
+  { label: "Priority", key: "priority" },
+  { label: "Sub-Type", key: "subType" },
+  { label: "Assigned to", key: "assignedTo" },
+  { label: "Lead Time", key: "leadTime" },
+  { label: "Ageing", key: "ageing" },
+  { label: "Material", key: "material" },
+  { label: "UOM", key: "uom" },
+  { label: "Pending Qty", key: "pendingQty" },
+  { label: "Status", key: "status" },
 ];
 
 export const eventProjectData = [
   {
     srno: 1,
-    company: 'Marathon',
-    project: 'Neo Valley',
-    subProject: 'Neo Valley Building',
-    morNo: 'MOR947',
-    date: 'date', 
-    priority: 'Very Urgent',
-    subType: 'Flooring Tiles',
-    assignedTo: 'Sumeet',
-    leadTime: '',
-    ageing: '',
-    material: 'Plain IVORY Tiles 300 x 300 mm',
-    uom: 'Box',
+    company: "Marathon",
+    project: "Neo Valley",
+    subProject: "Neo Valley Building",
+    morNo: "MOR947",
+    date: "date",
+    priority: "Very Urgent",
+    subType: "Flooring Tiles",
+    assignedTo: "Sumeet",
+    leadTime: "",
+    ageing: "",
+    material: "Plain IVORY Tiles 300 x 300 mm",
+    uom: "Box",
     pendingQty: 1000,
-    status: 'MOR Assigned',
+    status: "MOR Assigned",
   },
   {
     srno: 1,
-    company: 'Marathon',
-    project: 'Neo Valley',
-    subProject: 'Neo Valley Building',
-    morNo: 'MOR947',
-    date: 'date', 
-    priority: 'Very Urgent',
-    subType: 'Flooring Tiles',
-    assignedTo: 'Sumeet',
-    leadTime: '',
-    ageing: '',
-    material: 'Plain IVORY Tiles 300 x 300 mm',
-    uom: 'Box',
+    company: "Marathon",
+    project: "Neo Valley",
+    subProject: "Neo Valley Building",
+    morNo: "MOR947",
+    date: "date",
+    priority: "Very Urgent",
+    subType: "Flooring Tiles",
+    assignedTo: "Sumeet",
+    leadTime: "",
+    ageing: "",
+    material: "Plain IVORY Tiles 300 x 300 mm",
+    uom: "Box",
     pendingQty: 1000,
-    status: 'MOR Assigned',
-  }
+    status: "MOR Assigned",
+  },
 ];
 
 // Column Definitions
@@ -344,61 +341,61 @@ export const rfqEventData = [
 ];
 
 export const documentColumns = [
-  { label: 'Sr. No.', key: 'srno' },
-  { label: 'Document Name', key: 'documentname' },
-  { label: 'File Name', key: 'filename' },
-  { label: 'File Type', key: 'filetype' },
-  { label: 'Upload Date', key: 'uploaddate' },
+  { label: "Sr. No.", key: "srno" },
+  { label: "Document Name", key: "documentname" },
+  { label: "File Name", key: "filename" },
+  { label: "File Type", key: "filetype" },
+  { label: "Upload Date", key: "uploaddate" },
 ];
 
 export const documentData = [
   {
     srno: 1,
-    documentname: 'MTO Copy',
-    filename: 'MTO Copy.pdf',
-    filetype: 'PDF',
-    uploaddate: '03-03-2024',
+    documentname: "MTO Copy",
+    filename: "MTO Copy.pdf",
+    filetype: "PDF",
+    uploaddate: "03-03-2024",
   },
   {
     srno: 2,
-    documentname: 'Invoice',
-    filename: 'Invoice123.pdf',
-    filetype: 'PDF',
-    uploaddate: '04-03-2024',
+    documentname: "Invoice",
+    filename: "Invoice123.pdf",
+    filetype: "PDF",
+    uploaddate: "04-03-2024",
   },
 ];
 
 export const deliveryColumns = [
-  { label: 'PO Delivery Date', key: 'poDeliveryDate' },
-  { label: 'Sch. Delivery Qty', key: 'scheduleDeliveryQty' },
-  { label: 'Supplier Delivery Date', key: 'supplierDeliveryDate' },
-  { label: 'Supplier Delivery Qty', key: 'supplierDeliveryQty' },
+  { label: "PO Delivery Date", key: "poDeliveryDate" },
+  { label: "Sch. Delivery Qty", key: "scheduleDeliveryQty" },
+  { label: "Supplier Delivery Date", key: "supplierDeliveryDate" },
+  { label: "Supplier Delivery Qty", key: "supplierDeliveryQty" },
 ];
 
 export const deliveryData = [
   {
-    poDeliveryDate: '10-04-2024',
-    scheduleDeliveryQty: '40',
-    supplierDeliveryDate: '10-04-2024',
-    supplierDeliveryQty: '40',
+    poDeliveryDate: "10-04-2024",
+    scheduleDeliveryQty: "40",
+    supplierDeliveryDate: "10-04-2024",
+    supplierDeliveryQty: "40",
   },
   {
-    poDeliveryDate: '10-04-2024',
-    scheduleDeliveryQty: '40',
-    supplierDeliveryDate: '10-04-2024',
-    supplierDeliveryQty: '40',
+    poDeliveryDate: "10-04-2024",
+    scheduleDeliveryQty: "40",
+    supplierDeliveryDate: "10-04-2024",
+    supplierDeliveryQty: "40",
   },
   {
-    poDeliveryDate: '10-04-2024',
-    scheduleDeliveryQty: '40',
-    supplierDeliveryDate: '10-04-2024',
-    supplierDeliveryQty: '40',
+    poDeliveryDate: "10-04-2024",
+    scheduleDeliveryQty: "40",
+    supplierDeliveryDate: "10-04-2024",
+    supplierDeliveryQty: "40",
   },
   {
-    poDeliveryDate: '10-04-2024',
-    scheduleDeliveryQty: '40',
-    supplierDeliveryDate: '10-04-2024',
-    supplierDeliveryQty: '40',
+    poDeliveryDate: "10-04-2024",
+    scheduleDeliveryQty: "40",
+    supplierDeliveryDate: "10-04-2024",
+    supplierDeliveryQty: "40",
   },
 ];
 
@@ -456,7 +453,7 @@ export const resposneVendorData = [
     bestPrice: "₹ 218 /Nos",
     product: "Plumbing Material",
     bestTotalAmount: "₹ 14,365.03",
-    productVariant: "uPVC COUPLER 4\"",
+    productVariant: 'uPVC COUPLER 4"',
     quantityRequested: "101 Nos",
     deliveryLocation: "Panvel",
   },
@@ -465,7 +462,7 @@ export const resposneVendorData = [
     bestPrice: "₹ 1,717 /Nos",
     product: "Plumbing Material",
     bestTotalAmount: "₹ 31,454.58",
-    productVariant: "UPVC ELBOW 6\"",
+    productVariant: 'UPVC ELBOW 6"',
     quantityRequested: "45 Nos",
     deliveryLocation: "Panvel",
   },
@@ -474,7 +471,7 @@ export const resposneVendorData = [
     bestPrice: "₹ 2,050 /Nos",
     product: "Plumbing Material",
     bestTotalAmount: "₹ 1,780.25",
-    productVariant: "uPVC TEE 6\"",
+    productVariant: 'uPVC TEE 6"',
     quantityRequested: "2 Nos",
     deliveryLocation: "Panvel",
   },
@@ -483,7 +480,7 @@ export const resposneVendorData = [
     bestPrice: "₹ 830 /Nos",
     product: "Plumbing Material",
     bestTotalAmount: "₹ 36,141.93",
-    productVariant: "UPVC COUPLER 6\"",
+    productVariant: 'UPVC COUPLER 6"',
     quantityRequested: "101 Nos",
     deliveryLocation: "Panvel",
   },
@@ -501,7 +498,7 @@ export const resposneVendorData = [
     bestPrice: "₹ 834 /Nos",
     product: "Plumbing Material",
     bestTotalAmount: "₹ 3,128.97",
-    productVariant: "uPVC Flange 6\"",
+    productVariant: 'uPVC Flange 6"',
     quantityRequested: "6 Nos",
     deliveryLocation: "Panvel",
   },
@@ -519,7 +516,7 @@ export const resposneVendorData = [
     bestPrice: "₹ 598 /Nos",
     product: "Plumbing Material",
     bestTotalAmount: "₹ 5,645.12",
-    productVariant: "UPVC BEND 6\" 45 DEGREE",
+    productVariant: 'UPVC BEND 6" 45 DEGREE',
     quantityRequested: "8 Nos",
     deliveryLocation: "Panvel",
   },
@@ -536,81 +533,321 @@ export const freightData = [
 
 export const biddingData = [
   {
-    description: 'SITC of Electrical w...(As per Tec... - 1 Lumpsum)',
+    description: "SITC of Electrical w...(As per Tec... - 1 Lumpsum)",
     vendors: [
-      { vendorName: 'ELECTRIC PRIVATE LIM...', priceQuoted: '₹ 52,12,409.83/Lumpsum' },
-      { vendorName: 'AXIS ELECTRICAL COMPONENT...', priceQuoted: 'Ampere Electrical Services' }
-    ]
+      {
+        vendorName: "ELECTRIC PRIVATE LIM...",
+        priceQuoted: "₹ 52,12,409.83/Lumpsum",
+      },
+      {
+        vendorName: "AXIS ELECTRICAL COMPONENT...",
+        priceQuoted: "Ampere Electrical Services",
+      },
+    ],
   },
   {
-    description: 'SITC of Electrical w...(As per Tec... - 1 Lumpsum)',
+    description: "SITC of Electrical w...(As per Tec... - 1 Lumpsum)",
     vendors: [
-      { vendorName: 'ELECTRIC PRIVATE LIM...', priceQuoted: '₹ 52,12,409.83/Lumpsum' },
-      { vendorName: 'AXIS ELECTRICAL COMPONENT...', priceQuoted: 'Ampere Electrical Services' }
-    ]
+      {
+        vendorName: "ELECTRIC PRIVATE LIM...",
+        priceQuoted: "₹ 52,12,409.83/Lumpsum",
+      },
+      {
+        vendorName: "AXIS ELECTRICAL COMPONENT...",
+        priceQuoted: "Ampere Electrical Services",
+      },
+    ],
   },
   {
-    description: 'SITC of Electrical w...(As per Tec... - 1 Lumpsum)',
+    description: "SITC of Electrical w...(As per Tec... - 1 Lumpsum)",
     vendors: [
-      { vendorName: 'ELECTRIC PRIVATE LIM...', priceQuoted: '₹ 52,12,409.83/Lumpsum' },
-      { vendorName: 'AXIS ELECTRICAL COMPONENT...', priceQuoted: 'Ampere Electrical Services' }
-    ]
+      {
+        vendorName: "ELECTRIC PRIVATE LIM...",
+        priceQuoted: "₹ 52,12,409.83/Lumpsum",
+      },
+      {
+        vendorName: "AXIS ELECTRICAL COMPONENT...",
+        priceQuoted: "Ampere Electrical Services",
+      },
+    ],
   },
   {
-    description: 'SITC of Electrical w...(As per Tec... - 1 Lumpsum)',
+    description: "SITC of Electrical w...(As per Tec... - 1 Lumpsum)",
     vendors: [
-      { vendorName: 'ELECTRIC PRIVATE LIM...', priceQuoted: '₹ 52,12,409.83/Lumpsum' },
-      { vendorName: 'AXIS ELECTRICAL COMPONENT...', priceQuoted: 'Ampere Electrical Services' }
-    ]
+      {
+        vendorName: "ELECTRIC PRIVATE LIM...",
+        priceQuoted: "₹ 52,12,409.83/Lumpsum",
+      },
+      {
+        vendorName: "AXIS ELECTRICAL COMPONENT...",
+        priceQuoted: "Ampere Electrical Services",
+      },
+    ],
   },
   {
-    description: 'SITC of Electrical w...(As per Tec... - 1 Lumpsum)',
+    description: "SITC of Electrical w...(As per Tec... - 1 Lumpsum)",
     vendors: [
-      { vendorName: 'ELECTRIC PRIVATE LIM...', priceQuoted: '₹ 52,12,409.83/Lumpsum' },
-      { vendorName: 'AXIS ELECTRICAL COMPONENT...', priceQuoted: 'Ampere Electrical Services' }
-    ]
-  }
+      {
+        vendorName: "ELECTRIC PRIVATE LIM...",
+        priceQuoted: "₹ 52,12,409.83/Lumpsum",
+      },
+      {
+        vendorName: "AXIS ELECTRICAL COMPONENT...",
+        priceQuoted: "Ampere Electrical Services",
+      },
+    ],
+  },
 ];
 
-export const participantsData = [  
-  {  
-    label: 'Total Participants',  
-    id: 'total-participants',  
-    value: 7  
-  },  
-  {  
-    label: 'Active participants',  
-    id: 'active-participants',  
-    value: 2  
-  },  
-  {  
-    label: 'Total Bids',  
-    id: 'total-bids',  
-    value: 3  
-  },  
-  {  
-    label: 'Revised bids',  
-    id: 'revised-bids',  
-    value: 1  
-  },  
-  {  
-    label: 'Rejected bids',  
-    id: 'rejected-bids',  
-    value: 0  
-  },  
-  {  
-    label: 'Counter offers',  
-    id: 'counter-offers',  
-    value: 0  
-  },  
-  {  
-    label: 'Accepted Counter Offers',  
-    id: 'accepted-counter-offers',  
-    value: 0  
-  },  
-  {  
-    label: 'Dynamic time extended',  
-    id: 'dynamic-time-extended',  
-    value: '0 min'  
-  }  
-];  
+export const participantsData = [
+  {
+    label: "Total Participants",
+    id: "total-participants",
+    value: 7,
+  },
+  {
+    label: "Active participants",
+    id: "active-participants",
+    value: 2,
+  },
+  {
+    label: "Total Bids",
+    id: "total-bids",
+    value: 3,
+  },
+  {
+    label: "Revised bids",
+    id: "revised-bids",
+    value: 1,
+  },
+  {
+    label: "Rejected bids",
+    id: "rejected-bids",
+    value: 0,
+  },
+  {
+    label: "Counter offers",
+    id: "counter-offers",
+    value: 0,
+  },
+  {
+    label: "Accepted Counter Offers",
+    id: "accepted-counter-offers",
+    value: 0,
+  },
+  {
+    label: "Dynamic time extended",
+    id: "dynamic-time-extended",
+    value: "0 min",
+  },
+];
+
+export const eventData = [
+  {
+    timeRemaining: "20H:52M:29S",
+    endsIn: true,
+    name: "Pratik Bhosale",
+    description:
+      "[IN/BEBS3A/Bebscheme3Bwing/84] Electrical - Marathon NextGen Realty Ltd",
+    location: "(BE-B-Scheme-3A)",
+    // deliveryLocation: "Marathon NextGen Realty Ltd",
+    status: "RFQ",
+    productsCount: "700 Nos",
+  },
+  {
+    timeRemaining: "12H:15M:45S",
+    endsIn: false,
+    name: "Aman Sharma",
+    description:
+      "[IN/NXTPH2/ICD001/76] Plumbing Supplies - NexGen Build Pvt Ltd",
+    location: "(Phase-2, Sector-7)",
+    deliveryLocation: "NexGen Build Pvt Ltd",
+    status: "RFQ",
+    productsCount: "450 Nos",
+  },
+  {
+    timeRemaining: "8H:30M:12S",
+    endsIn: true,
+    name: "Rohit Verma",
+    description: "[IN/BLDG4/BWR301/09] Cement Bags - Urban Builders LLP",
+    location: "(Building 4, Wing-B)",
+    deliveryLocation: "Urban Builders LLP",
+    status: "RFQ",
+    productsCount: "1200 Nos",
+  },
+  {
+    timeRemaining: "16H:45M:50S",
+    endsIn: true,
+    name: "Kavita Iyer",
+    description:
+      "[IN/LGCHM/CRT02/21] Tiles & Marble - Landmark Constructions Ltd",
+    location: "(Landmark Grand Heights)",
+    deliveryLocation: "Landmark Constructions Ltd",
+    status: "RFQ",
+    productsCount: "300 Nos",
+  },
+  {
+    timeRemaining: "5H:20M:10S",
+    endsIn: false,
+    name: "Siddharth Joshi",
+    description:
+      "[IN/BSTTWR/FLR15/99] Electrical Wiring - BuildSmart Solutions Pvt Ltd",
+    location: "(Tower-15, Block-A)",
+    deliveryLocation: "BuildSmart Solutions Pvt Ltd",
+    status: "RFQ",
+    productsCount: "180 Nos",
+  },
+  {
+    timeRemaining: "24H:00M:00S",
+    endsIn: true,
+    name: "Meena Patel",
+    description:
+      "[IN/COMMPLX/SH06/88] Lighting Solutions - Bright Future Lighting Co",
+    location: "(Commercial Complex, Shop-6)",
+    deliveryLocation: "Bright Future Lighting Co",
+    status: "RFQ",
+    productsCount: "500 Nos",
+  },
+  {
+    timeRemaining: "7H:45M:30S",
+    endsIn: true,
+    name: "Vikram Singh",
+    description: "[IN/HRTWNG/BW110/54] Roofing Sheets - Horizon Build Corp",
+    location: "(Harmony Wing, Building 110)",
+    deliveryLocation: "Horizon Build Corp",
+    status: "RFQ",
+    productsCount: "750 Nos",
+  },
+  {
+    timeRemaining: "3H:10M:05S",
+    endsIn: true,
+    name: "Nidhi Kapoor",
+    description: "[IN/BLGDS/GRND01/34] Paint Supplies - Elegant Builders Ltd",
+    location: "(Grand Sky Tower, Floor 1)",
+    deliveryLocation: "Elegant Builders Ltd",
+    status: "RFQ",
+    productsCount: "900 Nos",
+  },
+  {
+    timeRemaining: "10H:25M:15S",
+    endsIn: false,
+    name: "Rajat Khurana",
+    description: "[IN/NXTINB/PH1/08] Steel Beams - Superior Structures Pvt Ltd",
+    location: "(Next Innova, Phase-1)",
+    deliveryLocation: "Superior Structures Pvt Ltd",
+    status: "RFQ",
+    productsCount: "650 Nos",
+  },
+  {
+    timeRemaining: "15H:05M:40S",
+    endsIn: false,
+    name: "Aarti Desai",
+    description:
+      "[IN/BLSHP/BLD001/72] Woodwork Supplies - Crafty Solutions Ltd",
+    location: "(Blossom Shops, Block-1)",
+    deliveryLocation: "Crafty Solutions Ltd",
+    status: "RFQ",
+    productsCount: "300 Nos",
+  },
+];
+
+export const eventHistoryData = [
+  {
+    date: "2nd December",
+    entries: [
+      {
+        name: "Pratik Bhosale",
+        description: "[IN/SAH01/sslcce/149] Electrical - Marathon NextGen Realty Ltd",
+        deliveryLocation: "Marathon NextGen Realty Ltd (BE-B-Scheme-3A)",
+        status: "RFQ",
+        productsCount: "231 Nos",
+      },
+      {
+        name: "Pratik Bhosale",
+        description: "[IN/SAH01/SSRCE/200] Hardware - Marathon NextGen Realty Ltd",
+        deliveryLocation: "Marathon NextGen Realty Ltd (BE-B-Scheme-3A)",
+        status: "RFQ",
+        productsCount: "200 Nos",
+        bids: "2 bids",
+      },
+    ],
+  },
+  {
+    date: "30th November",
+    entries: [
+      {
+        name: "Pratik Bhosale",
+        description:
+          "[IN/SevH001/SevHSale/778] ELECTRICAL products - NEXZONE ENERGY UTILITIES LLP (SEVEN HILL) - BHANDUP",
+        deliveryLocation: "NEXZONE ENERGY UTILITIES LLP (SEVEN HILL)",
+        status: "RFQ",
+        productsCount: "2 products",
+        bids: "3 bids",
+      },
+    ],
+  },
+  {
+    date: "1st December",
+    entries: [
+      {
+        name: "Pratik Bhosale",
+        description:
+          "[IN/ABCD01/Test/100] Plumbing - Super Builders Pvt Ltd",
+        deliveryLocation: "Super Builders Pvt Ltd (Project-A)",
+        status: "RFQ",
+        productsCount: "150 Nos",
+      },
+      {
+        name: "Pratik Bhosale",
+        description: "[IN/XYZA02/Trial/200] Flooring - Cityscape Projects Ltd",
+        deliveryLocation: "Cityscape Projects Ltd (Tower-C)",
+        status: "RFQ",
+        productsCount: "300 Sqft",
+        bids: "5 bids",
+      },
+    ],
+  },
+  {
+    date: "28th November",
+    entries: [
+      {
+        name: "Pratik Bhosale",
+        description:
+          "[IN/PQRS03/Example/400] Paint Supplies - Urban Developers Ltd",
+        deliveryLocation: "Urban Developers Ltd (Block-B)",
+        status: "RFQ",
+        productsCount: "500 Ltr",
+      },
+      {
+        name: "Pratik Bhosale",
+        description: "[IN/WXYZ04/Check/500] Tiles - Skyline Realty Ltd",
+        deliveryLocation: "Skyline Realty Ltd (Phase-2)",
+        status: "RFQ",
+        productsCount: "200 Boxes",
+        bids: "4 bids",
+      },
+    ],
+  },
+  {
+    date: "25th November",
+    entries: [
+      {
+        name: "Pratik Bhosale",
+        description:
+          "[IN/LMNO05/Sample/600] Electrical Cables - Greenfield Pvt Ltd",
+        deliveryLocation: "Greenfield Pvt Ltd (Sector-D)",
+        status: "RFQ",
+        productsCount: "1000 Mtr",
+      },
+      {
+        name: "Pratik Bhosale",
+        description:
+          "[IN/QRST06/Mock/700] Doors & Frames - Oceanic Builders Ltd",
+        deliveryLocation: "Oceanic Builders Ltd (Floor-4)",
+        status: "RFQ",
+        productsCount: "50 Sets",
+        bids: "2 bids",
+      },
+    ],
+  },
+];

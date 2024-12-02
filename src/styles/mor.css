@@ -905,7 +905,6 @@ fieldset {
 .nav-tabs button {
   color: #707070 !important;
   background-color: #f8f8f8 !important;
-  margin: 4px;
 }
 
 .setup .nav-tabs button {
@@ -4157,9 +4156,6 @@ label {
   margin-right: 6px;
 }
 
-
-.tbl-container {
-}
 .tbl-container tr{
   text-align: center;
 }
