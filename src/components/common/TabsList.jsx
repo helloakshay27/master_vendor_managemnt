@@ -13,7 +13,6 @@ const TabsList = ({ handleShowModal, renderModal }) => {
       >
         {[
           { id: "responses", label: "Responses" },
-          { id: "comparison", label: "Comparison" },
           { id: "overview", label: "Overview" },
           { id: "participants", label: "Participants" },
           { id: "analytics", label: "Analytics" },

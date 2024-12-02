@@ -1,7 +1,7 @@
 import React from "react";
 import { useState } from "react";
 import "bootstrap-icons/font/bootstrap-icons.css";
-import '../styles/event.css'
+import "../styles/event.css";
 import {
   BulkCounterOfferModal,
   AddEvaluationTimeModal,
@@ -14,7 +14,6 @@ import {
   RecreateOrderModal,
   AnalyticsTab,
   ClockIcon,
-  ComparisonTab,
   OverviewTab,
   ParticipantsTab,
   TabsList,
@@ -27,12 +26,13 @@ import Sidebar from "../components/Sidebar";
 export default function ErpRfqDetailPriceTrends4h() {
   const [showModal, setShowModal] = useState(false);
   const [currentModal, setCurrentModal] = useState(null);
-  const [isOpen, setIsOpen] = useState(false);
   const [participantsOpen, setParticipantsOpen] = useState(true);
   const [savingsOpen, setSavingsOpen] = useState(false);
   const [biddingOpen, setBiddingOpen] = useState(false);
   const [productOpen, setProductOpen] = useState(false);
-  const [isOthersOpen, setIsOthersOpen] = useState(false);
+  const [termAndCond, setTermAndCond] = useState(false);
+  const [orderConf, setOrderConf] = useState(false);
+  const [orderDetails, setOrderDetails] = useState(false);
 
   const participantsAccordion = () => {
     setParticipantsOpen(!participantsOpen);
@@ -46,12 +46,14 @@ export default function ErpRfqDetailPriceTrends4h() {
   const productAccordion = () => {
     setProductOpen(!productOpen);
   };
-  const toggleAccordion = () => {
-    setIsOpen(!isOpen);
+  const termsAccordion = () => {
+    setTermAndCond(!termAndCond);
   };
-
-  const toggleOthersAccordion = () => {
-    setIsOthersOpen(!isOthersOpen);
+  const orderConfAccordion = () => {
+    setOrderConf(!orderConf);
+  };
+  const orderDetailsAccordion = () => {
+    setOrderDetails(!orderDetails);
   };
 
   const handleShowModal = (modalType) => {
@@ -138,13 +140,13 @@ export default function ErpRfqDetailPriceTrends4h() {
 
   return (
     <>
-          <Header />
+      <Header />
       <div className="main-content">
         <Sidebar />
-    
-      <div className="website-content overflow-auto">
-        <div className="module-data-section p-3">
-          <div className="event-order-page">
+
+        <div className="website-content overflow-auto">
+          <div className="module-data-section p-3">
+            <div className="event-order-page">
               <div className=" event-tabs">
                 <div>
                   <h4 className="event-head px-2 ">Events</h4>
@@ -192,13 +194,7 @@ export default function ErpRfqDetailPriceTrends4h() {
                   renderModal={renderModal}
                 />
                 <div className="tab-content mt-3 main-scroll-div">
-                  <ResponseTab
-                    isOpen={isOpen}
-                    isOthersOpen={isOthersOpen}
-                    toggleAccordion={toggleAccordion}
-                    toggleOthersAccordion={toggleOthersAccordion}
-                  />
-                  <ComparisonTab />
+                  <ResponseTab />
                   <OverviewTab
                     participantsOpen={participantsOpen}
                     savingsOpen={savingsOpen}
@@ -208,6 +204,12 @@ export default function ErpRfqDetailPriceTrends4h() {
                     handleSavings={savingsAccordion}
                     handleBiddings={biddingsAccordion}
                     handleProducts={productAccordion}
+                    handleTerms={termsAccordion}
+                    handleOrderConf={orderConfAccordion}
+                    handleOrderDetails={orderDetailsAccordion} 
+                    termsOpen={termAndCond} 
+                    orderConfOpen={orderConf}
+                    orderDetails={orderDetails}   
                   />
                   <ParticipantsTab />
                   <AnalyticsTab />
@@ -215,10 +217,9 @@ export default function ErpRfqDetailPriceTrends4h() {
                 </div>
               </div>
             </div>
+          </div>
         </div>
       </div>
-      </div>
-
     </>
   );
 }

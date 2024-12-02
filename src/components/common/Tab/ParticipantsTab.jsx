@@ -1,4 +1,5 @@
-import React from "react";
+// @ts-nocheck
+import React, { useState } from "react";
 import Table from "../../base/Table/Table";
 import {
   participantsTabColumns,
@@ -7,6 +8,22 @@ import {
 import SearchIcon from "../Icon/SearchIcon";
 
 export default function ParticipantsTab() {
+  // State to track if only selected vendors should be shown
+  const [isSelectCheckboxes, setIsSelectCheckboxes] = useState(false);
+  const [selectedRows, setSelectedRows] = useState([]);
+
+  const handleSwitchChange = (e) => {
+    const checked = e.target.checked;
+  
+    // Set the isSelectCheckboxes state
+    setIsSelectCheckboxes(checked);
+  
+    // If the switch is turned off, clear the selected rows
+    if (!checked) {
+      setSelectedRows([]); // Clear selected checkboxes
+    }
+  };
+
   return (
     <div
       className="tab-pane fade"
@@ -17,18 +34,13 @@ export default function ParticipantsTab() {
     >
       <div>
         <div className="d-flex justify-content-between mt-4 align-items-center">
-          {/* <input
-            type="search"
-            placeholder="Search vendors"
-            className="event-participant-search-in"
-          /> */}
           <div className="input-group">
             <input
               type="search"
               id="searchInput"
               className="w-50 tbl-search"
               placeholder="Type your vendors here"
-              style={{width:'100px !important', marginLeft:'20px',paddingLeft:'10px'}}
+              style={{ width: '100px !important', marginLeft: '20px', paddingLeft: '10px' }}
             />
             <div className="input-group-append">
               <button type="button" className="btn btn-md btn-default">
@@ -47,6 +59,8 @@ export default function ParticipantsTab() {
                   type="checkbox"
                   role="switch"
                   id="flexSwitchCheckDefault"
+                  checked={isSelectCheckboxes}
+                  onChange={handleSwitchChange} // Handle switch toggle
                 />
               </div>
             </div>
@@ -75,6 +89,7 @@ export default function ParticipantsTab() {
           columns={participantsTabColumns}
           data={participantsTabData}
           showCheckbox={true}
+          isSelectCheckboxes={isSelectCheckboxes} // Pass dynamic state to Table
         />
       </div>
     </div>

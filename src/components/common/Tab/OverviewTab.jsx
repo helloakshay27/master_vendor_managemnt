@@ -1,5 +1,11 @@
 import React from "react";
-import { CheckedCircleIcon, EnvelopeIcon, ParticipantsIcon, ShowIcon } from "../..";
+import {
+  CheckedCircleIcon,
+  EnvelopeIcon,
+  ParticipantsIcon,
+  ShowIcon,
+} from "../..";
+import { biddingData, participantsData } from "../../../constant/data";
 
 export default function OverviewTab({
   handleParticipants,
@@ -10,6 +16,12 @@ export default function OverviewTab({
   savingsOpen,
   biddingOpen,
   productOpen,
+  termsOpen,
+  orderConfOpen,
+  orderDetails,
+  handleTerms,
+  handleOrderConf,
+  handleOrderDetails,
 }) {
   return (
     <div
@@ -87,45 +99,22 @@ export default function OverviewTab({
             Participation Summary
           </a>
           {participantsOpen && (
-            <div id="participation-summary">
+            <div id="participation-summary" className="mx-5">
               <div className="card card-body p-2">
                 <div className="participate-sec">
                   <div
-                    className="totals-activity d-flex align-items-center justify-content-between mx-3"
+                    className="totals-activity row mx-3"
                     style={{ gap: "0" }}
                   >
-                    <div className="total-activity">
-                      <p>Total Participants</p>
-                      <p id="total-participants">3</p>
-                    </div>
-                    <div className="total-activity">
-                      <p>Total Participants</p>
-                      <p id="active-participants">3</p>
-                    </div>
-                    <div className="total-activity">
-                      <p>Total Participants</p>
-                      <p id="total-bids">3</p>
-                    </div>
-                    <div className="total-activity">
-                      <p>Total Participants</p>
-                      <p id="revised-bids">3</p>
-                    </div>
-                    <div className="total-activity">
-                      <p>Total Participants</p>
-                      <p id="rejected-bids">3</p>
-                    </div>
-                    <div className="total-activity">
-                      <p>Total Participants</p>
-                      <p id="counter-offers">3</p>
-                    </div>
-                    <div className="total-activity">
-                      <p>Total Participants</p>
-                      <p id="accepted-counter-offers">3</p>
-                    </div>
-                    <div className="total-activity">
-                      <p>Total Participants</p>
-                      <p id="dynamic-time-extended">3</p>
-                    </div>
+                    {participantsData.map((item) => (
+                      <div
+                        className="total-activity col-md-3 my-3"
+                        key={item.id}
+                      >
+                        <p>{item.label}</p>
+                        <p id={item.id}>{item.value}</p>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -153,7 +142,7 @@ export default function OverviewTab({
             Savings Summary
           </a>
           {savingsOpen && (
-            <div id="savings-summary">
+            <div id="savings-summary" className="mx-5">
               <div className="card card-body p-2">
                 {/* View By Section */}
                 <div className="viewBy-main">
@@ -247,54 +236,9 @@ export default function OverviewTab({
             Bidding Summary
           </a>
           {biddingOpen && (
-            <div id="bidding-summary">
+            <div id="bidding-summary" className="mx-5">
               <div className="card card-body p-2">
                 <div className="table-responsive pb-5">
-                  <h5>Quotation / Bid Revision Details</h5>
-                  <div className="tbl-container">
-                    <table className="">
-                      <thead className="thead-dark">
-                        <tr>
-                          <th scope="col">Vendor Name</th>
-                          <th scope="col">Initial Rate </th>
-                          <th scope="col">Initial Amount </th>
-                          <th scope="col">Revised Rate</th>
-                          <th scope="col">Revised Amount</th>
-                          <th>Difference in Amount</th>
-                          <th>Difference in %</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <th scope="row">1</th>
-                          <td>Mark</td>
-                          <td>₹ 61,50,643.6</td>
-                          <td>₹ 61,50,643.6</td>
-                          <td>2</td>
-                          <td>2</td>
-                          <td>2</td>
-                        </tr>
-                        <tr>
-                          <th scope="row">1</th>
-                          <td>Mark</td>
-                          <td>₹ 61,50,643.6</td>
-                          <td>₹ 61,50,643.6</td>
-                          <td>2</td>
-                          <td>2</td>
-                          <td>2</td>
-                        </tr>
-                        <tr>
-                          <th scope="row">1</th>
-                          <td>Mark</td>
-                          <td>₹ 61,50,643.6</td>
-                          <td>₹ 61,50,643.6</td>
-                          <td>2</td>
-                          <td>2</td>
-                          <td>2</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
                   <h5>Line Item Wise</h5>
                   <div className="tbl-container">
                     <table>
@@ -306,86 +250,28 @@ export default function OverviewTab({
                         </tr>
                       </thead>
                       <tbody>
-                        <tr>
-                          <th colSpan={4} style={{ textAlign: "left" }}>
-                            SITC of Electrical w...(As per Tec...&nbsp;-&nbsp;1
-                            Lumpsum)
-                          </th>
-                        </tr>
-                        <tr>
-                          <th scope="row">Vendor Name</th>
-                          <td>ELECTRIC PRIVATE LIM...</td>
-                          <td>AXIS ELECTRICAL COMPONENT...</td>
-                        </tr>
-                        <tr>
-                          <th scope="row">Price Quoted</th>
-                          <td>₹ 52,12,409.83/Lumpsum</td>
-                          <td>Ampere Electrical Services</td>
-                        </tr>
-                        <tr>
-                          <th colSpan={4} style={{ textAlign: "left" }}>
-                            SITC of Electrical w...(As per Tec...&nbsp;-&nbsp;1
-                            Lumpsum)
-                          </th>
-                        </tr>
-                        <tr>
-                          <th scope="row">Vendor Name</th>
-                          <td>ELECTRIC PRIVATE LIM...</td>
-                          <td>AXIS ELECTRICAL COMPONENT...</td>
-                        </tr>
-                        <tr>
-                          <th scope="row">Price Quoted</th>
-                          <td>₹ 52,12,409.83/Lumpsum</td>
-                          <td>Ampere Electrical Services</td>
-                        </tr>
-                        <tr>
-                          <th colSpan={4} style={{ textAlign: "left" }}>
-                            SITC of Electrical w...(As per Tec...&nbsp;-&nbsp;1
-                            Lumpsum)
-                          </th>
-                        </tr>
-                        <tr>
-                          <th scope="row">Vendor Name</th>
-                          <td>ELECTRIC PRIVATE LIM...</td>
-                          <td>AXIS ELECTRICAL COMPONENT...</td>
-                        </tr>
-                        <tr>
-                          <th scope="row">Price Quoted</th>
-                          <td>₹ 52,12,409.83/Lumpsum</td>
-                          <td>Ampere Electrical Services</td>
-                        </tr>
-                        <tr>
-                          <th colSpan={4} style={{ textAlign: "left" }}>
-                            SITC of Electrical w...(As per Tec...&nbsp;-&nbsp;1
-                            Lumpsum)
-                          </th>
-                        </tr>
-                        <tr>
-                          <th scope="row">Vendor Name</th>
-                          <td>ELECTRIC PRIVATE LIM...</td>
-                          <td>AXIS ELECTRICAL COMPONENT...</td>
-                        </tr>
-                        <tr>
-                          <th scope="row">Price Quoted</th>
-                          <td>₹ 52,12,409.83/Lumpsum</td>
-                          <td>Ampere Electrical Services</td>
-                        </tr>
-                        <tr>
-                          <th colSpan={4} style={{ textAlign: "left" }}>
-                            SITC of Electrical w...(As per Tec...&nbsp;-&nbsp;1
-                            Lumpsum)
-                          </th>
-                        </tr>
-                        <tr>
-                          <th scope="row">Vendor Name</th>
-                          <td>ELECTRIC PRIVATE LIM...</td>
-                          <td>AXIS ELECTRICAL COMPONENT...</td>
-                        </tr>
-                        <tr>
-                          <th scope="row">Price Quoted</th>
-                          <td>₹ 52,12,409.83/Lumpsum</td>
-                          <td>Ampere Electrical Services</td>
-                        </tr>
+                        {biddingData.map(({ description, vendors }, index) => (
+                          <React.Fragment key={index}>
+                            <tr>
+                              <th colSpan={3} style={{ textAlign: "left" }}>
+                                {description}
+                              </th>
+                            </tr>
+                            {vendors.map(
+                              ({ vendorName, priceQuoted }, vendorIndex) => (
+                                <tr key={vendorIndex}>
+                                  <th scope="row">
+                                    {vendorIndex === 0
+                                      ? "Vendor Name"
+                                      : "Price Quoted"}
+                                  </th>
+                                  <td>{vendorName}</td>
+                                  <td>{priceQuoted}</td>
+                                </tr>
+                              )
+                            )}
+                          </React.Fragment>
+                        ))}
                       </tbody>
                     </table>
                   </div>
@@ -415,7 +301,7 @@ export default function OverviewTab({
             Product Sheet
           </a>
           {productOpen && (
-            <div id="product-sheet">
+            <div id="product-sheet" className="mx-5">
               <div className="card card-body p-2">
                 <div className="tbl-container">
                   <table className="">
@@ -586,6 +472,125 @@ export default function OverviewTab({
                     </tbody>
                   </table>
                 </div>
+              </div>
+            </div>
+          )}
+        </div>
+        {/* New Section: Terms and Conditions */}
+        <div className="col-12 my-3">
+          <a
+            className="btn"
+            data-bs-toggle="collapse"
+            href="#terms-conditions"
+            role="button"
+            aria-expanded={termsOpen}
+            aria-controls="terms-conditions"
+            onClick={handleTerms}
+            style={{ fontSize: "16px", fontWeight: "normal" }}
+          >
+            <span id="terms-conditions-icon" className="icon-1">
+              {termsOpen ? (
+                <i className="bi bi-dash-lg"></i>
+              ) : (
+                <i className="bi bi-plus-lg"></i>
+              )}
+            </span>
+            Terms and Conditions
+          </a>
+          {termsOpen && (
+            <div id="terms-conditions" className="mx-5">
+              <div className="card card-body mx-3">
+                <p>
+                  1. Payment terms: Net 30 days.
+                  <br />
+                  <br />
+                  2. Delivery within 15 business days.
+                  <br />
+                  <br />
+                  3. Warranty: 1 year from the date of purchase.
+                  <br />
+                  <br />
+                  4. Returns are subject to company policy.
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* New Section: Order Configuration */}
+        <div className="col-12 my-3">
+          <a
+            className="btn"
+            data-bs-toggle="collapse"
+            href="#order-configuration"
+            role="button"
+            aria-expanded={orderConfOpen}
+            aria-controls="order-configuration"
+            onClick={handleOrderConf}
+            style={{ fontSize: "16px", fontWeight: "normal" }}
+          >
+            <span id="order-configuration-icon" className="icon-1">
+              {orderConfOpen ? (
+                <i className="bi bi-dash-lg"></i>
+              ) : (
+                <i className="bi bi-plus-lg"></i>
+              )}
+            </span>
+            Order Configuration
+          </a>
+          {orderConfOpen && (
+            <div id="order-configuration" className="mx-5">
+              <div className="card card-body p-2">
+                <div className="participate-sec">
+                  <div
+                    className="totals-activity row mx-3"
+                    style={{ gap: "0" }}
+                  >
+                    {participantsData.map((item) => (
+                      <div
+                        className="total-activity col-md-3 my-3"
+                        key={item.id}
+                      >
+                        <p>{item.label}</p>
+                        <p id={item.id}>{item.value}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* New Section: Order Details */}
+        <div className="col-12 my-3">
+          <a
+            className="btn"
+            data-bs-toggle="collapse"
+            href="#order-details"
+            role="button"
+            aria-expanded={orderDetails}
+            aria-controls="order-details"
+            onClick={handleOrderDetails}
+            style={{ fontSize: "16px", fontWeight: "normal" }}
+          >
+            <span id="order-details-icon" className="icon-1">
+              {orderDetails ? (
+                <i className="bi bi-dash-lg"></i>
+              ) : (
+                <i className="bi bi-plus-lg"></i>
+              )}
+            </span>
+            Order Details
+          </a>
+          {orderDetails && (
+            <div id="order-details" className="mx-5">
+              <div className="card card-body mx-3">
+                <p>Event Title</p>
+                <p>
+                  [IN/NZR01/NRI01/641] Plumbing Material - NEXZONE-RESIDENTIAL -
+                  Panvel
+                </p>
               </div>
             </div>
           )}

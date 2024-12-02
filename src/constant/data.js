@@ -1,3 +1,5 @@
+import React from "react";
+
 export const activities = [
   {
     text: "Asmita Salvi has extended the bidding time by 1 day.",
@@ -33,7 +35,7 @@ export const activities = [
 export const evaluationOptions = [
   { label: "10 Minutes", value: "10 Minutes" },
   { label: "30 Minutes", value: "30 Minutes" },
-  { label: "7 Days", value: "7 Days" },
+  { label: "60 Minutes", value: "60 Minutes" },
   { label: "Custom", value: "Custom" },
   { label: "Fixed Time", value: "Fixed Time" },
 ];
@@ -419,3 +421,196 @@ export const vendorsData = [
     status: "Not submitted Bid / Quotation",
   },
 ];
+
+export const resposneVendorColumns = [
+  { label: "S no.", key: "sNo" },
+  { label: "Best Price", key: "bestPrice" },
+  { label: "Product", key: "product" },
+  { label: "Best Total Amount", key: "bestTotalAmount" },
+  { label: "Product Variant", key: "productVariant" },
+  { label: "Quantity Requested", key: "quantityRequested" },
+  { label: "Delivery Location", key: "deliveryLocation" },
+];
+
+export const resposneVendorData = [
+  {
+    sNo: "1",
+    bestPrice: "₹ 2,690 /Nos",
+    product: "Plumbing Material",
+    bestTotalAmount: "₹ 1,58,074.69",
+    productVariant: "PVC PIPE SCH 80 4\" X 10'",
+    quantityRequested: "101 Nos",
+    deliveryLocation: "Panvel",
+  },
+  {
+    sNo: "2",
+    bestPrice: "₹ 492 /Nos",
+    product: "Plumbing Material",
+    bestTotalAmount: "₹ 24,726.44",
+    productVariant: "uPVC SOLVENT CEMENT 473 ML",
+    quantityRequested: "69 Nos",
+    deliveryLocation: "Panvel",
+  },
+  {
+    sNo: "3",
+    bestPrice: "₹ 218 /Nos",
+    product: "Plumbing Material",
+    bestTotalAmount: "₹ 14,365.03",
+    productVariant: "uPVC COUPLER 4\"",
+    quantityRequested: "101 Nos",
+    deliveryLocation: "Panvel",
+  },
+  {
+    sNo: "4",
+    bestPrice: "₹ 1,717 /Nos",
+    product: "Plumbing Material",
+    bestTotalAmount: "₹ 31,454.58",
+    productVariant: "UPVC ELBOW 6\"",
+    quantityRequested: "45 Nos",
+    deliveryLocation: "Panvel",
+  },
+  {
+    sNo: "5",
+    bestPrice: "₹ 2,050 /Nos",
+    product: "Plumbing Material",
+    bestTotalAmount: "₹ 1,780.25",
+    productVariant: "uPVC TEE 6\"",
+    quantityRequested: "2 Nos",
+    deliveryLocation: "Panvel",
+  },
+  {
+    sNo: "6",
+    bestPrice: "₹ 830 /Nos",
+    product: "Plumbing Material",
+    bestTotalAmount: "₹ 36,141.93",
+    productVariant: "UPVC COUPLER 6\"",
+    quantityRequested: "101 Nos",
+    deliveryLocation: "Panvel",
+  },
+  {
+    sNo: "7",
+    bestPrice: "₹ 5,160 /Nos",
+    product: "Plumbing Material",
+    bestTotalAmount: "₹ 2,68,198.7",
+    productVariant: "PVC PIPE SCH 80 6\" X 10'",
+    quantityRequested: "86 Nos",
+    deliveryLocation: "Panvel",
+  },
+  {
+    sNo: "8",
+    bestPrice: "₹ 834 /Nos",
+    product: "Plumbing Material",
+    bestTotalAmount: "₹ 3,128.97",
+    productVariant: "uPVC Flange 6\"",
+    quantityRequested: "6 Nos",
+    deliveryLocation: "Panvel",
+  },
+  {
+    sNo: "9",
+    bestPrice: "₹ 291 /Nos",
+    product: "Plumbing Material",
+    bestTotalAmount: "₹ 18,971.75",
+    productVariant: "uPVC PRIMER 237 ML",
+    quantityRequested: "85 Nos",
+    deliveryLocation: "Panvel",
+  },
+  {
+    sNo: "10",
+    bestPrice: "₹ 598 /Nos",
+    product: "Plumbing Material",
+    bestTotalAmount: "₹ 5,645.12",
+    productVariant: "UPVC BEND 6\" 45 DEGREE",
+    quantityRequested: "8 Nos",
+    deliveryLocation: "Panvel",
+  },
+];
+
+export const freightData = [
+  { label: "Freight Charge", value: "₹4,000" },
+  { label: "GST on Freight", value: "18%" },
+  { label: "Realised Freight", value: "₹4,720" },
+  { label: "Warranty Clause", value: "mtc" },
+  { label: "Payment Terms", value: "advance" },
+  { label: "Loading / Unloading", value: "under buyer" },
+];
+
+export const biddingData = [
+  {
+    description: 'SITC of Electrical w...(As per Tec... - 1 Lumpsum)',
+    vendors: [
+      { vendorName: 'ELECTRIC PRIVATE LIM...', priceQuoted: '₹ 52,12,409.83/Lumpsum' },
+      { vendorName: 'AXIS ELECTRICAL COMPONENT...', priceQuoted: 'Ampere Electrical Services' }
+    ]
+  },
+  {
+    description: 'SITC of Electrical w...(As per Tec... - 1 Lumpsum)',
+    vendors: [
+      { vendorName: 'ELECTRIC PRIVATE LIM...', priceQuoted: '₹ 52,12,409.83/Lumpsum' },
+      { vendorName: 'AXIS ELECTRICAL COMPONENT...', priceQuoted: 'Ampere Electrical Services' }
+    ]
+  },
+  {
+    description: 'SITC of Electrical w...(As per Tec... - 1 Lumpsum)',
+    vendors: [
+      { vendorName: 'ELECTRIC PRIVATE LIM...', priceQuoted: '₹ 52,12,409.83/Lumpsum' },
+      { vendorName: 'AXIS ELECTRICAL COMPONENT...', priceQuoted: 'Ampere Electrical Services' }
+    ]
+  },
+  {
+    description: 'SITC of Electrical w...(As per Tec... - 1 Lumpsum)',
+    vendors: [
+      { vendorName: 'ELECTRIC PRIVATE LIM...', priceQuoted: '₹ 52,12,409.83/Lumpsum' },
+      { vendorName: 'AXIS ELECTRICAL COMPONENT...', priceQuoted: 'Ampere Electrical Services' }
+    ]
+  },
+  {
+    description: 'SITC of Electrical w...(As per Tec... - 1 Lumpsum)',
+    vendors: [
+      { vendorName: 'ELECTRIC PRIVATE LIM...', priceQuoted: '₹ 52,12,409.83/Lumpsum' },
+      { vendorName: 'AXIS ELECTRICAL COMPONENT...', priceQuoted: 'Ampere Electrical Services' }
+    ]
+  }
+];
+
+export const participantsData = [  
+  {  
+    label: 'Total Participants',  
+    id: 'total-participants',  
+    value: 7  
+  },  
+  {  
+    label: 'Active participants',  
+    id: 'active-participants',  
+    value: 2  
+  },  
+  {  
+    label: 'Total Bids',  
+    id: 'total-bids',  
+    value: 3  
+  },  
+  {  
+    label: 'Revised bids',  
+    id: 'revised-bids',  
+    value: 1  
+  },  
+  {  
+    label: 'Rejected bids',  
+    id: 'rejected-bids',  
+    value: 0  
+  },  
+  {  
+    label: 'Counter offers',  
+    id: 'counter-offers',  
+    value: 0  
+  },  
+  {  
+    label: 'Accepted Counter Offers',  
+    id: 'accepted-counter-offers',  
+    value: 0  
+  },  
+  {  
+    label: 'Dynamic time extended',  
+    id: 'dynamic-time-extended',  
+    value: '0 min'  
+  }  
+];  

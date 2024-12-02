@@ -72,9 +72,7 @@
   /* Event details start */
   .eventList-parent {
     overflow-y: auto;
-    /* height: 300px; */
-    height: 65vh;
-    padding-right: 5px;
+    padding-right: 10px;
   }
   .eventList-parent::-webkit-scrollbar {
     width: 5px;
@@ -82,7 +80,7 @@
   }
   .eventList-parent::-webkit-scrollbar-thumb {
     background-color: var(--red);
-    border-radius: 5px;
+    border-radius: 15px;
   }
   .eventList-main {
     margin-top: 17px;

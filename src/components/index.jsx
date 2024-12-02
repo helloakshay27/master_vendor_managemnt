@@ -2,6 +2,7 @@
 export { default as DynamicModalBox } from '../components/base/Modal/DynamicModalBox'
 export { default as Table } from '../components/base/Table/Table'
 export { default as CollapsibleCards } from '../components/base/Card/CollapsibleCards'
+export { default as Accordion } from '../components/base/Accordion/Accordion'
 
 // Modals
 export { default as ActivityModal } from '../components/common/Modal/ActivityModal'
@@ -67,10 +68,11 @@ export { default as AnalyticsTab } from '../components/common/Tab/AnalyticsTab'
 export { default as PriceTrendsTab } from '../components/common/Tab/PriceTrendsTab'    
 export { default as ParticipantsTab } from '../components/common/Tab/ParticipantsTab'    
 export { default as OverviewTab } from '../components/common/Tab/OverviewTab'    
-export { default as ComparisonTab } from '../components/common/Tab/ComparisonTab'    
+// export { default as ComparisonTab } from '../components/common/Tab/ComparisonTab'    
 export { default as ResponseTab } from '../components/common/Tab/ResponseTab'    
 
 //Common
 export { default as TabsList } from '../components/common/TabsList'    
 export { default as RfqTabList } from '../components/common/RfqTabList'    
+export { default as ResponseVendor } from '../components/common/ResponseVendor'    
 

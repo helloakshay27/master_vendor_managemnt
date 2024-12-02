@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useState, useEffect } from "react";
 
 export default function Table({
@@ -6,6 +7,7 @@ export default function Table({
   onActionClick = null,
   showCheckbox = false,
   actionIcon = null,
+  isSelectCheckboxes = null,
   ...rest
 }) {
   const [selectAll, setSelectAll] = useState(false); 
@@ -18,7 +20,6 @@ export default function Table({
     } else {
       updatedSelectedRows.push(rowIndex);
     }
-    // @ts-ignore
     setSelectedRows(updatedSelectedRows);
   };
 
@@ -30,6 +31,14 @@ export default function Table({
     }
     setSelectAll(!selectAll);
   };
+
+  useEffect(() => {
+    if (isSelectCheckboxes) {
+      setSelectedRows(data.map((_, index) => index)); // Select all rows if the checkbox switch is on
+    } else {
+      setSelectedRows([]); // Unselect all rows if the checkbox switch is off
+    }
+  }, [isSelectCheckboxes, data.length]);
 
   useEffect(() => {
     if (selectedRows.length === data.length) {
@@ -45,7 +54,7 @@ export default function Table({
         <thead>
           <tr>
             {showCheckbox && (
-              <th style={{ width: "50px", paddingLeft:'15px',paddingTop:'15px' }}>
+              <th style={{ width: "50px", textAlign:'center' }}>
                 <input
                   type="checkbox"
                   checked={selectAll}
@@ -69,7 +78,6 @@ export default function Table({
                 <td>
                   <input
                     type="checkbox"
-                    // @ts-ignore
                     checked={selectedRows.includes(rowIndex)} 
                     onChange={() => handleCheckboxChange(rowIndex)} 
                   />
