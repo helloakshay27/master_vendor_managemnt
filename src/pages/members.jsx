@@ -2,6 +2,7 @@ import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 import Footer from "../components/Footer";
 import { Link } from "react-router-dom";
+import React from "react";
 
 function Members() {
 
@@ -16,10 +17,19 @@ function Members() {
           <div className="module-data-section container-fluid">
             <h1>RFQ Module</h1>
             <ul>
+              <li>
+                <Link to="/create-event">create_event</Link>
+              </li>
+              <li>
+                <Link to="/event-list">event_list</Link>
+              </li>
+              <li>
+                <Link to="/erp-rfq-detail-price-trends4h">event_details_price</Link>
+              </li>
             {/* <li>
                 <Link to="good_receive_notes/:id">grn_detail</Link>
               </li> */}
-              <li>
+              {/* <li>
                 <Link to="/create-rfq">create_rfq</Link>
               </li>
               <li>
@@ -30,7 +40,7 @@ function Members() {
               </li>
               <li>
                 <Link to="/erp-rfq-detail-price-trends4h">erp_rfq_detail_price_trends4h</Link>
-              </li>
+              </li> */}
               {/* <li>
                 <Link to="/stock_register_detail/47">stock_register detail</Link>
               </li> */}

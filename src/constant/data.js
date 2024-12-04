@@ -851,3 +851,11 @@ export const eventHistoryData = [
     ],
   },
 ];
+
+export const reportType = [
+  { value: "Event Detailed Report", label: "Event Detailed Report" },
+  { value: "Live Event Report", label: "Live Event Report" },
+  { value: "Event Summary Report", label: "Event Summary Report" },
+  { value: "Transactional Summary Report", label: "Transactional Summary Report" },
+  { value: "Negotiation Report", label: "Negotiation Report" },
+]
