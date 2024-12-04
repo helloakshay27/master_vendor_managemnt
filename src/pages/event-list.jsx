@@ -207,6 +207,22 @@ const Events = () => {
         title="Download Report"
         show={exportModal}
         onHide={handleCloseExportModal}
+        footerButtons={[
+          {
+            label: "Cancel",
+            onClick: handleCloseExportModal,
+            props: {
+              className: "purple-btn1",
+            },
+          },
+          {
+            label: "Download Excel",
+            onClick: handleCloseExportModal,
+            props: {
+              className: "purple-btn2",
+            },
+          },
+        ]}
         modalType={true}
         children={
           <>

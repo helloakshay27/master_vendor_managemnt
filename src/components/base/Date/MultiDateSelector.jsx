@@ -18,9 +18,9 @@ export default function RangeDateSelector() {
         range 
         maxDate={today} 
         format="YYYY-MM-DD" 
-        placeholder="Select date range"
-        className="form-control" 
+        placeholder="Select duration date"
         inputClass="form-control" 
+        style={{width:'100% !important'}}
       />
       {/* <div className="mt-2">
         <strong>Selected Range:</strong>{" "}
