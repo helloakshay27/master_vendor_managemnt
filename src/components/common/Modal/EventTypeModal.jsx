@@ -1,6 +1,8 @@
 import React from "react";
 import PropTypes from "prop-types";
 import DynamicModalBox from "../../base/Modal/DynamicModalBox";
+import SelectBox from "../../base/Select/SelectBox";
+import { bidsType } from "../../../constant/data";
 
 const EventTypeModal = ({
   size,
@@ -120,13 +122,11 @@ const EventTypeModal = ({
           </div>
         </div>
       </div>
-
       {eventType === "Auction" && (
         <div
           className="pro-radio-tabs pro-radio-tabs2 rfq-tab-hide my-3"
           style={{ gridTemplateColumns: "6fr 6fr" }}
         >
-          {/* Rank Based Radio Button */}
           <div
             className={`pro-radio-tabs__tab ${
               selectedStrategy === "Rank Based"
@@ -165,8 +165,6 @@ const EventTypeModal = ({
               </div>
             </div>
           </div>
-
-          {/* Price Based Radio Button */}
           <div
             className={`pro-radio-tabs__tab ${
               selectedStrategy === "Price Based"
@@ -253,8 +251,6 @@ const EventTypeModal = ({
               </div>
             </div>
           </div>
-
-          {/* Knockout Radio Button */}
           <div
             className={`pro-radio-tabs__tab ${
               selectedStrategy === "Knockout"
@@ -293,8 +289,6 @@ const EventTypeModal = ({
               </div>
             </div>
           </div>
-
-          {/* Dutch Auction Radio Button */}
           <div
             className={`pro-radio-tabs__tab ${
               selectedStrategy === "Dutch Auction"
@@ -437,7 +431,6 @@ const EventTypeModal = ({
           </div>
         </div>
       </div>
-
       <form className="ant-form-item my-4">
         <div>
           <div className="d-flex align-items-center gap-2 my-3">
@@ -555,21 +548,13 @@ const EventTypeModal = ({
                   />
                 </div>
                 <div className="time-extention">
-                  <label>Time extension on change in:</label>
-                  <select
-                    className="form-control form-select"
-                    style={{ width: "100%" }}
-                  >
-                    <option selected disabled>
-                      Select Top bids
-                    </option>
-                    <option>Top 2 bids</option>
-                    <option>Top 3 bids</option>
-                    <option>Top 4 bids</option>
-                    <option>Top 5 bids</option>
-                    <option>Top 6 bids</option>
-                    <option>Top 7 bids</option>
-                  </select>
+                  <SelectBox label={"Time extension on change in:"} 
+                  options={bidsType} 
+                  defaultValue={"Select Top bids"} 
+                  onChange={
+                    (e) => e.target.value
+                  }  
+                  />
                 </div>
               </div>
             </>

@@ -38,7 +38,7 @@ function DynamicModalBox({
           />
         </div>
       </Modal.Header>
-      <Modal.Body>{children}</Modal.Body>
+      <Modal.Body className="position-relative">{children}</Modal.Body>
       {footerButtons.length > 0 && (
         <Modal.Footer className="modal-footer justify-content-center">
           {footerButtons.map((btn, index) => (

@@ -859,3 +859,13 @@ export const reportType = [
   { value: "Transactional Summary Report", label: "Transactional Summary Report" },
   { value: "Negotiation Report", label: "Negotiation Report" },
 ]
+
+export const bidsType = [
+  { value: "Select Top bids", label: "Select Top bids" },
+  { value: "Top 2 bids", label: "Top 2 bids" },
+  { value: "Top 3 bids", label: "Top 3 bids" },
+  { value: "Top 4 bids", label: "Top 4 bids" },
+  { value: "Top 5 bids", label: "Top 5 bids" },
+  { value: "Top 6 bids", label: "Top 6 bids" },
+  { value: "Top 7 bids", label: "Top 7 bids" },
+]

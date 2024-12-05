@@ -5,6 +5,7 @@ export { default as CollapsibleCards } from '../components/base/Card/Collapsible
 export { default as Accordion } from '../components/base/Accordion/Accordion'
 export { default as SelectBox } from '../components/base/Select/SelectBox'
 export { default as MultiDateSelector } from '../components/base/Date/MultiDateSelector'
+export { default as MultipleDropdown } from '../components/base/Dropdown/MultipleDropdown'
 export { default as CheckBoxList } from '../components/base/CheckBox/CheckBoxList'
 
 // Modals
@@ -62,6 +63,7 @@ export { default as FilterIcon } from '../components/common/Icon/FilterIcon'
 export { default as StarIcon } from '../components/common/Icon/StarIcon'   
 export { default as DownloadIcon } from '../components/common/Icon/DownloadIcon'    
 export { default as NotificationIcon } from '../components/common/Icon/NotificationIcon'    
+export { default as OrderIcon } from '../components/common/Icon/OrderIcon'    
 
 // Charts
 export { default as ScatterChart } from '../components/common/Chart/ScatterChart'    

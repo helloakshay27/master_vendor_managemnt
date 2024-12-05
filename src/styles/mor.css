@@ -5188,4 +5188,15 @@ iframe .site-content, iframe .website-content{
   margin-top: 8px;
 }
 
+.form-switch .on-off-toggler.form-check-input {
+  background-color: var(--red);
+  border: var(--red);
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%23fff'/%3e%3c/svg%3e") !important;
+}
+
+.form-switch .on-off-toggler.form-check-input:checked {
+  background-color: var(--red) !important;
+  border: var(--red) !important;
+}
+
 /*# sourceMappingURL=mor.css-ed871f49aadae569d66f8e115a43114d30eed9833a2ddcbeef011041744e80a7.map */

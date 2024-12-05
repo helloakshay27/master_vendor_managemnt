@@ -2,21 +2,45 @@ import React, { useState } from "react";
 import {
   CheckBoxList,
   ClockIcon,
+  DownloadIcon,
   DynamicModalBox,
+  FilterIcon,
+  FilterModal,
   MultiDateSelector,
   SelectBox,
 } from "../components";
 import { eventData, eventHistoryData, reportType } from "../constant/data";
+import { useNavigate } from "react-router-dom";
 
 const Events = () => {
   const [isHistoryActive, setIsHistoryActive] = useState(false);
   const [exportModal, setExportModal] = useState(false);
+  const [filterModal, setFilterModal] = useState(false);
+  const [isChecked, setIsChecked] = useState(false);
+  const [isCustomSelected, setIsCustomSelected] = useState(false);
+
+  const navigate = useNavigate()
+
+  const handleCheckboxChange = (e) => {
+    setIsChecked(e.target.checked);
+  };
+
+  const handleSelectChange = (e) => {
+    const selectedValue = e.target.value;
+    setIsCustomSelected(selectedValue === "Custom");
+  };
 
   const handleExportModal = () => {
     setExportModal(true);
   };
   const handleCloseExportModal = () => {
     setExportModal(false);
+  };
+  const handleFilterModal = () => {
+    setFilterModal(true);
+  };
+  const handleCloseFilterModal = () => {
+    setFilterModal(false);
   };
   const handleTabChange = (tabId) => {
     setIsHistoryActive(tabId === "history");
@@ -42,7 +66,7 @@ const Events = () => {
 
   return (
     <div className="w-100 main-div-k">
-      <div className="event-parent p-4">
+      <div className="event-parent p-4 mb-0">
         <h4>Events</h4>
         <div className="d-flex justify-content-between m-0 p-0">
           <ul
@@ -77,14 +101,30 @@ const Events = () => {
             ))}
           </ul>
           <div className="d-flex align-items-center">
-            {isHistoryActive && (
-              <button className="purple-btn2" onClick={handleExportModal}>
-                <span className="align-text-top pe-3">
-                  <i className="bi bi-download"></i>
-                </span>
-                Export
-              </button>
-            )}
+            <div className="row justify-content-end px-3">
+              <div className="col-md-4">
+                <button
+                  style={{ color: "#de7008" }}
+                  className="btn btn-md"
+                  onClick={handleFilterModal}
+                >
+                  <FilterIcon />
+                </button>
+              </div>
+              {isHistoryActive && (
+                <div className="col-md-6">
+                  <button
+                    style={{ color: "#de7008" }}
+                    id="downloadButton"
+                    type="submit"
+                    className="btn btn-md"
+                    onClick={handleExportModal}
+                  >
+                    <DownloadIcon />
+                  </button>
+                </div>
+              )}
+            </div>
             <button className="purple-btn2">
               <span className="material-symbols-outlined align-text-top">
                 add
@@ -95,7 +135,6 @@ const Events = () => {
         </div>
       </div>
       <div className="tab-content m-2">
-        {/* Live Tab */}
         <div
           className={`tab-pane fade ${
             !isHistoryActive ? "show active" : ""
@@ -106,7 +145,7 @@ const Events = () => {
         >
           <h4>Team Events</h4>
           {eventData.map((event, index) => (
-            <div className="eventList-main" key={index}>
+            <div className="eventList-main" key={index} onClick={() => navigate('/erp-rfq-detail-price-trends4h')}>
               <div className="d-flex flex-row-reverse">
                 <div className="eventList-child1 d-flex align-items-center gap-2 py-3">
                   {event.endsIn ? (
@@ -207,6 +246,7 @@ const Events = () => {
         title="Download Report"
         show={exportModal}
         onHide={handleCloseExportModal}
+        size="xl"
         footerButtons={[
           {
             label: "Cancel",
@@ -225,7 +265,7 @@ const Events = () => {
         ]}
         modalType={true}
         children={
-          <>
+          <div>
             <div className="d-flex">
               <i className="bi bi-info-circle pe-3 pt-1"></i>
               <p>
@@ -253,27 +293,72 @@ const Events = () => {
                 { value: "Custom", label: "Custom" },
               ]}
               defaultValue={"Default report Format"}
-              onChange={(e) => e.target.value}
+              onChange={handleSelectChange}
             />
+
+            <div className="d-flex align-items-end justify-content-between bg-light mx-0 mb-3">
+              <div className="d-flex  align-items-start">
+                <input
+                  type="checkbox"
+                  className="form-check-input me-2"
+                  checked={isChecked}
+                  onChange={handleCheckboxChange}
+                />
+                <p>Select All</p>
+              </div>
+              <div className="d-flex align-items-end">
+                <p>Include Revised Bids</p>
+                <span className="form-switch ps-5">
+                  <input
+                    className="on-off-toggler form-check-input my-2"
+                    type="checkbox"
+                  />
+                </span>
+              </div>
+            </div>
 
             <CheckBoxList
               title="Basic Details"
               items={basicDetails}
               onChange={handleSelectedItems}
+              isAllSelected={isChecked}
             />
             <CheckBoxList
               title="Basic Details"
               items={basicDetails}
               onChange={handleSelectedItems}
+              isAllSelected={isChecked}
             />
             <CheckBoxList
               title="Basic Details"
               items={basicDetails}
               onChange={handleSelectedItems}
+              isAllSelected={isChecked}
+              style={{ paddingBottom: "50px" }}
             />
-          </>
+
+            {isCustomSelected && (
+              <div
+                className="position-fixed bg-light p-2"
+                style={{
+                  width: "80%",
+                  bottom: "calc(0% + 100px)",
+                  right: "0",
+                  transform: "translate(50%, 50%)",
+                }}
+              >
+                <p>Report Format Name</p>
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="Report Format Name"
+                />
+              </div>
+            )}
+          </div>
         }
       />
+      <FilterModal show={filterModal} handleClose={handleCloseFilterModal} />
     </div>
   );
 };

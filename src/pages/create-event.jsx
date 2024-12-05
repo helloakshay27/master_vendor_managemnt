@@ -1,5 +1,11 @@
 import React, { useState } from "react";
-import { EventTypeModal, SelectBox, TrophyIcon } from "../components";
+import {
+  EventTypeModal,
+  MultipleDropdown,
+  SelectBox,
+  Table,
+  TrophyIcon,
+} from "../components";
 
 export default function CreateEvent() {
   const [eventTypeModal, setEventTypeModal] = useState(false);
@@ -31,9 +37,20 @@ export default function CreateEvent() {
     }));
   };
 
-    const handleRadioChange = (strategy) => {
+  const handleRadioChange = (strategy) => {
     setSelectedStrategy(strategy);
   };
+
+  const menuItems = [
+    {
+      label: "Creator",
+      subItems: ["Price Cap", "Tick Size", "Floor Price", "Text Column"],
+    },
+    {
+      label: "Participant",
+      subItems: ["Price Cap", "Tick Size", "Floor Price", "Text Column"],
+    },
+  ];
 
   return (
     <div className="w-100 p-4 pt-0">
@@ -64,10 +81,9 @@ export default function CreateEvent() {
               </div>
               <div
                 className="d-flex align-items-start
-               mb-1"
+               mb-1 gap-2"
                 onClick={handleEventTypeModalShow}
               >
-                <TrophyIcon />
                 <p>Rank on lot</p>
                 <i className="bi bi-chevron-right"></i>
               </div>
@@ -76,19 +92,75 @@ export default function CreateEvent() {
               <SelectBox
                 label={"Templates"}
                 options={[
-                  { value: "MNRL", label: "MNRL" },
-                  { value: "Alaska", label: "Alaska" },
-                  { value: "California", label: "California" },
-                  { value: "Delaware", label: "Delaware" },
-                  { value: "Tennessee", label: "Tennessee" },
-                  { value: "Texas", label: "Texas" },
-                  { value: "Washington", label: "Washington" },
+                  { value: "Select Template", label: "Select Template" },
+                  { value: "Buy Template", label: "Buy Template" },
+                  { value: "BOQ Project", label: "BOQ Project" },
+                  { value: "BOQ Marathon", label: "BOQ Marathon" },
+                  {
+                    value: "Buy Template(Freight and Clause)",
+                    label: "Buy Template(Freight and Clause)",
+                  },
                 ]}
                 defaultValue={"Alaska"}
                 onChange={() => {}}
               />
             </div>
           </form>
+          <div className="d-flex justify-content-end align-items-center">
+            {/* <MultipleDropdown
+              menuItems={menuItems}
+              children={
+                <button className="purple-btn2">
+                  <span className="material-symbols-outlined align-text-top">
+                    add
+                  </span>
+                  Add Column
+                </button>
+              }
+            /> */}
+            {/* <button className="purple-btn2">
+              <span className="material-symbols-outlined align-text-top">
+                add
+              </span>
+              Add Column
+            </button> */}
+            <button className="purple-btn2">
+              <label htmlFor="file-upload" className="m-0">
+                <i className="bi bi-upload me-2"></i>
+                Upload File
+                <input
+                  id="file-upload"
+                  type="file"
+                  style={{ display: "none" }}
+                />
+              </label>
+            </button>
+          </div>
+
+          <Table
+            columns={[
+              { label: "Product", key: "product" },
+              { label: "Product Variant", key: "productVariant" },
+              { label: "Quantity AVailable", key: "quantityAvailable" },
+              { label: "Pickup Location", key: "pickupLocation" },
+              { label: "Price", key: "price" },
+              { label: "Quantity Requested", key: "quantityRequested" },
+              { label: "GST", key: "gst" },
+              { label: "Total Amount", key: "totalAmount" },
+            ]}
+            data={[
+              {
+                product: "",
+                productVariant: "",
+                quantityAvailable: "",
+                pickupLocation: "",
+                price: "",
+                quantityRequested: "",
+                gst: "",
+                totalAmount: "",
+              },
+            ]}
+          />
         </div>
       </div>
       <EventTypeModal
