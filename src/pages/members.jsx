@@ -27,7 +27,7 @@ function Members() {
                 <Link to="/erp-rfq-detail-price-trends4h">event_details_price</Link>
               </li>
             {/* <li>
-                <Link to="good_receive_notes/:id">grn_detail</Link>
+                <Link to="good_receive_notes/:id">grn_detaisl</Link>
               </li> */}
               {/* <li>
                 <Link to="/create-rfq">create_rfq</Link>
