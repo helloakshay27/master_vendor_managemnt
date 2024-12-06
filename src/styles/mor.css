@@ -37,6 +37,13 @@ svg path{
   fill: var(--red) !important;
 } */
 
+:fullscreen {
+  background-color: white !important; /* Set your desired color */
+}
+:-webkit-full-screen {
+  background-color: white !important; /* For Safari and WebKit-based browsers */
+}
+
 .master_pages input[type="checkbox"].violet-check,.master_pages input[type="checkbox"] {
     accent-color: var(--red);
 }
