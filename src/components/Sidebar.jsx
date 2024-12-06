@@ -1,5 +1,6 @@
 import React from 'react'
 import '../styles/mor.css'
+import RFQIcon from './common/Icon/RFQIcon'
 
 const Sidebar = () => {
   
@@ -70,6 +71,17 @@ const Sidebar = () => {
                     />
                   </svg>
                   <span className="menu-link-text">Liaison</span>
+                </a>
+              </li>
+              <li className="menu-item d-flex">
+                <a
+                  className="menu-link active d-flex"
+                  style={{ flexDirection: "column" }}
+                  href="#"
+                  data-section="liaison"
+                >
+                  <RFQIcon />
+                  <span className="menu-link-text">RFQ</span>
                 </a>
               </li>
               <li className="menu-item d-flex">
@@ -160,7 +172,7 @@ const Sidebar = () => {
               </li>
               <li className="menu-item d-flex">
                 <a
-                  className="menu-link active d-flex"
+                  className="menu-link d-flex"
                   href="#"
                   style={{ flexDirection: "column" }}
                   data-section="purchase"

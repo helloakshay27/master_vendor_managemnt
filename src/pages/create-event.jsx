@@ -13,7 +13,15 @@ import {
   TrophyIcon,
   VendorModal,
 } from "../components";
-import { participantsTabColumns, participantsTabData } from "../constant/data";
+import {
+  auditLogColumns,
+  auditLogData,
+  participantsTabColumns,
+  participantsTabData,
+} from "../constant/data";
+import { useNavigate } from "react-router-dom";
+import Sidebar from "../components/Sidebar";
+import Header from "../components/Header";
 
 export default function CreateEvent() {
   const [eventTypeModal, setEventTypeModal] = useState(false);
@@ -26,6 +34,8 @@ export default function CreateEvent() {
   const [dynamicExtension, setDynamicExtension] = useState(false);
   const [selectedStrategy, setSelectedStrategy] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
+
+  const navigate = useNavigate();
 
   const handleApply = () => {
     console.log("Filters applied!");
@@ -85,52 +95,86 @@ export default function CreateEvent() {
   };
 
   return (
-    <div className="w-100 p-4 pb-1">
-      <div className="head-material text-center">
-        <h4>Create RFQ &amp; Auction</h4>
-      </div>
-      <CreateRFQForm
-        handleEventTypeModalShow={handleEventTypeModalShow}
-        handleEventScheduleModalShow={handleEventScheduleModalShow}
-        handleSettingModalShow={() => {}}
-      />
-      <div className="d-flex justify-content-between align-items-end mx-1">
-        <h5 className=" ">Select Vendors</h5>
-        <div className="card-tools">
-          <button
-            className="purple-btn2"
-            data-bs-toggle="modal"
-            data-bs-target="#venderModal"
-            onClick={handleVendorTypeModalShow}
-          >
-            <span className="material-symbols-outlined align-text-top me-2">
-              add{" "}
-            </span>
-            <span>Add</span>
-          </button>
-        </div>
-      </div>
-      <div className="row justify-content-center mx-1">
-        <div className="tbl-container px-0 mx-5 mt-3 ">
-          <table className="w-100">
-            <thead>
-              <tr>
-                <th>Vendor Name</th>
-                <th>Mob No.</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Vendor 1</td>
-                <td>99999999</td>
-                <td />
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-      {/* <div className="d-flex mt-3 eventD-top pb-3 pt-2">
+    <>
+      <Header />
+      <div className="main-content">
+        <Sidebar />
+        <div
+          className="w-100 p-4 mb-2"
+          style={{
+            overflowY: "auto",
+            height: "calc(100vh - 100px)",
+          }}
+        >
+          <div className="head-material text-center">
+            <h4>Create RFQ &amp; Auction</h4>
+          </div>
+          <CreateRFQForm
+            handleEventTypeModalShow={handleEventTypeModalShow}
+            handleEventScheduleModalShow={handleEventScheduleModalShow}
+            handleSettingModalShow={() => {}}
+          />
+          <div className="d-flex justify-content-between align-items-end mx-1">
+            <h5 className=" ">Select Vendors</h5>
+            <div className="card-tools">
+              <button
+                className="purple-btn2"
+                data-bs-toggle="modal"
+                data-bs-target="#venderModal"
+                onClick={handleVendorTypeModalShow}
+              >
+                <span className="material-symbols-outlined align-text-top me-2">
+                  add{" "}
+                </span>
+                <span>Add</span>
+              </button>
+            </div>
+          </div>
+          <div className="row justify-content-center mx-1">
+            <div className="tbl-container px-0 mx-5 mt-3 ">
+              <table className="w-100">
+                <thead>
+                  <tr>
+                    <th>Vendor Name</th>
+                    <th>Mob No.</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Vendor 1</td>
+                    <td>99999999</td>
+                    <td />
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div className="row mt-2 justify-content-end mt-4">
+            <div className="col-md-2">
+              <button className="purple-btn2 w-100">Preview</button>
+            </div>
+            <div className="col-md-2">
+              <button className="purple-btn2 w-100">Submit</button>
+            </div>
+            <div className="col-md-2">
+              <button
+                className="purple-btn1 w-100"
+                onClick={() => {
+                  navigate("/event-list");
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+          <div className="row mt-4 me-3">
+            <h5>Audit Log</h5>
+            <div className="mx-0">
+              <Table columns={auditLogColumns} data={auditLogData} />
+            </div>
+          </div>
+          {/* <div className="d-flex mt-3 eventD-top pb-3 pt-2">
         <p
           className="mb-0 align-items-center modal-p d-flex"
           style={{ width: "6%" }}
@@ -273,167 +317,169 @@ export default function CreateEvent() {
           </div>
         </div>
       </div> */}
-      <EventScheduleModal
-        show={eventScheduleModal}
-        onHide={handleEventScheduleModalClose}
-      />
-      <DynamicModalBox
-        title="Publish Event"
-        footerButtons={[
-          {
-            label: "Edit Schedule",
-            onClick: () => {
-              handlePublishEventModalClose();
-              handleEventScheduleModalShow();
-            },
-            props: {
-              className: "purple-btn1",
-            },
-          },
-          {
-            label: "Save Changes",
-            onClick: handlePublishEventModalClose,
-            props: {
-              className: "purple-btn2",
-            },
-          },
-        ]}
-        show={publishEventModal}
-        onHide={handlePublishEventModalClose}
-        children={<></>}
-      />
-      <DynamicModalBox
-        size="xl"
-        title="All Vendors"
-        show={vendorModal}
-        onHide={handleVendorTypeModalClose}
-        children={
-          <>
-            <div className="d-flex justify-content-between align-items-center">
-              <div className="input-group w-50">
-                <input
-                  type="search"
-                  id="searchInput"
-                  className="tbl-search form-control"
-                  placeholder="Search Vendors"
-                />
-                <div className="input-group-append">
-                  <button type="button" className="btn btn-md btn-default">
-                    <SearchIcon />
-                  </button>
+          <EventScheduleModal
+            show={eventScheduleModal}
+            onHide={handleEventScheduleModalClose}
+          />
+          <DynamicModalBox
+            title="Publish Event"
+            footerButtons={[
+              {
+                label: "Edit Schedule",
+                onClick: () => {
+                  handlePublishEventModalClose();
+                  handleEventScheduleModalShow();
+                },
+                props: {
+                  className: "purple-btn1",
+                },
+              },
+              {
+                label: "Save Changes",
+                onClick: handlePublishEventModalClose,
+                props: {
+                  className: "purple-btn2",
+                },
+              },
+            ]}
+            show={publishEventModal}
+            onHide={handlePublishEventModalClose}
+            children={<></>}
+          />
+          <DynamicModalBox
+            size="xl"
+            title="All Vendors"
+            show={vendorModal}
+            onHide={handleVendorTypeModalClose}
+            children={
+              <>
+                <div className="d-flex justify-content-between align-items-center">
+                  <div className="input-group w-50">
+                    <input
+                      type="search"
+                      id="searchInput"
+                      className="tbl-search form-control"
+                      placeholder="Search Vendors"
+                    />
+                    <div className="input-group-append">
+                      <button type="button" className="btn btn-md btn-default">
+                        <SearchIcon />
+                      </button>
+                    </div>
+                  </div>
+                  <div className="d-flex">
+                    <button
+                      className="purple-btn2 viewBy-main-child2P mb-0"
+                      onClick={handleInviteModalShow}
+                    >
+                      <i className="bi bi-person-plus"></i>
+                      <span className="ms-2">Invite</span>
+                    </button>
+                    <button
+                      className="purple-btn2 viewBy-main-child2P mb-0"
+                      onClick={handleVendorTypeModalShow}
+                    >
+                      <i className="bi bi-filter"></i>
+                      <span className="ms-2">Filter</span>
+                    </button>
+                  </div>
                 </div>
-              </div>
-              <div className="d-flex">
-                <button
-                  className="purple-btn2 viewBy-main-child2P mb-0"
-                  onClick={handleInviteModalShow}
-                >
-                  <i className="bi bi-person-plus"></i>
-                  <span className="ms-2">Invite</span>
-                </button>
-                <button
-                  className="purple-btn2 viewBy-main-child2P mb-0"
-                  onClick={handleVendorTypeModalShow}
-                >
-                  <i className="bi bi-filter"></i>
-                  <span className="ms-2">Filter</span>
-                </button>
-              </div>
-            </div>
-            <div className="d-flex flex-column justify-content-center align-items-center h-100">
-              <Table
-                columns={participantsTabColumns}
-                data={participantsTabData}
-                showCheckbox={true}
-              />
-            </div>
-          </>
-        }
-      />
-      <DynamicModalBox
-        show={inviteModal}
-        onHide={handleInviteModalClose}
-        modalType={true}
-        title="Invite New Vendor"
-        footerButtons={[
-          {
-            label: "Close",
-            onClick: handleInviteModalClose,
-            props: {
-              className: "purple-btn1",
-            },
-          },
-          {
-            label: "Save Changes",
-            onClick: handleInviteModalClose,
-            props: {
-              className: "purple-btn2",
-            },
-          },
-        ]}
-        children={
-          <>
-            <form className="p-2">
-              <div className="form-group mb-3">
-                <label className="po-fontBold">POC - Full Name</label>
-                <input
-                  className="form-control"
-                  type="text"
-                  placeholder="Enter POC Name"
-                />
-              </div>
-              <div className="form-group mb-3">
-                <label className="po-fontBold">Email</label>
-                <input
-                  className="form-control"
-                  type="email"
-                  placeholder="Enter Email Address"
-                />
-              </div>
-              <div className="form-group mb-3">
-                <label className="po-fontBold">GST Number</label>
-                <input
-                  className="form-control"
-                  type="number"
-                  placeholder="Enter GST Number"
-                />
-              </div>
-            </form>
-          </>
-        }
-      />
-      <EventTypeModal
-        show={eventTypeModal}
-        onHide={handleEventTypeModalClose}
-        title={"Configuration for Event"}
-        eventType={eventType}
-        handleEventTypeChange={handleEventTypeChange}
-        eventTypeModal={eventTypeModal}
-        handleEventTypeModalClose={handleEventTypeModalClose}
-        selectedStrategy={selectedStrategy}
-        handleRadioChange={handleRadioChange}
-        awardType={awardType}
-        handleAwardTypeChange={handleAwardTypeChange}
-        dynamicExtension={dynamicExtension}
-        handleDynamicExtensionChange={handleDynamicExtensionChange}
-        size={"xl"}
-        footerButtons={[
-          {
-            label: "Close",
-            onClick: handleEventTypeModalClose,
-            props: {
-              className: "purple-btn1",
-            },
-          },
-          {
-            label: "Save Changes",
-            onClick: handleEventTypeModalClose,
-            props: {
-              className: "purple-btn2",
-            },
-          },
-        ]}
-      />
-    </div>
+                <div className="d-flex flex-column justify-content-center align-items-center h-100">
+                  <Table
+                    columns={participantsTabColumns}
+                    data={participantsTabData}
+                    showCheckbox={true}
+                  />
+                </div>
+              </>
+            }
+          />
+          <DynamicModalBox
+            show={inviteModal}
+            onHide={handleInviteModalClose}
+            modalType={true}
+            title="Invite New Vendor"
+            footerButtons={[
+              {
+                label: "Close",
+                onClick: handleInviteModalClose,
+                props: {
+                  className: "purple-btn1",
+                },
+              },
+              {
+                label: "Save Changes",
+                onClick: handleInviteModalClose,
+                props: {
+                  className: "purple-btn2",
+                },
+              },
+            ]}
+            children={
+              <>
+                <form className="p-2">
+                  <div className="form-group mb-3">
+                    <label className="po-fontBold">POC - Full Name</label>
+                    <input
+                      className="form-control"
+                      type="text"
+                      placeholder="Enter POC Name"
+                    />
+                  </div>
+                  <div className="form-group mb-3">
+                    <label className="po-fontBold">Email</label>
+                    <input
+                      className="form-control"
+                      type="email"
+                      placeholder="Enter Email Address"
+                    />
+                  </div>
+                  <div className="form-group mb-3">
+                    <label className="po-fontBold">GST Number</label>
+                    <input
+                      className="form-control"
+                      type="number"
+                      placeholder="Enter GST Number"
+                    />
+                  </div>
+                </form>
+              </>
+            }
+          />
+          <EventTypeModal
+            show={eventTypeModal}
+            onHide={handleEventTypeModalClose}
+            title={"Configuration for Event"}
+            eventType={eventType}
+            handleEventTypeChange={handleEventTypeChange}
+            eventTypeModal={eventTypeModal}
+            handleEventTypeModalClose={handleEventTypeModalClose}
+            selectedStrategy={selectedStrategy}
+            handleRadioChange={handleRadioChange}
+            awardType={awardType}
+            handleAwardTypeChange={handleAwardTypeChange}
+            dynamicExtension={dynamicExtension}
+            handleDynamicExtensionChange={handleDynamicExtensionChange}
+            size={"xl"}
+            footerButtons={[
+              {
+                label: "Close",
+                onClick: handleEventTypeModalClose,
+                props: {
+                  className: "purple-btn1",
+                },
+              },
+              {
+                label: "Save Changes",
+                onClick: handleEventTypeModalClose,
+                props: {
+                  className: "purple-btn2",
+                },
+              },
+            ]}
+          />
+        </div>
+      </div>
+    </>
   );
 }

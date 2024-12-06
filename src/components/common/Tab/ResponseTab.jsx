@@ -124,7 +124,7 @@ export default function ResponseTab() {
                 <FullClipIcon />
               </div>
             </div>
-            <div className="viewBy-zoom" style={{ marginBottom: "20px" }}>
+            <div className="viewBy-zoom">
               <div
                 className="viewBy-zoomIN"
                 style={{ cursor: "pointer" }}
