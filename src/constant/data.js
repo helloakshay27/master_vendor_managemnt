@@ -193,59 +193,92 @@ export const auditLogData = [
 export const participantsTabColumns = [
   { label: "Name", key: "name" },
   { label: "Bids Closed", key: "bidsClosed" },
-  { label: "", key: "blank" },
+  { label: "Email", key: "email" },
+  { label: "Phone", key: "phone" },
+  { label: "City", key: "city" },
+  { label: "Tags", key: "tags" },
 ];
 
 export const participantsTabData = [
   {
     name: "AXIS ELECTRICAL COMPONENTS INDIA PRIVATE LIMITED",
     bidsClosed: "View Price Cap",
-    blank: "",
+    email: "contact@axis-electrical.com",
+    phone: "9876543210",
+    city: "Mumbai",
+    tags: "Electrical Components",
   },
   {
     name: "AJAY ELECTRICALS",
     bidsClosed: "",
-    blank: "",
+    email: "ajay@ajayelectricals.com",
+    phone: "9876543211",
+    city: "Delhi",
+    tags: "Electricals",
   },
   {
     name: "Ampere Electrical Services",
     bidsClosed: "View Price Cap",
-    blank: "",
+    email: "info@ampere-electrical.com",
+    phone: "9876543212",
+    city: "Bangalore",
+    tags: "Services",
   },
   {
     name: "A.R. ENTERPRISE",
     bidsClosed: "",
-    blank: "",
+    email: "sales@arenterprise.com",
+    phone: "9876543213",
+    city: "Chennai",
+    tags: "Enterprise",
   },
   {
     name: "BRAHMARI POWERTECH PRIVATE LIMITED",
     bidsClosed: "",
-    blank: "",
+    email: "support@brahmaripowertech.com",
+    phone: "9876543214",
+    city: "Hyderabad",
+    tags: "Powertech",
   },
   {
     name: "CAPE ELECTRIC PRIVATE LIMITED",
     bidsClosed: "View Price Cap",
-    blank: "",
+    email: "info@capeelectric.com",
+    phone: "9876543215",
+    city: "Pune",
+    tags: "Private Limited",
   },
   {
     name: "ELECTRICAL SOLUTIONS",
     bidsClosed: "",
-    blank: "",
+    email: "contact@electricalsolutions.com",
+    phone: "9876543216",
+    city: "Ahmedabad",
+    tags: "Solutions",
   },
   {
     name: "IQRA ENTERPRISES",
     bidsClosed: "",
-    blank: "",
+    email: "info@iqraenterprises.com",
+    phone: "9876543217",
+    city: "Kolkata",
+    tags: "Enterprise",
   },
   {
     name: "MAC ELECTRICALS",
     bidsClosed: "",
-    blank: "",
+    email: "contact@macelectricals.com",
+    phone: "9876543218",
+    city: "Mumbai",
+    tags: "Electricals",
   },
   {
     name: "Moksh Infra",
     bidsClosed: "",
-    blank: "",
+    email: "sales@mokshinfra.com",
+    phone: "9876543219",
+    city: "Surat",
+    tags: "Infra",
   },
 ];
 
@@ -757,14 +790,16 @@ export const eventHistoryData = [
     entries: [
       {
         name: "Pratik Bhosale",
-        description: "[IN/SAH01/sslcce/149] Electrical - Marathon NextGen Realty Ltd",
+        description:
+          "[IN/SAH01/sslcce/149] Electrical - Marathon NextGen Realty Ltd",
         deliveryLocation: "Marathon NextGen Realty Ltd (BE-B-Scheme-3A)",
         status: "RFQ",
         productsCount: "231 Nos",
       },
       {
         name: "Pratik Bhosale",
-        description: "[IN/SAH01/SSRCE/200] Hardware - Marathon NextGen Realty Ltd",
+        description:
+          "[IN/SAH01/SSRCE/200] Hardware - Marathon NextGen Realty Ltd",
         deliveryLocation: "Marathon NextGen Realty Ltd (BE-B-Scheme-3A)",
         status: "RFQ",
         productsCount: "200 Nos",
@@ -791,8 +826,7 @@ export const eventHistoryData = [
     entries: [
       {
         name: "Pratik Bhosale",
-        description:
-          "[IN/ABCD01/Test/100] Plumbing - Super Builders Pvt Ltd",
+        description: "[IN/ABCD01/Test/100] Plumbing - Super Builders Pvt Ltd",
         deliveryLocation: "Super Builders Pvt Ltd (Project-A)",
         status: "RFQ",
         productsCount: "150 Nos",
@@ -856,9 +890,12 @@ export const reportType = [
   { value: "Event Detailed Report", label: "Event Detailed Report" },
   { value: "Live Event Report", label: "Live Event Report" },
   { value: "Event Summary Report", label: "Event Summary Report" },
-  { value: "Transactional Summary Report", label: "Transactional Summary Report" },
+  {
+    value: "Transactional Summary Report",
+    label: "Transactional Summary Report",
+  },
   { value: "Negotiation Report", label: "Negotiation Report" },
-]
+];
 
 export const bidsType = [
   { value: "Select Top bids", label: "Select Top bids" },
@@ -868,4 +905,4 @@ export const bidsType = [
   { value: "Top 5 bids", label: "Top 5 bids" },
   { value: "Top 6 bids", label: "Top 6 bids" },
   { value: "Top 7 bids", label: "Top 7 bids" },
-]
+];

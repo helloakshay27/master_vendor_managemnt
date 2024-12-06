@@ -33,6 +33,22 @@ export default function CreateRFQForm({
               />
             </div>
           </div>
+          <div className="col-md-4 mt-0">
+            <div className="form-group">
+              <label className="po-fontBold">Created On</label>
+              <input className="form-control" type="date" />
+            </div>
+          </div>
+          <div className="col-md-4 mt-2">
+            <div className="form-group">
+              <label className="po-fontBold">Material Type</label>
+              <input
+                className="form-control"
+                type="text"
+                placeholder="Enter Material Type"
+              />
+            </div>
+          </div>
           <div className="col-md-4 mt-2">
             <div className="form-group">
               <label className="po-fontBold">Event Schedule</label>
@@ -44,7 +60,7 @@ export default function CreateRFQForm({
                                                           [HH] Hrs [MM] Mins)"
             />
           </div>
-          <div className="col-md-4 mt-2">
+          {/* <div className="col-md-4 mt-2">
             <SelectBox
               label={"Templates"}
               options={[
@@ -60,13 +76,40 @@ export default function CreateRFQForm({
               defaultValue={"Alaska"}
               onChange={() => {}}
             />
-          </div>
+          </div> */}
         </div>
         <div className="mx-3">
           <Table
-            columns={orderSummaryColumns}
-            data={orderSummaryData}
-            showCheckbox={true}
+            columns={[
+              { label: "Description of Item", key: "descriptionOfItem" },
+              { label: "Quantity", key: "quantity" },
+              { label: "Location", key: "location" },
+              { label: "Rate", key: "rate" },
+              { label: "Amount", key: "amount" },
+            ]}
+            data={[
+              {
+                descriptionOfItem: "Air Release Valve",
+                quantity: "10",
+                location: "Panvel",
+                rate: "180",
+                amount: "1800",
+              },
+              {
+                descriptionOfItem: "Electrical Shaft Painting",
+                quantity: "5",
+                location: "Mulund",
+                rate: "180",
+                amount: "900",
+              },
+              {
+                descriptionOfItem: "Fiber Glass Mesh",
+                quantity: "2",
+                location: "Pune",
+                rate: "500",
+                amount: "1000",
+              },
+            ]}
           />
         </div>
       </div>

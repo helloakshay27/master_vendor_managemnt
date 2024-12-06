@@ -14,16 +14,16 @@ function DynamicModalBox({
   modalType = null
 }) {
   return (
-    <Modal
-      centered={centered}
-      // @ts-ignore
-      size={size}
-      show={show}
-      onHide={onHide}
-      backdrop={backdrop}
-      keyboard={keyboard}
-      className={modalType ? "setting-modal" : "modal-centered-custom"}
-    >
+      <Modal
+        centered={centered}
+        // @ts-ignore
+        size='xl'
+        show={show}
+        onHide={onHide}
+        backdrop={backdrop}
+        keyboard={keyboard}
+        className={modalType ? "setting-modal" : "modal-centered-custom"}
+      >
       <Modal.Header>
         <div className="container-fluid p-0 d-flex justify-content-between align-items-center">
           <h5 className="modal-title text-center w-100" id="modalTitle">

@@ -13,9 +13,11 @@ import {
   TrophyIcon,
   VendorModal,
 } from "../components";
+import { participantsTabColumns, participantsTabData } from "../constant/data";
 
 export default function CreateEvent() {
   const [eventTypeModal, setEventTypeModal] = useState(false);
+  const [inviteModal, setInviteModal] = useState(false);
   const [publishEventModal, setPublishEventModal] = useState(false);
   const [eventScheduleModal, setEventScheduleModal] = useState(false);
   const [vendorModal, setVendorModal] = useState(false);
@@ -26,7 +28,7 @@ export default function CreateEvent() {
   const [showPopup, setShowPopup] = useState(false);
 
   const handleApply = () => {
-    console.log('Filters applied!');
+    console.log("Filters applied!");
     setShowPopup(false);
   };
 
@@ -35,6 +37,13 @@ export default function CreateEvent() {
   };
   const handleEventTypeModalClose = () => {
     setEventTypeModal(false);
+  };
+  const handleInviteModalShow = () => {
+    setVendorModal(false);
+    setInviteModal(true);
+  };
+  const handleInviteModalClose = () => {
+    setInviteModal(false);
   };
   const handlePublishEventModalShow = () => {
     setPublishEventModal(true);
@@ -75,19 +84,11 @@ export default function CreateEvent() {
     setSelectedStrategy(strategy);
   };
 
-  const menuItems = [
-    {
-      label: "Creator",
-      subItems: ["Price Cap", "Tick Size", "Floor Price", "Text Column"],
-    },
-    {
-      label: "Participant",
-      subItems: ["Price Cap", "Tick Size", "Floor Price", "Text Column"],
-    },
-  ];
-
   return (
     <div className="w-100 p-4 pb-1">
+      <div className="head-material text-center">
+        <h4>Create RFQ &amp; Auction</h4>
+      </div>
       <CreateRFQForm
         handleEventTypeModalShow={handleEventTypeModalShow}
         handleEventScheduleModalShow={handleEventScheduleModalShow}
@@ -301,11 +302,8 @@ export default function CreateEvent() {
         onHide={handlePublishEventModalClose}
         children={<></>}
       />
-
-      <VendorModal show={vendorModal} onHide={handleVendorTypeModalClose} />
-
-      {/* <DynamicModalBox
-        size="lg"
+      <DynamicModalBox
+        size="xl"
         title="All Vendors"
         show={vendorModal}
         onHide={handleVendorTypeModalClose}
@@ -328,8 +326,9 @@ export default function CreateEvent() {
               <div className="d-flex">
                 <button
                   className="purple-btn2 viewBy-main-child2P mb-0"
-                  onClick={handleVendorTypeModalShow}
+                  onClick={handleInviteModalShow}
                 >
+                  <i className="bi bi-person-plus"></i>
                   <span className="ms-2">Invite</span>
                 </button>
                 <button
@@ -342,12 +341,67 @@ export default function CreateEvent() {
               </div>
             </div>
             <div className="d-flex flex-column justify-content-center align-items-center h-100">
-              <p>No Vendors Found</p>
+              <Table
+                columns={participantsTabColumns}
+                data={participantsTabData}
+                showCheckbox={true}
+              />
             </div>
           </>
         }
+      />
+      <DynamicModalBox
+        show={inviteModal}
+        onHide={handleInviteModalClose}
         modalType={true}
-      /> */}
+        title="Invite New Vendor"
+        footerButtons={[
+          {
+            label: "Close",
+            onClick: handleInviteModalClose,
+            props: {
+              className: "purple-btn1",
+            },
+          },
+          {
+            label: "Save Changes",
+            onClick: handleInviteModalClose,
+            props: {
+              className: "purple-btn2",
+            },
+          },
+        ]}
+        children={
+          <>
+            <form className="p-2">
+              <div className="form-group mb-3">
+                <label className="po-fontBold">POC - Full Name</label>
+                <input
+                  className="form-control"
+                  type="text"
+                  placeholder="Enter POC Name"
+                />
+              </div>
+              <div className="form-group mb-3">
+                <label className="po-fontBold">Email</label>
+                <input
+                  className="form-control"
+                  type="email"
+                  placeholder="Enter Email Address"
+                />
+              </div>
+              <div className="form-group mb-3">
+                <label className="po-fontBold">GST Number</label>
+                <input
+                  className="form-control"
+                  type="number"
+                  placeholder="Enter GST Number"
+                />
+              </div>
+            </form>
+          </>
+        }
+      />
       <EventTypeModal
         show={eventTypeModal}
         onHide={handleEventTypeModalClose}
