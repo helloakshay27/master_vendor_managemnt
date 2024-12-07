@@ -12,17 +12,20 @@ import {
   Table,
   TrophyIcon,
   VendorModal,
+  Popup,
+  MultiSelector,
 } from "../components";
 import {
   auditLogColumns,
   auditLogData,
+  citiesList,
   participantsTabColumns,
   participantsTabData,
 } from "../constant/data";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import Header from "../components/Header";
-
+import PopupBox from "../components/base/Popup/Popup";
 export default function CreateEvent() {
   const [eventTypeModal, setEventTypeModal] = useState(false);
   const [inviteModal, setInviteModal] = useState(false);
@@ -34,6 +37,17 @@ export default function CreateEvent() {
   const [dynamicExtension, setDynamicExtension] = useState(false);
   const [selectedStrategy, setSelectedStrategy] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
+  const [selectedTags, setSelectedTags] = useState([]);
+
+  const options = [
+    { value: "BUILDING MATERIAL", label: "BUILDING MATERIAL" },
+    { value: "MIVAN MA", label: "MIVAN MA" },
+    { value: "MIVAN MATERIAL", label: "MIVAN MATERIAL" },
+  ];
+
+  const handleChange = (selectedOption) => {
+    setSelectedTags(selectedOption);
+  };
 
   const navigate = useNavigate();
 
@@ -377,11 +391,68 @@ export default function CreateEvent() {
                     </button>
                     <button
                       className="purple-btn2 viewBy-main-child2P mb-0"
-                      onClick={handleVendorTypeModalShow}
+                      onClick={() => setShowPopup(true)}
                     >
                       <i className="bi bi-filter"></i>
                       <span className="ms-2">Filter</span>
                     </button>
+
+                    <PopupBox
+                      title="Filter by"
+                      show={showPopup}
+                      onClose={() => setShowPopup(false)}
+                      footerButtons={[
+                        {
+                          label: "Cancel",
+                          onClick: () => setShowPopup(false),
+                          props: {
+                            className: "purple-btn1",
+                          },
+                        },
+                        {
+                          label: "Apply",
+                          onClick: handleApply,
+                          props: {
+                            className: "purple-btn2",
+                          },
+                        },
+                      ]}
+                      children={
+                        <div>
+                          <div style={{ marginBottom: "12px" }}>
+                            <SelectBox
+                              label={"City"}
+                              options={citiesList}
+                              defaultValue={""}
+                              onChange={(e) => e.target.value}
+                            />
+                          </div>
+
+                          <div style={{ marginBottom: "12px" }}>
+                            <p>Filter By Tags</p>
+                            <MultiSelector
+                              options={options}
+                              value={selectedTags}
+                              onChange={handleChange}
+                              placeholder={"Filter by tags"}
+                            />
+                          </div>
+                          <div className="d-flex align-items-center">
+                            <div className="form-check form-switch mt-1">
+                              <input
+                                className="form-check-input"
+                                type="checkbox"
+                                role="switch"
+                                id="flexSwitchCheckDefault"
+                              />
+                            </div>
+                            <p className="mb-0 pe-1">
+                              Show only selected vendors
+                            </p>
+                          </div>
+                        </div>
+                      }
+                    />
                   </div>
                 </div>
                 <div className="d-flex flex-column justify-content-center align-items-center h-100">

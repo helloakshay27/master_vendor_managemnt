@@ -5,7 +5,6 @@ const PopupBox = ({
   title, 
   show, 
   onClose, 
-  onApply, 
   children, 
   footerButtons 
 }) => {
@@ -40,19 +39,17 @@ const PopupBox = ({
       <div>{children}</div>
 
       {/* Footer Buttons */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '16px' }}>
+      <div style={{ display: 'flex', justifyContent: 'center', marginTop: '16px' }}>
         {footerButtons?.map((btn, index) => (
           <button
             key={index}
             style={{
               padding: '6px 12px',
               borderRadius: '4px',
-              border: 'none',
               cursor: 'pointer',
-              backgroundColor: btn.variant === 'primary' ? '#007bff' : '#6c757d',
-              color: '#fff',
             }}
             onClick={btn.onClick}
+            {...btn.props}
           >
             {btn.label}
           </button>

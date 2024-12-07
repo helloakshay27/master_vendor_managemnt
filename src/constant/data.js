@@ -906,3 +906,39 @@ export const bidsType = [
   { value: "Top 6 bids", label: "Top 6 bids" },
   { value: "Top 7 bids", label: "Top 7 bids" },
 ];
+
+export const citiesList = [
+  { value: "Mumbai", label: "Mumbai" },
+  { value: "Delhi", label: "Delhi" },
+  { value: "Bangalore", label: "Bangalore" },
+  { value: "Hyderabad", label: "Hyderabad" },
+  { value: "Ahmedabad", label: "Ahmedabad" },
+  { value: "Chennai", label: "Chennai" },
+  { value: "Kolkata", label: "Kolkata" },
+  { value: "Pune", label: "Pune" },
+  { value: "Jaipur", label: "Jaipur" },
+  { value: "Lucknow", label: "Lucknow" },
+  { value: "Kanpur", label: "Kanpur" },
+  { value: "Nagpur", label: "Nagpur" },
+  { value: "Indore", label: "Indore" },
+  { value: "Thane", label: "Thane" },
+  { value: "Bhopal", label: "Bhopal" },
+  { value: "Visakhapatnam", label: "Visakhapatnam" },
+  { value: "Pimpri-Chinchwad", label: "Pimpri-Chinchwad" },
+  { value: "Patna", label: "Patna" },
+  { value: "Vadodara", label: "Vadodara" },
+  { value: "Ghaziabad", label: "Ghaziabad" },
+];
+
+export const options = [
+  { value: "Rajnish Patil", label: "Rajnish Patil" },
+  { value: "Lockated Demo", label: "Lockated Demo" },
+  { value: "Abdul G", label: "Abdul G" },
+  { value: "Kiran Sharma", label: "Kiran Sharma" },
+  { value: "Dinesh Shinde", label: "Dinesh Shinde" },
+  { value: "PSIPL 1", label: "PSIPL 1" },
+  { value: "Jayesh P", label: "Jayesh P" },
+  { value: "Rabi Narayan", label: "Rabi Narayan" },
+  { value: "Zs Demo", label: "Zs Demo" },
+  { value: "Suyash Jagdale", label: "Suyash Jagdale" },
+];

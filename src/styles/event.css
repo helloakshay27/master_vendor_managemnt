@@ -85,6 +85,11 @@
   .eventList-main {
     margin-top: 17px;
   }
+
+  .eventList-main:hover {
+    cursor: pointer;
+  }
+
   .eventList-child1 {
     padding: 5px 27px;
     background-color: var(--red);

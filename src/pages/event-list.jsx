@@ -234,6 +234,7 @@ const Events = () => {
                     <div
                       className="eventList-main mt-0 mb-2 rounded-top-0"
                       key={index}
+                      onClick={() => navigate("/erp-rfq-detail-price-trends4h")}
                     >
                       <div className="eventList-child2">
                         <div className="d-flex justify-content-between">

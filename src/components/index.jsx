@@ -4,9 +4,11 @@ export { default as Table } from '../components/base/Table/Table'
 export { default as CollapsibleCards } from '../components/base/Card/CollapsibleCards'
 export { default as Accordion } from '../components/base/Accordion/Accordion'
 export { default as SelectBox } from '../components/base/Select/SelectBox'
+export { default as MultiSelector } from '../components/base/Select/MultiSelector'
 export { default as MultiDateSelector } from '../components/base/Date/MultiDateSelector'
 export { default as MultipleDropdown } from '../components/base/Dropdown/MultipleDropdown'
 export { default as CheckBoxList } from '../components/base/CheckBox/CheckBoxList'
+export { default as Popup } from '../components/base/Popup/Popup'
 
 // Modals
 export { default as ActivityModal } from '../components/common/Modal/ActivityModal'
