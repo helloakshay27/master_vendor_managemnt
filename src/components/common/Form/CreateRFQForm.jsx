@@ -1,14 +1,74 @@
-import { orderSummaryColumns, orderSummaryData } from "../../../constant/data";
+import {
+  mumbaiLocations,
+  orderSummaryColumns,
+  orderSummaryData,
+  product,
+  unitMeasure,
+} from "../../../constant/data";
+import MultiSelector from "../../base/Select/MultiSelector";
 import SelectBox from "../../base/Select/SelectBox";
 import Table from "../../base/Table/Table";
-import SettingIcon from "../Icon/SettingIcon";
-import React from "react";
+import React, { useState } from "react";
 
 export default function CreateRFQForm({
   handleEventTypeModalShow,
   handleEventScheduleModalShow,
   handleSettingModalShow,
 }) {
+  const [data, setData] = useState([
+    {
+      descriptionOfItem: [],
+      quantity: "",
+      unit: [],
+      location: [],
+      rate: "",
+      amount: "",
+    },
+  ]);
+
+  const handleDescriptionOfItemChange = (selected, rowIndex) => {
+    const updatedData = [...data];
+    updatedData[rowIndex].descriptionOfItem = selected;
+    setData(updatedData);
+  };
+  const handleUnitChange = (selected, rowIndex) => {
+    const updatedData = [...data];
+    updatedData[rowIndex].unit = selected;
+    setData(updatedData);
+  };
+  const handleLocationChange = (selected, rowIndex) => {
+    const updatedData = [...data];
+    updatedData[rowIndex].location = selected;
+    setData(updatedData);
+  };
+
+  const handleInputChange = (value, rowIndex, key) => {
+    const updatedData = [...data];
+    updatedData[rowIndex][key] = value;
+    setData(updatedData);
+  };
+
+  // Remove row by index (except the first row)
+  const handleRemoveRow = (rowIndex) => {
+    if (rowIndex > 0) {
+      const updatedData = data.filter((_, index) => index !== rowIndex);
+      setData(updatedData);
+    }
+  };
+
+  // Add a new row
+  const handleAddRow = () => {
+    const newRow = {
+      descriptionOfItem: [],
+      quantity: "",
+      unit: [],
+      location: [],
+      rate: "",
+      amount: "",
+    };
+    setData([...data, newRow]);
+  };
+
   return (
     <div className="row ">
       <div className="card-body">
@@ -60,56 +120,113 @@ export default function CreateRFQForm({
                                                           [HH] Hrs [MM] Mins)"
             />
           </div>
-          {/* <div className="col-md-4 mt-2">
-            <SelectBox
-              label={"Templates"}
-              options={[
-                { value: "Select Template", label: "Select Template" },
-                { value: "Buy Template", label: "Buy Template" },
-                { value: "BOQ Project", label: "BOQ Project" },
-                { value: "BOQ Marathon", label: "BOQ Marathon" },
-                {
-                  value: "Buy Template(Freight and Clause)",
-                  label: "Buy Template(Freight and Clause)",
-                },
-              ]}
-              defaultValue={"Alaska"}
-              onChange={() => {}}
-            />
-          </div> */}
         </div>
         <div className="mx-3">
+          <div className="head-material d-flex justify-content-between">
+            <h4>Select Materials</h4>
+            <button
+              className="purple-btn2"
+              data-bs-toggle="modal"
+              data-bs-target="#venderModal"
+              onClick={handleAddRow}
+            >
+              <span className="material-symbols-outlined align-text-top me-2">
+                add{" "}
+              </span>
+              <span>Add</span>
+            </button>
+          </div>
           <Table
             columns={[
               { label: "Description of Item", key: "descriptionOfItem" },
               { label: "Quantity", key: "quantity" },
+              { label: "Unit", key: "unit" },
               { label: "Location", key: "location" },
               { label: "Rate", key: "rate" },
               { label: "Amount", key: "amount" },
+              { label: "Actions", key: "actions" }, // Add a column for the remove button
             ]}
-            data={[
-              {
-                descriptionOfItem: "Air Release Valve",
-                quantity: "10",
-                location: "Panvel",
-                rate: "180",
-                amount: "1800",
-              },
-              {
-                descriptionOfItem: "Electrical Shaft Painting",
-                quantity: "5",
-                location: "Mulund",
-                rate: "180",
-                amount: "900",
-              },
-              {
-                descriptionOfItem: "Fiber Glass Mesh",
-                quantity: "2",
-                location: "Pune",
-                rate: "500",
-                amount: "1000",
-              },
-            ]}
+            data={data} // Pass the updated data
+            customRender={{
+              descriptionOfItem: (cell, rowIndex) => (
+                <MultiSelector
+                  options={product}
+                  value={cell}
+                  onChange={(selected) =>
+                    handleDescriptionOfItemChange(selected, rowIndex)
+                  }
+                  placeholder="Select Items"
+                />
+              ),
+              unit: (cell, rowIndex) => (
+                // <MultiSelector
+                //   options={unitMeasure}
+                //   value={cell}
+                //   onChange={(selected) => handleUnitChange(selected, rowIndex)}
+                //   placeholder="Select Measurement Unit"
+                // />
+                <SelectBox
+                  isDisableFirstOption={true}
+                  label={""}
+                  options={unitMeasure}
+                  defaultValue={cell}
+                  onChange={(selected) => handleUnitChange(selected, rowIndex)}
+                />
+              ),
+              location: (cell, rowIndex) => (
+                <SelectBox
+                  label={""}
+                  defaultValue={cell}
+                  onChange={(selected) =>
+                    handleLocationChange(selected, rowIndex)
+                  }
+                  options={mumbaiLocations}
+                  isDisableFirstOption={true}
+                />
+              ),
+              quantity: (cell, rowIndex) => (
+                <input
+                  className="form-control"
+                  type="number"
+                  value={cell}
+                  onChange={(e) =>
+                    handleInputChange(e.target.value, rowIndex, "quantity")
+                  }
+                  placeholder="Enter Quantity"
+                />
+              ),
+              rate: (cell, rowIndex) => (
+                <input
+                  className="form-control"
+                  type="number"
+                  value={cell}
+                  onChange={(e) =>
+                    handleInputChange(e.target.value, rowIndex, "rate")
+                  }
+                  placeholder="Enter Rate"
+                />
+              ),
+              amount: (cell, rowIndex) => (
+                <input
+                  className="form-control"
+                  type="number"
+                  value={cell}
+                  onChange={(e) =>
+                    handleInputChange(e.target.value, rowIndex, "amount")
+                  }
+                  placeholder="Enter Amount"
+                />
+              ),
+              actions: (_, rowIndex) => (
+                <button
+                  className="btn btn-danger"
+                  onClick={() => handleRemoveRow(rowIndex)}
+                  disabled={rowIndex === 0} // Disable the button for the first row
+                >
+                  Remove
+                </button>
+              ),
+            }}
           />
         </div>
       </div>

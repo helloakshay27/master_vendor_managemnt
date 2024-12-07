@@ -62,6 +62,40 @@ const Events = () => {
     "Event Mode",
   ];
 
+  const bidDetails = [
+    "Total Vendors invited",
+    "Number of Revisions",
+    "Bidder Company",
+    "Bid Placed At",
+    "Bid Status",
+    "Initial Price",
+    "Final Price",
+    "Bid Quantity",
+    "Bid Quantity UOM",
+    "Bidder Remarks",
+  ];
+
+  const productDetails = [
+    "Article Code",
+    "Article Name",
+    "Article Category",
+    "Article Family",
+    "Product Variant",
+    "Location Name",
+    "Requested Quantity",
+    "Requested Quantity UOM",
+  ];
+
+  
+
+  const SavingDetails = [
+    "Budget Savings",
+    "Historical Price Savings",
+    "Existing Proposal Savings",
+    "Last Purchase Price Savings",
+    "Default Savings",
+  ];
+
   const handleSelectedItems = (selectedItems) => {
     console.log("Selected Items: ", selectedItems);
   };
@@ -128,20 +162,25 @@ const Events = () => {
                     </button>
                   </div>
                   {/* {isHistoryActive && ( */}
-                    <div className="col-md-6">
-                      <button
-                        style={{ color: "#de7008" }}
-                        id="downloadButton"
-                        type="submit"
-                        className="btn btn-md"
-                        onClick={handleExportModal}
-                      >
-                        <DownloadIcon />
-                      </button>
-                    </div>
+                  <div className="col-md-6">
+                    <button
+                      style={{ color: "#de7008" }}
+                      id="downloadButton"
+                      type="submit"
+                      className="btn btn-md"
+                      onClick={handleExportModal}
+                    >
+                      <DownloadIcon />
+                    </button>
+                  </div>
                   {/* )} */}
                 </div>
-                <button className="purple-btn2" onClick={() => {navigate('/create-event')}}>
+                <button
+                  className="purple-btn2"
+                  onClick={() => {
+                    navigate("/create-event");
+                  }}
+                >
                   <span className="material-symbols-outlined align-text-top">
                     add
                   </span>
@@ -344,11 +383,11 @@ const Events = () => {
                       <input
                         className="on-off-toggler form-check-input my-2"
                         type="checkbox"
+                        onChange={handleCheckboxChange}
                       />
                     </span>
                   </div>
                 </div>
-
                 <CheckBoxList
                   title="Basic Details"
                   items={basicDetails}
@@ -356,14 +395,14 @@ const Events = () => {
                   isAllSelected={isChecked}
                 />
                 <CheckBoxList
-                  title="Basic Details"
-                  items={basicDetails}
+                  title="Bid Details"
+                  items={bidDetails}
                   onChange={handleSelectedItems}
                   isAllSelected={isChecked}
                 />
                 <CheckBoxList
-                  title="Basic Details"
-                  items={basicDetails}
+                  title="Product Details"
+                  items={productDetails}
                   onChange={handleSelectedItems}
                   isAllSelected={isChecked}
                   style={{ paddingBottom: "50px" }}

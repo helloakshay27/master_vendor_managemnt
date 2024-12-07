@@ -124,7 +124,7 @@ export default function ResponseTab() {
                 <FullClipIcon />
               </div>
             </div>
-            <div className="viewBy-zoom">
+            {/* <div className="viewBy-zoom">
               <div
                 className="viewBy-zoomIN"
                 style={{ cursor: "pointer" }}
@@ -137,7 +137,7 @@ export default function ResponseTab() {
               >
                 <ZoomOutIcon />
               </div>
-            </div>
+            </div> */}
           </div>
         </div>
         <div className="viewBy-main-child2 mb-3">

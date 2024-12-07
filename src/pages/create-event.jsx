@@ -1,18 +1,13 @@
 import React, { useState } from "react";
 import {
-  ClockIcon,
   CreateRFQForm,
   DynamicModalBox,
   EventScheduleModal,
   EventTypeModal,
-  MultipleDropdown,
   ParticipantsIcon,
   SearchIcon,
   SelectBox,
   Table,
-  TrophyIcon,
-  VendorModal,
-  Popup,
   MultiSelector,
 } from "../components";
 import {
@@ -36,6 +31,8 @@ export default function CreateEvent() {
   const [awardType, setAwardType] = useState(false);
   const [dynamicExtension, setDynamicExtension] = useState(false);
   const [selectedStrategy, setSelectedStrategy] = useState(false);
+  const [selectedVendorDetails, setSelectedVendorDetails] = useState(false);
+  const [selectedVendorProfile, setSelectedVendorProfile] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
   const [selectedTags, setSelectedTags] = useState([]);
 
@@ -69,6 +66,7 @@ export default function CreateEvent() {
   const handleInviteModalClose = () => {
     setInviteModal(false);
   };
+  // @ts-ignore
   const handlePublishEventModalShow = () => {
     setPublishEventModal(true);
   };
@@ -107,6 +105,12 @@ export default function CreateEvent() {
   const handleRadioChange = (strategy) => {
     setSelectedStrategy(strategy);
   };
+  const handleVendorDetailChange = (vendor) => {
+    setSelectedVendorDetails(vendor);
+  };
+  const handleVendorProfileChange = (profile) => {
+    setSelectedVendorProfile(profile);
+  };
 
   return (
     <>
@@ -128,7 +132,7 @@ export default function CreateEvent() {
             handleEventScheduleModalShow={handleEventScheduleModalShow}
             handleSettingModalShow={() => {}}
           />
-          <div className="d-flex justify-content-between align-items-end mx-1">
+          <div className="d-flex justify-content-between align-items-end mx-1 mt-5">
             <h5 className=" ">Select Vendors</h5>
             <div className="card-tools">
               <button
@@ -182,7 +186,7 @@ export default function CreateEvent() {
               </button>
             </div>
           </div>
-          <div className="row mt-4 me-3">
+          <div className="row mt-4 me-3 mt-3">
             <h5>Audit Log</h5>
             <div className="mx-0">
               <Table columns={auditLogColumns} data={auditLogData} />
@@ -221,7 +225,7 @@ export default function CreateEvent() {
                mb-1 gap-2"
                 onClick={handleEventTypeModalShow}
               >
-                <p>Rank on lot</p>
+                <p>Enter Details Manually on lot</p>
                 <i className="bi bi-chevron-right"></i>
               </div>
             </div>
@@ -425,6 +429,7 @@ export default function CreateEvent() {
                               options={citiesList}
                               defaultValue={""}
                               onChange={(e) => e.target.value}
+                              isDisableFirstOption={true}
                             />
                           </div>
 
@@ -505,14 +510,224 @@ export default function CreateEvent() {
                       placeholder="Enter Email Address"
                     />
                   </div>
-                  <div className="form-group mb-3">
-                    <label className="po-fontBold">GST Number</label>
-                    <input
-                      className="form-control"
-                      type="number"
-                      placeholder="Enter GST Number"
-                    />
+                  <label>Choose vendor profile</label>
+                  <div className="d-flex align-items-center gap-2 mb-3">
+                    <div
+                      className={`pro-radio-tabs__tab ${
+                        // @ts-ignore
+                        selectedVendorProfile === "Manufacturer /Trader"
+                          ? "pro-radio-tabs__tab__selected"
+                          : ""
+                      }`}
+                      style={{ width: "50%" }}
+                      tabIndex={0}
+                      role="radio"
+                      // @ts-ignore
+                      aria-checked={
+                        // @ts-ignore
+                        selectedVendorProfile === "Manufacturer /Trader"
+                      }
+                      onClick={() =>
+                        handleVendorProfileChange("Manufacturer /Trader")
+                      }
+                    >
+                      <span
+                        className={`ant-radio ${
+                          // @ts-ignore
+                          selectedVendorProfile === "Manufacturer /Trader"
+                            ? "ant-radio-checked"
+                            : ""
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          tabIndex={-1}
+                          className="ant-radio-input"
+                          // @ts-ignore
+                          checked={
+                            // @ts-ignore
+                            selectedVendorProfile === "Manufacturer /Trader"
+                          }
+                          onChange={() =>
+                            handleVendorProfileChange("Manufacturer /Trader")
+                          }
+                        />
+                        <div className="ant-radio-inner" />
+                      </span>
+                      <p className="pro-text pro-body pro-text--medium ps-2">
+                        Manufacturer /Trader
+                      </p>
+                    </div>
+                    <div
+                      className={`pro-radio-tabs__tab col-md-6 ${
+                        // @ts-ignore
+                        selectedVendorProfile === "Enter Details Manually"
+                          ? "pro-radio-tabs__tab__selected"
+                          : ""
+                      }`}
+                      style={{ width: "50%" }}
+                      tabIndex={0}
+                      role="radio"
+                      // @ts-ignore
+                      aria-checked={selectedVendorProfile === "Broker"}
+                      onClick={() => handleVendorProfileChange("Broker")}
+                    >
+                      <span
+                        className={`ant-radio ${
+                          // @ts-ignore
+                          selectedVendorProfile === "Broker"
+                            ? "ant-radio-checked"
+                            : ""
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          tabIndex={-1}
+                          className="ant-radio-input"
+                          // @ts-ignore
+                          checked={selectedVendorProfile === "Broker"}
+                          onChange={() => handleVendorProfileChange("Broker")}
+                        />
+                        <div className="ant-radio-inner" />
+                      </span>
+                      <p className="pro-text pro-body pro-text--medium ps-2">
+                        Broker
+                      </p>
+                    </div>
                   </div>
+                  <label>Invite Vendor via</label>
+                  <div className="d-flex align-items-center gap-2 mb-3">
+                    <div
+                      className={`pro-radio-tabs__tab ${
+                        // @ts-ignore
+                        selectedVendorDetails === "GST Number"
+                          ? "pro-radio-tabs__tab__selected"
+                          : ""
+                      }`}
+                      style={{ width: "50%" }}
+                      tabIndex={0}
+                      role="radio"
+                      // @ts-ignore
+                      aria-checked={selectedVendorDetails === "GST Number"}
+                      onClick={() => handleVendorDetailChange("GST Number")}
+                    >
+                      <span
+                        className={`ant-radio ${
+                          // @ts-ignore
+                          selectedVendorDetails === "GST Number"
+                            ? "ant-radio-checked"
+                            : ""
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          tabIndex={-1}
+                          className="ant-radio-input"
+                          // @ts-ignore
+                          checked={selectedVendorDetails === "GST Number"}
+                          onChange={() =>
+                            handleVendorDetailChange("GST Number")
+                          }
+                        />
+                        <div className="ant-radio-inner" />
+                      </span>
+                      <p className="pro-text pro-body pro-text--medium ps-2">
+                        GST Number
+                      </p>
+                    </div>
+                    <div
+                      className={`pro-radio-tabs__tab col-md-6 ${
+                        // @ts-ignore
+                        selectedVendorDetails === "Enter Details Manually"
+                          ? "pro-radio-tabs__tab__selected"
+                          : ""
+                      }`}
+                      style={{ width: "50%" }}
+                      tabIndex={0}
+                      role="radio"
+                      // @ts-ignore
+                      aria-checked={
+                        // @ts-ignore
+                        selectedVendorDetails === "Enter Details Manually"
+                      }
+                      onClick={() =>
+                        handleVendorDetailChange("Enter Details Manually")
+                      }
+                    >
+                      <span
+                        className={`ant-radio ${
+                          // @ts-ignore
+                          selectedVendorDetails === "Enter Details Manually"
+                            ? "ant-radio-checked"
+                            : ""
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          tabIndex={-1}
+                          className="ant-radio-input"
+                          // @ts-ignore
+                          checked={
+                            // @ts-ignore
+                            selectedVendorDetails === "Enter Details Manually"
+                          }
+                          onChange={() =>
+                            handleRadioChange("Enter Details Manually")
+                          }
+                        />
+                        <div className="ant-radio-inner" />
+                      </span>
+                      <p className="pro-text pro-body pro-text--medium ps-2">
+                        Enter Details Manually
+                      </p>
+                    </div>
+                  </div>
+                  {
+                    // @ts-ignore
+                    selectedVendorDetails === "GST Number" && (
+                      <>
+                        <div className="form-group mb-3">
+                          <label className="po-fontBold">GST Number</label>
+                          <input
+                            className="form-control"
+                            type="number"
+                            placeholder="Enter GST Number"
+                          />
+                        </div>
+                      </>
+                    )
+                  }
+                  {
+                    // @ts-ignore
+                    selectedVendorDetails === "Enter Details Manually" && (
+                      <>
+                        <div className="form-group mb-3">
+                          <label className="po-fontBold">Company Name</label>
+                          <input
+                            className="form-control"
+                            type="number"
+                            placeholder="Enter Company Name"
+                          />
+                        </div>
+                        <div className="form-group mb-3">
+                          <label className="po-fontBold">Address</label>
+                          <input
+                            className="form-control"
+                            type="number"
+                            placeholder="Enter Address"
+                          />
+                        </div>
+                        <div className="form-group mb-3">
+                          <label className="po-fontBold">City</label>
+                          <input
+                            className="form-control"
+                            type="number"
+                            placeholder="Enter City"
+                          />
+                        </div>
+                      </>
+                    )
+                  }
                 </form>
               </>
             }
