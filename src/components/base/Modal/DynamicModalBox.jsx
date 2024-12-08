@@ -17,7 +17,6 @@ function DynamicModalBox({
       <Modal
         centered={centered}
         // @ts-ignore
-        size='xl'
         show={show}
         onHide={onHide}
         backdrop={backdrop}

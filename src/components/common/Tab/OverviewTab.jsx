@@ -143,17 +143,16 @@ export default function OverviewTab({
           </a>
           {savingsOpen && (
             <div id="savings-summary" className="mx-5">
-              <div className="card card-body p-2">
+              <div className="card card-body p-4  pt-0 ">
                 {/* View By Section */}
-                <div className="viewBy-main">
+                {/* <div className="viewBy-main">
                   <div className="viewBy-main-child2">
                     <div className="view">View</div>
                   </div>
-                </div>
+                </div> */}
 
                 {/* Savings Reference Section */}
-                <div className="saving-ref">
-                  {/* Default Section */}
+                {/* <div className="saving-ref">
                   <div className="default-sec d-flex align-items-center justify-content-between">
                     <div className="default d-flex gap-2 align-items-center">
                       <svg
@@ -173,7 +172,6 @@ export default function OverviewTab({
                     <span>-</span>
                   </div>
 
-                  {/* Savings Section */}
                   <div className="saving-sec d-flex justify-content-between align-items-center mt-2">
                     <div className="saving-text">SAVINGS REFERENCE</div>
                     <div className="default d-flex align-items-center gap-3">
@@ -181,7 +179,7 @@ export default function OverviewTab({
                       <span className="saving-amount">₹58,05,671.79</span>
                     </div>
                   </div>
-                </div>
+                </div> */}
 
                 {/* Table Section */}
                 <div className="tbl-container mt-3">
@@ -237,8 +235,8 @@ export default function OverviewTab({
           </a>
           {biddingOpen && (
             <div id="bidding-summary" className="mx-5">
-              <div className="card card-body p-2">
-                <div className="table-responsive pb-5">
+              <div className="card card-body p-4 rounded-3">
+                <div className="table-responsive" style={{boxShadow:'none'}}>
                   <h5>Line Item Wise</h5>
                   <div className="tbl-container">
                     <table>
@@ -253,7 +251,7 @@ export default function OverviewTab({
                         {biddingData.map(({ description, vendors }, index) => (
                           <React.Fragment key={index}>
                             <tr>
-                              <th colSpan={3} style={{ textAlign: "left" }}>
+                              <th style={{ textAlign: "left" }}>
                                 {description}
                               </th>
                             </tr>
@@ -302,7 +300,7 @@ export default function OverviewTab({
           </a>
           {productOpen && (
             <div id="product-sheet" className="mx-5">
-              <div className="card card-body p-2">
+              <div className="card card-body p-4 rounded-3">
                 <div className="tbl-container">
                   <table className="">
                     <thead className="thead-dark">
@@ -499,7 +497,7 @@ export default function OverviewTab({
           </a>
           {termsOpen && (
             <div id="terms-conditions" className="mx-5">
-              <div className="card card-body mx-3">
+              <div className="card card-body p-4">
                 <p>
                   1. Payment terms: Net 30 days.
                   <br />
@@ -540,10 +538,10 @@ export default function OverviewTab({
           </a>
           {orderConfOpen && (
             <div id="order-configuration" className="mx-5">
-              <div className="card card-body p-2">
+              <div className="card card-body p-4">
                 <div className="participate-sec">
                   <div
-                    className="totals-activity row mx-3"
+                    className="totals-activity row"
                     style={{ gap: "0" }}
                   >
                     {participantsData.map((item) => (
@@ -585,7 +583,7 @@ export default function OverviewTab({
           </a>
           {orderDetails && (
             <div id="order-details" className="mx-5">
-              <div className="card card-body mx-3">
+              <div className="card card-body p-4">
                 <p>Event Title</p>
                 <p>
                   [IN/NZR01/NRI01/641] Plumbing Material - NEXZONE-RESIDENTIAL -

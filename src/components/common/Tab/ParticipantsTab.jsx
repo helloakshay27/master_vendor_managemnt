@@ -50,7 +50,7 @@ export default function ParticipantsTab() {
           </div>
           <div className="d-flex align-items-center">
             <div className="d-flex align-items-center">
-              <p className="eventList-p1 mb-0 pe-1">
+              <p className="eventList-p1 mb-0 me-2" style={{textWrap:'nowrap'}}>
                 Show only selected vendors
               </p>
               <div className="form-check form-switch mt-1">
