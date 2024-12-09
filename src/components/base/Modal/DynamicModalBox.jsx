@@ -4,7 +4,7 @@ import { Modal } from "react-bootstrap";
 function DynamicModalBox({
   show,
   onHide,
-  size = "md",
+  size = 'md' ,
   title = "",
   children,
   centered = true,
@@ -17,6 +17,7 @@ function DynamicModalBox({
       <Modal
         centered={centered}
         // @ts-ignore
+        size={size}
         show={show}
         onHide={onHide}
         backdrop={backdrop}

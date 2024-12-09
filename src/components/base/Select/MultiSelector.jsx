@@ -6,6 +6,7 @@ export default function MultiSelector({
   value,
   onChange,
   placeholder,
+
 }) {
   const customStyles = {
     control: (base) => ({
@@ -24,6 +25,7 @@ export default function MultiSelector({
   };
   return (
     <Select
+
       isMulti
       options={options}
       value={value}

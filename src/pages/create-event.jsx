@@ -35,6 +35,7 @@ export default function CreateEvent() {
   const [selectedVendorProfile, setSelectedVendorProfile] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
   const [selectedTags, setSelectedTags] = useState([]);
+  const [selectedCity, setSelectedCity] = useState([]);
 
   const options = [
     { value: "BUILDING MATERIAL", label: "BUILDING MATERIAL" },
@@ -44,6 +45,9 @@ export default function CreateEvent() {
 
   const handleChange = (selectedOption) => {
     setSelectedTags(selectedOption);
+  };
+  const handleCityChange = (selectedOption) => {
+    setSelectedCity(selectedOption);
   };
 
   const navigate = useNavigate();
@@ -340,6 +344,7 @@ export default function CreateEvent() {
             onHide={handleEventScheduleModalClose}
           />
           <DynamicModalBox
+            size="md"
             title="Publish Event"
             footerButtons={[
               {
@@ -428,7 +433,7 @@ export default function CreateEvent() {
                               label={"City"}
                               options={citiesList}
                               defaultValue={""}
-                              onChange={(e) => e.target.value}
+                              onChange={handleCityChange}
                               isDisableFirstOption={true}
                             />
                           </div>
@@ -471,6 +476,7 @@ export default function CreateEvent() {
             }
           />
           <DynamicModalBox
+          
             show={inviteModal}
             onHide={handleInviteModalClose}
             modalType={true}
