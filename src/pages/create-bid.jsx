@@ -139,7 +139,7 @@ export default function CreateBid() {
                   placeholder="Enter Rate"
                 />
               ),
-              bestAmount: (rowIndex) => {
+              bestAmount: (cell, rowIndex) => {
                 const quantity = parseFloat(data[rowIndex].quantity) || 0;
                 const rate = parseFloat(data[rowIndex].rate) || 0;
                 const totalAmount = quantity * rate;
@@ -165,7 +165,7 @@ export default function CreateBid() {
                   placeholder="Enter Rate"
                 />
               ),
-              amount: (rowIndex) => {
+              amount: (_, rowIndex) => {
                 const quantity = parseFloat(data[rowIndex].quantity) || 0;
                 const rate = parseFloat(data[rowIndex].rate) || 0;
                 const totalAmount = quantity * rate;
