@@ -159,12 +159,6 @@ export default function CreateRFQForm({
                 />
               ),
               unit: (cell, rowIndex) => (
-                // <MultiSelector
-                //   options={unitMeasure}
-                //   value={cell}
-                //   onChange={(selected) => handleUnitChange(selected, rowIndex)}
-                //   placeholder="Select Measurement Unit"
-                // />
                 <SelectBox
                   isDisableFirstOption={true}
                   label={""}

@@ -25,7 +25,6 @@ export default function MultiSelector({
   };
   return (
     <Select
-
       isMulti
       options={options}
       value={value}

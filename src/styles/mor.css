@@ -5082,7 +5082,7 @@ iframe .site-content, iframe .website-content{
   top: 0;
   margin: 0;
   height: 100%;
-  width: 40%; /* Adjust the width to your liking */
+  width: 100%; /* Adjust the width to your liking */
 }
 
 .setting-modal .modal-content {

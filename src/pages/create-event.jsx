@@ -4,7 +4,6 @@ import {
   DynamicModalBox,
   EventScheduleModal,
   EventTypeModal,
-  ParticipantsIcon,
   SearchIcon,
   SelectBox,
   Table,
