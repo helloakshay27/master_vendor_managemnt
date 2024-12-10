@@ -1,7 +1,5 @@
 import {
   mumbaiLocations,
-  orderSummaryColumns,
-  orderSummaryData,
   product,
   unitMeasure,
 } from "../../../constant/data";

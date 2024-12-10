@@ -1,6 +1,7 @@
 // Base 
 export { default as DynamicModalBox } from '../components/base/Modal/DynamicModalBox'
 export { default as Table } from '../components/base/Table/Table'
+export { default as ShortTable } from '../components/base/Table/ShortTable'
 export { default as CollapsibleCards } from '../components/base/Card/CollapsibleCards'
 export { default as Accordion } from '../components/base/Accordion/Accordion'
 export { default as SelectBox } from '../components/base/Select/SelectBox'

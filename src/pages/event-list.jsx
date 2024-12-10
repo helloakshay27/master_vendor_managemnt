@@ -13,6 +13,7 @@ import { eventData, eventHistoryData, reportType } from "../constant/data";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
+import "../styles/mor.css";
 
 const Events = () => {
   const [isHistoryActive, setIsHistoryActive] = useState(false);
@@ -20,6 +21,7 @@ const Events = () => {
   const [filterModal, setFilterModal] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
   const [isCustomSelected, setIsCustomSelected] = useState(false);
+  const [isSelectCheckboxes, setIsSelectCheckboxes] = useState(false);
 
   const navigate = useNavigate();
 
@@ -47,6 +49,14 @@ const Events = () => {
   const handleTabChange = (tabId) => {
     setIsHistoryActive(tabId === "history");
   };
+
+  const handleSwitchChange = () => {
+    setIsSelectCheckboxes((prev) => !prev); // Toggle switch state
+  };
+
+  const filteredData = isSelectCheckboxes
+    ? eventData.filter((event) => event.endsIn)
+    : eventData; // Show all data when "All" is selected
 
   const basicDetails = [
     "Event ID",
@@ -85,8 +95,6 @@ const Events = () => {
     "Requested Quantity",
     "Requested Quantity UOM",
   ];
-
-  
 
   const SavingDetails = [
     "Budget Savings",
@@ -198,8 +206,24 @@ const Events = () => {
               role="tabpanel"
               tabIndex={0}
             >
-              <h4>Team Events</h4>
-              {eventData.map((event, index) => (
+              <div className="d-flex justify-content-between align-items-center">
+                <h4>Team Events</h4>
+                <div className="rounded-3 bg-light p-2 gap-3 d-flex align-items-end justify-content-around shadow-sm">
+                  <p>All</p>
+                  <div className="form-check form-switch mb-1">
+                    <input
+                      className="form-check-input"
+                      type="checkbox"
+                      role="switch"
+                      id="flexSwitchCheckDefault"
+                      checked={isSelectCheckboxes}
+                      onChange={handleSwitchChange}
+                    />
+                  </div>
+                  <p>Not Bids</p>
+                </div>
+              </div>
+              {filteredData.map((event, index) => (
                 <div
                   className="eventList-main"
                   key={index}
@@ -222,18 +246,20 @@ const Events = () => {
                     </div>
                   </div>
                   <div className="eventList-child2 p-0">
-                    <div className="d-flex justify-content-between p-3">
+                    <div className="d-flex justify-content-between p-3 w-100 position-relative">
                       <div>
                         <h6>{event.name}</h6>
                         <p className="mb-0 eventList-p2">{event.description}</p>
                         <p className="mb-0 eventList-p2">{event.location}</p>
-                        <div className="d-flex align-items-center mt-3">
-                          <p className="mb-0 eventList-p3 me-2">
-                            {event.status}
-                          </p>
-                          <p className="mb-0 eventList-p1">
-                            {event.productsCount}
-                          </p>
+                        <div className="d-flex align-items-center justify-content-between">
+                          <div className="d-flex align-items-center justify-content-between mt-3">
+                            <p className="mb-0 eventList-p3 me-2">
+                              {event.status}
+                            </p>
+                            <p className="mb-0 eventList-p1">
+                              {event.productsCount}
+                            </p>
+                          </div>
                         </div>
                       </div>
                       {event.deliveryLocation && (
@@ -246,6 +272,21 @@ const Events = () => {
                             {event.deliveryLocation}
                           </p>
                         </div>
+                      )}
+                      { event.endsIn && (
+                        <button
+                        className="purple-btn2 position-absolute"
+                        style={{bottom:10, right:10}}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          navigate("/create-bid");
+                        }}
+                      >
+                        <span className="material-symbols-outlined align-text-top">
+                          add
+                        </span>
+                        New Bid
+                      </button>
                       )}
                     </div>
                   </div>
