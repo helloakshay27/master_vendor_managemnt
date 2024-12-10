@@ -39,15 +39,15 @@ export default function CreateBid() {
 
   const handleInputChange = (value, rowIndex, key) => {
     const updatedData = [...data];
-  
+
     if (key === "quantity") {
-      const maxQuantity = 3; // Replace `3` with `data[rowIndex].quantityAvail` if `quantityAvail` is dynamic
+      const maxQuantity = 3; 
       if (parseFloat(value) > maxQuantity) {
         alert(`Quantity cannot exceed ${maxQuantity}`);
-        value = maxQuantity; // Limit the quantity to the maximum available
+        value = maxQuantity; 
       }
     }
-  
+
     updatedData[rowIndex][key] = value;
     setData(updatedData);
   };
@@ -82,7 +82,7 @@ export default function CreateBid() {
               { label: "Creator Attachment", key: "attachment" },
             ]}
             showCheckbox={true}
-            data={data} // Pass the updated data
+            data={data}
             customRender={{
               descriptionOfItem: (cell, rowIndex) => (
                 <SelectBox
@@ -93,14 +93,6 @@ export default function CreateBid() {
                     handleDescriptionOfItemChange(selected, rowIndex)
                   }
                 />
-                // <MultiSelector
-                //   options={product}
-                //   value={cell}
-                //   onChange={(selected) =>
-                //     handleDescriptionOfItemChange(selected, rowIndex)
-                //   }
-                //   placeholder="Select Items"
-                // />
               ),
               unit: (cell, rowIndex) => (
                 <SelectBox
@@ -126,7 +118,7 @@ export default function CreateBid() {
                 <input
                   className="form-control"
                   type="number"
-                   min="0"
+                  min="0"
                   value={cell}
                   onChange={(e) =>
                     handleInputChange(e.target.value, rowIndex, "quantity")
@@ -134,14 +126,12 @@ export default function CreateBid() {
                   placeholder="Enter Quantity"
                 />
               ),
-              quantityAvail: (cell, rowIndex) => (
-                3
-              ),
+              quantityAvail: (cell, rowIndex) => 3,
               rate: (cell, rowIndex) => (
                 <input
                   className="form-control"
                   type="number"
-                   min="0"
+                  min="0"
                   value={cell}
                   onChange={(e) =>
                     handleInputChange(e.target.value, rowIndex, "rate")
@@ -149,31 +139,7 @@ export default function CreateBid() {
                   placeholder="Enter Rate"
                 />
               ),
-              bestAmount: (cell, rowIndex) => (
-                <input
-                  className="form-control"
-                  type="number"
-                   min="0"
-                  value={cell}
-                  onChange={(e) =>
-                    handleInputChange(e.target.value, rowIndex, "rate")
-                  }
-                  placeholder="Enter Rate"
-                />
-              ),
-              attachment: (cell, rowIndex) => (
-                <input
-                  className="form-control"
-                  type="file"
-                   min="0"
-                  value={cell}
-                  onChange={(e) =>
-                    handleInputChange(e.target.value, rowIndex, "rate")
-                  }
-                  placeholder="Enter Rate"
-                />
-              ),
-              amount: (_, rowIndex) => {
+              bestAmount: (rowIndex) => {
                 const quantity = parseFloat(data[rowIndex].quantity) || 0;
                 const rate = parseFloat(data[rowIndex].rate) || 0;
                 const totalAmount = quantity * rate;
@@ -182,8 +148,34 @@ export default function CreateBid() {
                   <input
                     className="form-control"
                     type="text"
-                    value={totalAmount.toFixed(2)} // Show calculated amount
-                    readOnly // Make the input field read-only
+                    value={totalAmount.toFixed(2)}
+                    readOnly
+                  />
+                );
+              },
+              attachment: (cell, rowIndex) => (
+                <input
+                  className="form-control"
+                  type="file"
+                  min="0"
+                  value={cell}
+                  onChange={(e) =>
+                    handleInputChange(e.target.value, rowIndex, "rate")
+                  }
+                  placeholder="Enter Rate"
+                />
+              ),
+              amount: (rowIndex) => {
+                const quantity = parseFloat(data[rowIndex].quantity) || 0;
+                const rate = parseFloat(data[rowIndex].rate) || 0;
+                const totalAmount = quantity * rate;
+
+                return (
+                  <input
+                    className="form-control"
+                    type="text"
+                    value={totalAmount.toFixed(2)}
+                    readOnly 
                   />
                 );
               },
