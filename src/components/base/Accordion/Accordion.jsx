@@ -52,7 +52,7 @@ export default function Accordion({ title, isDefault, tableColumn, tableData }) 
               isHorizontal={true}
             />
             {isDefault && (
-              <div className="default-val">
+              <div className="default-val mt-4">
                 <div className="col-md-2">
                   <p className="d-flex gap-1 align-items-center">
                     Default: <span className="viewBy-tBody1-R">₹</span>

@@ -652,44 +652,32 @@ export default function ResponseTab() {
             />
             <Accordion
               tableColumn={[
-                { label: "Best Total Amount", key: "bestTotalAmount" },
-                { label: "Quantity Available", key: "quantityAvailable" },
-                { label: "Price", key: "price" },
-                { label: "Discount", key: "discount" },
-                { label: "Realised Discount", key: "realisedDiscount" },
-                { label: "GST", key: "gst" },
-                { label: "Realised GST", key: "realisedGST" },
-                { label: "Landed Amount", key: "landedAmount" },
-                {
-                  label: "Participant Attachment",
-                  key: "participantAttachment",
-                },
-                { label: "Total Amount", key: "totalAmount" },
+                { label: "Freight Charge Amount", key: "freightChrg" },
+                { label: "GST on Freight", key: "freightGst" },
+                { label: "Realised Freight Amount", key: "freightRealised" },
+                { label: "Warranty Clause", key: "warranty" },
+                { label: "Payment Terms", key: "payment" },
+                { label: "Loading / Unloading Clause", key: "loading" },
+                { label: "Gross Total", key: "grossTotal" },
               ]}
               tableData={[
                 {
-                  bestTotalAmount: "₹ 3,717",
-                  quantityAvailable: "3 Nos",
-                  price: "₹ 1,500 /Nos",
-                  discount: "-",
-                  realisedDiscount: "-",
-                  gst: "18%",
-                  realisedGST: "₹ 567",
-                  landedAmount: "₹ 3,150",
-                  participantAttachment: "-",
-                  totalAmount: "₹ 3,717",
+                  freightChrg: "₹ 500",
+                  freightGst: "18 %",
+                  freightRealised: "₹ 1,590",
+                  warranty: "-",
+                  payment: "-",
+                  loading: "-",
+                  grossTotal: "₹ 3,150"
                 },
                 {
-                  bestTotalAmount: "₹ 3,717",
-                  quantityAvailable: "3 Nos",
-                  price: "₹ 1,500 /Nos",
-                  discount: "-",
-                  realisedDiscount: "-",
-                  gst: "18%",
-                  realisedGST: "₹ 567",
-                  landedAmount: "₹ 3,150",
-                  participantAttachment: "-",
-                  totalAmount: "₹ 3,717",
+                  freightChrg: "₹ 500",
+                  freightGst: "18 %",
+                  freightRealised: "₹ 1,590",
+                  warranty: "-",
+                  payment: "-",
+                  loading: "-",
+                  grossTotal: "₹ 3,150"
                 },
               ]}
               title="Other Charges"

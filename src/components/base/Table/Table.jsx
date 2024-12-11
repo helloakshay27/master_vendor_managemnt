@@ -61,10 +61,10 @@ export default function Table({
   if (isHorizontal) {
     const transposedData = transposeData(data, columns);
     return (
-      <div className="tbl-container px-0 mt-3" {...rest}>
+      <div className="bid-tbl px-0 mt-3" {...rest}>
         <table className="w-100">
-          <thead>
-            <tr>
+          <thead className="">
+            <tr style={{backgroundColor: '#d3d3d3 !important'}}>
               <th />
               {data.map((_, index) => (
                 <th key={index} className="main2-th"></th>
@@ -74,15 +74,10 @@ export default function Table({
           <tbody>
             {transposedData.map((row, rowIndex) => (
               <tr key={rowIndex}>
-                <td className="main2-th">{row.header}</td>
+                <td className="main2-th" style={{fontWeight: "bold", textAlign:'left'}}>{row.header}</td>
                 {row.values.map((value, valueIndex) => (
                   <td
                     key={valueIndex}
-                    style={{
-                      backgroundColor: customRender[columns[rowIndex]?.key]
-                        ? "#000"
-                        : "#fff",
-                    }}
                   >
                     {customRender[columns[rowIndex]?.key]
                       ? customRender[columns[rowIndex]?.key](

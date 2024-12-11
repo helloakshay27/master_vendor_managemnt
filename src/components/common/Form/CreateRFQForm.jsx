@@ -67,7 +67,7 @@ export default function CreateRFQForm({
     <div className="row ">
       <div className="card-body">
         <div className="row align-items-end justify-items-end mx-2 mb-5">
-          <div className="col-md-4 mt-0">
+          <div className="col-md-4 mt-0 mb-2">
             <div className="form-group">
               <label className="po-fontBold">Event Type</label>
             </div>
@@ -77,7 +77,7 @@ export default function CreateRFQForm({
               placeholder="Configure The Event"
             />
           </div>
-          <div className="col-md-4 mt-0">
+          <div className="col-md-4 mt-0 mb-2">
             <div className="form-group">
               <label className="po-fontBold">Event No.</label>
               <input
@@ -87,13 +87,13 @@ export default function CreateRFQForm({
               />
             </div>
           </div>
-          <div className="col-md-4 mt-0">
+          <div className="col-md-4 mt-0 mb-2">
             <div className="form-group">
               <label className="po-fontBold">Created On</label>
               <input className="form-control" type="date" />
             </div>
           </div>
-          <div className="col-md-4 mt-2">
+          {/* <div className="col-md-4 mt-2">
             <div className="form-group">
               <label className="po-fontBold">Material Type</label>
               <input
@@ -102,7 +102,7 @@ export default function CreateRFQForm({
                 placeholder="Enter Material Type"
               />
             </div>
-          </div>
+          </div> */}
           <div className="col-md-4 mt-2">
             <div className="form-group">
               <label className="po-fontBold">Event Schedule</label>
