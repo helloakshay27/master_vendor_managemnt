@@ -251,7 +251,7 @@ const EventTypeModal = ({
               </div>
             </div>
           </div>
-          <div
+          {/* <div
             className={`pro-radio-tabs__tab ${
               selectedStrategy === "Knockout"
                 ? "pro-radio-tabs__tab__selected"
@@ -288,8 +288,8 @@ const EventTypeModal = ({
                 </p>
               </div>
             </div>
-          </div>
-          <div
+          </div> */}
+          {/* <div
             className={`pro-radio-tabs__tab ${
               selectedStrategy === "Dutch Auction"
                 ? "pro-radio-tabs__tab__selected"
@@ -330,7 +330,7 @@ const EventTypeModal = ({
                 </p>
               </div>
             </div>
-          </div>
+          </div> */}
         </div>
       )}
       <div className="ant-row ant-form-item mt-3">
@@ -548,12 +548,11 @@ const EventTypeModal = ({
                   />
                 </div>
                 <div className="time-extention">
-                  <SelectBox label={"Time extension on change in:"} 
-                  options={bidsType} 
-                  defaultValue={"Select Top bids"} 
-                  onChange={
-                    (e) => e.target.value
-                  }  
+                  <SelectBox
+                    label={"Time extension on change in:"}
+                    options={bidsType}
+                    defaultValue={"Select Top bids"}
+                    onChange={(e) => e.target.value}
                   />
                 </div>
               </div>
