@@ -36,6 +36,10 @@ export default function CreateEvent() {
   const [selectedTags, setSelectedTags] = useState([]);
   const [selectedCity, setSelectedCity] = useState([]);
 
+  const [data, setData] = useState([
+    { user: "", date: "", status: "", remark: "" },
+  ]);
+
   const options = [
     { value: "BUILDING MATERIAL", label: "BUILDING MATERIAL" },
     { value: "MIVAN MA", label: "MIVAN MA" },
@@ -152,7 +156,7 @@ export default function CreateEvent() {
             </div>
           </div>
           <div className="row justify-content-center mx-1">
-            <div className="tbl-container px-0 mx-5 mt-3 ">
+            <div className="tbl-container px-0 mx-5 mt-3">
               <table className="w-100">
                 <thead>
                   <tr>
@@ -163,39 +167,83 @@ export default function CreateEvent() {
                 </thead>
                 <tbody>
                   <tr>
-                    <td>Vendor 1</td>
-                    <td>99999999</td>
-                    <td />
+                    <td>
+                      <input
+                        className="form-control"
+                        type="text"
+                        placeholder="Enter Vendor Name"
+                      />
+                    </td>
+                    <td>
+                      <input
+                        className="form-control"
+                        type="text"
+                        placeholder="Enter Mobile Number"
+                      />
+                    </td>
+                    <td>
+                      <input
+                        className="form-control"
+                        type="text"
+                        placeholder="Enter Status"
+                      />
+                    </td>
                   </tr>
                 </tbody>
               </table>
             </div>
           </div>
-          <div className="row mt-2 justify-content-end mt-4">
-            <div className="col-md-2">
-              <button className="purple-btn2 w-100">Preview</button>
-            </div>
-            <div className="col-md-2">
-              <button className="purple-btn2 w-100">Submit</button>
-            </div>
-            <div className="col-md-2">
-              <button
-                className="purple-btn1 w-100"
-                onClick={() => {
-                  navigate("/event-list");
-                }}
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-          <div className="row mt-4 me-3 mt-3">
+
+          <div className="row mt-4 mt-3">
             <h5>Audit Log</h5>
             <div className="mx-0">
-              <Table columns={auditLogColumns} data={auditLogData} />
+              {/* <Table columns={auditLogColumns} data={auditLogData} /> */}
+              <div className="tbl-container px-0 mt-3">
+                <table className="w-100">
+                  <thead>
+                    <tr>
+                      <th>User</th>
+                      <th>Date</th>
+                      <th>Status</th>
+                      <th>Remark</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <input
+                          className="form-control"
+                          type="text"
+                          placeholder="Enter User Name"
+                        />
+                      </td>
+                      <td>
+                        <input
+                          className="form-control"
+                          type="text"
+                          placeholder="Enter Date"
+                        />
+                      </td>
+                      <td>
+                        <input
+                          className="form-control"
+                          type="text"
+                          placeholder="Enter Status"
+                        />
+                      </td>
+                      <td>
+                        <input
+                          className="form-control"
+                          type="text"
+                          placeholder="Enter Remark"
+                        />
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
-          </div>
-          {/* <div className="d-flex mt-3 eventD-top pb-3 pt-2">
+            {/* <div className="d-flex mt-3 eventD-top pb-3 pt-2">
         <p
           className="mb-0 align-items-center modal-p d-flex"
           style={{ width: "6%" }}
@@ -338,439 +386,474 @@ export default function CreateEvent() {
           </div>
         </div>
       </div> */}
-          <EventScheduleModal
-            show={eventScheduleModal}
-            onHide={handleEventScheduleModalClose}
-          />
+            <EventScheduleModal
+              show={eventScheduleModal}
+              onHide={handleEventScheduleModalClose}
+            />
 
-          {/* make the below component on common modal folder and call it here */}
-          <DynamicModalBox
-            size="md"
-            title="Publish Event"
-            footerButtons={[
-              {
-                label: "Edit Schedule",
-                onClick: () => {
-                  handlePublishEventModalClose();
-                  handleEventScheduleModalShow();
+            {/* make the below component on common modal folder and call it here */}
+            <DynamicModalBox
+              size="md"
+              title="Publish Event"
+              footerButtons={[
+                {
+                  label: "Edit Schedule",
+                  onClick: () => {
+                    handlePublishEventModalClose();
+                    handleEventScheduleModalShow();
+                  },
+                  props: {
+                    className: "purple-btn1",
+                  },
                 },
-                props: {
-                  className: "purple-btn1",
+                {
+                  label: "Save Changes",
+                  onClick: handlePublishEventModalClose,
+                  props: {
+                    className: "purple-btn2",
+                  },
                 },
-              },
-              {
-                label: "Save Changes",
-                onClick: handlePublishEventModalClose,
-                props: {
-                  className: "purple-btn2",
+              ]}
+              show={publishEventModal}
+              onHide={handlePublishEventModalClose}
+              children={<></>}
+            />
+            <DynamicModalBox
+              size="xl"
+              title="All Vendors"
+              show={vendorModal}
+              onHide={handleVendorTypeModalClose}
+              footerButtons={[
+                {
+                  label: "Cancel",
+                  onClick: handleVendorTypeModalClose,
+                  props: { className: "purple-btn1" },
                 },
-              },
-            ]}
-            show={publishEventModal}
-            onHide={handlePublishEventModalClose}
-            children={<></>}
-          />
-          <DynamicModalBox
-            size="xl"
-            title="All Vendors"
-            show={vendorModal}
-            onHide={handleVendorTypeModalClose}
-            children={
-              <>
-                <div className="d-flex justify-content-between align-items-center">
-                  <div className="input-group w-50">
-                    <input
-                      type="search"
-                      id="searchInput"
-                      className="tbl-search form-control"
-                      placeholder="Search Vendors"
-                    />
-                    <div className="input-group-append">
-                      <button type="button" className="btn btn-md btn-default">
-                        <SearchIcon />
-                      </button>
+                {
+                  label: "Save",
+                  onClick: handleVendorTypeModalClose,
+                  props: { className: "purple-btn2" },
+                },
+              ]}
+              children={
+                <>
+                  <div className="d-flex justify-content-between align-items-center">
+                    <div className="input-group w-50">
+                      <input
+                        type="search"
+                        id="searchInput"
+                        className="tbl-search form-control"
+                        placeholder="Search Vendors"
+                      />
+                      <div className="input-group-append">
+                        <button
+                          type="button"
+                          className="btn btn-md btn-default"
+                        >
+                          <SearchIcon />
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                  <div className="d-flex">
-                    <button
-                      className="purple-btn2 viewBy-main-child2P mb-0"
-                      onClick={handleInviteModalShow}
-                    >
-                      <i className="bi bi-person-plus"></i>
-                      <span className="ms-2">Invite</span>
-                    </button>
-                    <button
-                      className="purple-btn2 viewBy-main-child2P mb-0"
-                      onClick={() => setShowPopup(true)}
-                    >
-                      <i className="bi bi-filter"></i>
-                      <span className="ms-2">Filter</span>
-                    </button>
+                    <div className="d-flex">
+                      <button
+                        className="purple-btn2 viewBy-main-child2P mb-0"
+                        onClick={handleInviteModalShow}
+                      >
+                        <i className="bi bi-person-plus"></i>
+                        <span className="ms-2">Invite</span>
+                      </button>
+                      <button
+                        className="purple-btn2 viewBy-main-child2P mb-0"
+                        onClick={() => setShowPopup(true)}
+                      >
+                        <i className="bi bi-filter"></i>
+                        <span className="ms-2">Filter</span>
+                      </button>
 
-                    <PopupBox
-                      title="Filter by"
-                      show={showPopup}
-                      onClose={() => setShowPopup(false)}
-                      footerButtons={[
-                        {
-                          label: "Cancel",
-                          onClick: () => setShowPopup(false),
-                          props: {
-                            className: "purple-btn1",
+                      <PopupBox
+                        title="Filter by"
+                        show={showPopup}
+                        onClose={() => setShowPopup(false)}
+                        footerButtons={[
+                          {
+                            label: "Cancel",
+                            onClick: () => setShowPopup(false),
+                            props: {
+                              className: "purple-btn1",
+                            },
                           },
-                        },
-                        {
-                          label: "Apply",
-                          onClick: handleApply,
-                          props: {
-                            className: "purple-btn2",
+                          {
+                            label: "Apply",
+                            onClick: handleApply,
+                            props: {
+                              className: "purple-btn2",
+                            },
                           },
-                        },
-                      ]}
-                      children={
-                        <div>
-                          <div style={{ marginBottom: "12px" }}>
-                            <SelectBox
-                              label={"City"}
-                              options={citiesList}
-                              defaultValue={""}
-                              onChange={handleCityChange}
-                              isDisableFirstOption={true}
-                            />
-                          </div>
-
-                          <div style={{ marginBottom: "12px" }}>
-                            <p>Filter By Tags</p>
-                            <MultiSelector
-                              options={options}
-                              value={selectedTags}
-                              onChange={handleChange}
-                              placeholder={"Filter by tags"}
-                            />
-                          </div>
-                          <div className="d-flex align-items-center">
-                            <div className="form-check form-switch mt-1">
-                              <input
-                                className="form-check-input"
-                                type="checkbox"
-                                role="switch"
-                                id="flexSwitchCheckDefault"
+                        ]}
+                        children={
+                          <div>
+                            <div style={{ marginBottom: "12px" }}>
+                              <SelectBox
+                                label={"City"}
+                                options={citiesList}
+                                defaultValue={""}
+                                onChange={handleCityChange}
+                                isDisableFirstOption={true}
                               />
                             </div>
-                            <p className="mb-0 pe-1">
-                              Show only selected vendors
-                            </p>
+
+                            <div style={{ marginBottom: "12px" }}>
+                              <p>Filter By Tags</p>
+                              <MultiSelector
+                                options={options}
+                                value={selectedTags}
+                                onChange={handleChange}
+                                placeholder={"Filter by tags"}
+                              />
+                            </div>
+                            <div className="d-flex align-items-center">
+                              <div className="form-check form-switch mt-1">
+                                <input
+                                  className="form-check-input"
+                                  type="checkbox"
+                                  role="switch"
+                                  id="flexSwitchCheckDefault"
+                                />
+                              </div>
+                              <p className="mb-0 pe-1">
+                                Show only selected vendors
+                              </p>
+                            </div>
                           </div>
-                        </div>
-                      }
+                        }
+                      />
+                    </div>
+                  </div>
+                  <div className="d-flex flex-column justify-content-center align-items-center h-100">
+                    <Table
+                      columns={participantsTabColumns}
+                      data={participantsTabData}
+                      showCheckbox={true}
                     />
                   </div>
-                </div>
-                <div className="d-flex flex-column justify-content-center align-items-center h-100">
-                  <Table
-                    columns={participantsTabColumns}
-                    data={participantsTabData}
-                    showCheckbox={true}
-                  />
-                </div>
-              </>
-            }
-          />
-          <DynamicModalBox
-            show={inviteModal}
-            onHide={handleInviteModalClose}
-            modalType={true}
-            title="Invite New Vendor"
-            footerButtons={[
-              {
-                label: "Close",
-                onClick: handleInviteModalClose,
-                props: {
-                  className: "purple-btn1",
+                </>
+              }
+            />
+            <DynamicModalBox
+              show={inviteModal}
+              onHide={handleInviteModalClose}
+              modalType={true}
+              title="Invite New Vendor"
+              footerButtons={[
+                {
+                  label: "Close",
+                  onClick: handleInviteModalClose,
+                  props: {
+                    className: "purple-btn1",
+                  },
                 },
-              },
-              {
-                label: "Save Changes",
-                onClick: handleInviteModalClose,
-                props: {
-                  className: "purple-btn2",
+                {
+                  label: "Save Changes",
+                  onClick: handleInviteModalClose,
+                  props: {
+                    className: "purple-btn2",
+                  },
                 },
-              },
-            ]}
-            children={
-              <>
-                <form className="p-2">
-                  <div className="form-group mb-3">
-                    <label className="po-fontBold">POC - Full Name</label>
-                    <input
-                      className="form-control"
-                      type="text"
-                      placeholder="Enter POC Name"
-                    />
-                  </div>
-                  <div className="form-group mb-3">
-                    <label className="po-fontBold">Email</label>
-                    <input
-                      className="form-control"
-                      type="email"
-                      placeholder="Enter Email Address"
-                    />
-                  </div>
-                  <label>Choose vendor profile</label>
-                  <div className="d-flex align-items-center gap-2 mb-3">
-                    <div
-                      className={`pro-radio-tabs__tab ${
-                        // @ts-ignore
-                        selectedVendorProfile === "Manufacturer /Trader"
-                          ? "pro-radio-tabs__tab__selected"
-                          : ""
-                      }`}
-                      style={{ width: "50%" }}
-                      tabIndex={0}
-                      role="radio"
-                      // @ts-ignore
-                      aria-checked={
-                        // @ts-ignore
-                        selectedVendorProfile === "Manufacturer /Trader"
-                      }
-                      onClick={() =>
-                        handleVendorProfileChange("Manufacturer /Trader")
-                      }
-                    >
-                      <span
-                        className={`ant-radio ${
+              ]}
+              children={
+                <>
+                  <form className="p-2">
+                    <div className="form-group mb-3">
+                      <label className="po-fontBold">POC - Full Name</label>
+                      <input
+                        className="form-control"
+                        type="text"
+                        placeholder="Enter POC Name"
+                      />
+                    </div>
+                    <div className="form-group mb-3">
+                      <label className="po-fontBold">Email</label>
+                      <input
+                        className="form-control"
+                        type="email"
+                        placeholder="Enter Email Address"
+                      />
+                    </div>
+                    <label>Choose vendor profile</label>
+                    <div className="d-flex align-items-center gap-2 mb-3">
+                      <div
+                        className={`pro-radio-tabs__tab ${
                           // @ts-ignore
                           selectedVendorProfile === "Manufacturer /Trader"
-                            ? "ant-radio-checked"
+                            ? "pro-radio-tabs__tab__selected"
                             : ""
                         }`}
-                      >
-                        <input
-                          type="radio"
-                          tabIndex={-1}
-                          className="ant-radio-input"
+                        style={{ width: "50%" }}
+                        tabIndex={0}
+                        role="radio"
+                        // @ts-ignore
+                        aria-checked={
                           // @ts-ignore
-                          checked={
+                          selectedVendorProfile === "Manufacturer /Trader"
+                        }
+                        onClick={() =>
+                          handleVendorProfileChange("Manufacturer /Trader")
+                        }
+                      >
+                        <span
+                          className={`ant-radio ${
                             // @ts-ignore
                             selectedVendorProfile === "Manufacturer /Trader"
-                          }
-                          onChange={() =>
-                            handleVendorProfileChange("Manufacturer /Trader")
-                          }
-                        />
-                        <div className="ant-radio-inner" />
-                      </span>
-                      <p className="pro-text pro-body pro-text--medium ps-2">
-                        Manufacturer /Trader
-                      </p>
-                    </div>
-                    <div
-                      className={`pro-radio-tabs__tab col-md-6 ${
-                        // @ts-ignore
-                        selectedVendorProfile === "Enter Details Manually"
-                          ? "pro-radio-tabs__tab__selected"
-                          : ""
-                      }`}
-                      style={{ width: "50%" }}
-                      tabIndex={0}
-                      role="radio"
-                      // @ts-ignore
-                      aria-checked={selectedVendorProfile === "Broker"}
-                      onClick={() => handleVendorProfileChange("Broker")}
-                    >
-                      <span
-                        className={`ant-radio ${
+                              ? "ant-radio-checked"
+                              : ""
+                          }`}
+                        >
+                          <input
+                            type="radio"
+                            tabIndex={-1}
+                            className="ant-radio-input"
+                            // @ts-ignore
+                            checked={
+                              // @ts-ignore
+                              selectedVendorProfile === "Manufacturer /Trader"
+                            }
+                            onChange={() =>
+                              handleVendorProfileChange("Manufacturer /Trader")
+                            }
+                          />
+                          <div className="ant-radio-inner" />
+                        </span>
+                        <p className="pro-text pro-body pro-text--medium ps-2">
+                          Manufacturer /Trader
+                        </p>
+                      </div>
+                      <div
+                        className={`pro-radio-tabs__tab col-md-6 ${
                           // @ts-ignore
-                          selectedVendorProfile === "Broker"
-                            ? "ant-radio-checked"
+                          selectedVendorProfile === "Enter Details Manually"
+                            ? "pro-radio-tabs__tab__selected"
                             : ""
                         }`}
-                      >
-                        <input
-                          type="radio"
-                          tabIndex={-1}
-                          className="ant-radio-input"
-                          // @ts-ignore
-                          checked={selectedVendorProfile === "Broker"}
-                          onChange={() => handleVendorProfileChange("Broker")}
-                        />
-                        <div className="ant-radio-inner" />
-                      </span>
-                      <p className="pro-text pro-body pro-text--medium ps-2">
-                        Broker
-                      </p>
-                    </div>
-                  </div>
-                  <label>Invite Vendor via</label>
-                  <div className="d-flex align-items-center gap-2 mb-3">
-                    <div
-                      className={`pro-radio-tabs__tab ${
+                        style={{ width: "50%" }}
+                        tabIndex={0}
+                        role="radio"
                         // @ts-ignore
-                        selectedVendorDetails === "GST Number"
-                          ? "pro-radio-tabs__tab__selected"
-                          : ""
-                      }`}
-                      style={{ width: "50%" }}
-                      tabIndex={0}
-                      role="radio"
-                      // @ts-ignore
-                      aria-checked={selectedVendorDetails === "GST Number"}
-                      onClick={() => handleVendorDetailChange("GST Number")}
-                    >
-                      <span
-                        className={`ant-radio ${
+                        aria-checked={selectedVendorProfile === "Broker"}
+                        onClick={() => handleVendorProfileChange("Broker")}
+                      >
+                        <span
+                          className={`ant-radio ${
+                            // @ts-ignore
+                            selectedVendorProfile === "Broker"
+                              ? "ant-radio-checked"
+                              : ""
+                          }`}
+                        >
+                          <input
+                            type="radio"
+                            tabIndex={-1}
+                            className="ant-radio-input"
+                            // @ts-ignore
+                            checked={selectedVendorProfile === "Broker"}
+                            onChange={() => handleVendorProfileChange("Broker")}
+                          />
+                          <div className="ant-radio-inner" />
+                        </span>
+                        <p className="pro-text pro-body pro-text--medium ps-2">
+                          Broker
+                        </p>
+                      </div>
+                    </div>
+                    <label>Invite Vendor via</label>
+                    <div className="d-flex align-items-center gap-2 mb-3">
+                      <div
+                        className={`pro-radio-tabs__tab ${
                           // @ts-ignore
                           selectedVendorDetails === "GST Number"
-                            ? "ant-radio-checked"
+                            ? "pro-radio-tabs__tab__selected"
                             : ""
                         }`}
+                        style={{ width: "50%" }}
+                        tabIndex={0}
+                        role="radio"
+                        // @ts-ignore
+                        aria-checked={selectedVendorDetails === "GST Number"}
+                        onClick={() => handleVendorDetailChange("GST Number")}
                       >
-                        <input
-                          type="radio"
-                          tabIndex={-1}
-                          className="ant-radio-input"
-                          // @ts-ignore
-                          checked={selectedVendorDetails === "GST Number"}
-                          onChange={() =>
-                            handleVendorDetailChange("GST Number")
-                          }
-                        />
-                        <div className="ant-radio-inner" />
-                      </span>
-                      <p className="pro-text pro-body pro-text--medium ps-2">
-                        GST Number
-                      </p>
-                    </div>
-                    <div
-                      className={`pro-radio-tabs__tab col-md-6 ${
-                        // @ts-ignore
-                        selectedVendorDetails === "Enter Details Manually"
-                          ? "pro-radio-tabs__tab__selected"
-                          : ""
-                      }`}
-                      style={{ width: "50%" }}
-                      tabIndex={0}
-                      role="radio"
-                      // @ts-ignore
-                      aria-checked={
-                        // @ts-ignore
-                        selectedVendorDetails === "Enter Details Manually"
-                      }
-                      onClick={() =>
-                        handleVendorDetailChange("Enter Details Manually")
-                      }
-                    >
-                      <span
-                        className={`ant-radio ${
+                        <span
+                          className={`ant-radio ${
+                            // @ts-ignore
+                            selectedVendorDetails === "GST Number"
+                              ? "ant-radio-checked"
+                              : ""
+                          }`}
+                        >
+                          <input
+                            type="radio"
+                            tabIndex={-1}
+                            className="ant-radio-input"
+                            // @ts-ignore
+                            checked={selectedVendorDetails === "GST Number"}
+                            onChange={() =>
+                              handleVendorDetailChange("GST Number")
+                            }
+                          />
+                          <div className="ant-radio-inner" />
+                        </span>
+                        <p className="pro-text pro-body pro-text--medium ps-2">
+                          GST Number
+                        </p>
+                      </div>
+                      <div
+                        className={`pro-radio-tabs__tab col-md-6 ${
                           // @ts-ignore
                           selectedVendorDetails === "Enter Details Manually"
-                            ? "ant-radio-checked"
+                            ? "pro-radio-tabs__tab__selected"
                             : ""
                         }`}
-                      >
-                        <input
-                          type="radio"
-                          tabIndex={-1}
-                          className="ant-radio-input"
+                        style={{ width: "50%" }}
+                        tabIndex={0}
+                        role="radio"
+                        // @ts-ignore
+                        aria-checked={
                           // @ts-ignore
-                          checked={
+                          selectedVendorDetails === "Enter Details Manually"
+                        }
+                        onClick={() =>
+                          handleVendorDetailChange("Enter Details Manually")
+                        }
+                      >
+                        <span
+                          className={`ant-radio ${
                             // @ts-ignore
                             selectedVendorDetails === "Enter Details Manually"
-                          }
-                          onChange={() =>
-                            handleRadioChange("Enter Details Manually")
-                          }
-                        />
-                        <div className="ant-radio-inner" />
-                      </span>
-                      <p className="pro-text pro-body pro-text--medium ps-2">
-                        Enter Details Manually
-                      </p>
+                              ? "ant-radio-checked"
+                              : ""
+                          }`}
+                        >
+                          <input
+                            type="radio"
+                            tabIndex={-1}
+                            className="ant-radio-input"
+                            // @ts-ignore
+                            checked={
+                              // @ts-ignore
+                              selectedVendorDetails === "Enter Details Manually"
+                            }
+                            onChange={() =>
+                              handleRadioChange("Enter Details Manually")
+                            }
+                          />
+                          <div className="ant-radio-inner" />
+                        </span>
+                        <p className="pro-text pro-body pro-text--medium ps-2">
+                          Enter Details Manually
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                  {
-                    // @ts-ignore
-                    selectedVendorDetails === "GST Number" && (
-                      <>
-                        <div className="form-group mb-3">
-                          <label className="po-fontBold">GST Number</label>
-                          <input
-                            className="form-control"
-                            type="number"
-                            placeholder="Enter GST Number"
-                          />
-                        </div>
-                      </>
-                    )
-                  }
-                  {
-                    // @ts-ignore
-                    selectedVendorDetails === "Enter Details Manually" && (
-                      <>
-                        <div className="form-group mb-3">
-                          <label className="po-fontBold">Company Name</label>
-                          <input
-                            className="form-control"
-                            type="number"
-                            placeholder="Enter Company Name"
-                          />
-                        </div>
-                        <div className="form-group mb-3">
-                          <label className="po-fontBold">Address</label>
-                          <input
-                            className="form-control"
-                            type="number"
-                            placeholder="Enter Address"
-                          />
-                        </div>
-                        <div className="form-group mb-3">
-                          <label className="po-fontBold">City</label>
-                          <input
-                            className="form-control"
-                            type="number"
-                            placeholder="Enter City"
-                          />
-                        </div>
-                      </>
-                    )
-                  }
-                </form>
-              </>
-            }
-          />
-          <EventTypeModal
-            show={eventTypeModal}
-            onHide={handleEventTypeModalClose}
-            title={"Configuration for Event"}
-            eventType={eventType}
-            handleEventTypeChange={handleEventTypeChange}
-            eventTypeModal={eventTypeModal}
-            handleEventTypeModalClose={handleEventTypeModalClose}
-            selectedStrategy={selectedStrategy}
-            handleRadioChange={handleRadioChange}
-            awardType={awardType}
-            handleAwardTypeChange={handleAwardTypeChange}
-            dynamicExtension={dynamicExtension}
-            handleDynamicExtensionChange={handleDynamicExtensionChange}
-            size={"xl"}
-            footerButtons={[
-              {
-                label: "Close",
-                onClick: handleEventTypeModalClose,
-                props: {
-                  className: "purple-btn1",
+                    {
+                      // @ts-ignore
+                      selectedVendorDetails === "GST Number" && (
+                        <>
+                          <div className="form-group mb-3">
+                            <label className="po-fontBold">GST Number</label>
+                            <input
+                              className="form-control"
+                              type="number"
+                              placeholder="Enter GST Number"
+                            />
+                          </div>
+                        </>
+                      )
+                    }
+                    {
+                      // @ts-ignore
+                      selectedVendorDetails === "Enter Details Manually" && (
+                        <>
+                          <div className="form-group mb-3">
+                            <label className="po-fontBold">Company Name</label>
+                            <input
+                              className="form-control"
+                              type="number"
+                              placeholder="Enter Company Name"
+                            />
+                          </div>
+                          <div className="form-group mb-3">
+                            <label className="po-fontBold">Address</label>
+                            <input
+                              className="form-control"
+                              type="number"
+                              placeholder="Enter Address"
+                            />
+                          </div>
+                          <div className="form-group mb-3">
+                            <label className="po-fontBold">City</label>
+                            <input
+                              className="form-control"
+                              type="number"
+                              placeholder="Enter City"
+                            />
+                          </div>
+                        </>
+                      )
+                    }
+                  </form>
+                </>
+              }
+            />
+            <EventTypeModal
+              show={eventTypeModal}
+              onHide={handleEventTypeModalClose}
+              title={"Configuration for Event"}
+              eventType={eventType}
+              handleEventTypeChange={handleEventTypeChange}
+              eventTypeModal={eventTypeModal}
+              handleEventTypeModalClose={handleEventTypeModalClose}
+              selectedStrategy={selectedStrategy}
+              handleRadioChange={handleRadioChange}
+              awardType={awardType}
+              handleAwardTypeChange={handleAwardTypeChange}
+              dynamicExtension={dynamicExtension}
+              handleDynamicExtensionChange={handleDynamicExtensionChange}
+              size={"xl"}
+              footerButtons={[
+                {
+                  label: "Close",
+                  onClick: handleEventTypeModalClose,
+                  props: {
+                    className: "purple-btn1",
+                  },
                 },
-              },
-              {
-                label: "Save Changes",
-                onClick: handleEventTypeModalClose,
-                props: {
-                  className: "purple-btn2",
+                {
+                  label: "Save Changes",
+                  onClick: handleEventTypeModalClose,
+                  props: {
+                    className: "purple-btn2",
+                  },
                 },
-              },
-            ]}
-          />
-          {/* make the above component on common modal folder and call it here */}
+              ]}
+            />
+            {/* make the above component on common modal folder and call it here */}
+          </div>
+
+          <div className="row mt-2 justify-content-end mt-4">
+            <div className="col-md-2">
+              <button className="purple-btn2 w-100">Preview</button>
+            </div>
+            <div className="col-md-2">
+              <button className="purple-btn2 w-100">Submit</button>
+            </div>
+            <div className="col-md-2">
+              <button
+                className="purple-btn1 w-100"
+                onClick={() => {
+                  navigate("/event-list");
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </>

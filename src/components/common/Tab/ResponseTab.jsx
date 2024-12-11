@@ -247,9 +247,9 @@ export default function ResponseTab() {
                       </div>
                     </div>
                     <div className="d-flex align-items-center justify-content-center">
-                      <button className="viewBy-tHead-btn">
+                      {/* <button className="viewBy-tHead-btn">
                         Counter Offer
-                      </button>
+                      </button> */}
                     </div>
                   </td>
                   <td className="viewBy-tHead p-1 pb-2">
@@ -301,7 +301,7 @@ export default function ResponseTab() {
                         </button>
                       </div>
                     </div>
-                    <div
+                    {/* <div
                       className=" d-flex align-items-center justify-content-center"
                       style={{ flexDirection: "column" }}
                     >
@@ -414,10 +414,10 @@ export default function ResponseTab() {
                           </defs>
                         </svg>
                       </div>
-                      <button className=" viewBy-tHead-btn viewBy-tHead-btn2">
+                       <button className=" viewBy-tHead-btn viewBy-tHead-btn2">
                         Counter Offer
-                      </button>
-                    </div>
+                      </button> 
+                    </div> */}
                   </td>
                   <td className="viewBy-tHead p-1 pb-2">
                     <div className="viewBy-tHead-heading">
@@ -468,7 +468,7 @@ export default function ResponseTab() {
                         </button>
                       </div>
                     </div>
-                    <div
+                    {/* <div
                       className=" d-flex align-items-center justify-content-center"
                       style={{ flexDirection: "column" }}
                     >
@@ -583,8 +583,8 @@ export default function ResponseTab() {
                       </div>
                       <button className=" viewBy-tHead-btn viewBy-tHead-btn2">
                         Counter Offer
-                      </button>
-                    </div>
+                      </button> 
+                    </div> */}
                   </td>
                   <td className="viewBy-tHead">
                     <div className="viewBy-tHead-heading"></div>
@@ -611,9 +611,95 @@ export default function ResponseTab() {
               </tbody>
             </table>
             <Accordion
-              title="Wooden Frd Door (WOODEN DOOR SHUTTER 2 HRS FIRE RATED (MAIN DOOR))"
-              tableData={tableData}
+              tableColumn={[
+                { label: "Best Total Amount", key: "bestTotalAmount" },
+                { label: "Quantity Available", key: "quantityAvailable" },
+                { label: "Price", key: "price" },
+                { label: "Discount", key: "discount" },
+                { label: "Realised Discount", key: "realisedDiscount" },
+                { label: "GST", key: "gst" },
+                { label: "Realised GST", key: "realisedGST" },
+                { label: "Landed Amount", key: "landedAmount" },
+                {
+                  label: "Participant Attachment",
+                  key: "participantAttachment",
+                },
+                { label: "Total Amount", key: "totalAmount" },
+              ]}
+              tableData={[
+                {
+                  bestTotalAmount: "₹ 3,717",
+                  quantityAvailable: "3 Nos",
+                  price: "₹ 1,500 /Nos",
+                  discount: "-",
+                  realisedDiscount: "-",
+                  gst: "18%",
+                  realisedGST: "₹ 567",
+                  landedAmount: "₹ 3,150",
+                  participantAttachment: "-",
+                  totalAmount: "₹ 3,717",
+                },
+                {
+                  bestTotalAmount: "₹ 3,717",
+                  quantityAvailable: "3 Nos",
+                  price: "₹ 1,500 /Nos",
+                  discount: "-",
+                  realisedDiscount: "-",
+                  gst: "18%",
+                  realisedGST: "₹ 567",
+                  landedAmount: "₹ 3,150",
+                  participantAttachment: "-",
+                  totalAmount: "₹ 3,717",
+                },
+              ]}
+              title='. Electrical(9"WALL FAN)C
+3 Nos Requested at Suyog Developers ( Shiv Sai ) - BHANDUP'
               isDefault={true}
+            />
+            <Accordion
+              tableColumn={[
+                { label: "Best Total Amount", key: "bestTotalAmount" },
+                { label: "Quantity Available", key: "quantityAvailable" },
+                { label: "Price", key: "price" },
+                { label: "Discount", key: "discount" },
+                { label: "Realised Discount", key: "realisedDiscount" },
+                { label: "GST", key: "gst" },
+                { label: "Realised GST", key: "realisedGST" },
+                { label: "Landed Amount", key: "landedAmount" },
+                {
+                  label: "Participant Attachment",
+                  key: "participantAttachment",
+                },
+                { label: "Total Amount", key: "totalAmount" },
+              ]}
+              tableData={[
+                {
+                  bestTotalAmount: "₹ 3,717",
+                  quantityAvailable: "3 Nos",
+                  price: "₹ 1,500 /Nos",
+                  discount: "-",
+                  realisedDiscount: "-",
+                  gst: "18%",
+                  realisedGST: "₹ 567",
+                  landedAmount: "₹ 3,150",
+                  participantAttachment: "-",
+                  totalAmount: "₹ 3,717",
+                },
+                {
+                  bestTotalAmount: "₹ 3,717",
+                  quantityAvailable: "3 Nos",
+                  price: "₹ 1,500 /Nos",
+                  discount: "-",
+                  realisedDiscount: "-",
+                  gst: "18%",
+                  realisedGST: "₹ 567",
+                  landedAmount: "₹ 3,150",
+                  participantAttachment: "-",
+                  totalAmount: "₹ 3,717",
+                },
+              ]}
+              title="Other Charges"
+              isDefault={false}
             />
           </div>
         </FullScreen>

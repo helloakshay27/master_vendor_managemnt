@@ -1,5 +1,13 @@
-// @ts-nocheck
 import React, { useState, useEffect } from "react";
+
+// Utility to transpose data for horizontal alignment
+const transposeData = (data, columns) => {
+  const keys = columns.map((col) => col.key);
+  return keys.map((key, colIndex) => ({
+    header: columns[colIndex].label,
+    values: data.map((row) => row[key]),
+  }));
+};
 
 export default function Table({
   columns,
@@ -9,10 +17,27 @@ export default function Table({
   actionIcon = null,
   isSelectCheckboxes = null,
   customRender = {}, // New prop to dynamically handle custom rendering
+  isHorizontal = false,
   ...rest
 }) {
   const [selectAll, setSelectAll] = useState(false);
   const [selectedRows, setSelectedRows] = useState([]);
+
+  useEffect(() => {
+    if (isSelectCheckboxes) {
+      setSelectedRows(data.map((_, index) => index));
+    } else {
+      setSelectedRows([]);
+    }
+  }, [isSelectCheckboxes, data.length]);
+
+  useEffect(() => {
+    if (selectedRows.length === data.length) {
+      setSelectAll(true);
+    } else {
+      setSelectAll(false);
+    }
+  }, [selectedRows, data.length]);
 
   const handleCheckboxChange = (rowIndex) => {
     const updatedSelectedRows = [...selectedRows];
@@ -33,21 +58,48 @@ export default function Table({
     setSelectAll(!selectAll);
   };
 
-  useEffect(() => {
-    if (isSelectCheckboxes) {
-      setSelectedRows(data.map((_, index) => index));
-    } else {
-      setSelectedRows([]);
-    }
-  }, [isSelectCheckboxes, data.length]);
-
-  useEffect(() => {
-    if (selectedRows.length === data.length) {
-      setSelectAll(true);
-    } else {
-      setSelectAll(false);
-    }
-  }, [selectedRows, data.length]);
+  if (isHorizontal) {
+    const transposedData = transposeData(data, columns);
+    return (
+      <div className="tbl-container px-0 mt-3" {...rest}>
+        <table className="w-100">
+          <thead>
+            <tr>
+              <th />
+              {data.map((_, index) => (
+                <th key={index} className="main2-th"></th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {transposedData.map((row, rowIndex) => (
+              <tr key={rowIndex}>
+                <td className="main2-th">{row.header}</td>
+                {row.values.map((value, valueIndex) => (
+                  <td
+                    key={valueIndex}
+                    style={{
+                      backgroundColor: customRender[columns[rowIndex]?.key]
+                        ? "#000"
+                        : "#fff",
+                    }}
+                  >
+                    {customRender[columns[rowIndex]?.key]
+                      ? customRender[columns[rowIndex]?.key](
+                          value,
+                          valueIndex,
+                          data[valueIndex]
+                        )
+                      : value}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
 
   return (
     <div className="tbl-container px-0 mt-3" {...rest}>
@@ -71,7 +123,6 @@ export default function Table({
             {actionIcon && <th>Action</th>}
           </tr>
         </thead>
-
         <tbody>
           {data.map((row, rowIndex) => (
             <tr key={rowIndex}>
@@ -86,19 +137,12 @@ export default function Table({
               )}
               {columns.map((col, cellIndex) => {
                 const cell = row[col.key];
-
-                // Delegate custom rendering to the parent component
                 const cellContent = customRender[col.key]
                   ? customRender[col.key](cell, rowIndex, row)
                   : cell;
 
-                return (
-                  <td key={cellIndex}>
-                    {cellContent}
-                  </td>
-                );
+                return <td key={cellIndex}>{cellContent}</td>;
               })}
-
               {actionIcon && onActionClick && (
                 <td>
                   <button
