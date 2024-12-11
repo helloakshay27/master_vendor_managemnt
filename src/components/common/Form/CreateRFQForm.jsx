@@ -1,8 +1,4 @@
-import {
-  mumbaiLocations,
-  product,
-  unitMeasure,
-} from "../../../constant/data";
+import { mumbaiLocations, product, unitMeasure } from "../../../constant/data";
 import MultiSelector from "../../base/Select/MultiSelector";
 import SelectBox from "../../base/Select/SelectBox";
 import Table from "../../base/Table/Table";
@@ -142,19 +138,27 @@ export default function CreateRFQForm({
               { label: "Location", key: "location" },
               { label: "Rate", key: "rate" },
               { label: "Amount", key: "amount" },
-              { label: "Actions", key: "actions" }, 
+              { label: "Actions", key: "actions" },
             ]}
-            data={data} 
+            data={data}
             customRender={{
               descriptionOfItem: (cell, rowIndex) => (
-                <MultiSelector
+                <SelectBox
+                  label={""}
                   options={product}
-                  value={cell}
+                  defaultValue={cell}
                   onChange={(selected) =>
                     handleDescriptionOfItemChange(selected, rowIndex)
                   }
-                  placeholder="Select Items"
                 />
+                // <MultiSelector
+                //   options={product}
+                //   value={cell}
+                //   onChange={(selected) =>
+                //     handleDescriptionOfItemChange(selected, rowIndex)
+                //   }
+                //   placeholder="Select Items"
+                // />
               ),
               unit: (cell, rowIndex) => (
                 <SelectBox
