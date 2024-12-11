@@ -35,6 +35,7 @@ export default function CreateEvent() {
   const [showPopup, setShowPopup] = useState(false);
   const [selectedTags, setSelectedTags] = useState([]);
   const [selectedCity, setSelectedCity] = useState([]);
+  const [isTrafficSelected, setIsTrafficSelected] = useState("");
 
   const [data, setData] = useState([
     { user: "", date: "", status: "", remark: "" },
@@ -95,6 +96,10 @@ export default function CreateEvent() {
 
   const handleEventTypeChange = (e) => {
     setEventType(e.target.value);
+  };
+
+  const handleTrafficChange = (value) => {
+    setIsTrafficSelected(value);
   };
 
   const handleAwardTypeChange = (e) => {
@@ -831,8 +836,7 @@ export default function CreateEvent() {
                     className: "purple-btn2",
                   },
                 },
-              ]}
-            />
+              ]} trafficType={isTrafficSelected} handleTrafficChange={handleTrafficChange}            />
             {/* make the above component on common modal folder and call it here */}
           </div>
 

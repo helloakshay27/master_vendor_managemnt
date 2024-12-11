@@ -29,6 +29,7 @@ export default function CreateRfq() {
   const [documentModal, setDocumentModal] = useState(false);
   const [attachmentModal, setAttachmentModal] = useState(false);
   const [eventType, setEventType] = useState("auction");
+  const [isTrafficSelected, setIsTrafficSelected] = useState("");
   const [awardType, setAwardType] = useState("single");
   const [dynamicExtension, setDynamicExtension] = useState(true);
   const [settingShow, setSettingShow] = useState(false);
@@ -69,6 +70,10 @@ export default function CreateRfq() {
 
   const handleEventTypeChange = (e) => {
     setEventType(e.target.value);
+  };
+
+  const handleTrafficChange = (e) => {
+    setIsTrafficSelected(e.target.value);
   };
 
   const handleAwardTypeChange = (e) => {

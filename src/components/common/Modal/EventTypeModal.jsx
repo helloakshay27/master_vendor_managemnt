@@ -4,7 +4,14 @@ import DynamicModalBox from "../../base/Modal/DynamicModalBox";
 import SelectBox from "../../base/Select/SelectBox";
 import { bidsType } from "../../../constant/data";
 
-const Card = ({ title, middleText, placeholder, bgColor, color,circleColor }) => {
+const Card = ({
+  title,
+  middleText,
+  placeholder,
+  bgColor,
+  color,
+  circleColor,
+}) => {
   return (
     <div
       style={{
@@ -33,7 +40,17 @@ const Card = ({ title, middleText, placeholder, bgColor, color,circleColor }) =>
       </h5>
 
       {/* Middle Text */}
-      <p style={{ margin: 0, fontSize: '15px' ,color: 'rgba(0, 0, 0, 0.5)',width:"15%" , paddingTop:"12px"}}>{middleText}</p>
+      <p
+        style={{
+          margin: 0,
+          fontSize: "15px",
+          color: "rgba(0, 0, 0, 0.5)",
+          width: "15%",
+          paddingTop: "12px",
+        }}
+      >
+        {middleText}
+      </p>
 
       {/* Input Box on the right */}
       <input
@@ -44,9 +61,8 @@ const Card = ({ title, middleText, placeholder, bgColor, color,circleColor }) =>
           borderRadius: "3px",
           border: "1px solid #ccc",
           outline: "none",
-          marginRight:"10px",
-          width:"48%"
-        
+          marginRight: "10px",
+          width: "48%",
         }}
       />
     </div>
@@ -69,6 +85,8 @@ const EventTypeModal = ({
   handleAwardTypeChange,
   dynamicExtension,
   handleDynamicExtensionChange,
+  trafficType,
+  handleTrafficChange,
 }) => (
   <DynamicModalBox
     size="xl"
@@ -426,195 +444,197 @@ const EventTypeModal = ({
           </div> */}
         </div>
       )}
-      <div className="ant-row ant-form-item mt-3">
+      {selectedStrategy === "Traffic Light" && (
         <div className="ant-row ant-form-item mt-3">
-          <div className="ant-col">
-            <label title="How will you award the event?">
-              Group traffic light by:
-            </label>
-          </div>
-          <div className="ant-col">
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                marginTop: "10px",
-              }}
-            >
-              <label style={{ display: "flex", alignItems: "center" }}>
-                <input
-                  type="radio"
-                  name="groupTrafficLight"
-                  value="price"
-                  style={{ marginRight: "5px" }}
-                />
-                Price
+          <div className="ant-row ant-form-item mt-3">
+            <div className="ant-col">
+              <label title="How will you award the event?">
+                Group traffic light by:
               </label>
-              <label
+            </div>
+            <div className="ant-col">
+              <div
                 style={{
-                  marginLeft: "15px",
                   display: "flex",
                   alignItems: "center",
+                  marginTop: "10px",
                 }}
               >
-                <input
-                  type="radio"
-                  name="groupTrafficLight"
-                  value="checked"
-                  style={{ marginRight: "5px" }}
-                />
-                Rank
-              </label>
+                <label style={{ display: "flex", alignItems: "center" }}>
+                  <input
+                    type="radio"
+                    name="groupTrafficLight"
+                    value="price"
+                    style={{ marginRight: "5px" }}
+                  />
+                  Price
+                </label>
+                <label
+                  style={{
+                    marginLeft: "15px",
+                    display: "flex",
+                    alignItems: "center",
+                  }}
+                >
+                  <input
+                    type="radio"
+                    name="groupTrafficLight"
+                    value="checked"
+                    style={{ marginRight: "5px" }}
+                  />
+                  Rank
+                </label>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="ant-col ant-form-item-label">
-          <label title="How will you award the event?">
-            How will you award the event?
-          </label>
-        </div>
+          {/* // card  */}
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "20px",
+              marginTop: "20px",
+            }}
+          >
+            <Card
+              title="GREEN"
+              middleText="Gross Total Less Than"
+              placeholder="223"
+              // bgColor="rgba(0, 128, 0, 0.3)"
+              bgColor="rgba(220,255,220,1)"
+              circleColor="green"
+              color={""}
+            />
 
-        <div className="ant-col ant-form-item-control-wrapper">
-          <div className="ant-form-item-control">
-            <span className="ant-form-item-children">
-              <div style={{ maxWidth: 700 }}>
-                <div
-                  className="pro-radio-tabs"
-                  style={{ gridTemplateColumns: "1fr 1fr" }}
-                >
-                  <div
-                    className={`pro-radio-tabs__tab ${
-                      awardType === "SingleVendor"
-                        ? "pro-radio-tabs__tab__selected"
-                        : ""
-                    }`}
-                    role="radio"
-                    aria-checked={awardType === "SingleVendor"}
-                  >
-                    <div className="pro-radio-tabs__check-icon">
-                      <label
-                        className={`ant-radio-wrapper ${
-                          awardType === "SingleVendor"
-                            ? "ant-radio-wrapper-checked"
-                            : ""
-                        }`}
-                      >
-                        <span
-                          className={`ant-radio ${
-                            awardType === "SingleVendor"
-                              ? "ant-radio-checked"
-                              : ""
-                          }`}
-                        >
-                          <input
-                            type="radio"
-                            className="ant-radio-input"
-                            value="SingleVendor"
-                            checked={awardType === "SingleVendor"}
-                            onChange={handleAwardTypeChange}
-                          />
-                          <div className="ant-radio-inner"></div>
-                        </span>
-                      </label>
-                    </div>
-                    <p className="pro-text pro-body pro-text--normal">
-                      I'll award the entire lot to single vendor
-                    </p>
-                  </div>
-                  <div
-                    className={`pro-radio-tabs__tab ${
-                      awardType === "MultipleVendors"
-                        ? "pro-radio-tabs__tab__selected"
-                        : ""
-                    }`}
-                    role="radio"
-                    aria-checked={awardType === "MultipleVendors"}
-                  >
-                    <div className="pro-radio-tabs__check-icon">
-                      <label
-                        className={`ant-radio-wrapper ${
-                          awardType === "MultipleVendors"
-                            ? "ant-radio-wrapper-checked"
-                            : ""
-                        }`}
-                      >
-                        <span
-                          className={`ant-radio ${
-                            awardType === "MultipleVendors"
-                              ? "ant-radio-checked"
-                              : ""
-                          }`}
-                        >
-                          <input
-                            type="radio"
-                            className="ant-radio-input"
-                            value="MultipleVendors"
-                            checked={awardType === "MultipleVendors"}
-                            onChange={handleAwardTypeChange}
-                          />
-                          <div className="ant-radio-inner"></div>
-                        </span>
-                      </label>
-                    </div>
-                    <p className="pro-text pro-body pro-text--normal">
-                      I may partially award the event to multiple vendors
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </span>
+            {/* Card for Yellow */}
+            <Card
+              title="YELLOW"
+              color="yellow"
+              middleText="Gross Total Less Than"
+              placeholder="2323"
+              bgColor="rgba(255,255,220,1)"
+              circleColor="orange"
+            />
+
+            {/* Card for Green */}
           </div>
         </div>
+      )}
 
-        {/* // card  */}
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "20px",
-            marginTop: "20px",
-           
-          }}
-        >
-          <Card
-            title="GREEN"
-            middleText="Gross Total Less Than"
-            placeholder="223"
-            // bgColor="rgba(0, 128, 0, 0.3)"
-              bgColor="rgba(220,255,220,1)"
-            circleColor="green"
-            
-          />
-
-          {/* Card for Yellow */}
-          <Card
-            title="YELLOW"
-            color="yellow"
-            middleText="Gross Total Less Than"
-            placeholder="2323"
-            bgColor="rgba(255,255,220,1)"
-            circleColor="orange"
-          />
-
-          {/* Card for Green */}
-        </div>
+      <div className="ant-col ant-form-item-label">
+        <label title="How will you award the event?">
+          How will you award the event?
+        </label>
       </div>
 
+      <div className="ant-col ant-form-item-control-wrapper">
+        <div className="ant-form-item-control">
+          <span className="ant-form-item-children">
+            <div style={{ maxWidth: 700 }}>
+              <div
+                className="pro-radio-tabs"
+                style={{ gridTemplateColumns: "1fr 1fr" }}
+              >
+                <div
+                  className={`pro-radio-tabs__tab ${
+                    awardType === "SingleVendor"
+                      ? "pro-radio-tabs__tab__selected"
+                      : ""
+                  }`}
+                  role="radio"
+                  aria-checked={awardType === "SingleVendor"}
+                >
+                  <div className="pro-radio-tabs__check-icon">
+                    <label
+                      className={`ant-radio-wrapper ${
+                        awardType === "SingleVendor"
+                          ? "ant-radio-wrapper-checked"
+                          : ""
+                      }`}
+                    >
+                      <span
+                        className={`ant-radio ${
+                          awardType === "SingleVendor"
+                            ? "ant-radio-checked"
+                            : ""
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          className="ant-radio-input"
+                          value="SingleVendor"
+                          checked={awardType === "SingleVendor"}
+                          onChange={handleAwardTypeChange}
+                        />
+                        <div className="ant-radio-inner"></div>
+                      </span>
+                    </label>
+                  </div>
+                  <p className="pro-text pro-body pro-text--normal">
+                    I'll award the entire lot to single vendor
+                  </p>
+                </div>
+                <div
+                  className={`pro-radio-tabs__tab ${
+                    awardType === "MultipleVendors"
+                      ? "pro-radio-tabs__tab__selected"
+                      : ""
+                  }`}
+                  role="radio"
+                  aria-checked={awardType === "MultipleVendors"}
+                >
+                  <div className="pro-radio-tabs__check-icon">
+                    <label
+                      className={`ant-radio-wrapper ${
+                        awardType === "MultipleVendors"
+                          ? "ant-radio-wrapper-checked"
+                          : ""
+                      }`}
+                    >
+                      <span
+                        className={`ant-radio ${
+                          awardType === "MultipleVendors"
+                            ? "ant-radio-checked"
+                            : ""
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          className="ant-radio-input"
+                          value="MultipleVendors"
+                          checked={awardType === "MultipleVendors"}
+                          onChange={handleAwardTypeChange}
+                        />
+                        <div className="ant-radio-inner"></div>
+                      </span>
+                    </label>
+                  </div>
+                  <p className="pro-text pro-body pro-text--normal">
+                    I may partially award the event to multiple vendors
+                  </p>
+                </div>
+              </div>
+            </div>
+          </span>
+        </div>
+      </div>
       <form className="ant-form-item my-4">
         <div>
-          <div className="d-flex align-items-center gap-2 my-3">
-            <input
-              type="checkbox"
-              checked={dynamicExtension[0]}
-              onChange={(e) =>
-                handleDynamicExtensionChange(0, e.target.checked)
-              }
-            />
-            <div className="ant-col ant-form-item-label">
-              Show rank to vendor for individual item.
+          {selectedStrategy === "Rank Based" && (
+            <div className="d-flex align-items-center gap-2 my-3">
+              <input
+                type="checkbox"
+                checked={dynamicExtension[0]}
+                onChange={(e) =>
+                  handleDynamicExtensionChange(0, e.target.checked)
+                }
+              />
+              <div className="ant-col ant-form-item-label">
+                Show rank to vendor for individual item.
+              </div>
             </div>
-          </div>
+          )}
           <div className="d-flex align-items-center gap-2 my-3">
             <input
               type="checkbox"
