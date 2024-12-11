@@ -17,10 +17,8 @@ const Card = ({
       style={{
         backgroundColor: bgColor,
         color: circleColor,
-        // padding: '8px',
         borderRadius: "4px",
         textAlign: "left",
-        // margin: '10px',
         boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
         display: "flex",
         alignItems: "center",
@@ -30,7 +28,6 @@ const Card = ({
         height: "50px",
       }}
     >
-      {/* Title on the left */}
       <h5 style={{ margin: 0, fontSize: "15px", paddingTop: "15px" }}>
         {" "}
         <svg width="50" height="50" xmlns="http://www.w3.org/2000/svg">
@@ -39,7 +36,6 @@ const Card = ({
         {title}
       </h5>
 
-      {/* Middle Text */}
       <p
         style={{
           margin: 0,
@@ -52,7 +48,6 @@ const Card = ({
         {middleText}
       </p>
 
-      {/* Input Box on the right */}
       <input
         type="text"
         placeholder={placeholder}
@@ -487,7 +482,6 @@ const EventTypeModal = ({
               </div>
             </div>
           </div>
-
           {/* // card  */}
           <div
             style={{
