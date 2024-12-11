@@ -191,7 +191,7 @@ export default function ResponseTab() {
               }}
             ></div>
             <table
-              className="tbl-container"
+              className="tbl-container w-100"
               style={{ margin: 0, boxShadow: "none" }}
             >
               <tbody>
@@ -419,8 +419,8 @@ export default function ResponseTab() {
                       </button> 
                     </div> */}
                   </td>
-                  <td className="viewBy-tHead p-1 pb-2">
-                    <div className="viewBy-tHead-heading">
+                  {/* <td className="viewBy-tHead p-1 pb-2"> */}
+                    {/* <div className="viewBy-tHead-heading">
                       <div className="viewBy-tHead-heading-child">
                         <span className="viewBy-tHead-heading-child-span">
                           <svg
@@ -467,7 +467,7 @@ export default function ResponseTab() {
                           </svg>
                         </button>
                       </div>
-                    </div>
+                    </div> */}
                     {/* <div
                       className=" d-flex align-items-center justify-content-center"
                       style={{ flexDirection: "column" }}
@@ -585,10 +585,7 @@ export default function ResponseTab() {
                         Counter Offer
                       </button> 
                     </div> */}
-                  </td>
-                  <td className="viewBy-tHead">
-                    <div className="viewBy-tHead-heading"></div>
-                  </td>
+                  {/* </td> */}
                 </tr>
                 <tr>
                   <td className="viewBy-tBody1-p">Gross Total</td>
@@ -596,17 +593,14 @@ export default function ResponseTab() {
                     <span className="viewBy-tBody1-R">₹</span>
                     15883962.3
                   </td>
-                  <td className="viewBy-tBody1-2">
+                   <td className="viewBy-tBody1-2">
                     <span className="viewBy-tBody1-R">₹</span>
-                    7681656.04
+                    7681656.04 
                   </td>
-                  <td className="viewBy-tBody1-3">
-                    <span className="viewBy-tBody1-R">₹</span>
-                    14058103.00
-                  </td>
-                  <td className="viewBy-tBody1-3">
-                    <span className="viewBy-tBody1-R" />
-                  </td>
+                  {/*<td className="viewBy-tBody1-3">
+                     <span className="viewBy-tBody1-R">₹</span>
+                    14058103.00 
+                  </td>*/}
                 </tr>
               </tbody>
             </table>

@@ -47,47 +47,9 @@ export default function Accordion({ title, isDefault, tableColumn, tableData }) 
             </table> */}
 
             <Table
-              columns={
-                [
-                { label: "Best Total Amount", key: "bestTotalAmount" },
-                { label: "Quantity Available", key: "quantityAvailable" },
-                { label: "Price", key: "price" },
-                { label: "Discount", key: "discount" },
-                { label: "Realised Discount", key: "realisedDiscount" },
-                { label: "GST", key: "gst" },
-                { label: "Realised GST", key: "realisedGST" },
-                { label: "Landed Amount", key: "landedAmount" },
-                { label: "Participant Attachment", key: "participantAttachment" },
-                { label: "Total Amount", key: "totalAmount" },
-              ]
-            }
-              data={
-                [
-                {
-                  bestTotalAmount: "₹ 3,717",
-                  quantityAvailable: "3 Nos",
-                  price: "₹ 1,500 /Nos",
-                  discount: "-",
-                  realisedDiscount: "-",
-                  gst: "18%",
-                  realisedGST: "₹ 567",
-                  landedAmount: "₹ 3,150",
-                  participantAttachment: "-",
-                  totalAmount: "₹ 3,717",
-                },
-                {
-                  bestTotalAmount: "₹ 3,717",
-                  quantityAvailable: "3 Nos",
-                  price: "₹ 1,500 /Nos",
-                  discount: "-",
-                  realisedDiscount: "-",
-                  gst: "18%",
-                  realisedGST: "₹ 567",
-                  landedAmount: "₹ 3,150",
-                  participantAttachment: "-",
-                  totalAmount: "₹ 3,717",
-                },
-              ]}
+              columns={tableColumn}
+              data={tableData}
+              isHorizontal={true}
             />
             {isDefault && (
               <div className="default-val">

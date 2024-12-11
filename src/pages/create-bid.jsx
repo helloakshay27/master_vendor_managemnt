@@ -15,10 +15,13 @@ export default function CreateBid() {
     {
       descriptionOfItem: [],
       quantity: "",
+      quantityAvail: "",
       unit: [],
       location: [],
       rate: "",
       amount: "",
+      totalAmt:"",
+      attachment: null,
     },
   ]);
 
@@ -84,7 +87,6 @@ export default function CreateBid() {
               { label: "Location", key: "location" },
               { label: "Creator Attachment", key: "attachment" },
             ]}
-            showCheckbox={true}
             data={data}
             customRender={{
               descriptionOfItem: (cell, rowIndex) => (
@@ -127,9 +129,21 @@ export default function CreateBid() {
                     handleInputChange(e.target.value, rowIndex, "quantity")
                   }
                   placeholder="Enter Quantity"
+                  disabled
                 />
               ),
-              quantityAvail: (cell, rowIndex) => 3,
+              quantityAvail: (cell, rowIndex) => (
+                <input
+                  className="form-control"
+                  type="number"
+                  min="0"
+                  value={cell}
+                  onChange={(e) =>
+                    handleInputChange(e.target.value, rowIndex, "quantityAvail")
+                  }
+                  placeholder="Enter Quantity Available"
+                />
+              ),
               rate: (cell, rowIndex) => (
                 <input
                   className="form-control"
@@ -143,7 +157,7 @@ export default function CreateBid() {
                 />
               ),
               bestAmount: (cell, rowIndex) => {
-                const quantity = parseFloat(data[rowIndex].quantity) || 0;
+                const quantity = parseFloat(data[rowIndex].quantityAvail) || 0;
                 const rate = parseFloat(data[rowIndex].rate) || 0;
                 const totalAmount = quantity * rate;
 
@@ -160,16 +174,18 @@ export default function CreateBid() {
                 <input
                   className="form-control"
                   type="file"
-                  min="0"
-                  value={cell}
-                  onChange={(e) =>
-                    handleInputChange(e.target.value, rowIndex, "rate")
-                  }
-                  placeholder="Enter Rate"
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                      const updatedData = [...data];
+                      updatedData[rowIndex].attachment = file;
+                      setData(updatedData);
+                    }
+                  }}
                 />
               ),
               amount: (_, rowIndex) => {
-                const quantity = parseFloat(data[rowIndex].quantity) || 0;
+                const quantity = parseFloat(data[rowIndex].quantityAvail) || 0;
                 const rate = parseFloat(data[rowIndex].rate) || 0;
                 const totalAmount = quantity * rate;
 
