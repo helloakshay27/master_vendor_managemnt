@@ -138,13 +138,13 @@ export default function CreateRFQForm({
             columns={[
               { label: "Description of Item", key: "descriptionOfItem" },
               { label: "Quantity", key: "quantity" },
-              { label: "Unit", key: "unit" },
+              { label: "UOM", key: "unit" },
               { label: "Location", key: "location" },
               { label: "Rate", key: "rate" },
               { label: "Amount", key: "amount" },
-              { label: "Actions", key: "actions" }, // Add a column for the remove button
+              { label: "Actions", key: "actions" }, 
             ]}
-            data={data} // Pass the updated data
+            data={data} 
             customRender={{
               descriptionOfItem: (cell, rowIndex) => (
                 <MultiSelector

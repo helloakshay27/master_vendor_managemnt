@@ -342,6 +342,8 @@ export default function CreateEvent() {
             show={eventScheduleModal}
             onHide={handleEventScheduleModalClose}
           />
+
+          {/* make the below component on common modal folder and call it here */}
           <DynamicModalBox
             size="md"
             title="Publish Event"
@@ -475,7 +477,6 @@ export default function CreateEvent() {
             }
           />
           <DynamicModalBox
-          
             show={inviteModal}
             onHide={handleInviteModalClose}
             modalType={true}
@@ -769,6 +770,7 @@ export default function CreateEvent() {
               },
             ]}
           />
+          {/* make the above component on common modal folder and call it here */}
         </div>
       </div>
     </>

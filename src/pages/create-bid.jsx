@@ -8,6 +8,7 @@ import {
   product,
   unitMeasure,
 } from "../constant/data";
+import { useNavigate } from "react-router-dom";
 
 export default function CreateBid() {
   const [data, setData] = useState([
@@ -20,6 +21,8 @@ export default function CreateBid() {
       amount: "",
     },
   ]);
+
+  const navigate = useNavigate();
 
   const handleDescriptionOfItemChange = (selected, rowIndex) => {
     const updatedData = [...data];
@@ -186,7 +189,8 @@ export default function CreateBid() {
             <ShortTable data={freightData} />
           </div>
           <div className="d-flex justify-content-end">
-            <button className="purple-btn2">Submit</button>
+            <button className="purple-btn2" onClick={() =>navigate('/event-list')}>Create</button>
+            <button className="purple-btn1" onClick={() =>navigate('/event-list')}>Cancel</button>
           </div>
         </div>
       </div>
