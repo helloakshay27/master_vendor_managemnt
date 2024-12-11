@@ -4,6 +4,55 @@ import DynamicModalBox from "../../base/Modal/DynamicModalBox";
 import SelectBox from "../../base/Select/SelectBox";
 import { bidsType } from "../../../constant/data";
 
+const Card = ({ title, middleText, placeholder, bgColor, color,circleColor }) => {
+  return (
+    <div
+      style={{
+        backgroundColor: bgColor,
+        color: circleColor,
+        // padding: '8px',
+        borderRadius: "4px",
+        textAlign: "left",
+        // margin: '10px',
+        boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        width: "64%",
+        marginTop: "-8px",
+        height: "50px",
+      }}
+    >
+      {/* Title on the left */}
+      <h5 style={{ margin: 0, fontSize: "15px", paddingTop: "15px" }}>
+        {" "}
+        <svg width="50" height="50" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="25" cy="25" r="10" fill={circleColor} />
+        </svg>
+        {title}
+      </h5>
+
+      {/* Middle Text */}
+      <p style={{ margin: 0, fontSize: '15px' ,color: 'rgba(0, 0, 0, 0.5)',width:"15%" , paddingTop:"12px"}}>{middleText}</p>
+
+      {/* Input Box on the right */}
+      <input
+        type="text"
+        placeholder={placeholder}
+        style={{
+          padding: "4px",
+          borderRadius: "3px",
+          border: "1px solid #ccc",
+          outline: "none",
+          marginRight:"10px",
+          width:"48%"
+        
+        }}
+      />
+    </div>
+  );
+};
+
 const EventTypeModal = ({
   size,
   show,
@@ -209,6 +258,49 @@ const EventTypeModal = ({
           </div>
 
           {/* Traffic Light Radio Button */}
+          {/* <div
+            className={`pro-radio-tabs__tab ${
+              selectedStrategy === "Traffic Light"
+                ? "pro-radio-tabs__tab__selected"
+                : ""
+            }`}
+            tabIndex={0}
+            role="radio"
+            aria-checked={selectedStrategy === "Traffic Light"}
+            onClick={() => handleRadioChange("Traffic Light")}
+          >
+            <div className="pro-radio-tabs__check-icon">
+              <label className="ant-radio-wrapper">
+                <span
+                  className={`ant-radio ${
+                    selectedStrategy === "Traffic Light"
+                      ? "ant-radio-checked"
+                      : ""
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    tabIndex={-1}
+                    className="ant-radio-input"
+                    checked={selectedStrategy === "Traffic Light"}
+                    onChange={() => handleRadioChange("Traffic Light")}
+                  />
+                  <div className="ant-radio-inner" />
+                </span>
+              </label>
+            </div>
+            <div className="styles_strategy__xc2r+">
+              <div className="styles_strategyContent__c-1Di">
+                <p className="pro-text pro-body pro-text--medium">
+                  Traffic Light
+                </p>
+                <p className="pro-text pro-body pro-text--normal styles_strategySub__R7Aot">
+                  Vendors will be divided based on a specified range
+                </p>
+              </div>
+            </div>
+          </div> */}
+
           <div
             className={`pro-radio-tabs__tab ${
               selectedStrategy === "Traffic Light"
@@ -251,6 +343,7 @@ const EventTypeModal = ({
               </div>
             </div>
           </div>
+
           {/* <div
             className={`pro-radio-tabs__tab ${
               selectedStrategy === "Knockout"
@@ -334,11 +427,54 @@ const EventTypeModal = ({
         </div>
       )}
       <div className="ant-row ant-form-item mt-3">
+        <div className="ant-row ant-form-item mt-3">
+          <div className="ant-col">
+            <label title="How will you award the event?">
+              Group traffic light by:
+            </label>
+          </div>
+          <div className="ant-col">
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                marginTop: "10px",
+              }}
+            >
+              <label style={{ display: "flex", alignItems: "center" }}>
+                <input
+                  type="radio"
+                  name="groupTrafficLight"
+                  value="price"
+                  style={{ marginRight: "5px" }}
+                />
+                Price
+              </label>
+              <label
+                style={{
+                  marginLeft: "15px",
+                  display: "flex",
+                  alignItems: "center",
+                }}
+              >
+                <input
+                  type="radio"
+                  name="groupTrafficLight"
+                  value="checked"
+                  style={{ marginRight: "5px" }}
+                />
+                Rank
+              </label>
+            </div>
+          </div>
+        </div>
+
         <div className="ant-col ant-form-item-label">
           <label title="How will you award the event?">
             How will you award the event?
           </label>
         </div>
+
         <div className="ant-col ant-form-item-control-wrapper">
           <div className="ant-form-item-control">
             <span className="ant-form-item-children">
@@ -430,7 +566,41 @@ const EventTypeModal = ({
             </span>
           </div>
         </div>
+
+        {/* // card  */}
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "20px",
+            marginTop: "20px",
+           
+          }}
+        >
+          <Card
+            title="GREEN"
+            middleText="Gross Total Less Than"
+            placeholder="223"
+            // bgColor="rgba(0, 128, 0, 0.3)"
+              bgColor="rgba(220,255,220,1)"
+            circleColor="green"
+            
+          />
+
+          {/* Card for Yellow */}
+          <Card
+            title="YELLOW"
+            color="yellow"
+            middleText="Gross Total Less Than"
+            placeholder="2323"
+            bgColor="rgba(255,255,220,1)"
+            circleColor="orange"
+          />
+
+          {/* Card for Green */}
+        </div>
       </div>
+
       <form className="ant-form-item my-4">
         <div>
           <div className="d-flex align-items-center gap-2 my-3">
