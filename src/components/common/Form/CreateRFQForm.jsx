@@ -3,12 +3,19 @@ import MultiSelector from "../../base/Select/MultiSelector";
 import SelectBox from "../../base/Select/SelectBox";
 import Table from "../../base/Table/Table";
 import React, { useState } from "react";
+import { useEffect } from "react";
+import axios from "axios";
 
 export default function CreateRFQForm({
   handleEventTypeModalShow,
   handleEventScheduleModalShow,
   handleSettingModalShow,
-}) {
+})
+
+ 
+  
+
+{
   const [data, setData] = useState([
     {
       descriptionOfItem: [],
@@ -20,11 +27,9 @@ export default function CreateRFQForm({
     },
   ]);
 
-  const handleDescriptionOfItemChange = (selected, rowIndex) => {
-    const updatedData = [...data];
-    updatedData[rowIndex].descriptionOfItem = selected;
-    setData(updatedData);
-  };
+
+
+
   const handleUnitChange = (selected, rowIndex) => {
     const updatedData = [...data];
     updatedData[rowIndex].unit = selected;
@@ -63,10 +68,67 @@ export default function CreateRFQForm({
     setData([...data, newRow]);
   };
 
+  const [materials, setMaterials] = useState([]);
+  const [selectedMaterial, setSelectedMaterial] = useState(null);
+   
+
+  useEffect(() => {
+    // Fetch material data from API
+    const fetchMaterials = async () => {
+      try {
+        const response = await axios.get('https://vendors.lockated.com/rfq/events/material_list?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414'); // Replace with your API endpoint
+       
+        // console.log(response ,"hhhhhhhhhhhhhhhhhh")
+
+        // setMaterials(response.data,materials);
+        if (response.data && Array.isArray(response.data.materials)) {
+          setMaterials(response.data.materials); // Set materials if it's an array
+        } else {
+          console.error('Unexpected response structure:', response.data);
+        }
+
+      } 
+    
+      
+      catch (error) {
+        console.error('Error fetching materials:', error);
+      }
+    };
+
+    fetchMaterials();
+  }, []);
+
+
+  const materialOptions = materials.map((material) => ({
+    value: material.name,
+    label: material.name,
+  }));
+
+  const handleDescriptionOfItemChange = (selected, rowIndex) => {
+    const updatedData = [...data];
+  
+    // Find the selected material
+    const selectedMaterial = materials.find(
+      (material) => material.name === selected
+    );
+  
+    // Update descriptionOfItem
+    updatedData[rowIndex].descriptionOfItem = selected;
+  
+    // Check if selectedMaterial exists and has a valid UOM
+    if (selectedMaterial && selectedMaterial.uom) {
+      updatedData[rowIndex].unit = selectedMaterial.uom.uom_short_name; // Update UOM short name
+    } else {
+      updatedData[rowIndex].unit = ""; // Set empty if no UOM found
+    }
+  
+    setData(updatedData);
+  };
+
   return (
     <div className="row ">
       <div className="card-body">
-        <div className="row align-items-end justify-items-end mx-2 mb-5">
+        {/* <div className="row align-items-end justify-items-end mx-2 mb-5">
           <div className="col-md-4 mt-0 mb-2">
             <div className="form-group">
               <label className="po-fontBold">Event Type</label>
@@ -103,7 +165,7 @@ export default function CreateRFQForm({
               />
             </div>
           </div> */}
-          <div className="col-md-4 mt-2">
+          {/* <div className="col-md-4 mt-2">
             <div className="form-group">
               <label className="po-fontBold">Event Schedule</label>
             </div>
@@ -114,7 +176,7 @@ export default function CreateRFQForm({
                                                           [HH] Hrs [MM] Mins)"
             />
           </div>
-        </div>
+        </div>   */} 
         <div className="mx-3">
           <div className="head-material d-flex justify-content-between">
             <h4>Select Materials</h4>
@@ -130,8 +192,8 @@ export default function CreateRFQForm({
               <span>Add</span>
             </button>
           </div>
-          <Table
-            columns={[
+         <Table  
+            columns={[ 
               { label: "Description of Item", key: "descriptionOfItem" },
               { label: "Quantity", key: "quantity" },
               { label: "UOM", key: "unit" },
@@ -145,7 +207,9 @@ export default function CreateRFQForm({
               descriptionOfItem: (cell, rowIndex) => (
                 <SelectBox
                   label={""}
-                  options={product}
+                  // options={product}
+                  options={materialOptions}
+
                   defaultValue={cell}
                   onChange={(selected) =>
                     handleDescriptionOfItemChange(selected, rowIndex)
@@ -161,13 +225,20 @@ export default function CreateRFQForm({
                 // />
               ),
               unit: (cell, rowIndex) => (
-                <SelectBox
-                  isDisableFirstOption={true}
-                  label={""}
-                  options={unitMeasure}
-                  defaultValue={cell}
-                  onChange={(selected) => handleUnitChange(selected, rowIndex)}
-                />
+
+                <input
+                className="form-control"
+                type="text"
+                value={cell}
+                readOnly
+              />
+                // <SelectBox
+                //   isDisableFirstOption={true}
+                //   label={""}
+                //   options={unitMeasure}
+                //   defaultValue={cell}
+                //   onChange={(selected) => handleUnitChange(selected, rowIndex)}
+                // />
               ),
               location: (cell, rowIndex) => (
                 <SelectBox
@@ -200,6 +271,7 @@ export default function CreateRFQForm({
                     handleInputChange(e.target.value, rowIndex, "rate")
                   }
                   placeholder="Enter Rate"
+                  disabled 
                 />
               ),
               amount: (cell, rowIndex) => (
@@ -211,6 +283,7 @@ export default function CreateRFQForm({
                     handleInputChange(e.target.value, rowIndex, "amount")
                   }
                   placeholder="Enter Amount"
+                  disabled 
                 />
               ),
               actions: (_, rowIndex) => (

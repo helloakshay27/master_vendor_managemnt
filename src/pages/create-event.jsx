@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import {
   CreateRFQForm,
   DynamicModalBox,
@@ -36,24 +37,26 @@ export default function CreateEvent() {
   const [selectedTags, setSelectedTags] = useState([]);
   const [selectedCity, setSelectedCity] = useState([]);
   const [isTrafficSelected, setIsTrafficSelected] = useState("");
+  const [selectedRows, setSelectedRows] = useState([]);
 
   const [data, setData] = useState([
     { user: "", date: "", status: "", remark: "" },
   ]);
+
 
   const options = [
     { value: "BUILDING MATERIAL", label: "BUILDING MATERIAL" },
     { value: "MIVAN MA", label: "MIVAN MA" },
     { value: "MIVAN MATERIAL", label: "MIVAN MATERIAL" },
   ];
-
+       
   const handleChange = (selectedOption) => {
     setSelectedTags(selectedOption);
   };
   const handleCityChange = (selectedOption) => {
     setSelectedCity(selectedOption);
-  };
-
+  };   
+   
   const navigate = useNavigate();
 
   const handleApply = () => {
@@ -124,6 +127,70 @@ export default function CreateEvent() {
     setSelectedVendorProfile(profile);
   };
 
+
+  //  for vendordata get api 
+
+  // const [vendorModal, setVendorModal] = useState(false); 
+  const [tableData, setTableData] = useState([]); // State to hold dynamic data
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (vendorModal) {
+      fetchData();
+    }
+  }, [vendorModal]);
+
+ 
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+        const response = await axios.get(
+            "https://vendors.lockated.com/rfq/events/vendor_list?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414"
+        );
+
+        console.log("API Response:", response.data);
+
+        // Check if vendors is available and is an array
+        const vendors = Array.isArray(response.data.vendors) ? response.data.vendors : [];
+
+        const formattedData = vendors.map((vendor, index) => ({
+            id: vendor.id || index,
+            name: vendor.full_name || vendor.organization_name || "N/A",
+            email: vendor.email || "N/A",
+            phone: vendor.contact_number || vendor.mobile || "N/A",
+            city: vendor.city_id || "N/A",
+            tags: vendor.tags || "N/A",
+        }));
+
+        console.log("Formatted Data:", formattedData);
+        setTableData(formattedData);
+       
+    } catch (error) {
+        console.error("Error fetching data:", error);
+    } finally {
+        setLoading(false);
+    }
+};
+
+  const [selectedVendors, setSelectedVendors] = useState([]);
+
+const handleCheckboxChange = (vendor, isChecked) => {
+  if (isChecked) {
+    setSelectedRows((prev) => [...prev, vendor]);
+  } else {
+    setSelectedRows((prev) => prev.filter((item) => item.id !== vendor.id));
+  }
+};
+
+const handleSaveButtonClick = () => {
+  console.log("Selected Vendors:", selectedRows);
+  setTableData(selectedRows);  // Update the second table when Save button is clicked
+  setSelectedVendors(selectedRows)
+  setVendorModal(false); // Close the modal after saving
+};
+
+
+
   return (
     <>
       <Header />
@@ -139,9 +206,59 @@ export default function CreateEvent() {
           <div className="head-material text-center">
             <h4>Create RFQ &amp; Auction</h4>
           </div>
+
+          <div className="row align-items-end justify-items-end mx-2 mb-5">
+          <div className="col-md-4 mt-0 mb-2">
+            <div className="form-group">
+              <label className="po-fontBold">Event Type</label>
+            </div>
+            <input
+              className="form-control "
+              onClick={handleEventTypeModalShow}
+              placeholder="Configure The Event"
+            />
+          </div>
+          <div className="col-md-4 mt-0 mb-2">
+            <div className="form-group">
+              <label className="po-fontBold">Event No.</label>
+              <input
+                className="form-control"
+                type="text"
+                placeholder="Enter Event No."
+              />
+            </div>
+          </div>
+          <div className="col-md-4 mt-0 mb-2">
+            <div className="form-group">
+              <label className="po-fontBold">Created On</label>
+              <input className="form-control" type="date" />
+            </div>
+          </div>
+          {/* <div className="col-md-4 mt-2">
+            <div className="form-group">
+              <label className="po-fontBold">Material Type</label>
+              <input
+                className="form-control"
+                type="text"
+                placeholder="Enter Material Type"
+              />
+            </div>
+          </div> */}
+          <div className="col-md-4 mt-2">
+            <div className="form-group">
+              <label className="po-fontBold">Event Schedule</label>
+            </div>
+            <input
+              className="form-control "
+              onClick={handleEventScheduleModalShow}
+              placeholder="From [dd-mm-yy hh:mm] To [dd-mm-yy hh:mm] ([DD] Days
+                                                          [HH] Hrs [MM] Mins)"
+            />
+          </div>
+        </div>  
           <CreateRFQForm
-            handleEventTypeModalShow={handleEventTypeModalShow}
-            handleEventScheduleModalShow={handleEventScheduleModalShow}
+            // handleEventTypeModalShow={handleEventTypeModalShow}
+            // handleEventScheduleModalShow={handleEventScheduleModalShow}
             handleSettingModalShow={() => {}}
           />
           <div className="d-flex justify-content-between align-items-end mx-1 mt-5">
@@ -170,30 +287,19 @@ export default function CreateEvent() {
                     <th>Status</th>
                   </tr>
                 </thead>
+              
+
                 <tbody>
-                  <tr>
-                    <td>
-                      <input
-                        className="form-control"
-                        type="text"
-                        placeholder="Enter Vendor Name"
-                      />
-                    </td>
-                    <td>
-                      <input
-                        className="form-control"
-                        type="text"
-                        placeholder="Enter Mobile Number"
-                      />
-                    </td>
-                    <td>
-                      <input
-                        className="form-control"
-                        type="text"
-                        placeholder="Enter Status"
-                      />
-                    </td>
-                  </tr>
+                {selectedVendors.map((vendor) => (
+                <tr key={vendor.id}>
+                  <td>{vendor.name}</td>
+                  <td>{vendor.phone}</td>
+                  <td></td> {/* Display the status */}
+                </tr>
+              ))}
+
+              
+
                 </tbody>
               </table>
             </div>
@@ -213,7 +319,7 @@ export default function CreateEvent() {
                       <th>Remark</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  {/* <tbody>
                     <tr>
                       <td>
                         <input
@@ -244,153 +350,11 @@ export default function CreateEvent() {
                         />
                       </td>
                     </tr>
-                  </tbody>
+                  </tbody> */}
                 </table>
               </div>
             </div>
-            {/* <div className="d-flex mt-3 eventD-top pb-3 pt-2">
-        <p
-          className="mb-0 align-items-center modal-p d-flex"
-          style={{ width: "6%" }}
-        >
-          Event Title:
-        </p>
-        <input
-          className="event-input"
-          type="text"
-          placeholder="Enter the title of this event"
-        />
-      </div>
-      <div
-        className="mt-4 d-flex flex-column justify-content-between"
-        style={{ height: "85vh" }}
-      >
-        <div>
-          <form className="d-flex align-items-center">
-            <div className="me-4">
-              <div className="d-flex mb-2">
-                <img
-                  src="../erp_event_module/img/trophy.svg"
-                  className="eventD-forms-logo"
-                  alt=""
-                />
-                <p className="mb-2 ps-1 font-bold">Event Type</p>
-              </div>
-              <div
-                className="d-flex align-items-start
-               mb-1 gap-2"
-                onClick={handleEventTypeModalShow}
-              >
-                <p>Enter Details Manually on lot</p>
-                <i className="bi bi-chevron-right"></i>
-              </div>
-            </div>
-            <div>
-              <SelectBox
-                label={"Templates"}
-                options={[
-                  { value: "Select Template", label: "Select Template" },
-                  { value: "Buy Template", label: "Buy Template" },
-                  { value: "BOQ Project", label: "BOQ Project" },
-                  { value: "BOQ Marathon", label: "BOQ Marathon" },
-                  {
-                    value: "Buy Template(Freight and Clause)",
-                    label: "Buy Template(Freight and Clause)",
-                  },
-                ]}
-                defaultValue={"Alaska"}
-                onChange={() => {}}
-              />
-            </div>
-          </form>
-          <div className="d-flex justify-content-end align-items-center">
-            <button className="purple-btn2">
-              <label htmlFor="file-upload" className="m-0">
-                <i className="bi bi-upload me-2"></i>
-                Upload File
-                <input
-                  id="file-upload"
-                  type="file"
-                  style={{ display: "none" }}
-                />
-              </label>
-            </button>
-          </div>
-
-          <Table
-            columns={[
-              { label: "Product", key: "product" },
-              { label: "Product Variant", key: "productVariant" },
-              { label: "Quantity AVailable", key: "quantityAvailable" },
-              { label: "Pickup Location", key: "pickupLocation" },
-              { label: "Price", key: "price" },
-              { label: "Quantity Requested", key: "quantityRequested" },
-              { label: "GST", key: "gst" },
-              { label: "Total Amount", key: "totalAmount" },
-            ]}
-            data={[
-              {
-                product: "",
-                productVariant: "",
-                quantityAvailable: "",
-                pickupLocation: "",
-                price: "",
-                quantityRequested: "",
-                gst: "",
-                totalAmount: "",
-              },
-            ]}
-          />
-        </div>
-        <div className="">
-          <div className="d-flex border-bottom py-2">
-            <button
-              className="purple-btn2 viewBy-main-child2P mb-0"
-              onClick={handleVendorTypeModalShow}
-            >
-              <span className="ms-2">Participants</span>
-            </button>
-            <div className="input-group w-50">
-              <input
-                type="search"
-                id="searchInput"
-                className="tbl-search form-control"
-                placeholder="Search Vendors"
-              />
-              <div className="input-group-append">
-                <button type="button" className="btn btn-md btn-default">
-                  <SearchIcon />
-                </button>
-              </div>
-            </div>
-          </div>
-          <div className="d-flex justify-content-between align-items-center pt-3">
-            <button
-              className="purple-btn2"
-              // onClick={handleVendorTypeModalShow}
-            >
-              <span className="ms-2">Terms & Conditions</span>
-            </button>
-            <div className="d-flex align-items-center">
-              <div>
-                <p>Schedule</p>
-                <div className="d-flex" onClick={handleEventScheduleModalShow}>
-                  <span>
-                    <i className="bi bi-clock"></i>
-                  </span>
-                  <p className="ms-2">Now - 08:25 pm, 5th Dec</p>
-                </div>
-              </div>
-              <button
-                className="purple-btn2 ms-2"
-                onClick={handlePublishEventModalShow}
-              >
-                <span>Publish Events</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div> */}
+          
             <EventScheduleModal
               show={eventScheduleModal}
               onHide={handleEventScheduleModalClose}
@@ -423,6 +387,9 @@ export default function CreateEvent() {
               onHide={handlePublishEventModalClose}
               children={<></>}
             />
+
+            {/* // vendor model with vendor data */}
+
             <DynamicModalBox
               size="xl"
               title="All Vendors"
@@ -436,7 +403,7 @@ export default function CreateEvent() {
                 },
                 {
                   label: "Save",
-                  onClick: handleVendorTypeModalClose,
+                  onClick: handleSaveButtonClick,
                   props: { className: "purple-btn2" },
                 },
               ]}
@@ -474,6 +441,9 @@ export default function CreateEvent() {
                         <i className="bi bi-filter"></i>
                         <span className="ms-2">Filter</span>
                       </button>
+
+
+                      
 
                       <PopupBox
                         title="Filter by"
@@ -537,8 +507,13 @@ export default function CreateEvent() {
                   <div className="d-flex flex-column justify-content-center align-items-center h-100">
                     <Table
                       columns={participantsTabColumns}
-                      data={participantsTabData}
+                      // data={participantsTabData}
                       showCheckbox={true}
+                      data={tableData}
+                      handleCheckboxChange={handleCheckboxChange}
+                      // handleCheckboxChange={(vendor, isChecked) => handleCheckboxChange(vendor, isChecked)}
+
+                      // onRowSelect={handleRowSelect} 
                     />
                   </div>
                 </>
@@ -836,7 +811,10 @@ export default function CreateEvent() {
                     className: "purple-btn2",
                   },
                 },
-              ]} trafficType={isTrafficSelected} handleTrafficChange={handleTrafficChange}            />
+              ]}
+              trafficType={isTrafficSelected}
+              handleTrafficChange={handleTrafficChange}
+            />
             {/* make the above component on common modal folder and call it here */}
           </div>
 
