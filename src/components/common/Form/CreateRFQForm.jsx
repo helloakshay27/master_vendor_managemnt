@@ -6,30 +6,7 @@ import React, { useState } from "react";
 import { useEffect } from "react";
 import axios from "axios";
 
-export default function CreateRFQForm({
-  handleEventTypeModalShow,
-  handleEventScheduleModalShow,
-  handleSettingModalShow,
-})
-
- 
-  
-
-{
-  const [data, setData] = useState([
-    {
-      descriptionOfItem: [],
-      quantity: "",
-      unit: [],
-      location: [],
-      rate: "",
-      amount: "",
-    },
-  ]);
-
-
-
-
+export default function CreateRFQForm({ data, setData }) {
   const handleUnitChange = (selected, rowIndex) => {
     const updatedData = [...data];
     updatedData[rowIndex].unit = selected;
@@ -38,12 +15,6 @@ export default function CreateRFQForm({
   const handleLocationChange = (selected, rowIndex) => {
     const updatedData = [...data];
     updatedData[rowIndex].location = selected;
-    setData(updatedData);
-  };
-
-  const handleInputChange = (value, rowIndex, key) => {
-    const updatedData = [...data];
-    updatedData[rowIndex][key] = value;
     setData(updatedData);
   };
 
@@ -62,42 +33,49 @@ export default function CreateRFQForm({
       quantity: "",
       unit: [],
       location: [],
-      rate: "",
-      amount: "",
+      rate: "100.00",
+      amount: "100000.00",
+      inventory_id: "",
     };
     setData([...data, newRow]);
   };
 
   const [materials, setMaterials] = useState([]);
   const [selectedMaterial, setSelectedMaterial] = useState(null);
-   
+
 
   useEffect(() => {
     // Fetch material data from API
     const fetchMaterials = async () => {
       try {
-        const response = await axios.get('https://vendors.lockated.com/rfq/events/material_list?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414'); // Replace with your API endpoint
-       
+        const response = await axios.get(
+          "https://vendors.lockated.com/rfq/events/material_list?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414"
+        ); // Replace with your API endpoint
+
         // console.log(response ,"hhhhhhhhhhhhhhhhhh")
 
         // setMaterials(response.data,materials);
         if (response.data && Array.isArray(response.data.materials)) {
           setMaterials(response.data.materials); // Set materials if it's an array
         } else {
-          console.error('Unexpected response structure:', response.data);
+          console.error("Unexpected response structure:", response.data);
         }
-
-      } 
-    
-      
-      catch (error) {
-        console.error('Error fetching materials:', error);
+      } catch (error) {
+        console.error("Error fetching materials:", error);
       }
     };
 
     fetchMaterials();
   }, []);
 
+  const handleInputChange = (value, rowIndex, key) => {
+    const updatedData = [...data];
+    if (updatedData[rowIndex]["inventory_id"] === "") {
+      updatedData[rowIndex]["inventory_id"] = materials[rowIndex].id;
+    }
+    updatedData[rowIndex][key] = value;
+    setData(updatedData);
+  };
 
   const materialOptions = materials.map((material) => ({
     value: material.name,
@@ -106,22 +84,22 @@ export default function CreateRFQForm({
 
   const handleDescriptionOfItemChange = (selected, rowIndex) => {
     const updatedData = [...data];
-  
+
     // Find the selected material
     const selectedMaterial = materials.find(
       (material) => material.name === selected
     );
-  
+
     // Update descriptionOfItem
     updatedData[rowIndex].descriptionOfItem = selected;
-  
+
     // Check if selectedMaterial exists and has a valid UOM
     if (selectedMaterial && selectedMaterial.uom) {
       updatedData[rowIndex].unit = selectedMaterial.uom.uom_short_name; // Update UOM short name
     } else {
       updatedData[rowIndex].unit = ""; // Set empty if no UOM found
     }
-  
+
     setData(updatedData);
   };
 
@@ -165,7 +143,7 @@ export default function CreateRFQForm({
               />
             </div>
           </div> */}
-          {/* <div className="col-md-4 mt-2">
+        {/* <div className="col-md-4 mt-2">
             <div className="form-group">
               <label className="po-fontBold">Event Schedule</label>
             </div>
@@ -176,7 +154,7 @@ export default function CreateRFQForm({
                                                           [HH] Hrs [MM] Mins)"
             />
           </div>
-        </div>   */} 
+        </div>   */}
         <div className="mx-3">
           <div className="head-material d-flex justify-content-between">
             <h4>Select Materials</h4>
@@ -192,8 +170,8 @@ export default function CreateRFQForm({
               <span>Add</span>
             </button>
           </div>
-         <Table  
-            columns={[ 
+          <Table
+            columns={[
               { label: "Description of Item", key: "descriptionOfItem" },
               { label: "Quantity", key: "quantity" },
               { label: "UOM", key: "unit" },
@@ -209,7 +187,6 @@ export default function CreateRFQForm({
                   label={""}
                   // options={product}
                   options={materialOptions}
-
                   defaultValue={cell}
                   onChange={(selected) =>
                     handleDescriptionOfItemChange(selected, rowIndex)
@@ -225,13 +202,12 @@ export default function CreateRFQForm({
                 // />
               ),
               unit: (cell, rowIndex) => (
-
                 <input
-                className="form-control"
-                type="text"
-                value={cell}
-                readOnly
-              />
+                  className="form-control"
+                  type="text"
+                  value={cell}
+                  readOnly
+                />
                 // <SelectBox
                 //   isDisableFirstOption={true}
                 //   label={""}
@@ -241,14 +217,13 @@ export default function CreateRFQForm({
                 // />
               ),
               location: (cell, rowIndex) => (
-                <SelectBox
-                  label={""}
-                  defaultValue={cell}
-                  onChange={(selected) =>
-                    handleLocationChange(selected, rowIndex)
+                <input
+                  type="text"
+                  className="form-control"
+                  value={cell}
+                  onChange={(e) =>
+                    handleInputChange(e.target.value, rowIndex, "location")
                   }
-                  options={mumbaiLocations}
-                  isDisableFirstOption={true}
                 />
               ),
               quantity: (cell, rowIndex) => (
@@ -271,7 +246,7 @@ export default function CreateRFQForm({
                     handleInputChange(e.target.value, rowIndex, "rate")
                   }
                   placeholder="Enter Rate"
-                  disabled 
+                  disabled
                 />
               ),
               amount: (cell, rowIndex) => (
@@ -283,7 +258,7 @@ export default function CreateRFQForm({
                     handleInputChange(e.target.value, rowIndex, "amount")
                   }
                   placeholder="Enter Amount"
-                  disabled 
+                  disabled
                 />
               ),
               actions: (_, rowIndex) => (
