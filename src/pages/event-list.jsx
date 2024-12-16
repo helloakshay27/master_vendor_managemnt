@@ -367,12 +367,23 @@ const Events = () => {
                         )}
                         {/* )} */}
                         {/* {event.endsIn && ( */}
+                        {/* <button
+                          className="purple-btn2 position-absolute"
+                          style={{ bottom: 10, right: 10 }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            
+                            navigate("/create-bid", {
+                              state: { eventId: event.id },
+                            });
+                          }}
+                        > */}
                         <button
                           className="purple-btn2 position-absolute"
                           style={{ bottom: 10, right: 10 }}
                           onClick={(e) => {
                             e.stopPropagation();
-                            navigate("/create-bid");
+                            navigate(`/create-bid/${event.id}`);
                           }}
                         >
                           <span className="material-symbols-outlined align-text-top">
