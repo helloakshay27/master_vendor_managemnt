@@ -5529,4 +5529,14 @@ iframe .website-content {
   border: var(--red) !important;
 }
 
+
+.page-item {
+  margin: 0 5px;
+}
+
+ul.pagination.justify-content-center {
+  justify-content: left !important;
+  margin-top: 5px;
+}
+
 /*# sourceMappingURL=mor.css-ed871f49aadae569d66f8e115a43114d30eed9833a2ddcbeef011041744e80a7.map */

@@ -10,6 +10,7 @@ import {
   Table,
   MultiSelector,
 } from "../components";
+
 import {
   // @ts-ignore
   auditLogColumns,
@@ -24,6 +25,7 @@ import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import Header from "../components/Header";
 import PopupBox from "../components/base/Popup/Popup";
+import TableWithPagination from "../components/base/Table/TableWithPagination";
 export default function CreateEvent() {
   const [eventTypeModal, setEventTypeModal] = useState(false);
   const [inviteModal, setInviteModal] = useState(false);
@@ -62,6 +64,8 @@ export default function CreateEvent() {
   const [isTrafficSelected, setIsTrafficSelected] = useState("");
   const [selectedRows, setSelectedRows] = useState([]);
   const [eventNo, setEventNo] = useState("");
+  const [eventName, seteventName] = useState("");
+
   // @ts-ignore
   const [createdOn] = useState(new Date().toISOString().split("T")[0]);
   // @ts-ignore
@@ -238,10 +242,14 @@ export default function CreateEvent() {
     // Validation
     console.log("selectedVendors:", selectedVendors);
     console.log("eventNo:", eventNo);
+    console.log("eventName:", eventName);
+
     console.log("createdOn:", createdOn);
     console.log("scheduleData:", scheduleData);
 
     if (
+      !eventName ||
+
       !eventNo ||
       !createdOn ||
       !scheduleData ||
@@ -253,6 +261,7 @@ export default function CreateEvent() {
 
     const payload = {
       event: {
+        event_title: eventName,
         event_no: eventNo,
         created_on: createdOn,
         status: 1,
@@ -272,8 +281,9 @@ export default function CreateEvent() {
             dynamicExtensionConfigurations.time_extension_type,
           triggered_time_extension_on_last:
             dynamicExtensionConfigurations.triggered_time_extension_on_last,
-          extend_event_time_by:
-            Number(dynamicExtensionConfigurations.extend_event_time_by),
+          extend_event_time_by: Number(
+            dynamicExtensionConfigurations.extend_event_time_by
+          ),
           enable_english_auction: true,
           extension_time_min: 5,
           extend_time_min: 10,
@@ -342,6 +352,17 @@ export default function CreateEvent() {
           <div className="row align-items-end justify-items-end mx-2 mb-5">
             <div className="col-md-4 mt-0 mb-2">
               <div className="form-group">
+                <label className="po-fontBold">Event Name</label>
+              </div>
+              <input
+                className="form-control "
+                placeholder="Enter Event Name"
+                value={eventName}
+                onChange={(e) => seteventName(e.target.value)}
+              />
+            </div>
+            <div className="col-md-4 mt-0 mb-2">
+              <div className="form-group">
                 <label className="po-fontBold">Event Type</label>
               </div>
               <input
@@ -351,6 +372,9 @@ export default function CreateEvent() {
               />
             </div>
             <div className="col-md-4 mt-0 mb-2">
+              <div className="form-group">
+                <label className="po-fontBold">Event No.</label>
+              </div>
               <input
                 className="form-control"
                 type="text"
@@ -558,7 +582,7 @@ export default function CreateEvent() {
                       onClick={() => setShowPopup(true)}
                     >
                       <i className="bi bi-filter"></i>
-                      <span className="ms-2">Filter</span>
+                      <span className="ms-2">Filters</span>
                     </button>
 
                     <PopupBox
@@ -621,14 +645,14 @@ export default function CreateEvent() {
                   </div>
                 </div>
                 <div className="d-flex flex-column justify-content-center align-items-center h-100">
-                  <Table
+                  <TableWithPagination
                     columns={participantsTabColumns}
                     // data={participantsTabData}
                     showCheckbox={true}
                     data={tableData}
                     handleCheckboxChange={handleCheckboxChange}
                     onRowSelect={undefined} // handleCheckboxChange={(vendor, isChecked) => handleCheckboxChange(vendor, isChecked)}
-
+                    rowsPerPage={5}
                     // onRowSelect={handleRowSelect}
                   />
                 </div>
