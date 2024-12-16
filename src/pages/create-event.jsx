@@ -652,7 +652,7 @@ export default function CreateEvent() {
                     data={tableData}
                     handleCheckboxChange={handleCheckboxChange}
                     onRowSelect={undefined} // handleCheckboxChange={(vendor, isChecked) => handleCheckboxChange(vendor, isChecked)}
-                    rowsPerPage={5}
+                    rowsPerPage={50}
                     // onRowSelect={handleRowSelect}
                   />
                 </div>

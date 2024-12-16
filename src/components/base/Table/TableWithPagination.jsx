@@ -180,7 +180,7 @@ export default function TableWithPagination({
   isHorizontal = false,
   onRowSelect, 
   handleCheckboxChange, 
-  rowsPerPage = 5,
+  rowsPerPage = 50,
   
   
   // Callback function to notify parent component of selected rows
@@ -320,7 +320,7 @@ export default function TableWithPagination({
 
   return (
     <>
-    <div className="tbl-container px-0 mt-3" {...rest}>
+    <div className="tbl-container px-0 mt-3" style={{maxHeight:"300px"}} {...rest}>
       <table className="w-100">
         <thead>
           <tr>
