@@ -1,13 +1,11 @@
 import React from "react";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
-import "../styles/dashboard.css";
 import { useNavigate } from "react-router-dom";
 
 const Dashboard = () => {
   const navigate = useNavigate(); // initialize useNavigate hook
 
-  //
   const handleLiveEventsClick = () => {
     navigate("/event-list?tab=live"); // Navigate to the Events page and pass a query parameter for live events
   };
@@ -18,6 +16,114 @@ const Dashboard = () => {
 
   return (
     <>
+      <style>
+        {`
+          .dashboard-container {
+            padding: 20px;
+            font-family: Arial, sans-serif;
+          }
+
+          .metrics {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+          }
+
+          .card {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 8px;
+            width: 150px;
+            text-align: center;
+          }
+
+          .card.blue {
+            background-color: #e6f7ff;
+            color: #d3991a;
+            position: relative;
+          }
+
+          .status-dot {
+            width: 8px;
+            height: 8px;
+            background-color: green;
+            border-radius: 50%;
+            position: absolute;
+            top: 10px;
+            left: 10px;
+          }
+
+          .title {
+            font-size: 14px;
+            color: #777;
+            margin-bottom: 5px;
+          }
+
+          h2 {
+            margin: 0;
+          }
+
+          .content {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+          }
+
+          .procurement,
+          .spend-analysis {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            width: 48%;
+            padding: 15px;
+          }
+
+          .tabs {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 10px;
+          }
+
+          .tabs span {
+            cursor: pointer;
+            font-size: 14px;
+            color: #aaa;
+          }
+
+          .tabs .active {
+            color: #d09c17;
+            font-weight: bold;
+          }
+
+          .chart-placeholder {
+            height: 150px;
+            background-color: #fafafa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 1px dashed #ddd;
+            border-radius: 8px;
+          }
+
+          .chart-placeholder .dot {
+            width: 10px;
+            height: 10px;
+            background-color: green;
+            border-radius: 50%;
+          }
+
+          .no-data {
+            text-align: center;
+            color: #aaa;
+          }
+
+          .no-data img {
+            margin-bottom: 10px;
+          }
+        `}
+      </style>
+
       <Header />
       <div className="main-content">
         <Sidebar />

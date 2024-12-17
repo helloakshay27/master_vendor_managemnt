@@ -283,20 +283,14 @@ export const participantsTabData = [
 ];
 
 export const eventProjectColumns = [
-  { label: "Sr.No.", key: "srno" },
-  { label: "Company", key: "company" },
-  { label: "Project", key: "project" },
-  { label: "Sub-Project", key: "subProject" },
-  { label: "MOR No.", key: "morNo" },
-  { label: "Approved Date", key: "approvedDate" },
-  { label: "Priority", key: "priority" },
-  { label: "Sub-Type", key: "subType" },
-  { label: "Assigned to", key: "assignedTo" },
-  { label: "Lead Time", key: "leadTime" },
-  { label: "Ageing", key: "ageing" },
-  { label: "Material", key: "material" },
-  { label: "UOM", key: "uom" },
-  { label: "Pending Qty", key: "pendingQty" },
+  { label: "Sr.No.", key: "srNo" },
+  { label: "Event Title", key: "event_title" },
+  { label: "Event No", key: "event_no" },
+  { label: "Created At", key: "created_at" },
+  { label: "Created By", key: "created_by" },
+
+  { label: "Event Type", key: "event_type" },
+  { label: "Event Configuration", key: "event_configuration" },
   { label: "Status", key: "status" },
 ];
 
