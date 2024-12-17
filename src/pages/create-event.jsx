@@ -25,7 +25,6 @@ import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import Header from "../components/Header";
 import PopupBox from "../components/base/Popup/Popup";
-import TableWithPagination from "../components/base/Table/TableWithPagination";
 export default function CreateEvent() {
   const [eventTypeModal, setEventTypeModal] = useState(false);
   const [inviteModal, setInviteModal] = useState(false);
@@ -184,6 +183,11 @@ export default function CreateEvent() {
 
   // const [vendorModal, setVendorModal] = useState(false);
   const [tableData, setTableData] = useState([]); // State to hold dynamic data
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1); // Default total pages
+  const pageSize = 10; // Number of items per page
+  const pageRange = 6; // Number of pages to display in the pagination
+
   // @ts-ignore
   const [loading, setLoading] = useState(true);
 
@@ -193,18 +197,19 @@ export default function CreateEvent() {
     }
   }, [vendorModal]);
 
-  const fetchData = async () => {
+  const fetchData = async (page = 1) => {
     setLoading(true);
     try {
       const response = await axios.get(
-        "https://vendors.lockated.com/rfq/events/vendor_list?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414"
+        `https://vendors.lockated.com/rfq/events/vendor_list?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&page=${page}`
       );
+
       const vendors = Array.isArray(response.data.vendors)
         ? response.data.vendors
         : [];
 
-      const formattedData = vendors.map((vendor, index) => ({
-        id: vendor.id || index,
+      const formattedData = vendors.map((vendor) => ({
+        id: vendor.id,
         name: vendor.full_name || vendor.organization_name || "N/A",
         email: vendor.email || "N/A",
         phone: vendor.contact_number || vendor.mobile || "N/A",
@@ -212,13 +217,38 @@ export default function CreateEvent() {
         tags: vendor.tags || "N/A",
       }));
 
-      console.log("Formatted Data:", formattedData);
       setTableData(formattedData);
+      setCurrentPage(page);
+      setTotalPages(response.data?.pagination?.total_pages || 1); // Assume the API returns total pages
     } catch (error) {
       console.error("Error fetching data:", error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      fetchData(newPage);
+    }
+  };
+
+  const getPageRange = () => {
+    // Calculate the starting page for the range
+    let startPage = Math.max(currentPage - Math.floor(pageRange / 2), 1);
+    let endPage = startPage + pageRange - 1;
+
+    // Ensure the range doesn't exceed the total pages
+    if (endPage > totalPages) {
+      endPage = totalPages;
+      startPage = Math.max(endPage - pageRange + 1, 1);
+    }
+
+    const pages = [];
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+    return pages;
   };
 
   const handleCheckboxChange = (vendor, isChecked) => {
@@ -249,7 +279,6 @@ export default function CreateEvent() {
 
     if (
       !eventName ||
-
       !eventNo ||
       !createdOn ||
       !scheduleData ||
@@ -438,13 +467,18 @@ export default function CreateEvent() {
                 </thead>
 
                 <tbody>
-                  {selectedVendors.map((vendor) => (
-                    <tr key={vendor.id}>
-                      <td>{vendor.name}</td>
-                      <td>{vendor.phone}</td>
-                      <td></td> {/* Display the status */}
-                    </tr>
-                  ))}
+                  {selectedVendors
+                    .filter(
+                      (vendor, index, self) =>
+                        index === self.findIndex((v) => v.id === vendor.id) // Ensure uniqueness by id
+                    )
+                    .map((vendor) => (
+                      <tr key={vendor.id}>
+                        <td>{vendor.name}</td>
+                        <td>{vendor.phone}</td>
+                        <td></td> {/* Display the status */}
+                      </tr>
+                    ))}
                 </tbody>
               </table>
             </div>
@@ -645,17 +679,110 @@ export default function CreateEvent() {
                   </div>
                 </div>
                 <div className="d-flex flex-column justify-content-center align-items-center h-100">
-                  <TableWithPagination
+                  <Table
                     columns={participantsTabColumns}
                     // data={participantsTabData}
                     showCheckbox={true}
                     data={tableData}
                     handleCheckboxChange={handleCheckboxChange}
                     onRowSelect={undefined} // handleCheckboxChange={(vendor, isChecked) => handleCheckboxChange(vendor, isChecked)}
-                    rowsPerPage={50}
+                    rowsPerPage={100}
+
                     // onRowSelect={handleRowSelect}
                   />
                 </div>
+                <div className="d-flex justify-content-between align-items-center px-1 mt-2">
+                  <ul className="pagination justify-content-center d-flex ">
+                    {/* First Button */}
+                    <li
+                      className={`page-item ${
+                        currentPage === 1 ? "disabled" : ""
+                      }`}
+                    >
+                      <button
+                        className="page-link"
+                        onClick={() => handlePageChange(1)}
+                      >
+                        First
+                      </button>
+                    </li>
+
+                    {/* Previous Button */}
+                    <li
+                      className={`page-item ${
+                        currentPage === 1 ? "disabled" : ""
+                      }`}
+                    >
+                      <button
+                        className="page-link"
+                        onClick={() => handlePageChange(currentPage - 1)}
+                        disabled={currentPage === 1}
+                      >
+                        Prev
+                      </button>
+                    </li>
+
+                    {/* Dynamic Page Numbers */}
+                    {getPageRange().map((pageNumber) => (
+                      <li
+                        key={pageNumber}
+                        className={`page-item ${
+                          currentPage === pageNumber ? "active" : ""
+                        }`}
+                      >
+                        <button
+                          className="page-link"
+                          onClick={() => handlePageChange(pageNumber)}
+                        >
+                          {pageNumber}
+                        </button>
+                      </li>
+                    ))}
+
+                    {/* Next Button */}
+                    <li
+                      className={`page-item ${
+                        currentPage === totalPages ? "disabled" : ""
+                      }`}
+                    >
+                      <button
+                        className="page-link"
+                        onClick={() => handlePageChange(currentPage + 1)}
+                        disabled={currentPage === totalPages}
+                      >
+                        Next
+                      </button>
+                    </li>
+
+                    {/* Last Button */}
+                    <li
+                      className={`page-item ${
+                        currentPage === totalPages ? "disabled" : ""
+                      }`}
+                    >
+                      <button
+                        className="page-link"
+                        onClick={() => handlePageChange(totalPages)}
+                        disabled={currentPage === totalPages}
+                      >
+                        Last
+                      </button>
+                    </li>
+                  </ul>
+                     {/* Display Data */}
+               
+
+                {/* Showing entries count */}
+                <div>
+                  <p>
+                    Showing {currentPage * pageSize - (pageSize - 1)} to{" "}
+                    {Math.min(currentPage * pageSize, totalPages * pageSize)} of{" "}
+                    {totalPages * pageSize} entries
+                  </p>
+                </div>
+                </div>
+
+             
               </>
             }
           />

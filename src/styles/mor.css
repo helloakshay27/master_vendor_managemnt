@@ -856,6 +856,7 @@ input[type="checkbox"] {
   position: sticky;
   top: 0;
   min-height: 50px;
+  z-index: 111;
 }
 
 .tbl-container td {
@@ -5532,6 +5533,26 @@ iframe .website-content {
 
 .page-item {
   margin: 0 5px;
+}
+
+.active>.page-link, .page-link.active {
+  z-index: 3;
+  color: var(--bs-pagination-active-color) !important;
+  background-color: var(--red) !important;
+  border-color: var(--red) !important;
+}
+
+.page-link{
+
+  color: var(--black) !important;
+
+}
+
+.page-link:hover {
+  z-index: 2;
+  color: var(--red) !important;
+  background-color: var(--bs-pagination-hover-bg);
+  border-color: var(--bs-pagination-hover-border-color);
 }
 
 ul.pagination.justify-content-center {
