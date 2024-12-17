@@ -5,10 +5,7 @@ import { Link } from "react-router-dom";
 import React from "react";
 
 function Members() {
-
   return (
-
-    
     <>
       <Header />
       <div className="main-content">
@@ -24,9 +21,22 @@ function Members() {
                 <Link to="/event-list">event_list</Link>
               </li>
               <li>
-                <Link to="/erp-rfq-detail-price-trends4h">event_details_price</Link>
+                <Link to="/erp-rfq-detail-price-trends4h">
+                  event_details_price
+                </Link>
               </li>
-            {/* <li>
+
+              {/* <li>
+                <Link to="/dashboard">dashboard</Link>
+              </li> */}
+
+              {/* <li>
+                <Link to="/erp-rfq-auction-events-4f">
+                  erp_rfq_auction_events_4f
+                </Link>
+              </li> */}
+
+              {/* <li>
                 <Link to="good_receive_notes/:id">grn_detaisl</Link>
               </li> */}
               {/* <li>
@@ -53,9 +63,8 @@ function Members() {
               <li>
                 <Link to="/approvals-list">approvals_list</Link>
               </li> */}
-
             </ul>
-{/* 
+            {/* 
             <h1>BOQ</h1>
             <ul>
               <li>

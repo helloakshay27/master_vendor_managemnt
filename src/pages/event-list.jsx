@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { useLocation } from "react-router-dom";
 import {
   CheckBoxList,
   ClockIcon,
@@ -97,8 +98,13 @@ const Events = () => {
   const handleCloseFilterModal = () => {
     setFilterModal(false);
   };
+  // const handleTabChange = (tabId) => {
+  //   setActiveTab(tabId); // Update the active tab
+  // };
+
   const handleTabChange = (tabId) => {
-    setActiveTab(tabId); // Update the active tab
+    setActiveTab(tabId); // Update active tab state
+    navigate(`?tab=${tabId}`); // Update the URL with the selected tab
   };
 
   const handleSwitchChange = () => {
@@ -118,6 +124,10 @@ const Events = () => {
     : liveEvents;
 
   const allEvents = [...liveEvents, ...historyEvents]; // Combine live and history events
+
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const tab = searchParams.get("tab") || "all"; // Get the tab param to determine if live events should be displayed
 
   return (
     <>

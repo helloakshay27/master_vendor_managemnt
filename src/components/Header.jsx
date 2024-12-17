@@ -1,5 +1,6 @@
 import React from "react";
 import "../styles/mor.css";
+import { Link } from "react-router-dom";
 
 const Header = () => {
   const openNav = () => {
@@ -24,11 +25,10 @@ const Header = () => {
           {/* <button className="navbar-toggler" type="button" data-bs-toggle="collapse" onClick={openNav}>
           <span className="navbar-toggler-icon"></span>
         </button> */}
-<img
-  style={{ height: 70 }}
-  src="https://panchshil.gophygital.work/uploads/pms/company_setup/logo/226/Panchshil_logo.png"
-/>
-
+          <img
+            style={{ height: 70 }}
+            src="https://panchshil.gophygital.work/uploads/pms/company_setup/logo/226/Panchshil_logo.png"
+          />
 
           <div />
           <div
@@ -45,10 +45,15 @@ const Header = () => {
                   Home
                 </a>
               </li>
-              <li className="nav-item">
+              {/* <li className="nav-item">
                 <a className="nav-link" href="./31Dashboard_Daily.html">
                   Dashboard
                 </a>
+              </li> */}
+              <li className="nav-item">
+                <Link className="nav-link" to="/dashboard">
+                  Dashboard
+                </Link>
               </li>
               <li className="nav-item">
                 <a className="nav-link" href="./31Dashboard_Daily.html">

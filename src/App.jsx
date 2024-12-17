@@ -21,11 +21,14 @@ import BOQApprovalDetails from "./pages/boq-approval-details";
 import EventList from "./pages/event-list";
 import CreateEvent from "./pages/create-event";
 import CreateBid from "./pages/create-bid";
+import Dashboard from "./pages/dashboard";
+import Header from "./components/Header";
 
 function App() {
   return (
     <BrowserRouter>
       <div>
+        {/* <Header /> */}
         <Routes>
           <Route path="/" element={<Members />} />
           <Route path="/approvals-list" element={<ApprovalsList />} />
@@ -64,6 +67,7 @@ function App() {
           <Route path="/create-event" element={<CreateEvent />} />
           {/* <Route path='/create-bid' element={<CreateBid />} /> */}
           <Route path="/create-bid/:eventId" element={<CreateBid />} />
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/create-BOQ" element={<CreateBOQ />} />
           <Route path="/view-BOQ" element={<ViewBOQ />} />
           <Route path="/boq-approval-list" element={<BOQApprovalList />} />
