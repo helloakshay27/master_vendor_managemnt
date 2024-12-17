@@ -45,10 +45,10 @@ function App() {
             path="/stock_register_list"
             element={<ErpStockRegister13B />}
           />
-          <Route
+          {/* <Route
             path="/erp-rfq-auction-events-4f"
             element={<ErpRfqAuctionEvents4f />}
-          />
+          /> */}
           <Route
             path="/erp-rfq-auction-events-4h"
             element={<ErpRfqAuctionEvents4h />}
@@ -58,7 +58,9 @@ function App() {
             element={<ErpRfqDetailPriceTrends4h />}
           />
           <Route path="/create-rfq" element={<CreateRfq />} />
-          <Route path="/event-list" element={<EventList />} />
+          <Route path="/event-list" element={<ErpRfqAuctionEvents4f />} />
+          {/* <Route path="/event-list" element={<EventList />} /> */}
+
           <Route path="/create-event" element={<CreateEvent />} />
           {/* <Route path='/create-bid' element={<CreateBid />} /> */}
           <Route path="/create-bid/:eventId" element={<CreateBid />} />

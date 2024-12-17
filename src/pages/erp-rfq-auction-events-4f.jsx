@@ -97,7 +97,7 @@ export default function ErpRfqAuctionEvents4f() {
                     </div>
                   </form>
                 </div>
-                <div className="col-md-6">
+                {/* <div className="col-md-6">
                   <div className="row justify-content-end">
                     <div className="col-md-5">
                       <div className="row justify-content-end px-3">
@@ -153,7 +153,7 @@ export default function ErpRfqAuctionEvents4f() {
                       </button>
                     </div>
                   </div>
-                </div>
+                </div> */}
               </div>
               <div className="mx-3">
                 <EventProjectTable />
@@ -184,9 +184,9 @@ export default function ErpRfqAuctionEvents4f() {
           </div>
         </div>
       </div>
-
+{/* 
       <FilterModal show={show} handleClose={handleClose} />
-      <LayoutModal show={settingShow} onHide={handleSettingClose} />
+      <LayoutModal show={settingShow} onHide={handleSettingClose} /> */}
     </>
   );
 }
