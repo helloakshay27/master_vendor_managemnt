@@ -24,6 +24,7 @@ import CreateBid from "./pages/create-bid";
 import Dashboard from "./pages/dashboard";
 import Header from "./components/Header";
 import UserList from "./pages/UserList";
+import UserOverview from "./pages/user-overview";
 
 function App() {
   return (
@@ -66,6 +67,7 @@ function App() {
           {/* <Route path="/event-list" element={<EventList />} /> */}
 
           <Route path="/user-list" element={<UserList />} />
+          <Route path="/user-overview" element={<UserOverview />} />
 
           <Route path="/create-event" element={<CreateEvent />} />
 

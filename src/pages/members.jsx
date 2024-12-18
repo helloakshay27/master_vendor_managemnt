@@ -30,11 +30,9 @@ function Members() {
                 <Link to="/user-list">user_list</Link>
               </li>
 
-              {/* <li>
-                <Link to="/erp-rfq-auction-events-4f">
-                  erp_rfq_auction_events_4f
-                </Link>
-              </li> */}
+              <li>
+                <Link to="/user-overview">user_overview</Link>
+              </li>
 
               {/* <li>
                 <Link to="good_receive_notes/:id">grn_detaisl</Link>
