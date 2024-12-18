@@ -77,10 +77,12 @@ export default function CreateRFQForm({ data, setData }) {
     setData(updatedData);
   };
 
-  const materialOptions = materials.map((material) => ({
-    value: material.name,
-    label: material.name,
-  }));
+  const materialOptions = materials
+    .filter((material) => !data.some((row) => row.descriptionOfItem === material.name))
+    .map((material) => ({
+      value: material.name,
+      label: material.name,
+    }));
 
   const handleDescriptionOfItemChange = (selected, rowIndex) => {
     const updatedData = [...data];
@@ -188,10 +190,7 @@ export default function CreateRFQForm({ data, setData }) {
                   // options={product}
                   options={materialOptions}
                   defaultValue={cell}
-                  onChange={(selected) =>
-                    handleDescriptionOfItemChange(selected, rowIndex)
-                  }
-                />
+                  onChange={(selected) => handleDescriptionOfItemChange(selected, rowIndex)} />
                 // <MultiSelector
                 //   options={product}
                 //   value={cell}
@@ -206,8 +205,7 @@ export default function CreateRFQForm({ data, setData }) {
                   className="form-control"
                   type="text"
                   value={cell}
-                  readOnly
-                />
+                  readOnly />
                 // <SelectBox
                 //   isDisableFirstOption={true}
                 //   label={""}
@@ -221,45 +219,33 @@ export default function CreateRFQForm({ data, setData }) {
                   type="text"
                   className="form-control"
                   value={cell}
-                  onChange={(e) =>
-                    handleInputChange(e.target.value, rowIndex, "location")
-                  }
-                />
+                  onChange={(e) => handleInputChange(e.target.value, rowIndex, "location")} />
               ),
               quantity: (cell, rowIndex) => (
                 <input
                   className="form-control"
                   type="number"
                   value={cell}
-                  onChange={(e) =>
-                    handleInputChange(e.target.value, rowIndex, "quantity")
-                  }
-                  placeholder="Enter Quantity"
-                />
+                  onChange={(e) => handleInputChange(e.target.value, rowIndex, "quantity")}
+                  placeholder="Enter Quantity" />
               ),
               rate: (cell, rowIndex) => (
                 <input
                   className="form-control"
                   type="number"
                   value={cell}
-                  onChange={(e) =>
-                    handleInputChange(e.target.value, rowIndex, "rate")
-                  }
+                  onChange={(e) => handleInputChange(e.target.value, rowIndex, "rate")}
                   placeholder="Enter Rate"
-                  disabled
-                />
+                  disabled />
               ),
               amount: (cell, rowIndex) => (
                 <input
                   className="form-control"
                   type="number"
                   value={cell}
-                  onChange={(e) =>
-                    handleInputChange(e.target.value, rowIndex, "amount")
-                  }
+                  onChange={(e) => handleInputChange(e.target.value, rowIndex, "amount")}
                   placeholder="Enter Amount"
-                  disabled
-                />
+                  disabled />
               ),
               actions: (_, rowIndex) => (
                 <button
@@ -271,7 +257,7 @@ export default function CreateRFQForm({ data, setData }) {
                 </button>
               ),
             }}
-          />
+            />
         </div>
       </div>
     </div>

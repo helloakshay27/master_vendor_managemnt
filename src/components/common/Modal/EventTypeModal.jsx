@@ -87,6 +87,43 @@ const EventTypeModal = ({
   handleDynamicExtensionBid,
 }) => {
   // const [eventType]
+
+  const validateForm = () => {
+    if (!eventType) {
+      alert("Please select an event type.");
+      return false;
+    }
+    if (eventType === "0" && !selectedStrategy) {
+      alert("Please select a strategy.");
+      return false;
+    }
+    if (selectedStrategy === "2") {
+      if (!dynamicExtensionConfigurations.triggered_time_extension_on_last) {
+        alert("Please enter the trigger time extension.");
+        return false;
+      }
+      if (!dynamicExtensionConfigurations.extend_event_time_by) {
+        alert("Please enter the extend time.");
+        return false;
+      }
+    }
+    if (dynamicExtension[2] && !dynamicExtensionConfigurations.minimum_revisions) {
+      alert("Please enter the minimum revisions required.");
+      return false;
+    }
+    if (dynamicExtension[3] && !dynamicExtensionConfigurations.delivery_date) {
+      alert("Please select a delivery date.");
+      return false;
+    }
+    return true;
+  };
+
+  const handleFormSubmit = () => {
+    if (validateForm()) {
+      handleEventConfigurationSubmit();
+    }
+  };
+
   return (
     <DynamicModalBox
       size="xl"
@@ -105,7 +142,7 @@ const EventTypeModal = ({
         // @ts-ignore
         {
           label: "Save Changes",
-          onClick: handleEventConfigurationSubmit,
+          onClick: handleFormSubmit,
           props: {
             className: "purple-btn2",
           },
@@ -769,7 +806,9 @@ const EventTypeModal = ({
               <input
                 type="number"
                 className="form-control"
-                placeholder="Eneter number of revisions required"
+                placeholder="Enter number of revisions required"
+                value={dynamicExtensionConfigurations.minimum_revisions}
+                onChange={(e) => handleDynamicExtensionBid("minimum_revisions", e.target.value)}
               />
             )}
             <div className="d-flex align-items-center gap-2 my-3">
@@ -787,6 +826,8 @@ const EventTypeModal = ({
                 type="date"
                 placeholder="Select Date"
                 className="form-control"
+                value={dynamicExtensionConfigurations.delivery_date}
+                onChange={(e) => handleDynamicExtensionBid("delivery_date", e.target.value)}
               />
             )}
           </div>

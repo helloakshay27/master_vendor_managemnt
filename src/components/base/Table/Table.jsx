@@ -18,11 +18,11 @@ export default function Table({
   isSelectCheckboxes = null,
   customRender = {},
   isHorizontal = false,
-  onRowSelect, 
-  handleCheckboxChange, 
-  isRowSelected, // New prop to check if a row is selected
-  resetSelectedRows, // New prop to trigger reset of selected rows
-  onResetComplete, // Callback to notify parent when reset is complete
+  onRowSelect = null, 
+  handleCheckboxChange = null, 
+  isRowSelected = null,
+  resetSelectedRows = null,
+  onResetComplete = null, 
   ...rest
 }) {
   const [selectAll, setSelectAll] = useState(false);
