@@ -138,7 +138,12 @@ export default function CreateEvent() {
     console.log("Received Data schedule:", data); // Debugging
     setScheduleData(data);
     handleEventScheduleModalClose();
+    // Set the event schedule text based on the selected schedule
+    const scheduleText = `${data.start_time} ~ ${data.end_time_duration}`;
+    setEventScheduleText(scheduleText);
   };
+
+  const [eventScheduleText, setEventScheduleText] = useState("");
 
   const handleVendorTypeModalShow = () => {
     setVendorModal(true);
@@ -179,7 +184,13 @@ export default function CreateEvent() {
 
   const handleEventConfigurationSubmit = () => {
     handleEventTypeModalClose();
+    // Set the event type text based on the selected event type
+    // @ts-ignore
+    const eventTypeText = eventType === "0" ? "Auction" : "RFQ";
+    setEventTypeText(eventTypeText);
   };
+
+  const [eventTypeText, setEventTypeText] = useState("");
 
   //  for vendordata get api
 
@@ -407,6 +418,8 @@ export default function CreateEvent() {
                 className="form-control "
                 onClick={handleEventTypeModalShow}
                 placeholder="Configure The Event"
+                value={eventTypeText} // Display the selected event type
+                readOnly
               />
             </div>
             <div className="col-md-4 mt-0 mb-2">
@@ -441,6 +454,8 @@ export default function CreateEvent() {
                 onClick={handleEventScheduleModalShow}
                 placeholder="From [dd-mm-yy hh:mm] To [dd-mm-yy hh:mm] ([DD] Days
                                                           [HH] Hrs [MM] Mins)"
+                value={eventScheduleText} // Display the selected event schedule
+                readOnly
               />
             </div>
           </div>

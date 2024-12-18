@@ -256,8 +256,7 @@ export default function CreateRFQForm({ data, setData }) {
                   Remove
                 </button>
               ),
-            }}
-            />
+            }} onRowSelect={undefined} handleCheckboxChange={undefined}            />
         </div>
       </div>
     </div>

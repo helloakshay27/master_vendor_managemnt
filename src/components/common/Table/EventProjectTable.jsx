@@ -14,7 +14,6 @@ export default function EventProjectTable({ eventData }) {
     <Table
       columns={eventProjectColumns}
       data={flattenedData}
-      showCheckbox={true}
-    />
+      showCheckbox={true} onRowSelect={undefined} handleCheckboxChange={undefined}    />
   );
 }
