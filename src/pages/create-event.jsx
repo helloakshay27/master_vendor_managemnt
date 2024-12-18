@@ -25,6 +25,7 @@ import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import Header from "../components/Header";
 import PopupBox from "../components/base/Popup/Popup";
+
 export default function CreateEvent() {
   const [eventTypeModal, setEventTypeModal] = useState(false);
   const [inviteModal, setInviteModal] = useState(false);
@@ -34,6 +35,7 @@ export default function CreateEvent() {
   const [eventType, setEventType] = useState(false);
   const [awardType, setAwardType] = useState(false);
   const [dynamicExtension, setDynamicExtension] = useState(false);
+  const [resetSelectedRows, setResetSelectedRows] = useState(false);
   const [dynamicExtensionConfigurations, setDynamicExtensionConfigurations] =
     useState({
       time_extension_type: "",
@@ -264,6 +266,13 @@ export default function CreateEvent() {
     setTableData(selectedRows); // Update the second table when Save button is clicked
     setSelectedVendors(selectedRows);
     setVendorModal(false); // Close the modal after saving
+    setSelectedRows([]); // Clear all selected checkboxes
+    setResetSelectedRows(true); // Trigger reset of selected rows
+  };
+
+  // Check if a vendor is selected
+  const isVendorSelected = (vendorId) => {
+    return selectedRows.some((vendor) => vendor.id === vendorId);
   };
 
   // Additional states for other fields
@@ -687,7 +696,9 @@ export default function CreateEvent() {
                     handleCheckboxChange={handleCheckboxChange}
                     onRowSelect={undefined} // handleCheckboxChange={(vendor, isChecked) => handleCheckboxChange(vendor, isChecked)}
                     rowsPerPage={100}
-
+                    isRowSelected={isVendorSelected}
+                    resetSelectedRows={resetSelectedRows}
+                    onResetComplete={() => setResetSelectedRows(false)}
                     // onRowSelect={handleRowSelect}
                   />
                 </div>
@@ -769,20 +780,17 @@ export default function CreateEvent() {
                       </button>
                     </li>
                   </ul>
-                     {/* Display Data */}
-               
+                  {/* Display Data */}
 
-                {/* Showing entries count */}
-                <div>
-                  <p>
-                    Showing {currentPage * pageSize - (pageSize - 1)} to{" "}
-                    {Math.min(currentPage * pageSize, totalPages * pageSize)} of{" "}
-                    {totalPages * pageSize} entries
-                  </p>
+                  {/* Showing entries count */}
+                  <div>
+                    <p>
+                      Showing {currentPage * pageSize - (pageSize - 1)} to{" "}
+                      {Math.min(currentPage * pageSize, totalPages * pageSize)}{" "}
+                      of {totalPages * pageSize} entries
+                    </p>
+                  </div>
                 </div>
-                </div>
-
-             
               </>
             }
           />
