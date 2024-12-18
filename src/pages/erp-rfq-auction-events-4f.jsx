@@ -89,7 +89,7 @@ export default function ErpRfqAuctionEvents4f() {
         <div className="website-content overflow-auto">
           <div className="module-data-section p-3">
             <a href="">
-              Home &gt; Purchase &gt; Procurement &gt; RFQ &amp; Auction Events
+              {/* Home &gt; Purchase &gt; Procurement &gt; RFQ &amp; Auction Events */}
             </a>
             <h5 className="mt-3">RFQ &amp; Auction Events</h5>
             <div className="material-boxes mt-3">
