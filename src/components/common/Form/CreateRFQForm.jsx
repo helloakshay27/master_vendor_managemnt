@@ -43,7 +43,6 @@ export default function CreateRFQForm({ data, setData }) {
   const [materials, setMaterials] = useState([]);
   const [selectedMaterial, setSelectedMaterial] = useState(null);
 
-
   useEffect(() => {
     // Fetch material data from API
     const fetchMaterials = async () => {
@@ -78,7 +77,9 @@ export default function CreateRFQForm({ data, setData }) {
   };
 
   const materialOptions = materials
-    .filter((material) => !data.some((row) => row.descriptionOfItem === material.name))
+    .filter(
+      (material) => !data.some((row) => row.descriptionOfItem === material.name)
+    )
     .map((material) => ({
       value: material.name,
       label: material.name,
@@ -108,55 +109,6 @@ export default function CreateRFQForm({ data, setData }) {
   return (
     <div className="row ">
       <div className="card-body">
-        {/* <div className="row align-items-end justify-items-end mx-2 mb-5">
-          <div className="col-md-4 mt-0 mb-2">
-            <div className="form-group">
-              <label className="po-fontBold">Event Type</label>
-            </div>
-            <input
-              className="form-control "
-              onClick={handleEventTypeModalShow}
-              placeholder="Configure The Event"
-            />
-          </div>
-          <div className="col-md-4 mt-0 mb-2">
-            <div className="form-group">
-              <label className="po-fontBold">Event No.</label>
-              <input
-                className="form-control"
-                type="text"
-                placeholder="Enter Event No."
-              />
-            </div>
-          </div>
-          <div className="col-md-4 mt-0 mb-2">
-            <div className="form-group">
-              <label className="po-fontBold">Created On</label>
-              <input className="form-control" type="date" />
-            </div>
-          </div>
-          {/* <div className="col-md-4 mt-2">
-            <div className="form-group">
-              <label className="po-fontBold">Material Type</label>
-              <input
-                className="form-control"
-                type="text"
-                placeholder="Enter Material Type"
-              />
-            </div>
-          </div> */}
-        {/* <div className="col-md-4 mt-2">
-            <div className="form-group">
-              <label className="po-fontBold">Event Schedule</label>
-            </div>
-            <input
-              className="form-control "
-              onClick={handleEventScheduleModalShow}
-              placeholder="From [dd-mm-yy hh:mm] To [dd-mm-yy hh:mm] ([DD] Days
-                                                          [HH] Hrs [MM] Mins)"
-            />
-          </div>
-        </div>   */}
         <div className="mx-3">
           <div className="head-material d-flex justify-content-between">
             <h4>Select Materials</h4>
@@ -190,7 +142,10 @@ export default function CreateRFQForm({ data, setData }) {
                   // options={product}
                   options={materialOptions}
                   defaultValue={cell}
-                  onChange={(selected) => handleDescriptionOfItemChange(selected, rowIndex)} />
+                  onChange={(selected) =>
+                    handleDescriptionOfItemChange(selected, rowIndex)
+                  }
+                />
                 // <MultiSelector
                 //   options={product}
                 //   value={cell}
@@ -205,7 +160,8 @@ export default function CreateRFQForm({ data, setData }) {
                   className="form-control"
                   type="text"
                   value={cell}
-                  readOnly />
+                  readOnly
+                />
                 // <SelectBox
                 //   isDisableFirstOption={true}
                 //   label={""}
@@ -219,33 +175,45 @@ export default function CreateRFQForm({ data, setData }) {
                   type="text"
                   className="form-control"
                   value={cell}
-                  onChange={(e) => handleInputChange(e.target.value, rowIndex, "location")} />
+                  onChange={(e) =>
+                    handleInputChange(e.target.value, rowIndex, "location")
+                  }
+                />
               ),
               quantity: (cell, rowIndex) => (
                 <input
                   className="form-control"
                   type="number"
                   value={cell}
-                  onChange={(e) => handleInputChange(e.target.value, rowIndex, "quantity")}
-                  placeholder="Enter Quantity" />
+                  onChange={(e) =>
+                    handleInputChange(e.target.value, rowIndex, "quantity")
+                  }
+                  placeholder="Enter Quantity"
+                />
               ),
               rate: (cell, rowIndex) => (
                 <input
                   className="form-control"
                   type="number"
                   value={cell}
-                  onChange={(e) => handleInputChange(e.target.value, rowIndex, "rate")}
+                  onChange={(e) =>
+                    handleInputChange(e.target.value, rowIndex, "rate")
+                  }
                   placeholder="Enter Rate"
-                  disabled />
+                  disabled
+                />
               ),
               amount: (cell, rowIndex) => (
                 <input
                   className="form-control"
                   type="number"
                   value={cell}
-                  onChange={(e) => handleInputChange(e.target.value, rowIndex, "amount")}
+                  onChange={(e) =>
+                    handleInputChange(e.target.value, rowIndex, "amount")
+                  }
                   placeholder="Enter Amount"
-                  disabled />
+                  disabled
+                />
               ),
               actions: (_, rowIndex) => (
                 <button
@@ -256,7 +224,12 @@ export default function CreateRFQForm({ data, setData }) {
                   Remove
                 </button>
               ),
-            }} onRowSelect={undefined} handleCheckboxChange={undefined}            />
+            }}
+            onRowSelect={undefined}
+            handleCheckboxChange={undefined}
+            resetSelectedRows={undefined}
+            onResetComplete={undefined}
+          />
         </div>
       </div>
     </div>

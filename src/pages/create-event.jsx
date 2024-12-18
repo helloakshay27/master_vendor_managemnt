@@ -274,8 +274,7 @@ export default function CreateEvent() {
 
   const handleSaveButtonClick = () => {
     console.log("Selected Vendors:", selectedRows);
-    setTableData(selectedRows); // Update the second table when Save button is clicked
-    setSelectedVendors(selectedRows);
+    setSelectedVendors((prev) => [...prev, ...selectedRows]);
     setVendorModal(false); // Close the modal after saving
     setSelectedRows([]); // Clear all selected checkboxes
     setResetSelectedRows(true); // Trigger reset of selected rows
@@ -283,7 +282,7 @@ export default function CreateEvent() {
 
   // Check if a vendor is selected
   const isVendorSelected = (vendorId) => {
-    return selectedRows.some((vendor) => vendor.id === vendorId);
+    return selectedRows.some((vendor) => vendor.id === vendorId) || selectedVendors.some((vendor) => vendor.id === vendorId);
   };
 
   // Additional states for other fields
@@ -709,12 +708,10 @@ export default function CreateEvent() {
                     showCheckbox={true}
                     data={tableData}
                     handleCheckboxChange={handleCheckboxChange}
-                    onRowSelect={undefined} // handleCheckboxChange={(vendor, isChecked) => handleCheckboxChange(vendor, isChecked)}
-                    rowsPerPage={100}
                     isRowSelected={isVendorSelected}
                     resetSelectedRows={resetSelectedRows}
                     onResetComplete={() => setResetSelectedRows(false)}
-                    // onRowSelect={handleRowSelect}
+                    onRowSelect={undefined}
                   />
                 </div>
                 <div className="d-flex justify-content-between align-items-center px-1 mt-2">

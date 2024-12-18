@@ -1,5 +1,4 @@
-import React from "react";
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import "../styles/event.css";
 import {
@@ -33,6 +32,22 @@ export default function ErpRfqDetailPriceTrends4h() {
   const [termAndCond, setTermAndCond] = useState(false);
   const [orderConf, setOrderConf] = useState(false);
   const [orderDetails, setOrderDetails] = useState(false);
+  const [remainingTime, setRemainingTime] = useState(86400); // Initial time in seconds (24 hours, 5 minutes, 10 seconds)
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setRemainingTime((prevTime) => (prevTime > 0 ? prevTime - 1 : 0));
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  const formatTime = (seconds) => {
+    const hrs = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    return `${hrs}H:${mins}M:${secs}s`;
+  };
 
   const participantsAccordion = () => {
     setParticipantsOpen(!participantsOpen);
@@ -154,7 +169,7 @@ export default function ErpRfqDetailPriceTrends4h() {
                   <div className="eventList-child1 event-participant-time py-3">
                     <div className="eventList-time d-flex align-items-center gap-2">
                       <ClockIcon />
-                      <span>24H:05M:10s</span>
+                      <span>{formatTime(remainingTime)}</span>
                       <span>Upcoming </span>
                     </div>
                   </div>
@@ -212,7 +227,6 @@ export default function ErpRfqDetailPriceTrends4h() {
                   />
                   <ParticipantsTab />
                   <AnalyticsTab />
-                  <PriceTrendsTab />
                 </div>
               </div>
             </div>
