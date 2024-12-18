@@ -165,7 +165,7 @@ export default function ErpRfqAuctionEvents4f() {
                     </div>
                   </div>
                 </div>
-                <div className="card mt-0 pb-3">
+                <div className="card mt-2 pb-3">
                   {/* <div className="d-flex mt-1 align-items-end px-3">
                     <div className="col-md-6">
                       <h4>Events</h4>
@@ -202,45 +202,45 @@ export default function ErpRfqAuctionEvents4f() {
                       </div>
                     </div>
                   </div> */}
-                  <div className="card mt-4 pb-3">
-                    <QuickFilter />
-                    {/* <BulkAction /> */}
-                    <div className="d-flex mt-3 align-items-end px-3">
-                      <div className="col-md-6">
-                        <form>
-                          <div className="input-group">
-                            <input
-                              type="search"
-                              id="searchInput"
-                              className="tbl-search form-control"
-                              placeholder="Type your keywords here"
-                            />
-                            <div className="input-group-append">
+                  {/* <div className="card mt-4 pb-3"> */}
+                  <QuickFilter />
+                  {/* <BulkAction /> */}
+                  <div className="d-flex mt-3 align-items-end px-3">
+                    <div className="col-md-6">
+                      <form>
+                        <div className="input-group">
+                          <input
+                            type="search"
+                            id="searchInput"
+                            className="tbl-search form-control"
+                            placeholder="Type your keywords here"
+                          />
+                          <div className="input-group-append">
+                            <button
+                              type="button"
+                              className="btn btn-md btn-default"
+                            >
+                              <SearchIcon />
+                            </button>
+                          </div>
+                        </div>
+                      </form>
+                    </div>
+
+                    <div className="col-md-6">
+                      <div className="row justify-content-end">
+                        <div className="col-md-5">
+                          <div className="row justify-content-end px-3">
+                            <div className="col-md-3">
                               <button
-                                type="button"
-                                className="btn btn-md btn-default"
+                                style={{ color: "#de7008" }}
+                                className="btn btn-md"
+                                onClick={handleModalShow}
                               >
-                                <SearchIcon />
+                                <FilterIcon />
                               </button>
                             </div>
-                          </div>
-                        </form>
-                      </div>
-
-                      <div className="col-md-6">
-                        <div className="row justify-content-end">
-                          <div className="col-md-5">
-                            <div className="row justify-content-end px-3">
-                              <div className="col-md-3">
-                                <button
-                                  style={{ color: "#de7008" }}
-                                  className="btn btn-md"
-                                  onClick={handleModalShow}
-                                >
-                                  <FilterIcon />
-                                </button>
-                              </div>
-                              {/* <div className="col-md-3">
+                            {/* <div className="col-md-3">
                                 <button
                                   style={{ color: "#de7008" }}
                                   type="submit"
@@ -249,7 +249,7 @@ export default function ErpRfqAuctionEvents4f() {
                                   <StarIcon />
                                 </button>
                               </div> */}
-                              {/* <div className="col-md-3">
+                            {/* <div className="col-md-3">
                                 <button
                                   style={{ color: "#de7008" }}
                                   id="downloadButton"
@@ -259,7 +259,7 @@ export default function ErpRfqAuctionEvents4f() {
                                   <DownloadIcon />
                                 </button>
                               </div> */}
-                              {/* <div className="col-md-3">
+                            {/* <div className="col-md-3">
                                 <button
                                   style={{ color: "#de7008" }}
                                   type="submit"
@@ -272,44 +272,44 @@ export default function ErpRfqAuctionEvents4f() {
                                   />
                                 </button>
                               </div> */}
-                            </div>
-                          </div>
-                          <div className="col-md-4">
-                            <button
-                              className="purple-btn2"
-                              onClick={() => navigate("/create-event")}
-                            >
-                              <span className="material-symbols-outlined align-text-top">
-                                add
-                              </span>
-                              New Event
-                            </button>
                           </div>
                         </div>
-                      </div>
-                    </div>
-                    <div className="mx-3">
-                      <EventProjectTable eventData={getFilteredData()} />
-                    </div>
-                    <div className="row mt-3 px-3">
-                      <div className="col-md-3">
-                        <div className="form-group">
-                          <label htmlFor="">Rows Per Page</label>
-                          <select
-                            className="form-control form-select per_page"
-                            style={{ width: "100%" }}
+                        <div className="col-md-4">
+                          <button
+                            className="purple-btn2"
+                            onClick={() => navigate("/create-event")}
                           >
-                            <option value={10} selected>
-                              10 Rows
-                            </option>
-                            <option value={20}>20 Rows</option>
-                            <option value={50}>50 Rows</option>
-                            <option value={100}>100 Rows</option>
-                          </select>
+                            <span className="material-symbols-outlined align-text-top">
+                              add
+                            </span>
+                            New Event
+                          </button>
                         </div>
                       </div>
                     </div>
                   </div>
+                  <div className="mx-3">
+                    <EventProjectTable eventData={getFilteredData()} />
+                  </div>
+                  {/* <div className="row mt-3 px-3">
+                    <div className="col-md-3">
+                      <div className="form-group">
+                        <label htmlFor="">Rows Per Page</label>
+                        <select
+                          className="form-control form-select per_page"
+                          style={{ width: "100%" }}
+                        >
+                          <option value={10} selected>
+                            10 Rows
+                          </option>
+                          <option value={20}>20 Rows</option>
+                          <option value={50}>50 Rows</option>
+                          <option value={100}>100 Rows</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div> */}
+                  {/* </div> */}
                 </div>
               </div>
               <FilterModal show={show} handleClose={handleClose} />
