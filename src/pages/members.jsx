@@ -26,9 +26,9 @@ function Members() {
                 </Link>
               </li>
 
-              {/* <li>
-                <Link to="/dashboard">dashboard</Link>
-              </li> */}
+              <li>
+                <Link to="/user-list">user_list</Link>
+              </li>
 
               {/* <li>
                 <Link to="/erp-rfq-auction-events-4f">
