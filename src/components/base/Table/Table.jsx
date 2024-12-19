@@ -67,8 +67,15 @@ export default function Table({
     setSelectAll(newSelectAll);
 
     const updatedSelectedRows = newSelectAll
-      ? [...selectedRows, ...data.filter((vendor) => !selectedRows.some((row) => row.id === vendor.id))]
-      : selectedRows.filter((vendor) => !data.some((row) => row.id === vendor.id));
+      ? [
+          ...selectedRows,
+          ...data.filter(
+            (vendor) => !selectedRows.some((row) => row.id === vendor.id)
+          ),
+        ]
+      : selectedRows.filter(
+          (vendor) => !data.some((row) => row.id === vendor.id)
+        );
 
     setSelectedRows(updatedSelectedRows);
 
@@ -89,7 +96,7 @@ export default function Table({
       <div className="bid-tbl px-0 mt-3" {...rest}>
         <table className="w-100">
           <thead>
-            <tr style={{backgroundColor: '#d3d3d3'}}>
+            <tr style={{ backgroundColor: "#d3d3d3" }}>
               <th />
               {data.map((_, index) => (
                 <th key={index} className="main2-th"></th>
@@ -99,7 +106,12 @@ export default function Table({
           <tbody>
             {transposedData.map((row, rowIndex) => (
               <tr key={rowIndex}>
-                <td className="main2-th" style={{fontWeight: "bold", textAlign: 'left'}}>{row.header}</td>
+                <td
+                  className="main2-th"
+                  style={{ fontWeight: "bold", textAlign: "left" }}
+                >
+                  {row.header}
+                </td>
                 {row.values.map((value, valueIndex) => (
                   <td key={valueIndex}>
                     {customRender[columns[rowIndex]?.key]
@@ -120,7 +132,11 @@ export default function Table({
   }
 
   return (
-    <div className="tbl-container px-0 mt-3" {...rest} style={{maxHeight:"300px"}}>
+    <div
+      className="tbl-container px-0 mt-3"
+      {...rest}
+      style={{ maxHeight: "300px" }}
+    >
       <table className="w-100">
         <thead>
           <tr>
@@ -128,7 +144,9 @@ export default function Table({
               <th style={{ width: "50px", textAlign: "center" }}>
                 <input
                   type="checkbox"
-                  checked={data.every((vendor) => selectedRows.some((row) => row.id === vendor.id))}
+                  checked={data.every((vendor) =>
+                    selectedRows.some((row) => row.id === vendor.id)
+                  )}
                   onChange={handleSelectAllChange}
                 />
               </th>
@@ -148,7 +166,9 @@ export default function Table({
                 <td>
                   <input
                     type="checkbox"
-                    checked={selectedRows.some((selectedRow) => selectedRow.id === row.id)}
+                    checked={selectedRows.some(
+                      (selectedRow) => selectedRow.id === row.id
+                    )}
                     onChange={() => handleRowSelection(rowIndex)}
                   />
                 </td>
@@ -165,8 +185,14 @@ export default function Table({
                 <td>
                   <button
                     className="p-2 bg-white border"
-                    style={{ color: "#de7008" }}
-                    onClick={onActionClick}
+                    style={{
+                      color: "#de7008",
+                      backgroundColor: "transparent", // Remove background
+                      border: "none", // Remove border
+                      padding: "0", // Optional: Adjust padding
+                      cursor: "pointer", // Ensure pointer cursor for interactivity
+                    }}
+                    onClick={() => onActionClick(row)} // Pass the row data
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"

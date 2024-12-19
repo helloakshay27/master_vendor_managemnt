@@ -91,11 +91,11 @@ export default function ErpRfqAuctionEvents4f() {
             <a href="">
               {/* Home &gt; Purchase &gt; Procurement &gt; RFQ &amp; Auction Events */}
             </a>
-            <h5 className="mt-3">RFQ &amp; Auction Events</h5>
+            <h5 className="mt-3 ms-3">RFQ &amp; Auction Events</h5>
             <div className="material-boxes mt-3">
               <div className="container-fluid">
-                <div className="row separteinto5 justify-content-between">
-                  <div className="col-md-4 text-center">
+                <div className="row separteinto5 justify-content-left">
+                  <div className="col-md-2 text-center">
                     <div
                       className="content-box"
                       onClick={() => handleTabChange("all")}
@@ -103,18 +103,19 @@ export default function ErpRfqAuctionEvents4f() {
                         cursor: "pointer",
                         border:
                           activeTab === "all"
-                            ? "2px solidrgb(219, 143, 29)"
+                            ? "2px solid orange"
                             : "1px solid #ccc",
                         backgroundColor:
-                          activeTab === "all" ? "#e9f5ff" : "#fff",
-                        color: "black",
+                          activeTab === "all" ? "#de7008" : "#fff",
+                        color: activeTab === "all" ? "white" : "black", // Adjust text color for better contrast
                       }}
                     >
                       <h4 className="content-box-title">All Events</h4>
                       <p className="content-box-sub">{allEventsData.length}</p>
                     </div>
                   </div>
-                  <div className="col-md-4 text-center">
+
+                  <div className="col-md-2 text-center">
                     <div
                       className="content-box"
                       onClick={() => handleTabChange("live")}
@@ -122,17 +123,18 @@ export default function ErpRfqAuctionEvents4f() {
                         cursor: "pointer",
                         border:
                           activeTab === "live"
-                            ? "2px solid #007bff"
+                            ? "2px solid orange"
                             : "1px solid #ccc",
                         backgroundColor:
-                          activeTab === "live" ? "#e9f5ff" : "#fff",
-                        color: "black",
+                          activeTab === "live" ? "#de7008" : "#fff",
+                        color: activeTab === "live" ? "white" : "black", // Adjust text color for better contrast
                       }}
                     >
                       <h4 className="content-box-title">Live Events</h4>
                       <p className="content-box-sub">{liveEvents.length}</p>
                     </div>
                   </div>
+
                   {/* <div className="col-md-2 text-center">
                     <div className="content-box">
                       <h4 className="content-box-title">RFQ</h4>
@@ -145,7 +147,7 @@ export default function ErpRfqAuctionEvents4f() {
                       <p className="content-box-sub">0</p>
                     </div>
                   </div> */}
-                  <div className="col-md-4 text-center">
+                  <div className="col-md-2 text-center">
                     <div
                       className="content-box"
                       onClick={() => handleTabChange("history")}
@@ -156,7 +158,7 @@ export default function ErpRfqAuctionEvents4f() {
                             ? "2px solid #007bff"
                             : "1px solid #ccc",
                         backgroundColor:
-                          activeTab === "history" ? "#e9f5ff" : "#fff",
+                          activeTab === "history" ? "#de7008" : "#fff",
                         color: "black",
                       }}
                     >
@@ -165,43 +167,7 @@ export default function ErpRfqAuctionEvents4f() {
                     </div>
                   </div>
                 </div>
-                <div className="card mt-2 pb-3">
-                  {/* <div className="d-flex mt-1 align-items-end px-3">
-                    <div className="col-md-6">
-                      <h4>Events</h4>
-                      <div className="event-parent p-4 mb-0">
-                        <div className="d-flex justify-content-between">
-                          <ul className="nav nav-tabs border-0">
-                            {[
-                              { id: "all", label: "All" },
-                              { id: "live", label: "Live" },
-                              { id: "history", label: "History" },
-                            ].map((tab) => (
-                              <li className="nav-item" key={tab.id}>
-                                <button
-                                  className={`nav-link ${
-                                    activeTab === tab.id ? "active" : ""
-                                  }`}
-                                  onClick={() => handleTabChange(tab.id)}
-                                >
-                                  {tab.label}
-                                </button>
-                              </li>
-                            ))}
-                          </ul>
-                          <button
-                            className="purple-btn2 ms-4"
-                            onClick={() => navigate("/create-event")}
-                          >
-                            <span className="material-symbols-outlined">
-                              add
-                            </span>
-                            New Event
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div> */}
+                <div className="card mt-4 pb-4">
                   {/* <div className="card mt-4 pb-3"> */}
                   <QuickFilter />
                   {/* <BulkAction /> */}
