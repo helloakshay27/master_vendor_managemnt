@@ -398,7 +398,7 @@ export default function CreateEvent() {
           </div>
 
           <div className="row align-items-end justify-items-end mx-2 mb-5">
-            <div className="col-md-4 mt-0 mb-2">
+            <div className="col-md-4 col-sm-6 mt-0 mb-2">
               <div className="form-group">
                 <label className="po-fontBold">Event Name</label>
               </div>
@@ -409,7 +409,7 @@ export default function CreateEvent() {
                 onChange={(e) => seteventName(e.target.value)}
               />
             </div>
-            <div className="col-md-4 mt-0 mb-2">
+            <div className="col-md-4 col-sm-6 mt-0 mb-2">
               <div className="form-group">
                 <label className="po-fontBold">Event Type</label>
               </div>
@@ -421,7 +421,7 @@ export default function CreateEvent() {
                 readOnly
               />
             </div>
-            <div className="col-md-4 mt-0 mb-2">
+            <div className="col-md-4 col-sm-6 mt-0 mb-2">
               <div className="form-group">
                 <label className="po-fontBold">Event No.</label>
               </div>
@@ -433,7 +433,7 @@ export default function CreateEvent() {
                 onChange={(e) => setEventNo(e.target.value)}
               />
             </div>
-            <div className="col-md-4 mt-0 mb-2">
+            <div className="col-md-4 col-sm-6 mt-0 mb-2">
               <div className="form-group">
                 <label className="po-fontBold">Created On</label>
                 <input
@@ -444,7 +444,7 @@ export default function CreateEvent() {
                 />
               </div>
             </div>
-            <div className="col-md-4 mt-2">
+            <div className="col-md-4 col-sm-6 mt-2">
               <div className="form-group">
                 <label className="po-fontBold">Event Schedule</label>
               </div>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import "../styles/event.css";
 import {
@@ -18,11 +19,13 @@ import {
   TabsList,
   PriceTrendsTab,
   ResponseTab,
+  ParicipantsRemarksTab,
 } from "../components";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 
 export default function ErpRfqDetailPriceTrends4h() {
+  const { id } = useParams(); // Get the id from the URL params
   const [showModal, setShowModal] = useState(false);
   const [currentModal, setCurrentModal] = useState(null);
   const [participantsOpen, setParticipantsOpen] = useState(true);
@@ -33,6 +36,13 @@ export default function ErpRfqDetailPriceTrends4h() {
   const [orderConf, setOrderConf] = useState(false);
   const [orderDetails, setOrderDetails] = useState(false);
   const [remainingTime, setRemainingTime] = useState(86400); // Initial time in seconds (24 hours, 5 minutes, 10 seconds)
+  const [remarks, setRemarks] = useState([]);
+  const [participants, setParticipants] = useState([]);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  console.log("id :-",id);
+  
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -153,6 +163,54 @@ export default function ErpRfqDetailPriceTrends4h() {
     }
   };
 
+  useEffect(() => {
+    const fetchRemarks = async () => {
+      try {
+        const response = await fetch(
+          `https://vendors.lockated.com/rfq/events/${id}/event_vendors/event_vendor_remarks?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&page=1`
+        );
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        setRemarks(data);
+        console.log("remarks :", remarks);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRemarks();
+  }, [id]);
+
+  useEffect(() => {
+    const fetchParticipants = async () => {
+      try {
+        const response = await fetch(
+          `https://vendors.lockated.com/rfq/events/${id}/event_vendors?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&page=1`
+        );
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        setParticipants(data);
+        console.log("participants :", participants);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchParticipants();
+  }, [id]);
+
   return (
     <>
       <Header />
@@ -227,6 +285,7 @@ export default function ErpRfqDetailPriceTrends4h() {
                   />
                   <ParticipantsTab />
                   <AnalyticsTab />
+                  <ParicipantsRemarksTab data={remarks} />
                 </div>
               </div>
             </div>

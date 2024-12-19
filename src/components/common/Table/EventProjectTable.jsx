@@ -15,10 +15,8 @@ export default function EventProjectTable({ eventData }) {
   }));
 
   const handleActionClick = (row) => {
-    // Define what happens when the eye icon is clicked for a row
-
-    navigate(`/erp-rfq-detail-price-trends4h`);
-
+    // Navigate to detail price page with eventData.id
+    navigate(`/erp-rfq-detail-price-trends4h/${row.id}`);
     console.log("View details for:", row);
   };
 
@@ -30,8 +28,7 @@ export default function EventProjectTable({ eventData }) {
       actionIcon={true}
       // onRowSelect={undefined}
       // handleCheckboxChange={undefined}
-
       onActionClick={handleActionClick} // Pass the callback
-    />
+      onRowSelect={undefined} resetSelectedRows={undefined} onResetComplete={undefined}    />
   );
 }
