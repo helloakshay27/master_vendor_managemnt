@@ -27,6 +27,10 @@ function Members() {
               </li>
 
               <li>
+                <Link to="/vendor-list">vendor_list</Link>
+              </li>
+
+              <li>
                 <Link to="/user-list">user_list</Link>
               </li>
 
