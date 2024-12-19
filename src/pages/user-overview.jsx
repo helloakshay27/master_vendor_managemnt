@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
-import { Table, ShortTable, SelectBox } from "../components";
+import { Table, ShortTable, SelectBox, ResponseTab, OverviewTab, TabsList } from "../components";
 import {
   freightData,
   mumbaiLocations,
@@ -12,6 +12,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "../styles/mor.css";
+import { Link } from "react-router-dom";
 
 const UserOverview = () => {
   const [publishedStages, setPublishedStages] = useState(false);
@@ -36,15 +37,320 @@ const UserOverview = () => {
     setLineItems(!lineItems)
   };
 
+  const headerStyle = {
+    backgroundColor: '#282c34',
+    padding: '20px',
+    color: 'white',
+    textAlign: 'center',
+  };
+
+  const navStyle = {
+    display: 'flex',
+    justifyContent: 'center',
+    marginTop: '10px',
+  };
+
+  const linkStyle = (isActive) => ({
+    padding: '10px 20px',
+    margin: '0 15px',
+    backgroundColor: isActive ? '#4CAF50' : '#3f51b5',
+    color: 'white',
+    textDecoration: 'none',
+    borderRadius: '5px',
+    fontWeight: 'bold',
+  });
+
+
+  const handleShowModal = (modalType) => {
+    setCurrentModal(modalType);
+    setShowModal(true);
+  };
+
+  const [showModal, setShowModal] = useState(false);
+  const [currentModal, setCurrentModal] = useState(null);
+
+  const renderModal = () => {
+    switch (currentModal) {
+      // @ts-ignore
+      case "Recreate":
+        return (
+          <>
+            <RecreateOrderModal
+              show={showModal}
+              handleClose={handleCloseModal}
+            />
+          </>
+        );
+      // @ts-ignore
+      case "Shared":
+        return (
+          <NotificationInfoModal
+            show={showModal}
+            handleClose={handleCloseModal}
+          />
+        );
+      // @ts-ignore
+      case "Extend":
+        return (
+          <IncreaseEventTimeModal
+            show={showModal}
+            handleClose={handleCloseModal}
+          />
+        );
+      // @ts-ignore
+      case "Withdraw":
+        return (
+          <WithdrawOrderModal show={showModal} handleClose={handleCloseModal} />
+        );
+      // @ts-ignore
+      case "Convert":
+        return (
+          <ConvertToAuctionModal
+            show={showModal}
+            handleClose={handleCloseModal}
+          />
+        );
+      // @ts-ignore
+      case "Rejected":
+        return (
+          <RejectedBidsModal show={showModal} handleClose={handleCloseModal} />
+        );
+      // @ts-ignore
+      case "Order":
+        return (
+          <ActivityModal show={showModal} handleClose={handleCloseModal} />
+        );
+      // @ts-ignore
+      case "Evaluation":
+        return (
+          <AddEvaluationTimeModal
+            show={showModal}
+            handleClose={handleCloseModal}
+          />
+        );
+      // @ts-ignore
+      case "Counter":
+        return (
+          <BulkCounterOfferModal
+            show={showModal}
+            handleClose={handleCloseModal}
+          />
+        );
+      default:
+        return null;
+    }
+  };
+
+
   return (
     <>
 
 
 
 
-      <Header />
+      {/* <Header /> */}
+
+      <style>
+        {`
+          #project-header {
+            display: flex;
+            flex-direction: column;
+            padding: 16px;
+            border-bottom: 1px solid #ccc;
+            background-color: #f9f9f9;
+          }
+
+          #project-header2 {
+            display: flex;
+            flex-direction: column;
+            padding-top: 5px;
+            // border-bottom: 1px solid #ccc;
+            background-color: #f9f9f9;
+          }
+
+
+          .styles_projectTitle__3f7Yw {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+          }
+
+          .styles_projectTitleContent__1Xu_Z {
+            display: flex;
+            align-items: center;
+            gap: 8px; /* Space between button and text */
+          }
+
+          .styles_headerCtaLink__2kCN6 {
+            border: none;
+            background: none;
+            cursor: pointer;
+            padding: 0;
+          }
+
+          .styles_headerCtaLink__2kCN6 svg {
+            width: 24px;
+            height: 24px;
+            color: #007bff; /* Blue color for back button */
+          }
+
+          .styles_projectTitleContent__1Xu_Z span {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+
+          .styles_projectTitleExtra__3ePz7 {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+          }
+
+          .styles_projectTitleExtra__3ePz7 span {
+            font-size: 14px;
+            color: #555;
+          }
+
+          .styles_strategyTag__2icur {
+            background-color: #f0f0f0;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #333;
+          }
+
+          img {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+          }
+        `}
+      </style>
+
+
+      {/* <TabsList
+          handleShowModal={handleShowModal}
+          renderModal={renderModal}
+        
+        /> */}
+
+      {/* Tabs Section */}
+
+      <div className="styles_projectTabsHeader__148No" id="project-header">
+        {/* Project Title Section */}
+        <div className="styles_projectTitle__3f7Yw">
+          <div className="styles_projectTitleContent__1Xu_Z">
+            <button
+              type="button"
+              className="ant-btn styles_headerCtaLink__2kCN6 ant-btn-link"
+            >
+              <svg
+                width="1em"
+                height="1em"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                role="img"
+                className="pro-icon"
+              >
+                <path
+                  fillRule="evenodd"
+                  clipRule="evenodd"
+                  d="M12.707 4.293a1 1 0 0 1 0 1.414L7.414 11H19a1 1 0 1 1 0 2H7.414l5.293 5.293a1 1 0 0 1-1.414 1.414l-7-7a1 1 0 0 1 0-1.414l7-7a1 1 0 0 1 1.414 0Z"
+                  fill="currentColor"
+                ></path>
+              </svg>
+            </button>
+            <span>
+              [1000291945] PLUMBING MATERIAL products - SWAYAM REALTORS AND
+              TRADERS LLP
+            </span>
+          </div>
+          <div className="styles_projectTitleExtra__3ePz7">
+            <span>PANCHSHIL REALTY PRIVATE LTD</span>
+          </div>
+        </div>
+      </div>
+
+      {/* <div className="styles_projectTabsHeader__148No" id="project-header2">
+ <ul
+        className="nav nav-tabs border-0  styles_projectTitleContent__1Xu_Z"
+        id="eventTabs"
+        role="tablist"
+      >
+        {[
+          { id: "responses", label: "Event Overview" },
+          { id: "overview", label: "[1000291945] PLUMBIN... Submitted" },
+          // { id: "participants", label: "Participants" },
+          // { id: "analytics", label: "Analytics" },
+          // // { id: "priceTrends", label: "Price Trends" },
+          // { id: "participantRemarks", label: "Participant Remarks" },
+        ].map((tab) => (
+          <li className="nav-item" role="presentation" key={tab.id}>
+            <button
+              className={`nav-link setting-link ${
+                tab.id === "responses" ? "active" : ""
+              }`}
+              id={`${tab.id}-tab`}
+              data-bs-toggle="tab"
+              data-bs-target={`#${tab.id}`}
+              type="button"
+              role="tab"
+              aria-controls={tab.id}
+              aria-selected={tab.id === "responses"}
+            >
+              {tab.label}
+            </button>
+          </li>
+        ))}
+      </ul>
+ </div> */}
+
+      <div className="styles_projectTabsHeader__148No" id="project-header2">
+        <ul
+          className="nav nav-tabs border-0 "
+          id="eventTabs"
+          role="tablist"
+        >
+          {[
+            { id: "responses", label: "Event Overview", path: "/user-overview" },
+
+            { id: "overview", label: "[1000291945] PLUMBIN...", path: "/user-list", badge: "Submitted"  },
+
+          ].map((tab) => (
+            <li className="nav-item" role="presentation" key={tab.id}>
+              <Link
+                className={`nav-link setting-link ${tab.id === "responses" ? "active" : ""
+                  }`}
+                to={tab.path}  // Use `to` from react-router-dom for navigation
+                id={`${tab.id}-tab`}
+                role="tab"
+                aria-controls={tab.id}
+                aria-selected={tab.id === "responses"}
+              >
+                {tab.label}
+
+                {tab.badge && (
+                  <span className="badge bg-success ms-2">{tab.badge}</span>
+                )}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </div>
+
       <div className="main-content container-fluid">
-        <Sidebar />
+
+
+        {/* <Sidebar /> */}
+
+
+
+
         <div
           className=" w-100 p-4 mb-2"
           style={{
@@ -52,6 +358,8 @@ const UserOverview = () => {
             height: "calc(100vh - 100px)",
           }}
         >
+
+
           {/* Published Stages */}
           <div className="mx-3">
 
@@ -308,7 +616,7 @@ const UserOverview = () => {
                   className="purple-btn2"
                   data-bs-toggle="modal"
                   data-bs-target="#venderModal"
-                  style={{ backgroundColor: "#F0F0F0",color:'black' }}
+                  style={{ backgroundColor: "#F0F0F0", color: 'black' }}
                 >
 
                   <svg
