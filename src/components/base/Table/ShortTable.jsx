@@ -2,7 +2,7 @@ import React from "react";
 
 export default function ShortTable({ data }) {
   return (
-    <table className="tbl-container mt-4" style={{ width: "100%" }}>
+    <table className="tbl-container mt-4 ShortTable" style={{ width: "40% !important" }}>
       <tbody>
         {data.map((row, index) => (
           <tr
