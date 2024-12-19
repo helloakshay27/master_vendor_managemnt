@@ -110,7 +110,7 @@ const UserOverview = () => {
                   </thead>
                   <tbody>
                     <tr>
-                      <td className="text-start"  style={{ color: "#777777" }}>[1000291947] Plumbing Material - SWAYAM REALTORS AND TRADERS LLP</td>
+                      <td className="text-start" style={{ color: "#777777" }}>[1000291947] Plumbing Material - SWAYAM REALTORS AND TRADERS LLP</td>
                       <td className="text-start" style={{ color: "#777777" }}> Active</td>
                       <td className="text-start" style={{ color: "#777777" }}>17/12/2024 13:30 pm</td>
                       <td className="text-start" style={{ color: "#777777" }}>18/12/2024 13:30 pm</td>
@@ -133,7 +133,7 @@ const UserOverview = () => {
           >
             <h4 class="mt-4 head-material">
 
-              <button onClick={handleTerms} style={{ background: 'white',borderColor: '#e2e8f0', borderRadius: '5px' }} className="me-2">
+              <button onClick={handleTerms} style={{ background: 'white', borderColor: '#e2e8f0', borderRadius: '5px' }} className="me-2">
                 {terms ? (
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -143,8 +143,8 @@ const UserOverview = () => {
                     fill="white"
                     stroke="currentColor"
                     strokeWidth="1"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
                   >
 
                     {/* Minus Icon */}
@@ -180,7 +180,7 @@ const UserOverview = () => {
                   <li>DELIVERY OF MATERIAL AS PER SITE REQUIREMENT OR AS PER DELIVERY SCHEDULE</li>
                   <li>UNLOADING WILL BE DONE BY US.</li>
                 </ol>
-              
+
 
               </div>
             )}
@@ -198,7 +198,7 @@ const UserOverview = () => {
           >
 
             <h4 class=" head-material">
-              <button onClick={handleContact} style={{ background: 'white',borderColor: '#e2e8f0', borderRadius: '5px' }} className="me-2">
+              <button onClick={handleContact} style={{ background: 'white', borderColor: '#e2e8f0', borderRadius: '5px' }} className="me-2">
                 {Contact ? (
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -208,8 +208,8 @@ const UserOverview = () => {
                     fill="white"
                     stroke="currentColor"
                     strokeWidth="1"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
                   >
 
                     {/* Minus Icon */}
@@ -263,46 +263,74 @@ const UserOverview = () => {
           </div>
 
           <div className="mt-4 mx-3">
-            <h4 class="mt-4 head-material ">
-              <button onClick={handlelineItem} style={{ background: 'white',borderColor: '#e2e8f0', borderRadius: '5px' }} className="me-2">
-                {lineItems ? (
+            <div className="d-flex justify-content-between align-items-center mt-4">
+              <h4 className="head-material">
+                <button
+                  onClick={handlelineItem}
+                  style={{ background: "white", borderColor: "#e2e8f0", borderRadius: "5px" }}
+                  className="me-2"
+                >
+                  {lineItems ? (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="22"
+                      viewBox="0 0 24 24"
+                      fill="white"
+                      stroke="currentColor"
+                      strokeWidth="1"
+                    >
+                      {/* Minus Icon */}
+                      <line x1="8" y1="12" x2="16" y2="12" />
+                    </svg>
+                  ) : (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="22"
+                      viewBox="0 0 24 24"
+                      fill="white"
+                      stroke="currentColor"
+                      strokeWidth="1"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      {/* Plus Icon */}
+                      <line x1="12" y1="8" x2="12" y2="16" />
+                      <line x1="8" y1="12" x2="16" y2="12" />
+                    </svg>
+                  )}
+                </button>
+                Line Items
+              </h4>
+              <div className="card-tools">
+                <button
+                  className="purple-btn2"
+                  data-bs-toggle="modal"
+                  data-bs-target="#venderModal"
+                  style={{ backgroundColor: "#F0F0F0",color:'black' }}
+                >
+
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="24"
-                    height="22"
+                    height="24"
                     viewBox="0 0 24 24"
-                    fill="white"
+                    fill="none"
                     stroke="currentColor"
-                    strokeWidth="1"
-                  // strokeLinecap="round"
-                  // strokeLinejoin="round"
+                    stroke-width="1"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
                   >
-
-                    {/* Minus Icon */}
-                    <line x1="8" y1="12" x2="16" y2="12" />
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" y1="15" x2="12" y2="3" />
                   </svg>
-                ) : (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="22"
-                    viewBox="0 0 24 24"
-                    fill="white"
-                    stroke="currentColor"
-                    strokeWidth="1"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
+                  <span>Download Attachment</span>
+                </button>
+              </div>
+            </div>
 
-                    {/* Plus Icon  */}
-                    <line x1="12" y1="8" x2="12" y2="16" />
-                    <line x1="8" y1="12" x2="16" y2="12" />
-                  </svg>
-                )}
-              </button>
-
-
-              Line Items</h4>
 
             {lineItems && (
               <div className="tbl-container px-0 mt-3 head-material mx-3">
