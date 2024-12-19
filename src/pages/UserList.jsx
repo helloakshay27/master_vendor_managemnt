@@ -10,6 +10,7 @@ import {
   unitMeasure,
 } from "../constant/data";
 import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 export default function CreateBid() {
   const [data, setData] = useState([
@@ -81,7 +82,7 @@ export default function CreateBid() {
 
   return (
     <>
-      {/* <Header /> */}
+      <Header />
 
       <style>
         {`
@@ -147,11 +148,7 @@ export default function CreateBid() {
             color: #333;
           }
 
-          img {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-          }
+         
         `}
       </style>
 
@@ -190,6 +187,48 @@ export default function CreateBid() {
           </div>
         </div>
       </div>
+
+      <div
+        className="styles_projectTabsHeader__148No mt-1 ms-3"
+        id="project-header2"
+      >
+        <ul className="nav nav-tabs border-0 " id="eventTabs" role="tablist">
+          {[
+            {
+              id: "responses",
+              label: "Event Overview",
+              path: "/user-overview",
+            },
+
+            {
+              id: "overview",
+              label: "[1000291945] PLUMBIN...",
+              path: "/user-list",
+              badge: "Submitted",
+            },
+          ].map((tab) => (
+            <li className="nav-item" role="presentation" key={tab.id}>
+              <Link
+                className={`nav-link setting-link ${
+                  tab.id === "responses" ? "active" : ""
+                }`}
+                to={tab.path} // Use `to` from react-router-dom for navigation
+                id={`${tab.id}-tab`}
+                role="tab"
+                aria-controls={tab.id}
+                aria-selected={tab.id === "responses"}
+              >
+                {tab.label}
+
+                {tab.badge && (
+                  <span className="badge bg-success ms-2">{tab.badge}</span>
+                )}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </div>
+
       <div className="main-content">
         {/* <Sidebar /> */}
         <div

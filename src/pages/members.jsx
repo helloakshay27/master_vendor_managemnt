@@ -30,13 +30,13 @@ function Members() {
                 <Link to="/vendor-list">vendor_list</Link>
               </li>
 
-              <li>
+              {/* <li>
                 <Link to="/user-list">user_list</Link>
               </li>
 
               <li>
                 <Link to="/user-overview">user_overview</Link>
-              </li>
+              </li> */}
 
               {/* <li>
                 <Link to="good_receive_notes/:id">grn_detaisl</Link>

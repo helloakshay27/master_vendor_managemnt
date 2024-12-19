@@ -190,7 +190,7 @@ const VendorList = () => {
                 <div
                   className="eventList-main"
                   key={index}
-                  onClick={() => navigate("/erp-rfq-detail-price-trends4h")}
+                  onClick={() => navigate("/user-overview")}
                 >
                   <div className="d-flex flex-row-reverse">
                     <div className="eventList-child1 d-flex align-items-center gap-2 py-3">
@@ -224,8 +224,11 @@ const VendorList = () => {
                             </p>
                           </div>
                         </div>
+                        <div>
+                          <p className="mb-0 mt-2 text-muted">your price</p>
+                        </div>
                       </div>
-                      {event.deliveryLocation && (
+                      {/* {event.deliveryLocation && (
                         <div className="w-25">
                           <div className="d-flex align-items-start gap-2">
                             <i className="bi bi-truck"></i>
@@ -235,7 +238,7 @@ const VendorList = () => {
                             {event.deliveryLocation}
                           </p>
                         </div>
-                      )}
+                      )} */}
                       {/* {event.endsIn && (
                         <button
                           className="purple-btn2 position-absolute"
