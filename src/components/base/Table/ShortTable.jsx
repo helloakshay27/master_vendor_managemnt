@@ -1,8 +1,17 @@
 import React from "react";
 
-export default function ShortTable({ data }) {
+export default function ShortTable({ data, editable = false, onValueChange }) {
+  const handleInputChange = (index, newValue) => {
+    const updatedData = [...data];
+    updatedData[index].value = newValue;
+    onValueChange(updatedData);
+  };
+
   return (
-    <table className="tbl-container mt-4 ShortTable" style={{ width: "40% !important" }}>
+    <table
+      className="tbl-container mt-4 ShortTable"
+      style={{ width: "40% !important" }}
+    >
       <tbody>
         {data.map((row, index) => (
           <tr
@@ -18,7 +27,20 @@ export default function ShortTable({ data }) {
             >
               {row.label}
             </td>
-            <td style={{ padding: "12px", color: "#777" }}>{row.value}</td>
+            <td style={{ padding: "12px", color: "#777" }}>
+              {editable ? (
+                <input
+                  type="text"
+                  className="form-control"
+                  value={row.value}
+                  onChange={(e) => handleInputChange(index, e.target.value)}
+                />
+              ) : (
+                row.value
+              )}
+
+              {/* {row.value} */}
+            </td>
           </tr>
         ))}
       </tbody>

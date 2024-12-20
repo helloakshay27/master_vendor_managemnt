@@ -67,7 +67,7 @@ function App() {
           <Route path="/event-list" element={<ErpRfqAuctionEvents4f />} />
           {/* <Route path="/event-list" element={<EventList />} /> */}
 
-          <Route path="/user-list" element={<UserList />} />
+          <Route path="/user-list/:eventId" element={<UserList />} />
           <Route path="/vendor-list" element={<VendorList />} />
           <Route path="/user-overview" element={<UserOverview />} />
 

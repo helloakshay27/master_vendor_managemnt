@@ -1,31 +1,24 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 import { Table, ShortTable, SelectBox } from "../components";
 import "../styles/mor.css";
-import {
-  freightData,
-  mumbaiLocations,
-  product,
-  unitMeasure,
-} from "../constant/data";
-import { useNavigate } from "react-router-dom";
+import { mumbaiLocations, product, unitMeasure } from "../constant/data";
+import { useNavigate, useParams } from "react-router-dom";
 import { Link } from "react-router-dom";
+import axios from "axios";
 
 export default function CreateBid() {
-  const [data, setData] = useState([
-    {
-      descriptionOfItem: [],
-      quantity: "",
-      quantityAvail: "",
-      unit: [],
-      location: [],
-      rate: "",
-      amount: "",
-      totalAmt: "",
-      attachment: null,
-    },
+  const [freightData, setFreightData] = useState([
+    { label: "Freight Charge", value: "₹4,000" },
+    { label: "GST on Freight", value: "18%" },
+    { label: "Realised Freight", value: "₹4,720" },
+    { label: "Warranty Clause", value: "mtc" },
+    { label: "Payment Terms", value: "advance" },
+    { label: "Loading / Unloading", value: "under buyer" },
   ]);
+
+  const [data, setData] = useState([]);
 
   const navigate = useNavigate();
 
@@ -79,6 +72,46 @@ export default function CreateBid() {
     minWidth: "120px", // Set a fixed minimum width for other columns
     width: "auto", // Allow the other columns to take up available space
   };
+
+  const { eventId } = useParams();
+  console.log("Event ID from URL:", eventId);
+
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchEventMaterials = async () => {
+      console.log("Event ID:", eventId);
+      try {
+        // Fetch data directly without headers
+        const response = await axios.get(
+          `https://vendors.lockated.com/rfq/events/${eventId}/event_materials?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&page=1&q[event_vendor_id_cont]=10`
+        );
+
+        // Transform the API response into the required table data format
+        const formattedData = response.data.map((item) => ({
+          descriptionOfItem: item.inventory_name,
+          quantity: item.quantity,
+          quantityAvail: "",
+          unit: item.uom,
+          location: item.location,
+          rate: "",
+          amount: item.amount,
+          totalAmt: "",
+          attachment: null,
+        }));
+
+        setData(formattedData);
+        console.log(formattedData);
+      } catch (err) {
+        console.error("Error fetching event materials:", err);
+        setError("Failed to load data.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEventMaterials();
+  }, [eventId]);
 
   return (
     <div className="website-content">
@@ -203,7 +236,7 @@ export default function CreateBid() {
             {
               id: "overview",
               label: "[1000291945] PLUMBIN...",
-              path: "/user-list",
+              path: "/user-list/:eventId",
               badge: "Submitted",
             },
           ].map((tab) => (
@@ -257,7 +290,7 @@ export default function CreateBid() {
                   <Table
                     columns={[
                       { label: "Material", key: "descriptionOfItem" },
-                      { label: "Material Variant", key: "quantity" },
+                      { label: "Material Variant", key: "rate" },
                       { label: "Quantity Requested", key: "quantity" },
                       { label: "Delivery Location", key: "location" },
                       { label: "Creator Attachment", key: "attachment" },
@@ -274,15 +307,24 @@ export default function CreateBid() {
                     ]}
                     data={data}
                     customRender={{
+                      // descriptionOfItem: (cell, rowIndex) => (
+                      // <SelectBox
+                      //   label={""}
+                      //   options={product}
+                      //   defaultValue={cell}
+                      //   onChange={(selected) =>
+                      //     handleDescriptionOfItemChange(selected, rowIndex)
+                      //   }
+                      //   style={fixedColumnStyle} // Sticky style for first column
+                      // />
+
                       descriptionOfItem: (cell, rowIndex) => (
-                        <SelectBox
-                          label={""}
-                          options={product}
-                          defaultValue={cell}
-                          onChange={(selected) =>
-                            handleDescriptionOfItemChange(selected, rowIndex)
-                          }
-                          style={fixedColumnStyle} // Sticky style for first column
+                        <input
+                          className="form-control"
+                          type="text"
+                          value={cell}
+                          readOnly
+                          style={otherColumnsStyle}
                         />
                       ),
                       unit: (cell, rowIndex) => (
@@ -298,14 +340,11 @@ export default function CreateBid() {
                         />
                       ),
                       location: (cell, rowIndex) => (
-                        <SelectBox
-                          label={""}
-                          defaultValue={cell}
-                          onChange={(selected) =>
-                            handleLocationChange(selected, rowIndex)
-                          }
-                          options={mumbaiLocations}
-                          isDisableFirstOption={true}
+                        <input
+                          className="form-control"
+                          type="text"
+                          value={cell}
+                          readOnly
                           style={otherColumnsStyle}
                         />
                       ),
@@ -409,8 +448,15 @@ export default function CreateBid() {
                 </div>
                 {/* <div className="row"> */}
                 <div className=" d-flex justify-content-end">
-                  <ShortTable data={freightData} />
+                  {/* <ShortTable data={freightData} /> */}
+
+                  <ShortTable
+                    data={freightData}
+                    editable={true} // Flag to enable input fields
+                    onValueChange={(updatedData) => setFreightData(updatedData)} // Callback for changes
+                  />
                 </div>
+
                 {/* </div> */}
                 <div className="d-flex justify-content-end">
                   <h4>Sum Total 64684</h4>
