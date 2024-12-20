@@ -13,10 +13,12 @@ export default function CreateBid() {
     { label: "Freight Charge", value: "₹4,000" },
     { label: "GST on Freight", value: "18%" },
     { label: "Realised Freight", value: "₹4,720" },
-    { label: "Warranty Clause", value: "mtc" },
-    { label: "Payment Terms", value: "advance" },
-    { label: "Loading / Unloading", value: "under buyer" },
+    { label: "Warranty Clause *", value: "mtc" },
+    { label: "Payment Terms *", value: "advance" },
+    { label: "Loading / Unloading *", value: "under buyer" },
   ]);
+
+  const [remark, setRemark] = useState("");
 
   const [data, setData] = useState([]);
 
@@ -38,17 +40,23 @@ export default function CreateBid() {
     setData(updatedData);
   };
 
+  // const handleInputChange = (value, rowIndex, key) => {
+  //   const updatedData = [...data];
+
+  //   if (key === "quantity") {
+  //     const maxQuantity = 3;
+  //     if (parseFloat(value) > maxQuantity) {
+  //       alert(`Quantity cannot exceed ${maxQuantity}`);
+  //       value = maxQuantity;
+  //     }
+  //   }
+
+  //   updatedData[rowIndex][key] = value;
+  //   setData(updatedData);
+  // };
+
   const handleInputChange = (value, rowIndex, key) => {
     const updatedData = [...data];
-
-    if (key === "quantity") {
-      const maxQuantity = 3;
-      if (parseFloat(value) > maxQuantity) {
-        alert(`Quantity cannot exceed ${maxQuantity}`);
-        value = maxQuantity;
-      }
-    }
-
     updatedData[rowIndex][key] = value;
     setData(updatedData);
   };
@@ -74,7 +82,7 @@ export default function CreateBid() {
   };
 
   const { eventId } = useParams();
-  console.log("Event ID from URL:", eventId);
+  // console.log("Event ID from URL:", eventId);
 
   const [loading, setLoading] = useState(true);
 
@@ -89,6 +97,7 @@ export default function CreateBid() {
 
         // Transform the API response into the required table data format
         const formattedData = response.data.map((item) => ({
+          eventMaterialId: item.id,
           descriptionOfItem: item.inventory_name,
           quantity: item.quantity,
           quantityAvail: "",
@@ -102,6 +111,7 @@ export default function CreateBid() {
 
         setData(formattedData);
         console.log(formattedData);
+        // console.log(" id", formattedData.eventMaterialId);
       } catch (err) {
         console.error("Error fetching event materials:", err);
         setError("Failed to load data.");
@@ -112,6 +122,139 @@ export default function CreateBid() {
 
     fetchEventMaterials();
   }, [eventId]);
+
+  // post api
+
+  const freightChargeRaw =
+    freightData.find((item) => item.label === "Freight Charge")?.value || "0";
+
+  const freightCharge21 = parseFloat(freightChargeRaw.replace(/₹|,/g, "")) || 0; // Remove ₹ and commas, then parse to number
+  console.log("freightCharge21", freightCharge21);
+
+  const warrantyClause =
+    freightData.find((item) => item.label === "Warranty Clause")?.value ||
+    "1-year warranty";
+  const paymentTerms =
+    freightData.find((item) => item.label === "Payment Terms")?.value ||
+    "Net 30";
+  const loadingUnloadingClause =
+    freightData.find((item) => item.label === "Loading / Unloading")?.value ||
+    "Loading at supplier's location, unloading at buyer's location";
+
+  const preparePayload = () => {
+    const bidMaterialsAttributes = data.map((row) => ({
+      event_material_id: row.eventMaterialId, // Use the ID from the API data
+      quantity_available: row.quantityAvail || 0, // Use the updated quantity
+      price: row.price || 0, // Use the updated price
+      discount: row.discount || 0, // Use the updated discount
+      total_amount:
+        parseFloat(row.quantityAvail || 0) * parseFloat(row.price || 0), // Calculate total
+    }));
+
+    const freightChargeRaw =
+      freightData.find((item) => item.label === "Freight Charge")?.value || "0";
+    const freightCharge = parseFloat(freightChargeRaw.replace(/₹|,/g, "")) || 0; // Remove ₹ and commas, then parse to number
+
+    const gstOnFreight =
+      freightData.find((item) => item.label === "GST on Freight")?.value || "0";
+
+    const gstOnFreightt = parseFloat(gstOnFreight.replace(/₹|,/g, "")) || 0; // Remove ₹ and commas, then parse to number
+
+    const payload = {
+      bid: {
+        event_vendor_id: 10,
+        price: freightCharge,
+        discount: gstOnFreightt,
+        warranty_clause: warrantyClause,
+        payment_terms: paymentTerms,
+        remark: remark,
+        loading_unloading_clause: loadingUnloadingClause,
+        bid_materials_attributes: bidMaterialsAttributes, // Pass the dynamically generated array
+      },
+    };
+
+    console.log("Prepared Payload:", payload);
+    return payload;
+  };
+
+  const handleSubmit = async () => {
+    setLoading(true);
+
+    let missingFields = [];
+
+    // Loop through data to check which fields are empty
+    for (let row of data) {
+      if (!row.gst) missingFields.push("GST");
+      if (!row.price) missingFields.push("Price");
+      if (!row.discount) missingFields.push("Discount");
+    }
+
+    // If there are any missing fields, show an alert with the missing fields
+    if (missingFields.length > 0) {
+      const missingFieldsMessage = missingFields.join(", ");
+      alert(
+        `Please fill the following mandatory fields: ${missingFieldsMessage}`
+      );
+      return; // Prevent further execution if validation fails
+    }
+
+    try {
+      // Prepare the payload
+      // const payload = {
+      //   bid: {
+      //     event_vendor_id: 10,
+      //     price: 500.0,
+      //     discount: 10.0,
+      //     warranty_clause: "1-year warranty",
+      //     payment_terms: "Net 30",
+      //     remark: "test",
+      //     loading_unloading_clause:
+      //       "Loading at supplier's location, unloading at buyer's location",
+      //     bid_materials_attributes: [
+      //       {
+      //         event_material_id: 5,
+      //         quantity_available: 50,
+      //         price: 250.0,
+      //         discount: 5.0,
+      //         total_amount: 237.5,
+      //       },
+      //       {
+      //         event_material_id: 11,
+      //         quantity_available: 50,
+      //         price: 250.0,
+      //         discount: 5.0,
+      //         total_amount: 237.5,
+      //       },
+      //     ],
+      //   },
+      // };
+      // console.log("Submitting payload:", payload);
+
+      // Send POST request
+
+      const payload = preparePayload();
+      console.log("payloadssss", payload);
+
+      const response = await axios.post(
+        `https://vendors.lockated.com/rfq/events/${eventId}/bids?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`, // Replace with your API endpoint
+        payload,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer YOUR_TOKEN_HERE`, // Replace with your auth token
+          },
+        }
+      );
+
+      console.log("API Response:", response.data);
+      alert("Bid submitted successfully!");
+    } catch (error) {
+      console.error("Error submitting bid:", error);
+      alert("Failed to submit bid. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="website-content">
@@ -295,29 +438,21 @@ export default function CreateBid() {
                       { label: "Delivery Location", key: "location" },
                       { label: "Creator Attachment", key: "attachment" },
                       { label: "Quantity Available", key: "quantityAvail" },
-                      { label: "Price", key: "quantityAvail" },
-                      { label: "Discount", key: "quantityAvail" },
-                      { label: "Realised Discount", key: "quantityAvail" },
-                      { label: "GST", key: "quantityAvail" },
-                      { label: "Realised GST", key: "quantityAvail" },
-                      { label: "Landed Amount", key: "quantityAvail" },
-                      { label: "Participant Attachment", key: "quantityAvail" },
-                      { label: "Vendor Remark", key: "quantityAvail" },
-                      { label: "Total", key: "quantityAvail" },
+                      { label: "Price *", key: "price" },
+                      { label: "Discount *", key: "discount" },
+                      { label: "Realised Discount", key: "realisedDiscount" },
+                      { label: "GST *", key: "gst" },
+                      { label: "Realised GST", key: "realisedGst" },
+                      { label: "Landed Amount", key: "landedAmount" },
+                      {
+                        label: "Participant Attachment",
+                        key: "attachment",
+                      },
+                      { label: "Vendor Remark", key: "vendorRemark" },
+                      { label: "Total", key: "total" },
                     ]}
                     data={data}
                     customRender={{
-                      // descriptionOfItem: (cell, rowIndex) => (
-                      // <SelectBox
-                      //   label={""}
-                      //   options={product}
-                      //   defaultValue={cell}
-                      //   onChange={(selected) =>
-                      //     handleDescriptionOfItemChange(selected, rowIndex)
-                      //   }
-                      //   style={fixedColumnStyle} // Sticky style for first column
-                      // />
-
                       descriptionOfItem: (cell, rowIndex) => (
                         <input
                           className="form-control"
@@ -339,6 +474,7 @@ export default function CreateBid() {
                           style={otherColumnsStyle} // Other columns are scrollable
                         />
                       ),
+
                       location: (cell, rowIndex) => (
                         <input
                           className="form-control"
@@ -387,15 +523,138 @@ export default function CreateBid() {
                         <input
                           className="form-control"
                           type="number"
-                          min="0"
                           value={cell}
                           onChange={(e) =>
                             handleInputChange(e.target.value, rowIndex, "rate")
                           }
-                          placeholder="Enter Rate"
+                          placeholder="Enter Discount"
                           style={otherColumnsStyle}
                         />
                       ),
+
+                      discount: (cell, rowIndex) => (
+                        <input
+                          className="form-control"
+                          type="number"
+                          value={cell}
+                          onChange={(e) =>
+                            handleInputChange(
+                              e.target.value,
+                              rowIndex,
+                              "discount"
+                            )
+                          }
+                          placeholder="Enter Discount in %"
+                          style={otherColumnsStyle}
+                          required // Ensure the field is required in the HTML
+                        />
+                      ),
+
+                      realisedDiscount: (cell, rowIndex) => (
+                        <input
+                          className="form-control"
+                          type="number"
+                          value={cell}
+                          onChange={(e) =>
+                            handleInputChange(
+                              e.target.value,
+                              rowIndex,
+                              "realisedDiscount"
+                            )
+                          }
+                          placeholder="Enter Discount (%)"
+                          style={otherColumnsStyle}
+                        />
+                      ),
+
+                      gst: (cell, rowIndex) => (
+                        <input
+                          className="form-control"
+                          type="number"
+                          value={cell}
+                          onChange={(e) =>
+                            handleInputChange(e.target.value, rowIndex, "gst")
+                          }
+                          placeholder="Enter GST (%)"
+                          style={otherColumnsStyle}
+                          required // Ensure the field is required in the HTML
+                        />
+                      ),
+                      realisedGst: (cell, rowIndex) => (
+                        <input
+                          className="form-control"
+                          type="number"
+                          value={cell}
+                          onChange={(e) =>
+                            handleInputChange(
+                              e.target.value,
+                              rowIndex,
+                              "realisedGst"
+                            )
+                          }
+                          placeholder="Enter Realised GST"
+                          style={otherColumnsStyle}
+                        />
+                      ),
+                      landedAmount: (cell, rowIndex) => (
+                        <input
+                          className="form-control"
+                          type="number"
+                          value={cell}
+                          onChange={(e) =>
+                            handleInputChange(
+                              e.target.value,
+                              rowIndex,
+                              "landedAmount"
+                            )
+                          }
+                          placeholder="Enter Landed Amount"
+                          style={otherColumnsStyle}
+                        />
+                      ),
+
+                      vendorRemark: (cell, rowIndex) => (
+                        <textarea
+                          className="form-control"
+                          value={cell}
+                          onChange={(e) =>
+                            handleInputChange(
+                              e.target.value,
+                              rowIndex,
+                              "vendorRemark"
+                            )
+                          }
+                          placeholder="Enter Vendor Remark"
+                          style={otherColumnsStyle}
+                        />
+                      ),
+                      total: (cell, rowIndex) => (
+                        <input
+                          className="form-control"
+                          type="number"
+                          value={cell}
+                          onChange={(e) =>
+                            handleInputChange(e.target.value, rowIndex, "total")
+                          }
+                          placeholder="Enter Total"
+                          style={otherColumnsStyle}
+                        />
+                      ),
+
+                      price: (cell, rowIndex) => (
+                        <input
+                          className="form-control"
+                          type="number"
+                          value={cell}
+                          onChange={(e) =>
+                            handleInputChange(e.target.value, rowIndex, "price")
+                          }
+                          placeholder="Enter price "
+                          style={otherColumnsStyle}
+                          required // Ensure the field is required in the HTML
+                        />
+                      ),
+
                       bestAmount: (cell, rowIndex) => {
                         const quantity =
                           parseFloat(data[rowIndex].quantityAvail) || 0;
@@ -533,6 +792,8 @@ export default function CreateBid() {
                   placeholder="Enter remarks"
                   rows="3"
                   style={{ maxWidth: "300px", flex: "1" }}
+                  value={remark} // Bind to state
+                  onChange={(e) => setRemark(e.target.value)} // Update state on input
                 >
                   test for haven infoline
                 </textarea>
@@ -566,6 +827,16 @@ export default function CreateBid() {
                 </ol>
               </div>
             </div>
+          </div>
+
+          <div className=" d-flex justify-content-end">
+            <button
+              onClick={handleSubmit}
+              disabled={loading}
+              className="purple-btn2 m-0"
+            >
+              Create Bid
+            </button>
           </div>
         </div>
       </div>
