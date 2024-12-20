@@ -36,6 +36,7 @@ export default function ErpRfqDetailPriceTrends4h() {
   const [orderConf, setOrderConf] = useState(false);
   const [orderDetails, setOrderDetails] = useState(false);
   const [remainingTime, setRemainingTime] = useState(86400); // Initial time in seconds (24 hours, 5 minutes, 10 seconds)
+  const [response, setResponse] = useState([]);
   const [remarks, setRemarks] = useState([]);
   const [participants, setParticipants] = useState([]);
   const [error, setError] = useState(null);
@@ -163,6 +164,32 @@ export default function ErpRfqDetailPriceTrends4h() {
     }
   };
 
+
+
+  useEffect(() => {
+    const fetchRemarks = async () => {
+      try {
+        const response = await fetch(
+          `https://vendors.lockated.com/rfq/events/${id}/event_responses?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&page=1`
+        );
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        setResponse(data);
+        console.log("remarks :", response);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRemarks();
+  }, [id]);
+
   useEffect(() => {
     const fetchRemarks = async () => {
       try {
@@ -210,7 +237,8 @@ export default function ErpRfqDetailPriceTrends4h() {
 
     fetchParticipants();
   }, [id]);
-
+  console.log("participants participants :--------------------",participants);
+  
   return (
     <>
       <Header />
@@ -224,7 +252,7 @@ export default function ErpRfqDetailPriceTrends4h() {
                   <h4 className="event-head px-2 ">Events</h4>
                 </div>
                 <div className="d-flex flex-row-reverse ">
-                  <div className="eventList-child1 event-participant-time py-3">
+                  <div className="eventList-child1 event-participant-time py-3" style={{ width: "250px" }}>
                     <div className="eventList-time d-flex align-items-center gap-2">
                       <ClockIcon />
                       <span>{formatTime(remainingTime)}</span>
@@ -266,7 +294,7 @@ export default function ErpRfqDetailPriceTrends4h() {
                   renderModal={renderModal}
                 />
                 <div className="tab-content mt-3 main-scroll-div">
-                  <ResponseTab />
+                  <ResponseTab data={response} />
                   <OverviewTab
                     participantsOpen={participantsOpen}
                     savingsOpen={savingsOpen}
@@ -283,7 +311,7 @@ export default function ErpRfqDetailPriceTrends4h() {
                     orderConfOpen={orderConf}
                     orderDetails={orderDetails}
                   />
-                  <ParticipantsTab />
+                  <ParticipantsTab data={participants} />
                   <AnalyticsTab />
                   <ParicipantsRemarksTab data={remarks} />
                 </div>

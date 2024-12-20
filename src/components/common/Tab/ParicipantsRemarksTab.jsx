@@ -22,7 +22,7 @@ export default function ParticipantsRemarksTab({ data }) {
             </div>
             <div className="priceTrends-list-child go-shadow-k p-3 rounded-2">
               <p className="eventList-p2 mb-0 fw-bold">
-                {remarkItem.event_vendor?.full_name || "Unknown"} from{" "}
+                {remarkItem.event_vendor?.full_name || "_"} from{" "}
                 {remarkItem.event_vendor?.organization_name || "Unknown"}
               </p>
               <p className="eventList-p1 mb-0">{remarkItem.remark}</p>

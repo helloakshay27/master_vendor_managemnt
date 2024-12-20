@@ -24,11 +24,6 @@ export default function EventProjectTable({ eventData }) {
     <Table
       columns={eventProjectColumns}
       data={flattenedData}
-      // showCheckbox={true}
-      actionIcon={true}
-      // onRowSelect={undefined}
-      // handleCheckboxChange={undefined}
-      onActionClick={handleActionClick} // Pass the callback
-      onRowSelect={undefined} resetSelectedRows={undefined} onResetComplete={undefined}    />
+      showCheckbox={true} onRowSelect={undefined} handleCheckboxChange={undefined} resetSelectedRows={undefined} onResetComplete={undefined}    />
   );
 }

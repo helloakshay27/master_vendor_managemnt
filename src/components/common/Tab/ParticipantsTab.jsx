@@ -1,28 +1,31 @@
-// @ts-nocheck
 import React, { useState } from "react";
 import Table from "../../base/Table/Table";
-import {
-  participantsTabColumns,
-  participantsTabData,
-} from "../../../constant/data";
+import { participantsTabColumns } from "../../../constant/data";
 import SearchIcon from "../Icon/SearchIcon";
 
-export default function ParticipantsTab() {
-  // State to track if only selected vendors should be shown
+export default function ParticipantsTab({ data }) {
   const [isSelectCheckboxes, setIsSelectCheckboxes] = useState(false);
   const [selectedRows, setSelectedRows] = useState([]);
 
   const handleSwitchChange = (e) => {
     const checked = e.target.checked;
-  
-    // Set the isSelectCheckboxes state
     setIsSelectCheckboxes(checked);
-  
-    // If the switch is turned off, clear the selected rows
+
     if (!checked) {
-      setSelectedRows([]); // Clear selected checkboxes
+      setSelectedRows([]);
     }
   };
+  
+  const tableData = Array.isArray(data?.event_vendors)
+    ? data.event_vendors.map((vendor) => {
+        const { organization_name, contact_number, email } = vendor.pms_supplier || {};
+        return {
+          name: organization_name || "_",
+          phone: contact_number || "_",
+          email: email || "_",
+        };
+      })
+    : [];
 
   return (
     <div
@@ -40,7 +43,7 @@ export default function ParticipantsTab() {
               id="searchInput"
               className="w-50 tbl-search"
               placeholder="Type your vendors here"
-              style={{ width: '100px !important', marginLeft: '20px', paddingLeft: '10px' }}
+              style={{ width: "100px !important", marginLeft: "20px", paddingLeft: "10px" }}
             />
             <div className="input-group-append">
               <button type="button" className="btn btn-md btn-default">
@@ -50,7 +53,7 @@ export default function ParticipantsTab() {
           </div>
           <div className="d-flex align-items-center">
             <div className="d-flex align-items-center">
-              <p className="eventList-p1 mb-0 me-2" style={{textWrap:'nowrap'}}>
+              <p className="eventList-p1 mb-0 me-2" style={{ textWrap: "nowrap" }}>
                 Show only selected vendors
               </p>
               <div className="form-check form-switch mt-1">
@@ -60,7 +63,7 @@ export default function ParticipantsTab() {
                   role="switch"
                   id="flexSwitchCheckDefault"
                   checked={isSelectCheckboxes}
-                  onChange={handleSwitchChange} // Handle switch toggle
+                  onChange={handleSwitchChange}
                 />
               </div>
             </div>
@@ -71,7 +74,7 @@ export default function ParticipantsTab() {
                 alt=""
               />
             </div>
-            <select
+            {/* <select
               name="language"
               className="event-participant-select eventD-forms buyEvent-forms"
               required
@@ -82,14 +85,12 @@ export default function ParticipantsTab() {
               <option value="indian">xxxxxxxx</option>
               <option value="nepali">xxxxxxxx</option>
               <option value="others">Others</option>
-            </select>
+            </select> */}
           </div>
         </div>
         <Table
           columns={participantsTabColumns}
-          data={participantsTabData}
-          showCheckbox={true}
-          isSelectCheckboxes={isSelectCheckboxes} // Pass dynamic state to Table
+          data={tableData}
         />
       </div>
     </div>
