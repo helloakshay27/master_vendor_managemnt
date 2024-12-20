@@ -19,6 +19,11 @@ const EventScheduleModal = ({ show, onHide, handleSaveSchedule }) => {
   const [laterTime, setLaterTime] = useState("");
   const [fixedEndDate, setFixedEndDate] = useState("");
   const [fixedEndTime, setFixedEndTime] = useState("");
+  const [endDate, setEndDate] = useState("");
+
+  const handleEndDateChange = (e) => {
+    setEndDate(e.target.value);
+  };
 
   const handleStartTimeChange = (value) => {
     const selectedValue = value;
@@ -80,7 +85,7 @@ const EventScheduleModal = ({ show, onHide, handleSaveSchedule }) => {
 
     const data = {
       start_time: startTime,
-      end_time_duration: endTimeDurationFormatted,
+      end_time_duration: endDate,
       evaluation_time: evaluationTimeFormatted,
     };
     handleSaveSchedule(data);
@@ -147,69 +152,14 @@ const EventScheduleModal = ({ show, onHide, handleSaveSchedule }) => {
         <p className="mt-2">End Time</p>
         <div className="row">
           <div className="col-md-4">
-            <SelectBox
-              label={""}
-              options={[
-                { value: "Duration", label: "Duration" },
-                { value: "Fixed Time", label: "Fixed Time" },
-              ]}
-              defaultValue={"Duration"}
-              onChange={handleEndTimeChange}
+            <input
+              type="date"
+              className="form-control"
+              value={endDate}
+              onChange={handleEndDateChange}
+              min={isLater ? laterDate : new Date().toISOString().split("T")[0]}
             />
           </div>
-          {isFixedEndTime && (
-            <>
-              <div className="col-md-4">
-                <input
-                  type="date"
-                  className="form-control"
-                  value={fixedEndDate}
-                  onChange={(e) => setFixedEndDate(e.target.value)}
-                />
-              </div>
-              <div className="col-md-4">
-                <input
-                  type="time"
-                  className="form-control"
-                  value={fixedEndTime}
-                  onChange={(e) => setFixedEndTime(e.target.value)}
-                />
-              </div>
-            </>
-          )}
-          {endTimeDuration !== "" && (
-            <div className="col">
-              <div className="row">
-                <div className="col-md-6">
-                  <input
-                    type="number"
-                    className="form-control"
-                    placeholder="Enter number of"
-                    value={endTimeDurationVal}
-                    onChange={(e) => setEndTimeDurationVal(e.target.value)}
-                  />
-                </div>
-                <div className="col-md-6">
-                  <SelectBox
-                    label={""}
-                    options={[
-                      { value: "Mins", label: "Min(s)" },
-                      { value: "Hours", label: "Hour(s)" },
-                      { value: "Days", label: "Day(s)" },
-                      // { value: "Custom Duration", label: "Custom Duration" },
-                    ]}
-                    defaultValue={"Mins"}
-                    onChange={handleEndTimeDuration}
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-          {isCustomEndTimeSelected && (
-            <div className="col-md-4">
-              <input type="time" className="form-control" />
-            </div>
-          )}
         </div>
         <p className="my-2" style={{ color: "var(--light-grey)" }}>
           Event will end at 05 Apr 2024 at 11:24 am

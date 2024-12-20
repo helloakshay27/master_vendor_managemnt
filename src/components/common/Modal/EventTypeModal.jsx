@@ -163,61 +163,28 @@ const EventTypeModal = ({
             >
               <div
                 className={`pro-radio-tabs__tab ${
-                  eventType === "0" ? "pro-radio-tabs__tab__selected" : ""
+                  eventType === "rfq" ? "pro-radio-tabs__tab__selected" : ""
                 }`}
                 role="radio"
-                aria-checked={eventType === "0"}
+                aria-checked={eventType === "rfq"}
               >
                 <div className="pro-radio-tabs__check-icon">
                   <label
                     className={`ant-radio-wrapper ${
-                      eventType === "0" ? "ant-radio-wrapper-checked" : ""
+                      eventType === "rfq" ? "ant-radio-wrapper-checked" : ""
                     }`}
                   >
                     <span
                       className={`ant-radio ${
-                        eventType === "0" ? "ant-radio-checked" : ""
+                        eventType === "rfq" ? "ant-radio-checked" : ""
                       }`}
                     >
                       <input
                         type="radio"
                         className="ant-radio-input"
-                        value="0"
-                        checked={eventType === "0"}
+                        value="rfq"
+                        checked={eventType === "rfq"}
                         onChange={handleEventTypeChange}
-                      />
-                      <div className="ant-radio-inner"></div>
-                    </span>
-                  </label>
-                </div>
-                <p className="pro-text pro-body pro-text--normal">Auction</p>
-              </div>
-              <div
-                className={`pro-radio-tabs__tab ${
-                  eventType === "1" ? "pro-radio-tabs__tab__selected" : ""
-                }`}
-                role="radio"
-                aria-checked={eventType === "1"}
-              >
-                <div className="pro-radio-tabs__check-icon">
-                  <label
-                    htmlFor="eventType"
-                    className={`ant-radio-wrapper ${
-                      eventType === "1" ? "ant-radio-wrapper-checked" : ""
-                    }`}
-                  >
-                    <span
-                      className={`ant-radio ${
-                        eventType === "1" ? "ant-radio-checked" : ""
-                      }`}
-                    >
-                      <input
-                        type="radio"
-                        className="ant-radio-input"
-                        value="1"
-                        checked={eventType === "1"}
-                        onChange={handleEventTypeChange}
-                        id="eventType"
                       />
                       <div className="ant-radio-inner"></div>
                     </span>
@@ -225,13 +192,46 @@ const EventTypeModal = ({
                 </div>
                 <p className="pro-text pro-body pro-text--normal">RFQ</p>
               </div>
+              <div
+                className={`pro-radio-tabs__tab ${
+                  eventType === "auction" ? "pro-radio-tabs__tab__selected" : ""
+                }`}
+                role="radio"
+                aria-checked={eventType === "auction"}
+              >
+                <div className="pro-radio-tabs__check-icon">
+                  <label
+                    htmlFor="eventType"
+                    className={`ant-radio-wrapper ${
+                      eventType === "auction" ? "ant-radio-wrapper-checked" : ""
+                    }`}
+                  >
+                    <span
+                      className={`ant-radio ${
+                        eventType === "auction" ? "ant-radio-checked" : ""
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        className="ant-radio-input"
+                        value="auction"
+                        checked={eventType === "auction"}
+                        onChange={handleEventTypeChange}
+                        id="eventType"
+                      />
+                      <div className="ant-radio-inner"></div>
+                    </span>
+                  </label>
+                </div>
+                <p className="pro-text pro-body pro-text--normal">Auction</p>
+              </div>
             </div>
           </div>
         </div>
-        {eventType === "0" && (
+        {eventType === "1" && (
           <div
             className="pro-radio-tabs pro-radio-tabs2 rfq-tab-hide my-3"
-            style={{ gridTemplateColumns: "6fr 6fr" }}
+            style={{ gridTemplateColumns: "6fr 6fr"}}
           >
             <div
               className={`pro-radio-tabs__tab ${
@@ -568,27 +568,27 @@ const EventTypeModal = ({
                 >
                   <div
                     className={`pro-radio-tabs__tab ${
-                      awardType === "0" ? "pro-radio-tabs__tab__selected" : ""
+                      awardType === "single_vendor" ? "pro-radio-tabs__tab__selected" : ""
                     }`}
                     role="radio"
-                    aria-checked={awardType === "0"}
+                    aria-checked={awardType === "single_vendor"}
                   >
                     <div className="pro-radio-tabs__check-icon">
                       <label
                         className={`ant-radio-wrapper ${
-                          awardType === "0" ? "ant-radio-wrapper-checked" : ""
+                          awardType === "single_vendor" ? "ant-radio-wrapper-checked" : ""
                         }`}
                       >
                         <span
                           className={`ant-radio ${
-                            awardType === "0" ? "ant-radio-checked" : ""
+                            awardType === "single_vendor" ? "ant-radio-checked" : ""
                           }`}
                         >
                           <input
                             type="radio"
                             className="ant-radio-input"
-                            value="0"
-                            checked={awardType === "0"}
+                            value="single_vendor"
+                            checked={awardType === "single_vendor"}
                             onChange={handleAwardTypeChange}
                           />
                           <div className="ant-radio-inner"></div>
@@ -601,27 +601,27 @@ const EventTypeModal = ({
                   </div>
                   <div
                     className={`pro-radio-tabs__tab ${
-                      awardType === "1" ? "pro-radio-tabs__tab__selected" : ""
+                      awardType === "multiple_vendor" ? "pro-radio-tabs__tab__selected" : ""
                     }`}
                     role="radio"
-                    aria-checked={awardType === "1"}
+                    aria-checked={awardType === "multiple_vendor"}
                   >
                     <div className="pro-radio-tabs__check-icon">
                       <label
                         className={`ant-radio-wrapper ${
-                          awardType === "1" ? "ant-radio-wrapper-checked" : ""
+                          awardType === "multiple_vendor" ? "ant-radio-wrapper-checked" : ""
                         }`}
                       >
                         <span
                           className={`ant-radio ${
-                            awardType === "1" ? "ant-radio-checked" : ""
+                            awardType === "multiple_vendor" ? "ant-radio-checked" : ""
                           }`}
                         >
                           <input
                             type="radio"
                             className="ant-radio-input"
-                            value="1"
-                            checked={awardType === "1"}
+                            value="multiple_vendor"
+                            checked={awardType === "multiple_vendor"}
                             onChange={handleAwardTypeChange}
                           />
                           <div className="ant-radio-inner"></div>

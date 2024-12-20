@@ -51,8 +51,8 @@ export default function CreateEvent() {
       quantity: "",
       unit: [],
       location: [],
-      rate: "100.00",
-      amount: "100000.00",
+      rate: 0,
+      amount: 0,
     },
   ]);
   const [selectedStrategy, setSelectedStrategy] = useState(false);
@@ -66,6 +66,7 @@ export default function CreateEvent() {
   const [selectedRows, setSelectedRows] = useState([]);
   const [eventNo, setEventNo] = useState("");
   const [eventName, seteventName] = useState("");
+  const [textareas, setTextareas] = useState([{ id: Date.now(), value: '' }]);
 
   // @ts-ignore
   const [createdOn] = useState(new Date().toISOString().split("T")[0]);
@@ -184,17 +185,13 @@ export default function CreateEvent() {
 
   const handleEventConfigurationSubmit = () => {
     handleEventTypeModalClose();
-    // Set the event type text based on the selected event type
     // @ts-ignore
-    const eventTypeText = eventType === "0" ? "Auction" : "RFQ";
+    const eventTypeText = eventType === "rfq" ? "RFQ" : "Auction";
     setEventTypeText(eventTypeText);
   };
 
   const [eventTypeText, setEventTypeText] = useState("");
 
-  //  for vendordata get api
-
-  // const [vendorModal, setVendorModal] = useState(false);
   const [tableData, setTableData] = useState([]); // State to hold dynamic data
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1); // Default total pages
@@ -203,12 +200,6 @@ export default function CreateEvent() {
 
   // @ts-ignore
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (vendorModal) {
-      fetchData();
-    }
-  }, [vendorModal]);
 
   const fetchData = async (page = 1) => {
     setLoading(true);
@@ -239,6 +230,10 @@ export default function CreateEvent() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= totalPages) {
@@ -274,28 +269,47 @@ export default function CreateEvent() {
 
   const handleSaveButtonClick = () => {
     console.log("Selected Vendors:", selectedRows);
+
+    // Remove selected vendors from tableData
+    const updatedTableData = tableData.filter(
+      (vendor) =>
+        !selectedRows.some((selectedVendor) => selectedVendor.id === vendor.id)
+    );
+
+    console.log("Updated tableData:", updatedTableData);
+
+    setTableData(updatedTableData);
     setSelectedVendors((prev) => [...prev, ...selectedRows]);
-    setVendorModal(false); // Close the modal after saving
-    setSelectedRows([]); // Clear all selected checkboxes
-    setResetSelectedRows(true); // Trigger reset of selected rows
+    setVendorModal(false);
+    setSelectedRows([]);
+    setResetSelectedRows(true);
   };
 
-  // Check if a vendor is selected
   const isVendorSelected = (vendorId) => {
-    return selectedRows.some((vendor) => vendor.id === vendorId) || selectedVendors.some((vendor) => vendor.id === vendorId);
+    return (
+      selectedRows.some((vendor) => vendor.id === vendorId) ||
+      selectedVendors.some((vendor) => vendor.id === vendorId)
+    );
   };
 
-  // Additional states for other fields
+  const handleAddTextarea = () => {
+    setTextareas([...textareas, { id: Date.now(), value: '' }]);
+  };
+
+  const handleRemoveTextarea = (id) => {
+    setTextareas(textareas.filter((textarea) => textarea.id !== id));
+  };
+
+  const handleTextareaChange = (id, value) => {
+    setTextareas(
+      textareas.map((textarea) =>
+        textarea.id === id ? { ...textarea, value } : textarea
+      )
+    );
+  };
+
   // @ts-ignore
   const handleSubmit = async () => {
-    // Validation
-    console.log("selectedVendors:", selectedVendors);
-    console.log("eventNo:", eventNo);
-    console.log("eventName:", eventName);
-
-    console.log("createdOn:", createdOn);
-    console.log("scheduleData:", scheduleData);
-
     if (
       !eventName ||
       !eventNo ||
@@ -309,7 +323,7 @@ export default function CreateEvent() {
 
     const payload = {
       event: {
-        event_title: eventName,
+        // event_title: eventName,
         event_no: eventNo,
         created_on: createdOn,
         status: 1,
@@ -507,6 +521,37 @@ export default function CreateEvent() {
             </div>
           </div>
 
+          <div>
+            <h5 className="mt-3">Terms And Condition</h5>
+            {textareas.map((textarea,index) => (
+              <div
+                key={index}
+                className="d-flex justify-content-between align-items-center mt-3"
+              >
+                <textarea
+                  className="form-control w-75"
+                  value={textarea.value}
+                  onChange={(e) =>
+                    handleTextareaChange(textarea.id, e.target.value)
+                  }
+                />
+                <button
+                  className="btn btn-danger ms-2"
+                  onClick={() => handleRemoveTextarea(textarea.id)}
+                  disabled={index === 0}
+                >
+                  Remove
+                </button>
+              </div>
+            ))}
+            <button className="purple-btn2 mt-3" onClick={handleAddTextarea}>
+              <span className="material-symbols-outlined align-text-top me-2">
+                add{" "}
+              </span>
+              <span>Add</span>
+            </button>
+          </div>
+
           <div className="row mt-4 mt-3">
             <h5>Audit Log</h5>
             <div className="mx-0">
@@ -627,13 +672,13 @@ export default function CreateEvent() {
                     </div>
                   </div>
                   <div className="d-flex">
-                    <button
+                    {/* <button
                       className="purple-btn2 viewBy-main-child2P mb-0"
                       onClick={handleInviteModalShow}
                     >
                       <i className="bi bi-person-plus"></i>
                       <span className="ms-2">Invite</span>
-                    </button>
+                    </button> */}
                     <button
                       className="purple-btn2 viewBy-main-child2P mb-0"
                       onClick={() => setShowPopup(true)}
@@ -704,7 +749,6 @@ export default function CreateEvent() {
                 <div className="d-flex flex-column justify-content-center align-items-center h-100">
                   <Table
                     columns={participantsTabColumns}
-                    // data={participantsTabData}
                     showCheckbox={true}
                     data={tableData}
                     handleCheckboxChange={handleCheckboxChange}

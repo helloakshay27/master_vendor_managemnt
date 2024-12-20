@@ -33,8 +33,8 @@ export default function CreateRFQForm({ data, setData }) {
       quantity: "",
       unit: [],
       location: [],
-      rate: "100.00",
-      amount: "100000.00",
+      rate: 10,
+      amount: 0,
       inventory_id: "",
     };
     setData([...data, newRow]);
@@ -44,18 +44,13 @@ export default function CreateRFQForm({ data, setData }) {
   const [selectedMaterial, setSelectedMaterial] = useState(null);
 
   useEffect(() => {
-    // Fetch material data from API
     const fetchMaterials = async () => {
       try {
         const response = await axios.get(
           "https://vendors.lockated.com/rfq/events/material_list?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414"
-        ); // Replace with your API endpoint
-
-        // console.log(response ,"hhhhhhhhhhhhhhhhhh")
-
-        // setMaterials(response.data,materials);
+        ); 
         if (response.data && Array.isArray(response.data.materials)) {
-          setMaterials(response.data.materials); // Set materials if it's an array
+          setMaterials(response.data.materials); 
         } else {
           console.error("Unexpected response structure:", response.data);
         }
@@ -146,14 +141,6 @@ export default function CreateRFQForm({ data, setData }) {
                     handleDescriptionOfItemChange(selected, rowIndex)
                   }
                 />
-                // <MultiSelector
-                //   options={product}
-                //   value={cell}
-                //   onChange={(selected) =>
-                //     handleDescriptionOfItemChange(selected, rowIndex)
-                //   }
-                //   placeholder="Select Items"
-                // />
               ),
               unit: (cell, rowIndex) => (
                 <input
@@ -162,13 +149,6 @@ export default function CreateRFQForm({ data, setData }) {
                   value={cell}
                   readOnly
                 />
-                // <SelectBox
-                //   isDisableFirstOption={true}
-                //   label={""}
-                //   options={unitMeasure}
-                //   defaultValue={cell}
-                //   onChange={(selected) => handleUnitChange(selected, rowIndex)}
-                // />
               ),
               location: (cell, rowIndex) => (
                 <input
@@ -200,14 +180,13 @@ export default function CreateRFQForm({ data, setData }) {
                     handleInputChange(e.target.value, rowIndex, "rate")
                   }
                   placeholder="Enter Rate"
-                  disabled
                 />
               ),
               amount: (cell, rowIndex) => (
                 <input
                   className="form-control"
                   type="number"
-                  value={cell}
+                  value={""}
                   onChange={(e) =>
                     handleInputChange(e.target.value, rowIndex, "amount")
                   }
@@ -219,7 +198,7 @@ export default function CreateRFQForm({ data, setData }) {
                 <button
                   className="btn btn-danger"
                   onClick={() => handleRemoveRow(rowIndex)}
-                  disabled={rowIndex === 0} // Disable the button for the first row
+                  disabled={rowIndex === 0}
                 >
                   Remove
                 </button>
