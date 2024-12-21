@@ -4,8 +4,10 @@ import {
   EnvelopeIcon,
   ParticipantsIcon,
   ShowIcon,
+  Table,
 } from "../..";
 import { participantsData } from "../../../constant/data";
+import { Tab } from "react-bootstrap";
 
 export default function OverviewTab({
   handleParticipants,
@@ -17,6 +19,7 @@ export default function OverviewTab({
   savingsOpen,
   biddingOpen,
   biddingData,
+  overviewData,
   productOpen,
   termsOpen,
   orderConfOpen,
@@ -44,24 +47,95 @@ export default function OverviewTab({
     {
       label: "Revised bids",
       id: "revised-bids",
-      value: participantsData.revised_bids == null ? 0 : participantsData.revised_bids, // Assuming 1 if revised_bids exists
+      value:
+        participantsData.revised_bids == null
+          ? 0
+          : participantsData.revised_bids, // Assuming 1 if revised_bids exists
     },
     {
       label: "Counter offers",
       id: "counter-offers",
-      value: participantsData.counter_office == null ? 0 : participantsData.revised_bids, // Assuming 1 if counter_office exists
+      value:
+        participantsData.counter_office == null
+          ? 0
+          : participantsData.revised_bids, // Assuming 1 if counter_office exists
     },
     {
       label: "Accepted Counter Offers",
       id: "accepted-counter-offers",
-      value: participantsData.active_counter_offers == null ? 0 : participantsData.revised_bids, // Assuming 1 if active_counter_offers exists
+      value:
+        participantsData.active_counter_offers == null
+          ? 0
+          : participantsData.revised_bids, // Assuming 1 if active_counter_offers exists
     },
     {
       label: "Dynamic time extended",
       id: "dynamic-time-extended",
-      value: participantsData.dynamic_time_extension == null ? '0 mins' : participantsData.revised_bids,
+      value:
+        participantsData.dynamic_time_extension == null
+          ? "0 mins"
+          : participantsData.revised_bids,
     },
   ];
+
+  const calculateOrderDuration = (start, end) => {
+    const startTime = new Date(start);
+    const endTime = new Date(end);
+    const duration = new Date(endTime - startTime);
+    const hours = duration.getUTCHours();
+    const minutes = duration.getUTCMinutes();
+    const seconds = duration.getUTCSeconds();
+    return `${hours}h ${minutes}m ${seconds}s`;
+  };
+  
+  const OrderEndTime = new Date(overviewData?.event_schedule?.end_time);
+  
+  const orderConfig = [
+    {
+      label: "Order Type",
+      value: overviewData?.event_type_detail?.event_type || "_",
+    },
+    {
+      label: "Order Mode",
+      value: overviewData?.event_type_detail?.award_scheme || "_",
+    },
+    {
+      label: "Closing Mode",
+      value: "_",
+    },
+    {
+      label: "Started at",
+      value: new Date(overviewData?.event_schedule?.start_time).toLocaleString() || "_",
+    },
+    {
+      label: "Order Duration",
+      value: calculateOrderDuration(overviewData?.event_schedule?.start_time, OrderEndTime) || "_",
+    },
+    {
+      label: "Evaluation Time",
+      value: overviewData?.event_schedule?.evaluation_time || "_",
+    }
+  ];
+
+  console.log("overviewData:----", overviewData);
+
+  const overviewDatas = overviewData?.event_materials?.map(item => ({
+    product: item.inventory_name || "_",
+    best_total_amount: item.amount || "_",
+    product_variant: "_",
+    quantity_requested: item.quantity || "_",
+    delivery_location: item.location || "_",
+    creator_attachment: "_",
+    additional_info: "_",
+    quantity_available: item.quantity_available || "_",
+    price: item.price || "_",
+    discount: item.discount || "_",
+    realised_discount: "_",
+    gst: "_",
+    realised_gst: "_"
+  }));
+  
+
   return (
     <div
       className="tab-pane fade"
@@ -275,9 +349,9 @@ export default function OverviewTab({
           {biddingOpen && (
             <div id="bidding-summary" className="mx-5">
               <div className="card card-body p-4 rounded-3">
-                <div style={{boxShadow:'none'}}>
+                <div style={{ boxShadow: "none" }}>
                   <h5>Line Item Wise</h5>
-                  <div className="tbl-container">
+                  {/* <div className="tbl-container">
                     <table>
                       <thead>
                         <tr>
@@ -296,7 +370,15 @@ export default function OverviewTab({
                         ))}
                       </tbody>
                     </table>
-                  </div>
+                  </div> */}
+                  <Table
+                    columns={[
+                      { label: "Vendor", key: "vendor_name" },
+                      { label: "Material", key: "material_name" },
+                      { label: "Price", key: "price" },
+                    ]}
+                    data={biddingData}
+                  />
                 </div>
               </div>
             </div>
@@ -325,175 +407,24 @@ export default function OverviewTab({
           {productOpen && (
             <div id="product-sheet" className="mx-5">
               <div className="card card-body p-4 rounded-3">
-                <div className="tbl-container">
-                  <table className="">
-                    <thead className="thead-dark">
-                      <tr>
-                        <th scope="col">Product*</th>
-                        <th scope="col">Best Total Amount</th>
-                        <th scope="col">Product Variant*</th>
-                        <th scope="col">Quantity Requested*</th>
-                        <th scope="col">Delivery location*</th>
-                        <th scope="col">Creator Attachment</th>
-                        <th scope="col">AIDDITIONAL INFO</th>
-                        <th scope="col">Quantity Available</th>
-                        <th scope="col">Price*</th>
-                        <th scope="col">Discount</th>
-                        <th scope="col">Realised Discount*</th>
-                        <th scope="col">GST*</th>
-                        <th scope="col">Realised GST</th>
-                        <th scope="col">Landed Amount*</th>
-                        <th scope="col">Participant Attachment</th>
-                        <th scope="col">DOOR FRAME MATERIAL</th>
-                        <th>DENSITY OF WOOD</th>
-                        <th>MOISTURE OF WOOD</th>
-                        <th>Total Amount*</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <th scope="row">
-                          Wooden Frd Door{" "}
-                          <span
-                            style={{
-                              color: "var(--red)",
-                              cursor: "pointer",
-                            }}
-                          >
-                            {" "}
-                            Details
-                          </span>
-                        </th>
-                        <td />
-                        <td>WOODEN DOOR SHUTTER 2 HRS...</td>
-                        <td>257 Nos</td>
-                        <td>Sanvo Resorts Pvt. Ltd. </td>
-                        <td />
-                        <td>Main door Outer size of ...</td>
-                        <td />
-                        <td />
-                        <td />
-                        <td />
-                        <td />
-                        <td />
-                        <td />
-                        <td />
-                      </tr>
-                      <tr>
-                        <th scope="row">
-                          Wooden Frd Door{" "}
-                          <span
-                            style={{
-                              color: "var(--red)",
-                              cursor: "pointer",
-                            }}
-                          >
-                            {" "}
-                            Details
-                          </span>
-                        </th>
-                        <td />
-                        <td>WOODEN DOOR SHUTTER 2 HRS...</td>
-                        <td>257 Nos</td>
-                        <td>Sanvo Resorts Pvt. Ltd. </td>
-                        <td />
-                        <td>Main door Outer size of ...</td>
-                        <td />
-                        <td />
-                        <td />
-                        <td />
-                        <td />
-                        <td />
-                        <td />
-                        <td />
-                      </tr>
-                      <tr>
-                        <th scope="row">
-                          Wooden Frd Door{" "}
-                          <span
-                            style={{
-                              color: "var(--red)",
-                              cursor: "pointer",
-                            }}
-                          >
-                            {" "}
-                            Details
-                          </span>
-                        </th>
-                        <td />
-                        <td>WOODEN DOOR SHUTTER 2 HRS...</td>
-                        <td>257 Nos</td>
-                        <td>Sanvo Resorts Pvt. Ltd. </td>
-                        <td />
-                        <td>Main door Outer size of ...</td>
-                        <td />
-                        <td />
-                        <td />
-                        <td />
-                        <td />
-                        <td />
-                        <td />
-                        <td />
-                      </tr>
-                      <tr>
-                        <th scope="row">
-                          Wooden Frd Door{" "}
-                          <span
-                            style={{
-                              color: "var(--red)",
-                              cursor: "pointer",
-                            }}
-                          >
-                            {" "}
-                            Details
-                          </span>
-                        </th>
-                        <td />
-                        <td>WOODEN DOOR SHUTTER 2 HRS...</td>
-                        <td>257 Nos</td>
-                        <td>Sanvo Resorts Pvt. Ltd. </td>
-                        <td />
-                        <td>Main door Outer size of ...</td>
-                        <td />
-                        <td />
-                        <td />
-                        <td />
-                        <td />
-                        <td />
-                        <td />
-                        <td />
-                      </tr>
-                      <tr>
-                        <th scope="row">
-                          Wooden Frd Door{" "}
-                          <span
-                            style={{
-                              color: "var(--red)",
-                              cursor: "pointer",
-                            }}
-                          >
-                            {" "}
-                            Details
-                          </span>
-                        </th>
-                        <td />
-                        <td>WOODEN DOOR SHUTTER 2 HRS...</td>
-                        <td>257 Nos</td>
-                        <td>Sanvo Resorts Pvt. Ltd. </td>
-                        <td />
-                        <td>Main door Outer size of ...</td>
-                        <td />
-                        <td />
-                        <td />
-                        <td />
-                        <td />
-                        <td />
-                        <td />
-                        <td />
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
+                <Table
+                    columns={[
+                      { label: "Product", key: "product" },
+                      { label: "Best Total Amount", key: "best_total_amount" },
+                      { label: "Product Variant", key: "product_variant" },
+                      { label: "Quantity Requested", key: "quatity_requested" },
+                      { label: "Delivery Location", key: "delivery_location" },
+                      { label: "Creator Attachment", key: "creator_attachment" },
+                      { label: "Additional Info", key: "additional_info" },
+                      { label: "Quantity Available", key: "quantity_available" },
+                      { label: "Price", key: "price" },
+                      { label: "Discount", key: "discount" },
+                      { label: "Realised Discount", key: "realised_discount" },
+                      { label: "GST", key: "gst" },
+                      { label: "Realised GST", key: "realised_gst" },
+                    ]}
+                    data={overviewDatas}
+                  />
               </div>
             </div>
           )}
@@ -564,11 +495,8 @@ export default function OverviewTab({
             <div id="order-configuration" className="mx-5">
               <div className="card card-body p-4">
                 <div className="participate-sec">
-                  <div
-                    className="totals-activity row"
-                    style={{ gap: "0" }}
-                  >
-                    {participants.map((item) => (
+                  <div className="totals-activity row" style={{ gap: "0" }}>
+                    {orderConfig.map((item) => (
                       <div
                         className="total-activity col-md-3 my-3"
                         key={item.id}
@@ -610,8 +538,7 @@ export default function OverviewTab({
               <div className="card card-body p-4">
                 <p>Event Title</p>
                 <p>
-                  [IN/NZR01/NRI01/641] Plumbing Material - NEXZONE-RESIDENTIAL -
-                  Panvel
+                  {`${overviewData.event_no}  ${overviewData.event_title}`}
                 </p>
               </div>
             </div>

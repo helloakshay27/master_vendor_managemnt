@@ -321,6 +321,12 @@ export default function CreateEvent() {
       return;
     }
 
+    const termsAndConditions = textareas.map((textarea, index) => 
+      `${index + 1}. ${textarea.value}`
+    );
+
+    console.log("Formatted Terms and Conditions:", termsAndConditions);
+
     const payload = {
       event: {
         // event_title: eventName,
@@ -367,6 +373,7 @@ export default function CreateEvent() {
             comments: "No comments",
           },
         ],
+        terms_and_conditions: termsAndConditions,
       },
     };
 
