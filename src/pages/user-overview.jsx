@@ -1,24 +1,60 @@
 // import React from "react";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Header from "../components/Header";
-import Sidebar from "../components/Sidebar";
-import { Table, ShortTable, SelectBox, ResponseTab, OverviewTab, TabsList } from "../components";
-import {
-  freightData,
-  mumbaiLocations,
-  product,
-  unitMeasure,
-} from "../constant/data";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "../styles/mor.css";
 import { Link } from "react-router-dom";
 
+import axios from 'axios';
+
+
 const UserOverview = () => {
-  const [publishedStages, setPublishedStages] = useState(false);
-  const [terms, setTerms] = useState(false);
-  const [Contact, setContact] = useState(false);
-  const [lineItems, setLineItems] = useState(false);
+  const { eventId } = useParams();
+  const [publishedStages, setPublishedStages] = useState(true);
+  const [terms, setTerms] = useState(true);
+  const [Contact, setContact] = useState(true);
+  const [lineItems, setLineItems] = useState(true);
+  const [isHistoryActive, setIsHistoryActive] = useState(false);
+
+
+  const navigate = useNavigate();
+
+
+  const [data, setData] = useState([{}]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [date, setDate] = useState(null)
+  const [endDate, setEndDate] = useState(null)
+
+
+  console.log("Event ID:", eventId);
+  useEffect(() => {
+    const fetchEventMaterials = async () => {
+      console.log("Event ID:", eventId);
+      try {
+        // Fetch data directly without headers
+        const response = await axios.get(
+          `https://vendors.lockated.com/rfq/events/${eventId}/vendor_show?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&page=1`
+        );
+
+        // Transform the API response into the required table data format
+        setData(response.data);
+        console.log("response:", response.data);
+        const isoDate = response.data.event_schedule.start_time
+        setDate(response.data.event_schedule.start_time)
+        setEndDate(response.data.event_schedule.end_time_duration)
+        console.log("date:", isoDate)
+      } catch (err) {
+        console.error("Error fetching event materials:", err.response || err.message || err);
+        setError("Failed to load data.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEventMaterials();
+  }, [eventId]);
 
 
   const handlepublishedStages = () => {
@@ -37,118 +73,71 @@ const UserOverview = () => {
     setLineItems(!lineItems)
   };
 
-  const headerStyle = {
-    backgroundColor: '#282c34',
-    padding: '20px',
-    color: 'white',
-    textAlign: 'center',
+
+
+  const formatDate = (date) => {
+    const date1 = new Date(date);
+
+    // Extract date parts
+    const options = { month: "short" }; // Short month name like "Dec"
+    const day = date1.getDate().toString().padStart(2, "0"); // Ensure 2 digits
+    const month = (date1.getMonth() + 1).toString().padStart(2, "0"); // "Dec"
+    const year = date1.getFullYear();
+
+    // Extract time parts
+    let hours = date1.getHours();
+    const minutes = date1.getMinutes().toString().padStart(2, "0");
+    const ampm = hours >= 12 ? "PM" : "AM";
+    hours = hours % 12 || 12; // Convert 24-hour time to 12-hour
+
+    // Combine into desired format
+    return `${day}-${month}-${year} ${hours}:${minutes} ${ampm}`;
   };
 
-  const navStyle = {
-    display: 'flex',
-    justifyContent: 'center',
-    marginTop: '10px',
+  const isoDate = date;
+
+  // Call the function and log the result
+  const formattedDate = formatDate(isoDate);
+  console.log("Formatted Date:", formattedDate);
+
+  //end date
+  const calculateEndDate = (date) => {
+    const date1 = new Date(date);
+
+    // Extract date parts
+    const options = { month: "short" }; // Short month name like "Dec"
+    const day = date1.getDate().toString().padStart(2, "0"); // Ensure 2 digits
+    const month = (date1.getMonth() + 1).toString().padStart(2, "0"); // "Dec"
+    const year = date1.getFullYear();
+
+    // Extract time parts
+    let hours = date1.getHours();
+    const minutes = date1.getMinutes().toString().padStart(2, "0");
+    const ampm = hours >= 12 ? "PM" : "AM";
+    hours = hours % 12 || 12; // Convert 24-hour time to 12-hour
+
+    // Combine into desired format
+    return `${day}-${month}-${year} ${hours}:${minutes} ${ampm}`;
   };
 
-  const linkStyle = (isActive) => ({
-    padding: '10px 20px',
-    margin: '0 15px',
-    backgroundColor: isActive ? '#4CAF50' : '#3f51b5',
-    color: 'white',
-    textDecoration: 'none',
-    borderRadius: '5px',
-    fontWeight: 'bold',
-  });
+  const formattedEndDate = calculateEndDate(endDate);
 
+  console.log(formattedEndDate)
+  console.log('end d', endDate)
 
-  const handleShowModal = (modalType) => {
-    setCurrentModal(modalType);
-    setShowModal(true);
+  console.log("data:", data)
+
+  // const navigate = useNavigate();  // Initialize the navigate function
+
+  // Function to handle button click and navigate
+  const handleNavigate = () => {
+    console.log("vendor list ")
+    navigate('/vendor-list');  // Redirect to /vendor-list page
   };
-
-  const [showModal, setShowModal] = useState(false);
-  const [currentModal, setCurrentModal] = useState(null);
-
-  const renderModal = () => {
-    switch (currentModal) {
-      // @ts-ignore
-      case "Recreate":
-        return (
-          <>
-            <RecreateOrderModal
-              show={showModal}
-              handleClose={handleCloseModal}
-            />
-          </>
-        );
-      // @ts-ignore
-      case "Shared":
-        return (
-          <NotificationInfoModal
-            show={showModal}
-            handleClose={handleCloseModal}
-          />
-        );
-      // @ts-ignore
-      case "Extend":
-        return (
-          <IncreaseEventTimeModal
-            show={showModal}
-            handleClose={handleCloseModal}
-          />
-        );
-      // @ts-ignore
-      case "Withdraw":
-        return (
-          <WithdrawOrderModal show={showModal} handleClose={handleCloseModal} />
-        );
-      // @ts-ignore
-      case "Convert":
-        return (
-          <ConvertToAuctionModal
-            show={showModal}
-            handleClose={handleCloseModal}
-          />
-        );
-      // @ts-ignore
-      case "Rejected":
-        return (
-          <RejectedBidsModal show={showModal} handleClose={handleCloseModal} />
-        );
-      // @ts-ignore
-      case "Order":
-        return (
-          <ActivityModal show={showModal} handleClose={handleCloseModal} />
-        );
-      // @ts-ignore
-      case "Evaluation":
-        return (
-          <AddEvaluationTimeModal
-            show={showModal}
-            handleClose={handleCloseModal}
-          />
-        );
-      // @ts-ignore
-      case "Counter":
-        return (
-          <BulkCounterOfferModal
-            show={showModal}
-            handleClose={handleCloseModal}
-          />
-        );
-      default:
-        return null;
-    }
-  };
-
 
   return (
     <>
-
-
-
-
-      {/* <Header /> */}
+      <Header />
 
       <style>
         {`
@@ -223,30 +212,22 @@ const UserOverview = () => {
             color: #333;
           }
 
-          img {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-          }
         `}
       </style>
 
 
-      {/* <TabsList
-          handleShowModal={handleShowModal}
-          renderModal={renderModal}
-        
-        /> */}
-
+    
       {/* Tabs Section */}
 
       <div className="styles_projectTabsHeader__148No" id="project-header">
         {/* Project Title Section */}
         <div className="styles_projectTitle__3f7Yw">
           <div className="styles_projectTitleContent__1Xu_Z">
+          
             <button
               type="button"
               className="ant-btn styles_headerCtaLink__2kCN6 ant-btn-link"
+              onClick={handleNavigate}  // Call handleNavigate on button click
             >
               <svg
                 width="1em"
@@ -265,6 +246,7 @@ const UserOverview = () => {
                 ></path>
               </svg>
             </button>
+           
             <span>
               [1000291945] PLUMBING MATERIAL products - SWAYAM REALTORS AND
               TRADERS LLP
@@ -276,412 +258,824 @@ const UserOverview = () => {
         </div>
       </div>
 
-      {/* <div className="styles_projectTabsHeader__148No" id="project-header2">
- <ul
-        className="nav nav-tabs border-0  styles_projectTitleContent__1Xu_Z"
-        id="eventTabs"
-        role="tablist"
-      >
-        {[
-          { id: "responses", label: "Event Overview" },
-          { id: "overview", label: "[1000291945] PLUMBIN... Submitted" },
-          // { id: "participants", label: "Participants" },
-          // { id: "analytics", label: "Analytics" },
-          // // { id: "priceTrends", label: "Price Trends" },
-          // { id: "participantRemarks", label: "Participant Remarks" },
-        ].map((tab) => (
-          <li className="nav-item" role="presentation" key={tab.id}>
-            <button
-              className={`nav-link setting-link ${
-                tab.id === "responses" ? "active" : ""
-              }`}
-              id={`${tab.id}-tab`}
-              data-bs-toggle="tab"
-              data-bs-target={`#${tab.id}`}
-              type="button"
-              role="tab"
-              aria-controls={tab.id}
-              aria-selected={tab.id === "responses"}
-            >
-              {tab.label}
-            </button>
+      <div class="container mt-4">
+        {/* <!-- Tab navigation --> */}
+        <ul class="nav nav-tabs" id="myTabs" role="tablist">
+          <li class="nav-item" role="presentation">
+            <a class="nav-link active" id="home-tab" data-bs-toggle="tab" href="#home" role="tab" aria-controls="home" aria-selected="true">Event Overview</a>
           </li>
-        ))}
-      </ul>
- </div> */}
+          <li class="nav-item" role="presentation">
+            <a class="nav-link" id="profile-tab" data-bs-toggle="tab" href="#profile" role="tab" aria-controls="profile" aria-selected="false">[1000291945] PLUMBIN...</a>
+          </li>
 
-      <div className="styles_projectTabsHeader__148No" id="project-header2">
-        <ul
-          className="nav nav-tabs border-0 "
-          id="eventTabs"
-          role="tablist"
-        >
-          {[
-            { id: "responses", label: "Event Overview", path: "/user-overview" },
-
-            { id: "overview", label: "[1000291945] PLUMBIN...", path: "/user-list", badge: "Submitted"  },
-
-          ].map((tab) => (
-            <li className="nav-item" role="presentation" key={tab.id}>
-              <Link
-                className={`nav-link setting-link ${tab.id === "responses" ? "active" : ""
-                  }`}
-                to={tab.path}  // Use `to` from react-router-dom for navigation
-                id={`${tab.id}-tab`}
-                role="tab"
-                aria-controls={tab.id}
-                aria-selected={tab.id === "responses"}
-              >
-                {tab.label}
-
-                {tab.badge && (
-                  <span className="badge bg-success ms-2">{tab.badge}</span>
-                )}
-              </Link>
-            </li>
-          ))}
         </ul>
+
+        {/* <!-- Tab content --> */}
+        <div class="tab-content w-100" id="myTabContent">
+          <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
+            <div className="main-content w-100 ">
+              <div
+                className="w-100  pt-4 mb-2 ps-2 pe-2"
+                style={{
+                  overflowY: "auto",
+                  height: "calc(100vh - 100px)",
+                }}
+
+
+
+              >
+
+
+                {/* Published Stages */}
+
+                <div className="card  p-3 mt-3 rounded-3">
+                  <div className="col-12">
+                    <a
+                      className="btn"
+                      data-bs-toggle="collapse"
+                      href="#participation-summary"
+                      role="button"
+                      aria-expanded={publishedStages}
+                      aria-controls="participation-summary"
+                      onClick={handlepublishedStages}
+                      style={{ fontSize: "16px", fontWeight: "normal" }}
+                    >
+                      <span id="participation-summary-icon" className="icon-1" style={{ marginRight: "8px" }}>
+                        {publishedStages ? (
+                          <i className="bi bi-dash-lg"></i>
+                        ) : (
+                          <i className="bi bi-plus-lg"></i>
+                        )}
+                      </span>
+                      <span style={{ fontSize: "22px", fontWeight: "normal" }}>Published Stages</span>
+
+                    </a>
+                    {publishedStages && (
+                      <div id="participation-summary" className="" style={{ paddingLeft: "24px", }}>
+
+                        <div className=" card card-body rounded-3 p-4  pt-0  ">
+
+                          <div className="tbl-container mt-3">
+
+                            <table className="w-100 table">
+                              <thead>
+                                <tr>
+                                  <th className="text-start">Stage Title</th>
+                                  <th className="text-start">Status</th>
+                                  <th className="text-start">Bidding Starts At</th>
+                                  <th className="text-start">Bidding Ends At</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                <tr>
+                                  <td className="text-start" style={{ color: "#777777" }}>{data.material_title}</td>
+                                  <td className="text-start" style={{ color: "#777777" }}>{data.status}</td>
+                                  <td className="text-start" style={{ color: "#777777" }}>{formattedDate}</td>
+                                  <td className="text-start" style={{ color: "#777777" }}>{formattedEndDate}</td>
+
+                                </tr>
+                              </tbody>
+                            </table>
+                          </div>
+
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  {/* Terms & Conditions */}
+
+
+                  <div className="col-12 "
+                    style={{
+                      borderTop: "1px solid #ccc",
+                      borderBottom: "1px solid #ccc",
+                      paddingTop: "10px ", // Optional padding to add spacing between content and borders
+                    }}
+
+                  >
+                    <a
+                      className="btn"
+                      data-bs-toggle="collapse"
+                      href="#terms-conditions"
+                      role="button"
+                      aria-expanded={terms}
+                      aria-controls="terms-conditions"
+                      onClick={handleTerms}
+                      style={{ fontSize: "16px", fontWeight: "normal" }}
+                    >
+                      <span id="terms-conditions-icon" className="icon-1" style={{ marginRight: "8px" }}>
+                        {terms ? (
+                          <i className="bi bi-dash-lg"></i>
+                        ) : (
+                          <i className="bi bi-plus-lg"></i>
+                        )}
+                      </span>
+                      <span style={{ fontSize: "22px", fontWeight: "normal" }}>Terms & Conditions</span>
+                    </a>
+                    {terms && (
+                      <div id="terms-conditions" className="" style={{ paddingLeft: "24px", }}>
+                        <div className=" card card-body rounded-3 p-4">
+                          <p>
+                            1. Payment terms: Net 30 days.
+                            <br />
+                            <br />
+                            2. Delivery within 15 business days.
+                            <br />
+                            <br />
+                            3. Warranty: 1 year from the date of purchase.
+                            <br />
+                            <br />
+                            4. Returns are subject to company policy.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+
+
+                  {/* contact */}
+
+                  <div className="col-12"
+                    style={{
+                      // borderTop: "1px solid #ccc",
+                      borderBottom: "1px solid #ccc",
+                      // padding: "20px 0", // Optional padding to add spacing between content and borders
+                    }}
+
+                  >
+                    <a
+                      className="btn"
+                      data-bs-toggle="collapse"
+                      href="#savings-summary"
+                      role="button"
+                      aria-expanded={Contact}
+                      aria-controls="savings-summary"
+                      onClick={handleContact}
+                      style={{ fontSize: "16px", fontWeight: "normal" }}
+                    >
+                      <span id="savings-summary-icon" className="icon-1" style={{ marginRight: "8px" }}>
+                        {Contact ? (
+                          <i className="bi bi-dash-lg"></i>
+                        ) : (
+                          <i className="bi bi-plus-lg"></i>
+                        )}
+                      </span>
+                      <span style={{ fontSize: "22px", fontWeight: "normal" }}>Contact Info </span>
+                    </a>
+                    {Contact && (
+                      <div id="savings-summary" className="" style={{ paddingLeft: "24px", }}>
+                        <div className=" card card-body rounded-3 p-4  pt-0 ">
+
+                          {/* Table Section */}
+                          <div className="tbl-container mt-3">
+                            <table className="w-100 table">
+                              <thead>
+                                <tr>
+                                  <th className="text-start">Buyer Name</th>
+                                  <th className="text-start">Email</th>
+                                  <th className="text-start">Phone</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                <tr>
+                                  <td className="text-start" style={{ color: "#777777" }}>{data.created_by}</td>
+                                  <td className="text-start" style={{ color: "#777777" }}>{data.created_by_email}</td>
+                                  <td className="text-start" style={{ color: "#777777" }}>{data.crated_by_mobile}</td>
+
+                                </tr>
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+
+                  {/* line */}
+
+                  <div className="col-12 pb-4">
+                    <a
+                      className="btn d-flex align-items-center"
+                      data-bs-toggle="collapse"
+                      href="#savings-summary"
+                      role="button"
+                      aria-expanded={lineItems}
+                      aria-controls="savings-summary"
+                      onClick={handlelineItem}
+                      style={{ fontSize: "16px", fontWeight: "normal" }}
+                    >
+                      <span
+                        id="savings-summary-icon"
+                        className="icon-1"
+                        style={{ marginRight: "8px" }} // Adds gap between icon and text
+                      >
+                        {lineItems ? (
+                          <i className="bi bi-dash-lg"></i>
+                        ) : (
+                          <i className="bi bi-plus-lg"></i>
+                        )}
+                      </span>
+                      <span style={{ fontSize: "22px", fontWeight: "normal" }}>Line Items</span>
+                    </a>
+
+                    {lineItems && (
+                      <div id="savings-summary" className="mt-2" style={{ paddingLeft: "24px", }}>
+                        <div className="card card-body rounded-3 p-4 pt-0">
+                          {/* Table Section */}
+                          <div className="tbl-container mt-3">
+                            <table className="w-100 table">
+                              <thead>
+                                <tr>
+                                  <th className="text-start">S No.</th>
+                                  <th className="text-start">Line Item Name</th>
+                                  <th className="text-start">PR No</th>
+                                  <th className="text-start">Item No</th>
+                                  <th className="text-start">Specification Needed</th>
+                                  <th className="text-start">Attachment</th>
+                                  <th className="text-start">Quantity</th>
+                                  <th className="text-start">PR Creator</th>
+                                  <th className="text-start">PR Creator Phone</th>
+                                  <th className="text-start">PR Creator Email</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {data.event_materials.map((data) => (
+                                  <tr key={data.id}>
+                                    <td className="text-start" style={{ color: "#777777" }}>1</td>
+                                    <td className="text-start" style={{ color: "#777777" }}>{data.inventory_name}</td>
+                                    <td className="text-start" style={{ color: "#777777" }}>-</td>
+                                    <td className="text-start" style={{ color: "#777777" }}></td>
+                                    <td className="text-start" style={{ color: "#777777" }}>NA - NA</td>
+                                    <td className="text-start" style={{ color: "#777777" }}>-</td>
+                                    <td className="text-start" style={{ color: "#777777" }}>{data.quantity}</td>
+                                    <td className="text-start" style={{ color: "#777777" }}>-</td>
+                                    <td className="text-start" style={{ color: "#777777" }}>-</td>
+                                    <td className="text-start" style={{ color: "#777777" }}>-</td>
+                                  </tr>
+                                ))}
+
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                </div>
+              </div>
+
+
+              {/* other */}
+
+
+
+            </div>
+          </div>
+          <div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab">
+            <div className="main-content w-100 ">
+              <div
+                // className="w-100  pt-4 mb-2 ps-2 pe-2"
+                style={{
+                  overflowY: "auto",
+                  height: "calc(100vh - 100px)",
+                }}
+
+
+                className={` tab-pane fade ${!isHistoryActive ? "show active" : ""
+                  } eventList-parent p-4 pt-0 w-100`}
+                id="live"
+                role="tabpanel"
+                tabIndex={0}
+              >
+
+                {/* Published Stages */}
+
+                <div className="card  p-3 mt-3 rounded-3">
+                  <div className="col-12">
+                    <a
+                      className="btn"
+                      data-bs-toggle="collapse"
+                      href="#participation-summary"
+                      role="button"
+                      aria-expanded={publishedStages}
+                      aria-controls="participation-summary"
+                      onClick={handlepublishedStages}
+                      style={{ fontSize: "16px", fontWeight: "normal" }}
+                    >
+                      <span id="participation-summary-icon" className="icon-1" style={{ marginRight: "8px" }}>
+                        {publishedStages ? (
+                          <i className="bi bi-dash-lg"></i>
+                        ) : (
+                          <i className="bi bi-plus-lg"></i>
+                        )}
+                      </span>
+                      <span style={{ fontSize: "22px", fontWeight: "normal" }}>Published Stages</span>
+
+                    </a>
+                    {publishedStages && (
+                      <div id="participation-summary" className="" style={{ paddingLeft: "24px", }}>
+
+                        <div className=" card card-body rounded-3 p-4  pt-0  ">
+
+                          <div className="tbl-container mt-3">
+
+                            <table className="w-100 table">
+                              <thead>
+                                <tr>
+                                  <th className="text-start">Stage Title</th>
+                                  <th className="text-start">Status</th>
+                                  <th className="text-start">Bidding Starts At</th>
+                                  <th className="text-start">Bidding Ends At</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                <tr>
+                                  <td className="text-start" style={{ color: "#777777" }}>{data.material_title}</td>
+                                  <td className="text-start" style={{ color: "#777777" }}>{data.status}</td>
+                                  <td className="text-start" style={{ color: "#777777" }}>{formattedDate}</td>
+                                  <td className="text-start" style={{ color: "#777777" }}>{formattedEndDate}</td>
+
+                                </tr>
+                              </tbody>
+                            </table>
+                          </div>
+
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  {/* Terms & Conditions */}
+
+                  <div className="col-12 "
+                    style={{
+                      borderTop: "1px solid #ccc",
+                      borderBottom: "1px solid #ccc",
+                      paddingTop: "10px ", // Optional padding to add spacing between content and borders
+                    }}
+
+                  >
+                    <a
+                      className="btn"
+                      data-bs-toggle="collapse"
+                      href="#terms-conditions"
+                      role="button"
+                      aria-expanded={terms}
+                      aria-controls="terms-conditions"
+                      onClick={handleTerms}
+                      style={{ fontSize: "16px", fontWeight: "normal" }}
+                    >
+                      <span id="terms-conditions-icon" className="icon-1" style={{ marginRight: "8px" }}>
+                        {terms ? (
+                          <i className="bi bi-dash-lg"></i>
+                        ) : (
+                          <i className="bi bi-plus-lg"></i>
+                        )}
+                      </span>
+                      <span style={{ fontSize: "22px", fontWeight: "normal" }}>Terms & Conditions</span>
+                    </a>
+                    {terms && (
+                      <div id="terms-conditions" className="" style={{ paddingLeft: "24px", }}>
+                        <div className=" card card-body rounded-3 p-4">
+                          <p>
+                            1. Payment terms: Net 30 days.
+                            <br />
+                            <br />
+                            2. Delivery within 15 business days.
+                            <br />
+                            <br />
+                            3. Warranty: 1 year from the date of purchase.
+                            <br />
+                            <br />
+                            4. Returns are subject to company policy.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* contact */}
+
+                  <div className="col-12"
+                    style={{
+                      // borderTop: "1px solid #ccc",
+                      borderBottom: "1px solid #ccc",
+                      // padding: "20px 0", // Optional padding to add spacing between content and borders
+                    }}>
+                    <a
+                      className="btn"
+                      data-bs-toggle="collapse"
+                      href="#savings-summary"
+                      role="button"
+                      aria-expanded={Contact}
+                      aria-controls="savings-summary"
+                      onClick={handleContact}
+                      style={{ fontSize: "16px", fontWeight: "normal" }}
+                    >
+                      <span id="savings-summary-icon" className="icon-1" style={{ marginRight: "8px" }}>
+                        {Contact ? (
+                          <i className="bi bi-dash-lg"></i>
+                        ) : (
+                          <i className="bi bi-plus-lg"></i>
+                        )}
+                      </span>
+                      <span style={{ fontSize: "22px", fontWeight: "normal" }}>Contact Info </span>
+                    </a>
+                    {Contact && (
+                      <div id="savings-summary" className="" style={{ paddingLeft: "24px", }}>
+                        <div className=" card card-body rounded-3 p-4  pt-0 ">
+
+                          {/* Table Section */}
+                          <div className="tbl-container mt-3">
+                            <table className="w-100 table">
+                              <thead>
+                                <tr>
+                                  <th className="text-start">Buyer Name</th>
+                                  <th className="text-start">Email</th>
+                                  <th className="text-start">Phone</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                <tr>
+                                  <td className="text-start" style={{ color: "#777777" }}>{data.created_by}</td>
+                                  <td className="text-start" style={{ color: "#777777" }}>{data.created_by_email}</td>
+                                  <td className="text-start" style={{ color: "#777777" }}>{data.crated_by_mobile}</td>
+
+                                </tr>
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* line */}
+
+                  <div className="col-12 pb-4">
+                    <a
+                      className="btn d-flex align-items-center"
+                      data-bs-toggle="collapse"
+                      href="#savings-summary"
+                      role="button"
+                      aria-expanded={lineItems}
+                      aria-controls="savings-summary"
+                      onClick={handlelineItem}
+                      style={{ fontSize: "16px", fontWeight: "normal" }}
+                    >
+                      <span
+                        id="savings-summary-icon"
+                        className="icon-1"
+                        style={{ marginRight: "8px" }} // Adds gap between icon and text
+                      >
+                        {lineItems ? (
+                          <i className="bi bi-dash-lg"></i>
+                        ) : (
+                          <i className="bi bi-plus-lg"></i>
+                        )}
+                      </span>
+                      <span style={{ fontSize: "22px", fontWeight: "normal" }}>Line Items</span>
+                    </a>
+
+                    {lineItems && (
+                      <div id="savings-summary" className="mt-2" style={{ paddingLeft: "24px", }}>
+                        <div className="card card-body rounded-3 p-4 pt-0">
+                          {/* Table Section */}
+                          <div className="tbl-container mt-3">
+                            <table className="w-100 table">
+                              <thead>
+                                <tr>
+                                  <th className="text-start">S No.</th>
+                                  <th className="text-start">Line Item Name</th>
+                                  <th className="text-start">PR No</th>
+                                  <th className="text-start">Item No</th>
+                                  <th className="text-start">Specification Needed</th>
+                                  <th className="text-start">Attachment</th>
+                                  <th className="text-start">Quantity</th>
+                                  <th className="text-start">PR Creator</th>
+                                  <th className="text-start">PR Creator Phone</th>
+                                  <th className="text-start">PR Creator Email</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {data.event_materials.map((data) => (
+                                  <tr key={data.id}>
+                                    <td className="text-start" style={{ color: "#777777" }}>1</td>
+                                    <td className="text-start" style={{ color: "#777777" }}>{data.inventory_name}</td>
+                                    <td className="text-start" style={{ color: "#777777" }}>-</td>
+                                    <td className="text-start" style={{ color: "#777777" }}></td>
+                                    <td className="text-start" style={{ color: "#777777" }}>NA - NA</td>
+                                    <td className="text-start" style={{ color: "#777777" }}>-</td>
+                                    <td className="text-start" style={{ color: "#777777" }}>{data.quantity}</td>
+                                    <td className="text-start" style={{ color: "#777777" }}>-</td>
+                                    <td className="text-start" style={{ color: "#777777" }}>-</td>
+                                    <td className="text-start" style={{ color: "#777777" }}>-</td>
+                                  </tr>
+                                ))}
+
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
       </div>
 
-      <div className="main-content container-fluid">
+      {loading ? (
+        "Loading...."
+      ) : error ? (
+        "Something went wrong..."
+      ) : data ? (
+        <div className="w-100">
+          <div className="main-content w-100 ">
+            <div
+              // className="w-100  pt-4 mb-2 ps-2 pe-2"
+              style={{
+                overflowY: "auto",
+                height: "calc(100vh - 100px)",
+              }}
 
 
-        {/* <Sidebar /> */}
+              className={` tab-pane fade ${!isHistoryActive ? "show active" : ""
+                } eventList-parent p-4 pt-0 w-100`}
+              id="live"
+              role="tabpanel"
+              tabIndex={0}
+            >
+              {/* Published Stages */}
 
-
-
-
-        <div
-          className=" w-100 p-4 mb-2"
-          style={{
-            overflowY: "auto",
-            height: "calc(100vh - 100px)",
-          }}
-        >
-
-
-          {/* Published Stages */}
-          <div className="mx-3">
-
-
-
-            <h4 className="mt-4 head-material">
-              <button onClick={handlepublishedStages} style={{ background: 'white', borderColor: '#e2e8f0', borderRadius: '5px' }} className="me-2">
-                {publishedStages ? (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="22"
-                    viewBox="0 0 24 24"
-                    fill="white"
-                    stroke="currentColor"
-                    strokeWidth="1"
-                  // strokeLinecap="round"
-                  // strokeLinejoin="round"
+              <div className="card  p-3 mt-3 rounded-3">
+                <div className="col-12">
+                  <a
+                    className="btn"
+                    data-bs-toggle="collapse"
+                    href="#participation-summary"
+                    role="button"
+                    aria-expanded={publishedStages}
+                    aria-controls="participation-summary"
+                    onClick={handlepublishedStages}
+                    style={{ fontSize: "16px", fontWeight: "normal" }}
                   >
+                    <span id="participation-summary-icon" className="icon-1" style={{ marginRight: "8px" }}>
+                      {publishedStages ? (
+                        <i className="bi bi-dash-lg"></i>
+                      ) : (
+                        <i className="bi bi-plus-lg"></i>
+                      )}
+                    </span>
+                    <span style={{ fontSize: "22px", fontWeight: "normal" }}>Published Stages</span>
 
-                    {/* Minus Icon */}
-                    <line x1="8" y1="12" x2="16" y2="12" />
-                  </svg>
-                ) : (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="22"
-                    viewBox="0 0 24 24"
-                    fill="white"
-                    stroke="currentColor"
-                    strokeWidth="1"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
+                  </a>
+                  {publishedStages && (
+                    <div id="participation-summary" className="" style={{ paddingLeft: "24px", }}>
 
-                    {/* Plus Icon  */}
-                    <line x1="12" y1="8" x2="12" y2="16" />
-                    <line x1="8" y1="12" x2="16" y2="12" />
-                  </svg>
-                )}
-              </button>
+                      <div className=" card card-body rounded-3 p-4  pt-0  ">
 
-              Published Stages</h4>
-            {/* <div className="mx-3"> */}
-            {publishedStages && (
-              <div className="tbl-container px-0 mt-3 head-material mx-3">
-                <table className="w-100">
-                  <thead>
-                    <tr>
-                      <th className="text-start">Stage Title</th>
-                      <th className="text-start">Status</th>
-                      <th className="text-start">Bidding Starts At</th>
-                      <th className="text-start">Bidding Ends At</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td className="text-start" style={{ color: "#777777" }}>[1000291947] Plumbing Material - SWAYAM REALTORS AND TRADERS LLP</td>
-                      <td className="text-start" style={{ color: "#777777" }}> Active</td>
-                      <td className="text-start" style={{ color: "#777777" }}>17/12/2024 13:30 pm</td>
-                      <td className="text-start" style={{ color: "#777777" }}>18/12/2024 13:30 pm</td>
+                        <div className="tbl-container mt-3">
 
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            )}
+                          <table className="w-100 table">
+                            <thead>
+                              <tr>
+                                <th className="text-start">Stage Title</th>
+                                <th className="text-start">Status</th>
+                                <th className="text-start">Bidding Starts At</th>
+                                <th className="text-start">Bidding Ends At</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr>
+                                <td className="text-start" style={{ color: "#777777" }}>{data.material_title}</td>
+                                <td className="text-start" style={{ color: "#777777" }}>{data.status}</td>
+                                <td className="text-start" style={{ color: "#777777" }}>{formattedDate}</td>
+                                <td className="text-start" style={{ color: "#777777" }}>{formattedEndDate}</td>
 
-          </div>
-          {/* Terms & Conditions */}
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
 
-          <div className="mt-4 mx-3"
-            style={{
-              borderTop: "1px solid #ccc",
-              borderBottom: "1px solid #ccc",
-              padding: "20px 0", // Optional padding to add spacing between content and borders
-            }}
-          >
-            <h4 class="mt-4 head-material">
-
-              <button onClick={handleTerms} style={{ background: 'white', borderColor: '#e2e8f0', borderRadius: '5px' }} className="me-2">
-                {terms ? (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="22"
-                    viewBox="0 0 24 24"
-                    fill="white"
-                    stroke="currentColor"
-                    strokeWidth="1"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-
-                    {/* Minus Icon */}
-                    <line x1="8" y1="12" x2="16" y2="12" />
-                  </svg>
-                ) : (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="22"
-                    viewBox="0 0 24 24"
-                    fill="white"
-                    stroke="currentColor"
-                    strokeWidth="1"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-
-                    {/* Plus Icon  */}
-                    <line x1="12" y1="8" x2="12" y2="16" />
-                    <line x1="8" y1="12" x2="16" y2="12" />
-                  </svg>
-                )}
-              </button>
-
-              Terms & Conditions</h4>
-
-            {terms && (
-              <div className=" mx-3 mt-4 head-material mx-3" style={{ color: "#777777" }}>
-                <ol>
-                  <li>90% ADVANCE ON BASIC AMOUNT (EXCLUDING GST) & BALANCE PAYMENT WITHIN WORKING 30 DAYS AFTER SUBMISSION OF INVOICES AT HO 9TH FLOOR BILLING DEPARTMENT AND ALSO INVOICES SHALL BE UPLOADED ON BILLING PORTAL "https://bs.marathonrealty.com" BOTH ARE MANDATORY</li>
-                  <li>KINLDY MENTION YOUR REMARKS IN REMARKS FOR VENDOR COLUMN</li>
-                  <li>DELIVERY OF MATERIAL AS PER SITE REQUIREMENT OR AS PER DELIVERY SCHEDULE</li>
-                  <li>UNLOADING WILL BE DONE BY US.</li>
-                </ol>
-
-
-              </div>
-            )}
-
-          </div>
-
-          {/* contact */}
-
-          <div className="mt-4 mx-3"
-            style={{
-
-              borderBottom: "1px solid #ccc",
-              padding: "20px 0", // Optional padding to add spacing between content and borders
-            }}
-          >
-
-            <h4 class=" head-material">
-              <button onClick={handleContact} style={{ background: 'white', borderColor: '#e2e8f0', borderRadius: '5px' }} className="me-2">
-                {Contact ? (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="22"
-                    viewBox="0 0 24 24"
-                    fill="white"
-                    stroke="currentColor"
-                    strokeWidth="1"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-
-                    {/* Minus Icon */}
-                    <line x1="8" y1="12" x2="16" y2="12" />
-                  </svg>
-                ) : (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="22"
-                    viewBox="0 0 24 24"
-                    fill="white"
-                    stroke="currentColor"
-                    strokeWidth="1"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-
-                    {/* Plus Icon  */}
-                    <line x1="12" y1="8" x2="12" y2="16" />
-                    <line x1="8" y1="12" x2="16" y2="12" />
-                  </svg>
-                )}
-              </button>
-
-
-              Contact Info</h4>
-            {Contact && (
-              <div className=" tbl-container px-0 mt-3 head-material mx-3  ">
-                <table className="w-100">
-                  <thead>
-                    <tr>
-                      <th className="text-start">Buyer Name</th>
-                      <th className="text-start">Email</th>
-                      <th className="text-start">Phone</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td className="text-start" style={{ color: "#777777" }}>ANKITA MANKAME</td>
-                      <td className="text-start" style={{ color: "#777777" }}>ankita.mankame@marathonrealty.com</td>
-                      <td className="text-start" style={{ color: "#777777" }}>+91 9867743700</td>
-
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            )}
-
-
-          </div>
-
-          <div className="mt-4 mx-3">
-            <div className="d-flex justify-content-between align-items-center mt-4">
-              <h4 className="head-material">
-                <button
-                  onClick={handlelineItem}
-                  style={{ background: "white", borderColor: "#e2e8f0", borderRadius: "5px" }}
-                  className="me-2"
-                >
-                  {lineItems ? (
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="22"
-                      viewBox="0 0 24 24"
-                      fill="white"
-                      stroke="currentColor"
-                      strokeWidth="1"
-                    >
-                      {/* Minus Icon */}
-                      <line x1="8" y1="12" x2="16" y2="12" />
-                    </svg>
-                  ) : (
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="22"
-                      viewBox="0 0 24 24"
-                      fill="white"
-                      stroke="currentColor"
-                      strokeWidth="1"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      {/* Plus Icon */}
-                      <line x1="12" y1="8" x2="12" y2="16" />
-                      <line x1="8" y1="12" x2="16" y2="12" />
-                    </svg>
+                      </div>
+                    </div>
                   )}
-                </button>
-                Line Items
-              </h4>
-              <div className="card-tools">
-                <button
-                  className="purple-btn2"
-                  data-bs-toggle="modal"
-                  data-bs-target="#venderModal"
-                  style={{ backgroundColor: "#F0F0F0", color: 'black' }}
-                >
+                </div>
+                {/* Terms & Conditions */}
 
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
+                <div className="col-12 "
+                  style={{
+                    borderTop: "1px solid #ccc",
+                    borderBottom: "1px solid #ccc",
+                    paddingTop: "10px ", // Optional padding to add spacing between content and borders
+                  }}>
+                  <a
+                    className="btn"
+                    data-bs-toggle="collapse"
+                    href="#terms-conditions"
+                    role="button"
+                    aria-expanded={terms}
+                    aria-controls="terms-conditions"
+                    onClick={handleTerms}
+                    style={{ fontSize: "16px", fontWeight: "normal" }}
                   >
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                    <polyline points="7 10 12 15 17 10" />
-                    <line x1="12" y1="15" x2="12" y2="3" />
-                  </svg>
-                  <span>Download Attachment</span>
-                </button>
+                    <span id="terms-conditions-icon" className="icon-1" style={{ marginRight: "8px" }}>
+                      {terms ? (
+                        <i className="bi bi-dash-lg"></i>
+                      ) : (
+                        <i className="bi bi-plus-lg"></i>
+                      )}
+                    </span>
+                    <span style={{ fontSize: "22px", fontWeight: "normal" }}>Terms & Conditions</span>
+                  </a>
+                  {terms && (
+                    <div id="terms-conditions" className="" style={{ paddingLeft: "24px", }}>
+                      <div className=" card card-body rounded-3 p-4">
+                        <p>
+                          1. Payment terms: Net 30 days.
+                          <br />
+                          <br />
+                          2. Delivery within 15 business days.
+                          <br />
+                          <br />
+                          3. Warranty: 1 year from the date of purchase.
+                          <br />
+                          <br />
+                          4. Returns are subject to company policy.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* contact */}
+
+                <div className="col-12"
+                  style={{
+                    // borderTop: "1px solid #ccc",
+                    borderBottom: "1px solid #ccc",
+                    // padding: "20px 0", // Optional padding to add spacing between content and borders
+                  }}>
+                  <a
+                    className="btn"
+                    data-bs-toggle="collapse"
+                    href="#savings-summary"
+                    role="button"
+                    aria-expanded={Contact}
+                    aria-controls="savings-summary"
+                    onClick={handleContact}
+                    style={{ fontSize: "16px", fontWeight: "normal" }}
+                  >
+                    <span id="savings-summary-icon" className="icon-1" style={{ marginRight: "8px" }}>
+                      {Contact ? (
+                        <i className="bi bi-dash-lg"></i>
+                      ) : (
+                        <i className="bi bi-plus-lg"></i>
+                      )}
+                    </span>
+                    <span style={{ fontSize: "22px", fontWeight: "normal" }}>Contact Info </span>
+                  </a>
+                  {Contact && (
+                    <div id="savings-summary" className="" style={{ paddingLeft: "24px", }}>
+                      <div className=" card card-body rounded-3 p-4  pt-0 ">
+
+                        {/* Table Section */}
+                        <div className="tbl-container mt-3">
+                          <table className="w-100 table">
+                            <thead>
+                              <tr>
+                                <th className="text-start">Buyer Name</th>
+                                <th className="text-start">Email</th>
+                                <th className="text-start">Phone</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr>
+                                <td className="text-start" style={{ color: "#777777" }}>{data.created_by}</td>
+                                <td className="text-start" style={{ color: "#777777" }}>{data.created_by_email}</td>
+                                <td className="text-start" style={{ color: "#777777" }}>{data.crated_by_mobile}</td>
+
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+
+                {/* line */}
+
+                <div className="col-12 pb-4">
+                  <a
+                    className="btn d-flex align-items-center"
+                    data-bs-toggle="collapse"
+                    href="#savings-summary"
+                    role="button"
+                    aria-expanded={lineItems}
+                    aria-controls="savings-summary"
+                    onClick={handlelineItem}
+                    style={{ fontSize: "16px", fontWeight: "normal" }}
+                  >
+                    <span
+                      id="savings-summary-icon"
+                      className="icon-1"
+                      style={{ marginRight: "8px" }} // Adds gap between icon and text
+                    >
+                      {lineItems ? (
+                        <i className="bi bi-dash-lg"></i>
+                      ) : (
+                        <i className="bi bi-plus-lg"></i>
+                      )}
+                    </span>
+                    <span style={{ fontSize: "22px", fontWeight: "normal" }}>Line Items</span>
+                    <button
+                      className="btn btn-primary ml-auto"
+                      style={{ fontSize: "16px" }} // Customize button style here
+                    >
+                      Right Button
+                    </button>
+                  </a>
+
+
+
+
+
+
+
+                  {lineItems && (
+                    <div id="savings-summary" className="mt-2" style={{ paddingLeft: "24px", }}>
+                      <div className="card card-body rounded-3 p-4 pt-0">
+                        {/* Table Section */}
+                        <div className="tbl-container mt-3">
+                          <table className="w-100 table">
+                            <thead>
+                              <tr>
+                                <th className="text-start">S No.</th>
+                                <th className="text-start">Line Item Name</th>
+                                <th className="text-start">PR No</th>
+                                <th className="text-start">Item No</th>
+                                <th className="text-start">Specification Needed</th>
+                                <th className="text-start">Attachment</th>
+                                <th className="text-start">Quantity</th>
+                                <th className="text-start">PR Creator</th>
+                                <th className="text-start">PR Creator Phone</th>
+                                <th className="text-start">PR Creator Email</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {data.event_materials.map((data) => (
+                                <tr key={data.id}>
+                                  <td className="text-start" style={{ color: "#777777" }}>1</td>
+                                  <td className="text-start" style={{ color: "#777777" }}>{data.inventory_name}</td>
+                                  <td className="text-start" style={{ color: "#777777" }}>-</td>
+                                  <td className="text-start" style={{ color: "#777777" }}></td>
+                                  <td className="text-start" style={{ color: "#777777" }}>NA - NA</td>
+                                  <td className="text-start" style={{ color: "#777777" }}>-</td>
+                                  <td className="text-start" style={{ color: "#777777" }}>{data.quantity}</td>
+                                  <td className="text-start" style={{ color: "#777777" }}>-</td>
+                                  <td className="text-start" style={{ color: "#777777" }}>-</td>
+                                  <td className="text-start" style={{ color: "#777777" }}>-</td>
+                                </tr>
+                              ))}
+
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
               </div>
             </div>
 
 
-            {lineItems && (
-              <div className="tbl-container px-0 mt-3 head-material mx-3">
-                <table className="w-100">
-                  <thead>
-                    <tr>
-                      <th className="text-start">S No.</th>
-                      <th className="text-start">Line Item Name</th>
-                      <th className="text-start">PR No</th>
-                      <th className="text-start">Item No</th>
-                      <th className="text-start">Specification Needed</th>
-                      <th className="text-start">Attachment</th>
-                      <th className="text-start">Quantity</th>
-                      <th className="text-start">PR Creator</th>
-                      <th className="text-start">PR Creator Phone</th>
-                      <th className="text-start">PR Creator Email</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td className="text-start" style={{ color: "#777777" }}>1</td>
-                      <td className="text-start" style={{ color: "#777777" }}>Plumbing Material</td>
-                      <td className="text-start" style={{ color: "#777777" }}>-</td>
-                      <td className="text-start" style={{ color: "#777777" }}></td>
-                      <td className="text-start" style={{ color: "#777777" }}>NA - NA</td>
-                      <td className="text-start" style={{ color: "#777777" }}>-</td>
-                      <td className="text-start" style={{ color: "#777777" }}>6.0 Nos</td>
-                      <td className="text-start" style={{ color: "#777777" }}>-</td>
-                      <td className="text-start" style={{ color: "#777777" }}>-</td>
-                      <td className="text-start" style={{ color: "#777777" }}>-</td>
+            {/* other */}
 
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            )}
+
 
           </div>
 
 
 
         </div>
-      </div>
+      ) : (
+        "No data available"
+      )}
+
+
+
+
     </>
   );
 };

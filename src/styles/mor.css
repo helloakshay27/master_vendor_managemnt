@@ -5563,5 +5563,18 @@ ul.pagination.justify-content-center {
   justify-content: left !important;
   margin-top: 5px;
 }
+/* user list */
+.square{
+  margin-right: "8px";
+  display: inline-flex; 
+  justify-content: center;  
+  align-items: center;
+  width: 30px;  
+  height: 36px;  
+  border: 1px solid #dee2e6; 
+  /* // borderRadius: "4px",  // Optional: Adds rounded corners to the square */
+  background-color: #ffffff;  
+  font-size: 16px, 
+}
 
 /*# sourceMappingURL=mor.css-ed871f49aadae569d66f8e115a43114d30eed9833a2ddcbeef011041744e80a7.map */

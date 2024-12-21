@@ -23,7 +23,8 @@ export default function VendorProjectTable({ eventData }) {
 
   const handleActionClick = (row) => {
     const eventId = row.id; // Access the event ID from the row
-    navigate(`/user-list/${eventId}`); // Pass the ID as a query parameter or dynamic route segment
+    navigate(`/user-list/${eventId}`);
+    // navigate(`/user-overview/${eventId}`); // Pass the ID as a query parameter or dynamic route segment
     console.log("View details for Event ID:", eventId);
   };
 

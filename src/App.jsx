@@ -15,9 +15,10 @@ import CreateEvent from "./pages/create-event";
 import CreateBid from "./pages/create-bid";
 import Dashboard from "./pages/dashboard";
 import Header from "./components/Header";
-import UserList from "./pages/UserList";
+import UserList from "./pages/vendor-details";
 import UserOverview from "./pages/user-overview";
 import VendorList from "./pages/vendor-list";
+import VendorDetails from "./pages/vendor-details";
 
 function App() {
   return (
@@ -45,9 +46,9 @@ function App() {
           <Route path="/event-list" element={<ErpRfqAuctionEvents4f />} />
           {/* <Route path="/event-list" element={<EventList />} /> */}
 
-          <Route path="/user-list/:eventId" element={<UserList />} />
+          <Route path="/user-list/:eventId" element={<VendorDetails/>} />
           <Route path="/vendor-list" element={<VendorList />} />
-          <Route path="/user-overview" element={<UserOverview />} />
+          <Route path="/user-overview/:eventId" element={<UserOverview />} />
 
           <Route path="/create-event" element={<CreateEvent />} />
 
