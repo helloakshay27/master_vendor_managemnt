@@ -107,7 +107,10 @@ const EventTypeModal = ({
         return false;
       }
     }
-    if (dynamicExtension[2] && !dynamicExtensionConfigurations.minimum_revisions) {
+    if (
+      dynamicExtension[2] &&
+      !dynamicExtensionConfigurations.minimum_revisions
+    ) {
       alert("Please enter the minimum revisions required.");
       return false;
     }
@@ -167,6 +170,8 @@ const EventTypeModal = ({
                 }`}
                 role="radio"
                 aria-checked={eventType === "rfq"}
+                onClick={() => handleEventTypeChange("rfq")}
+                tabIndex={0}
               >
                 <div className="pro-radio-tabs__check-icon">
                   <label
@@ -184,7 +189,8 @@ const EventTypeModal = ({
                         className="ant-radio-input"
                         value="rfq"
                         checked={eventType === "rfq"}
-                        onChange={handleEventTypeChange}
+                        onChange={() => handleEventTypeChange("rfq")}
+                        tabIndex={-1}
                       />
                       <div className="ant-radio-inner"></div>
                     </span>
@@ -192,12 +198,15 @@ const EventTypeModal = ({
                 </div>
                 <p className="pro-text pro-body pro-text--normal">RFQ</p>
               </div>
+
               <div
                 className={`pro-radio-tabs__tab ${
                   eventType === "auction" ? "pro-radio-tabs__tab__selected" : ""
                 }`}
                 role="radio"
                 aria-checked={eventType === "auction"}
+                tabIndex={0}
+                onClick={() => handleEventTypeChange("auction")}
               >
                 <div className="pro-radio-tabs__check-icon">
                   <label
@@ -216,7 +225,7 @@ const EventTypeModal = ({
                         className="ant-radio-input"
                         value="auction"
                         checked={eventType === "auction"}
-                        onChange={handleEventTypeChange}
+                        onChange={() => handleEventTypeChange("auction")}
                         id="eventType"
                       />
                       <div className="ant-radio-inner"></div>
@@ -228,10 +237,10 @@ const EventTypeModal = ({
             </div>
           </div>
         </div>
-        {eventType === "1" && (
+        {eventType === "auction" && (
           <div
             className="pro-radio-tabs pro-radio-tabs2 rfq-tab-hide my-3"
-            style={{ gridTemplateColumns: "6fr 6fr"}}
+            style={{ gridTemplateColumns: "6fr 6fr" }}
           >
             <div
               className={`pro-radio-tabs__tab ${
@@ -568,20 +577,28 @@ const EventTypeModal = ({
                 >
                   <div
                     className={`pro-radio-tabs__tab ${
-                      awardType === "single_vendor" ? "pro-radio-tabs__tab__selected" : ""
+                      awardType === "single_vendor"
+                        ? "pro-radio-tabs__tab__selected"
+                        : ""
                     }`}
                     role="radio"
                     aria-checked={awardType === "single_vendor"}
+                    onClick={() => handleAwardTypeChange("single_vendor")}
+                    tabIndex={-1}
                   >
                     <div className="pro-radio-tabs__check-icon">
                       <label
                         className={`ant-radio-wrapper ${
-                          awardType === "single_vendor" ? "ant-radio-wrapper-checked" : ""
+                          awardType === "single_vendor"
+                            ? "ant-radio-wrapper-checked"
+                            : ""
                         }`}
                       >
                         <span
                           className={`ant-radio ${
-                            awardType === "single_vendor" ? "ant-radio-checked" : ""
+                            awardType === "single_vendor"
+                              ? "ant-radio-checked"
+                              : ""
                           }`}
                         >
                           <input
@@ -589,7 +606,10 @@ const EventTypeModal = ({
                             className="ant-radio-input"
                             value="single_vendor"
                             checked={awardType === "single_vendor"}
-                            onChange={handleAwardTypeChange}
+                            onChange={() =>
+                              handleAwardTypeChange("single_vendor")
+                            }
+                            tabIndex={-1}
                           />
                           <div className="ant-radio-inner"></div>
                         </span>
@@ -601,20 +621,28 @@ const EventTypeModal = ({
                   </div>
                   <div
                     className={`pro-radio-tabs__tab ${
-                      awardType === "multiple_vendor" ? "pro-radio-tabs__tab__selected" : ""
+                      awardType === "multiple_vendor"
+                        ? "pro-radio-tabs__tab__selected"
+                        : ""
                     }`}
                     role="radio"
                     aria-checked={awardType === "multiple_vendor"}
+                    onClick={() => handleAwardTypeChange("multiple_vendor")}
+                    tabIndex={0}
                   >
                     <div className="pro-radio-tabs__check-icon">
                       <label
                         className={`ant-radio-wrapper ${
-                          awardType === "multiple_vendor" ? "ant-radio-wrapper-checked" : ""
+                          awardType === "multiple_vendor"
+                            ? "ant-radio-wrapper-checked"
+                            : ""
                         }`}
                       >
                         <span
                           className={`ant-radio ${
-                            awardType === "multiple_vendor" ? "ant-radio-checked" : ""
+                            awardType === "multiple_vendor"
+                              ? "ant-radio-checked"
+                              : ""
                           }`}
                         >
                           <input
@@ -622,7 +650,10 @@ const EventTypeModal = ({
                             className="ant-radio-input"
                             value="multiple_vendor"
                             checked={awardType === "multiple_vendor"}
-                            onChange={handleAwardTypeChange}
+                            onChange={() =>
+                              handleAwardTypeChange("multiple_vendor")
+                            }
+                            tabIndex={-1}
                           />
                           <div className="ant-radio-inner"></div>
                         </span>
@@ -686,7 +717,9 @@ const EventTypeModal = ({
                       dynamicExtensionConfigurations.time_extension_type ===
                       "type1"
                     }
-                    onClick={() => handleDynamicExtensionBid("time_extension_type","type1")}
+                    onClick={() =>
+                      handleDynamicExtensionBid("time_extension_type", "type1")
+                    }
                   >
                     <span
                       className={`ant-radio ${
@@ -704,7 +737,12 @@ const EventTypeModal = ({
                           dynamicExtensionConfigurations.time_extension_type ===
                           "type1"
                         }
-                        onChange={() => handleDynamicExtensionBid("time_extension_type","type1")}
+                        onChange={() =>
+                          handleDynamicExtensionBid(
+                            "time_extension_type",
+                            "type1"
+                          )
+                        }
                       />
                       <div className="ant-radio-inner" />
                     </span>
@@ -726,7 +764,9 @@ const EventTypeModal = ({
                       dynamicExtensionConfigurations.time_extension_type ===
                       "type2"
                     }
-                    onClick={() => handleDynamicExtensionBid("time_extension_type","type2")}
+                    onClick={() =>
+                      handleDynamicExtensionBid("time_extension_type", "type2")
+                    }
                   >
                     <span
                       className={`ant-radio ${
@@ -744,7 +784,12 @@ const EventTypeModal = ({
                           dynamicExtensionConfigurations.time_extension_type ===
                           "type2"
                         }
-                        onChange={() => handleDynamicExtensionBid("time_extension_type","type2")}
+                        onChange={() =>
+                          handleDynamicExtensionBid(
+                            "time_extension_type",
+                            "type2"
+                          )
+                        }
                       />
                       <div className="ant-radio-inner" />
                     </span>
@@ -764,8 +809,15 @@ const EventTypeModal = ({
                       placeholder="Min(s)"
                       className="form-control"
                       style={{ marginLeft: "5px" }}
-                      value={dynamicExtensionConfigurations.triggered_time_extension_on_last}
-                      onChange={(e) => handleDynamicExtensionBid("triggered_time_extension_on_last", e.target.value)}
+                      value={
+                        dynamicExtensionConfigurations.triggered_time_extension_on_last
+                      }
+                      onChange={(e) =>
+                        handleDynamicExtensionBid(
+                          "triggered_time_extension_on_last",
+                          e.target.value
+                        )
+                      }
                     />
                   </div>
                   <div className="extend-time">
@@ -775,8 +827,15 @@ const EventTypeModal = ({
                       placeholder="Min(s)"
                       className="form-control"
                       style={{ marginLeft: "5px" }}
-                      value={dynamicExtensionConfigurations.extend_event_time_by}
-                      onChange={(e) => handleDynamicExtensionBid("extend_event_time_by", e.target.value)}
+                      value={
+                        dynamicExtensionConfigurations.extend_event_time_by
+                      }
+                      onChange={(e) =>
+                        handleDynamicExtensionBid(
+                          "extend_event_time_by",
+                          e.target.value
+                        )
+                      }
                     />
                   </div>
                   <div className="time-extention">
@@ -784,7 +843,12 @@ const EventTypeModal = ({
                       label={"Time extension on change in:"}
                       options={bidsType}
                       defaultValue={"Select Top bids"}
-                      onChange={(value) => {handleDynamicExtensionBid("time_extension_on_change_in", value)}}
+                      onChange={(value) => {
+                        handleDynamicExtensionBid(
+                          "time_extension_on_change_in",
+                          value
+                        );
+                      }}
                     />
                   </div>
                 </div>
@@ -808,7 +872,9 @@ const EventTypeModal = ({
                 className="form-control"
                 placeholder="Enter number of revisions required"
                 value={dynamicExtensionConfigurations.minimum_revisions}
-                onChange={(e) => handleDynamicExtensionBid("minimum_revisions", e.target.value)}
+                onChange={(e) =>
+                  handleDynamicExtensionBid("minimum_revisions", e.target.value)
+                }
               />
             )}
             <div className="d-flex align-items-center gap-2 my-3">
@@ -827,7 +893,9 @@ const EventTypeModal = ({
                 placeholder="Select Date"
                 className="form-control"
                 value={dynamicExtensionConfigurations.delivery_date}
-                onChange={(e) => handleDynamicExtensionBid("delivery_date", e.target.value)}
+                onChange={(e) =>
+                  handleDynamicExtensionBid("delivery_date", e.target.value)
+                }
               />
             )}
           </div>

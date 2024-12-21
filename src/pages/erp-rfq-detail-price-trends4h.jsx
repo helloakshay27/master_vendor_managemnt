@@ -39,6 +39,8 @@ export default function ErpRfqDetailPriceTrends4h() {
   const [response, setResponse] = useState([]);
   const [remarks, setRemarks] = useState([]);
   const [participants, setParticipants] = useState([]);
+  const [bidding, setBidding] = useState([]);
+  const [participantsTabData, setParticipantsTabData] = useState([]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -164,8 +166,6 @@ export default function ErpRfqDetailPriceTrends4h() {
     }
   };
 
-
-
   useEffect(() => {
     const fetchRemarks = async () => {
       try {
@@ -179,6 +179,54 @@ export default function ErpRfqDetailPriceTrends4h() {
 
         const data = await response.json();
         setResponse(data);
+        console.log("remarks :", response);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRemarks();
+  }, [id]);
+
+  useEffect(() => {
+    const fetchRemarks = async () => {
+      try {
+        const response = await fetch(
+          `https://vendors.lockated.com/rfq/events/${id}/bidding_summary?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&page=1h`
+        );
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        setBidding(data);
+        console.log("remarks :", response);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRemarks();
+  }, [id]);
+
+  useEffect(() => {
+    const fetchRemarks = async () => {
+      try {
+        const response = await fetch(
+          `https://vendors.lockated.com/rfq/events/${id}/event_overview?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&page=1h`
+        );
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        setParticipantsTabData(data);
         console.log("remarks :", response);
       } catch (err) {
         setError(err.message);
@@ -237,7 +285,6 @@ export default function ErpRfqDetailPriceTrends4h() {
 
     fetchParticipants();
   }, [id]);
-  console.log("participants participants :--------------------",participants);
   
   return (
     <>
@@ -297,8 +344,10 @@ export default function ErpRfqDetailPriceTrends4h() {
                   <ResponseTab data={response} />
                   <OverviewTab
                     participantsOpen={participantsOpen}
+                    participantsData={participantsTabData}
                     savingsOpen={savingsOpen}
                     biddingOpen={biddingOpen}
+                    biddingData={bidding}
                     productOpen={productOpen}
                     handleParticipants={participantsAccordion}
                     handleSavings={savingsAccordion}

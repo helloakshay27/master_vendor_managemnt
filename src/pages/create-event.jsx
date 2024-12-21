@@ -154,7 +154,7 @@ export default function CreateEvent() {
   };
 
   const handleEventTypeChange = (e) => {
-    setEventType(e.target.value);
+    setEventType(e);
   };
 
   const handleTrafficChange = (value) => {
@@ -162,7 +162,7 @@ export default function CreateEvent() {
   };
 
   const handleAwardTypeChange = (e) => {
-    setAwardType(e.target.value);
+    setAwardType(e);
   };
 
   const handleDynamicExtensionChange = (id, isChecked) => {

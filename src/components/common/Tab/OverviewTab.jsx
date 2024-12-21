@@ -5,7 +5,7 @@ import {
   ParticipantsIcon,
   ShowIcon,
 } from "../..";
-import { biddingData, participantsData } from "../../../constant/data";
+import { participantsData } from "../../../constant/data";
 
 export default function OverviewTab({
   handleParticipants,
@@ -13,8 +13,10 @@ export default function OverviewTab({
   handleBiddings,
   handleProducts,
   participantsOpen,
+  participantsData,
   savingsOpen,
   biddingOpen,
+  biddingData,
   productOpen,
   termsOpen,
   orderConfOpen,
@@ -23,6 +25,43 @@ export default function OverviewTab({
   handleOrderConf,
   handleOrderDetails,
 }) {
+  const participants = [
+    {
+      label: "Total Participants",
+      id: "total-participants",
+      value: participantsData.total_participant,
+    },
+    {
+      label: "Active participants",
+      id: "active-participants",
+      value: participantsData.active_participant,
+    },
+    {
+      label: "Total Bids",
+      id: "total-bids",
+      value: participantsData.total_bids ? 1 : 0,
+    },
+    {
+      label: "Revised bids",
+      id: "revised-bids",
+      value: participantsData.revised_bids == null ? 0 : participantsData.revised_bids, // Assuming 1 if revised_bids exists
+    },
+    {
+      label: "Counter offers",
+      id: "counter-offers",
+      value: participantsData.counter_office == null ? 0 : participantsData.revised_bids, // Assuming 1 if counter_office exists
+    },
+    {
+      label: "Accepted Counter Offers",
+      id: "accepted-counter-offers",
+      value: participantsData.active_counter_offers == null ? 0 : participantsData.revised_bids, // Assuming 1 if active_counter_offers exists
+    },
+    {
+      label: "Dynamic time extended",
+      id: "dynamic-time-extended",
+      value: participantsData.dynamic_time_extension == null ? '0 mins' : participantsData.revised_bids,
+    },
+  ];
   return (
     <div
       className="tab-pane fade"
@@ -106,7 +145,7 @@ export default function OverviewTab({
                     className="totals-activity row mx-3"
                     style={{ gap: "0" }}
                   >
-                    {participantsData.map((item) => (
+                    {participants.map((item) => (
                       <div
                         className="total-activity col-md-3 my-3"
                         key={item.id}
@@ -236,39 +275,24 @@ export default function OverviewTab({
           {biddingOpen && (
             <div id="bidding-summary" className="mx-5">
               <div className="card card-body p-4 rounded-3">
-                <div className="table-responsive" style={{boxShadow:'none'}}>
+                <div style={{boxShadow:'none'}}>
                   <h5>Line Item Wise</h5>
                   <div className="tbl-container">
                     <table>
                       <thead>
                         <tr>
-                          <th scope="row" />
-                          <th>Best Market Price</th>
-                          <th>Rank 2 Market Price</th>
+                          <th>Vendor</th>
+                          <th>Material</th>
+                          <th>Price</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {biddingData.map(({ description, vendors }, index) => (
-                          <React.Fragment key={index}>
-                            <tr>
-                              <th style={{ textAlign: "left" }}>
-                                {description}
-                              </th>
-                            </tr>
-                            {vendors.map(
-                              ({ vendorName, priceQuoted }, vendorIndex) => (
-                                <tr key={vendorIndex}>
-                                  <th scope="row">
-                                    {vendorIndex === 0
-                                      ? "Vendor Name"
-                                      : "Price Quoted"}
-                                  </th>
-                                  <td>{vendorName}</td>
-                                  <td>{priceQuoted}</td>
-                                </tr>
-                              )
-                            )}
-                          </React.Fragment>
+                        {biddingData.map((item, index) => (
+                          <tr key={index}>
+                            <td>{item.vendor_name}</td>
+                            <td>{item.material_name}</td>
+                            <td>{item.price}</td>
+                          </tr>
                         ))}
                       </tbody>
                     </table>
@@ -544,7 +568,7 @@ export default function OverviewTab({
                     className="totals-activity row"
                     style={{ gap: "0" }}
                   >
-                    {participantsData.map((item) => (
+                    {participants.map((item) => (
                       <div
                         className="total-activity col-md-3 my-3"
                         key={item.id}
