@@ -850,7 +850,7 @@ input[type="checkbox"] {
   position: sticky !important;
   top: 0;
   min-height: 50px;
-  z-index: 1111;
+  z-index: 111;
 }
 .tbl-container th {
   padding: 5px 10px;
