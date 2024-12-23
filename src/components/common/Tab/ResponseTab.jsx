@@ -182,7 +182,7 @@ export default function ResponseTab({ data }) {
                     {eventVendors.map((vendor) => {
                       return (
                         <td key={vendor.id}>
-                          <div className="d-flex flex-column align-items-center justify-content-end">
+                          <div className="d-flex flex-column align-items-center justify-content-between" style={{height: "120px"}} >
                             {vendor.organization_name}
                             <button
                               className="purple-btn2 d-block"
