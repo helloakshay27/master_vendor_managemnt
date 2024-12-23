@@ -511,10 +511,10 @@ export default function VendorDetails() {
 
             <div
               className="p-3 mb-2 "
-              // style={{
-              //   overflowY: "auto",
-              //   height: "calc(100vh - 100px)",
-              // }}
+            // style={{
+            //   overflowY: "auto",
+            //   height: "calc(100vh - 100px)",
+            // }}
             >
               {loading ? (
                 "Loading...."
@@ -835,7 +835,7 @@ export default function VendorDetails() {
                                   <table className="w-100 table">
                                     <thead>
                                       <tr>
-                                        <th className="text-start">S No.</th>
+                                        <th className="text-start">Sr.No.</th>
                                         <th className="text-start">
                                           Line Item Name
                                         </th>
@@ -860,13 +860,13 @@ export default function VendorDetails() {
                                       </tr>
                                     </thead>
                                     <tbody>
-                                      {data1.event_materials.map((data) => (
+                                      {data1.event_materials.map((data,index) => (
                                         <tr key={data.id}>
                                           <td
                                             className="text-start"
                                             style={{ color: "#777777" }}
                                           >
-                                            1
+                                            {index+1}
                                           </td>
                                           <td
                                             className="text-start"
