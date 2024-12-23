@@ -3,9 +3,16 @@ import React from "react";
 import DynamicModalBox from "../../base/Modal/DynamicModalBox";
 import Table from "../../base/Table/Table";
 import ShortTable from "../../base/Table/ShortTable";
-import { freightData } from "../../../constant/data";
+import {
+  eventProjectColumns,
+  eventProjectData,
+} from "../../../constant/data";
 
-export default function BulkCounterOfferModal({ show, handleClose }) {
+export default function BulkCounterOfferModal({
+  show,
+  handleClose,
+  bidCounterData,
+}) {
   const renderProductRows = () => {
     return Array.from({ length: 6 }).map((_, index) => (
       <tr key={index}>
@@ -75,6 +82,7 @@ export default function BulkCounterOfferModal({ show, handleClose }) {
     { label: "Best Total Amount", key: "bestTotalAmount" },
     { label: "Price*", key: "price" },
     { label: "Total Amount*", key: "totalAmount" },
+    { label: "S no.*", key: "Sno" },
     { label: "Delivery location*", key: "deliveryLocation" },
     { label: "Creator Attachment", key: "creatorAttachment" },
     { label: "Discount", key: "discount" },
@@ -82,12 +90,9 @@ export default function BulkCounterOfferModal({ show, handleClose }) {
     { label: "GST*", key: "gst" },
     { label: "Realised GST", key: "realisedGst" },
     { label: "Landed Amount*", key: "landedAmount" },
-    { label: "DOOR FRAME MATERIAL", key: "doorFrameMaterial" },
     { label: "Participant Attachment", key: "participantAttachment" },
-    { label: "Product Variant*", key: "productVariant" },
-    { label: "ADDITIONAL INFO", key: "additionalInfo" },
-    { label: "DENSITY OF WOOD", key: "densityOfWood" },
-    { label: "MOISTURE OF WOOD", key: "moistureOfWood" },
+    { label: "Remark*", key: "remark" },
+    { label: "Vendor Remark*", key: "vendorRemark" },
   ];
 
   const productTableData = [
@@ -119,257 +124,84 @@ export default function BulkCounterOfferModal({ show, handleClose }) {
       densityOfWood: "",
       moistureOfWood: "",
     },
-    {
+  ];
+
+  const productTableDatas = bidCounterData?.bid_materials?.map((item) => {
+    // Extract values from the bid material object
+    const productName = item.material_name || "";
+    const quantityRequested = item.quantity_requested || "N/A";  // Ensure that quantity_requested exists, or set a default
+    const quantityAvailable = item.quantity_available || "N/A";  // Same for quantity_available
+    const bestTotalAmount = item.best_total_amount || ""; // Assuming this value comes from the data
+    const price = item.price || "";
+    const totalAmount = item.total_amount || "";
+    const sno = item.sno || "";  // Assuming sno exists in the item
+    const discount = item.discount || "";
+    const realisedDiscount = item.realised_discount || "";
+    const gst = item.gst || "";
+    const realisedGst = item.realised_gst || "";
+    const landedAmount = item.landed_amount || "";
+    const remark = item.remark || "";
+    const vendorRemark = item.vendor_remark || "";
+    
+    // Extract values from bidCounter.event for the delivery location
+    const deliveryLocation = bidCounterData?.event?.delivary_location || "N/A";
+    
+    return {
       product: (
         <span>
-          Wooden Frd Door{" "}
+          {productName}{" "}
           <span style={{ color: "var(--red)", cursor: "pointer" }}>
             Details
           </span>
         </span>
       ),
-      quantityRequested: "257 Nos",
-      quantityAvailable: "",
-      bestTotalAmount: "",
-      price: "",
-      totalAmount: "",
-      deliveryLocation: "Sanvo Resorts Pvt. Ltd.",
+      quantityRequested,
+      quantityAvailable,
+      bestTotalAmount,
+      price,
+      totalAmount,
+      Sno: sno,
+      deliveryLocation,
       creatorAttachment: <input type="file" />,
-      discount: "",
-      realisedDiscount: "",
-      gst: "",
-      realisedGst: "",
-      landedAmount: "",
-      doorFrameMaterial: "",
+      discount,
+      realisedDiscount,
+      gst,
+      realisedGst,
+      landedAmount,
       participantAttachment: <input type="file" />,
-      productVariant: "WOODEN DOOR SHUTTER 2 HRS.",
-      additionalInfo: "Main door Outer size of ...",
-      densityOfWood: "",
-      moistureOfWood: "",
+      remark,
+      vendorRemark,
+    };
+  }) || [];
+
+  console.log("productTableDatas:", bidCounterData);
+
+  const freightData = [
+    {
+      label: "Freight Charge",
+      value: bidCounterData.freight_charge_amount ? `₹${bidCounterData.freight_charge_amount}` : "Not available",
     },
     {
-      product: (
-        <span>
-          Wooden Frd Door{" "}
-          <span style={{ color: "var(--red)", cursor: "pointer" }}>
-            Details
-          </span>
-        </span>
-      ),
-      quantityRequested: "257 Nos",
-      quantityAvailable: "",
-      bestTotalAmount: "",
-      price: "",
-      totalAmount: "",
-      deliveryLocation: "Sanvo Resorts Pvt. Ltd.",
-      creatorAttachment: <input type="file" />,
-      discount: "",
-      realisedDiscount: "",
-      gst: "",
-      realisedGst: "",
-      landedAmount: "",
-      doorFrameMaterial: "",
-      participantAttachment: <input type="file" />,
-      productVariant: "WOODEN DOOR SHUTTER 2 HRS.",
-      additionalInfo: "Main door Outer size of ...",
-      densityOfWood: "",
-      moistureOfWood: "",
+      label: "GST on Freight",
+      value: bidCounterData.gst_on_freight ? `${bidCounterData.gst_on_freight}%` : "Not available",
     },
     {
-      product: (
-        <span>
-          Wooden Frd Door{" "}
-          <span style={{ color: "var(--red)", cursor: "pointer" }}>
-            Details
-          </span>
-        </span>
-      ),
-      quantityRequested: "257 Nos",
-      quantityAvailable: "",
-      bestTotalAmount: "",
-      price: "",
-      totalAmount: "",
-      deliveryLocation: "Sanvo Resorts Pvt. Ltd.",
-      creatorAttachment: <input type="file" />,
-      discount: "",
-      realisedDiscount: "",
-      gst: "",
-      realisedGst: "",
-      landedAmount: "",
-      doorFrameMaterial: "",
-      participantAttachment: <input type="file" />,
-      productVariant: "WOODEN DOOR SHUTTER 2 HRS.",
-      additionalInfo: "Main door Outer size of ...",
-      densityOfWood: "",
-      moistureOfWood: "",
+      label: "Realised Freight",
+      value: bidCounterData.realised_freight_charge_amount
+        ? `₹${bidCounterData.realised_freight_charge_amount}`
+        : "Not available",
     },
     {
-      product: (
-        <span>
-          Wooden Frd Door{" "}
-          <span style={{ color: "var(--red)", cursor: "pointer" }}>
-            Details
-          </span>
-        </span>
-      ),
-      quantityRequested: "257 Nos",
-      quantityAvailable: "",
-      bestTotalAmount: "",
-      price: "",
-      totalAmount: "",
-      deliveryLocation: "Sanvo Resorts Pvt. Ltd.",
-      creatorAttachment: <input type="file" />,
-      discount: "",
-      realisedDiscount: "",
-      gst: "",
-      realisedGst: "",
-      landedAmount: "",
-      doorFrameMaterial: "",
-      participantAttachment: <input type="file" />,
-      productVariant: "WOODEN DOOR SHUTTER 2 HRS.",
-      additionalInfo: "Main door Outer size of ...",
-      densityOfWood: "",
-      moistureOfWood: "",
+      label: "Warranty Clause",
+      value: bidCounterData.warranty_clause || "Not available",
     },
     {
-      product: (
-        <span>
-          Wooden Frd Door{" "}
-          <span style={{ color: "var(--red)", cursor: "pointer" }}>
-            Details
-          </span>
-        </span>
-      ),
-      quantityRequested: "257 Nos",
-      quantityAvailable: "",
-      bestTotalAmount: "",
-      price: "",
-      totalAmount: "",
-      deliveryLocation: "Sanvo Resorts Pvt. Ltd.",
-      creatorAttachment: <input type="file" />,
-      discount: "",
-      realisedDiscount: "",
-      gst: "",
-      realisedGst: "",
-      landedAmount: "",
-      doorFrameMaterial: "",
-      participantAttachment: <input type="file" />,
-      productVariant: "WOODEN DOOR SHUTTER 2 HRS.",
-      additionalInfo: "Main door Outer size of ...",
-      densityOfWood: "",
-      moistureOfWood: "",
+      label: "Payment Terms",
+      value: bidCounterData.payment_terms || "Not available",
     },
     {
-      product: (
-        <span>
-          Wooden Frd Door{" "}
-          <span style={{ color: "var(--red)", cursor: "pointer" }}>
-            Details
-          </span>
-        </span>
-      ),
-      quantityRequested: "257 Nos",
-      quantityAvailable: "",
-      bestTotalAmount: "",
-      price: "",
-      totalAmount: "",
-      deliveryLocation: "Sanvo Resorts Pvt. Ltd.",
-      creatorAttachment: <input type="file" />,
-      discount: "",
-      realisedDiscount: "",
-      gst: "",
-      realisedGst: "",
-      landedAmount: "",
-      doorFrameMaterial: "",
-      participantAttachment: <input type="file" />,
-      productVariant: "WOODEN DOOR SHUTTER 2 HRS.",
-      additionalInfo: "Main door Outer size of ...",
-      densityOfWood: "",
-      moistureOfWood: "",
-    },
-    {
-      product: (
-        <span>
-          Wooden Frd Door{" "}
-          <span style={{ color: "var(--red)", cursor: "pointer" }}>
-            Details
-          </span>
-        </span>
-      ),
-      quantityRequested: "257 Nos",
-      quantityAvailable: "",
-      bestTotalAmount: "",
-      price: "",
-      totalAmount: "",
-      deliveryLocation: "Sanvo Resorts Pvt. Ltd.",
-      creatorAttachment: <input type="file" />,
-      discount: "",
-      realisedDiscount: "",
-      gst: "",
-      realisedGst: "",
-      landedAmount: "",
-      doorFrameMaterial: "",
-      participantAttachment: <input type="file" />,
-      productVariant: "WOODEN DOOR SHUTTER 2 HRS.",
-      additionalInfo: "Main door Outer size of ...",
-      densityOfWood: "",
-      moistureOfWood: "",
-    },
-    {
-      product: (
-        <span>
-          Wooden Frd Door{" "}
-          <span style={{ color: "var(--red)", cursor: "pointer" }}>
-            Details
-          </span>
-        </span>
-      ),
-      quantityRequested: "257 Nos",
-      quantityAvailable: "",
-      bestTotalAmount: "",
-      price: "",
-      totalAmount: "",
-      deliveryLocation: "Sanvo Resorts Pvt. Ltd.",
-      creatorAttachment: <input type="file" />,
-      discount: "",
-      realisedDiscount: "",
-      gst: "",
-      realisedGst: "",
-      landedAmount: "",
-      doorFrameMaterial: "",
-      participantAttachment: <input type="file" />,
-      productVariant: "WOODEN DOOR SHUTTER 2 HRS.",
-      additionalInfo: "Main door Outer size of ...",
-      densityOfWood: "",
-      moistureOfWood: "",
-    },
-    {
-      product: (
-        <span>
-          Wooden Frd Door{" "}
-          <span style={{ color: "var(--red)", cursor: "pointer" }}>
-            Details
-          </span>
-        </span>
-      ),
-      quantityRequested: "257 Nos",
-      quantityAvailable: "",
-      bestTotalAmount: "",
-      price: "",
-      totalAmount: "",
-      deliveryLocation: "Sanvo Resorts Pvt. Ltd.",
-      creatorAttachment: <input type="file" />,
-      discount: "",
-      realisedDiscount: "",
-      gst: "",
-      realisedGst: "",
-      landedAmount: "",
-      doorFrameMaterial: "",
-      participantAttachment: <input type="file" />,
-      productVariant: "WOODEN DOOR SHUTTER 2 HRS.",
-      additionalInfo: "Main door Outer size of ...",
-      densityOfWood: "",
-      moistureOfWood: "",
+      label: "Loading / Unloading",
+      value: bidCounterData.loading_unloading_clause || "Not available",
     },
   ];
 
@@ -390,7 +222,7 @@ export default function BulkCounterOfferModal({ show, handleClose }) {
       <h5 className="mt-5">Product Sheet</h5>
       <Table
         columns={productTableColumns}
-        data={productTableData}
+        data={productTableDatas}
         showCheckbox={true}
       />
 

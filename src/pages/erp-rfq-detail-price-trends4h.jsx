@@ -45,7 +45,8 @@ export default function ErpRfqDetailPriceTrends4h() {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  console.log("id :-", id);
+  
+
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -158,8 +159,7 @@ export default function ErpRfqDetailPriceTrends4h() {
         return (
           <BulkCounterOfferModal
             show={showModal}
-            handleClose={handleCloseModal}
-          />
+            handleClose={handleCloseModal} bidCounterData={undefined}          />
         );
       default:
         return null;
@@ -179,7 +179,6 @@ export default function ErpRfqDetailPriceTrends4h() {
 
         const data = await response.json();
         setResponse(data);
-        console.log("remarks :", response);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -203,7 +202,6 @@ export default function ErpRfqDetailPriceTrends4h() {
 
         const data = await response.json();
         setOverviewData(data);
-        console.log("remarks :", response);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -227,7 +225,6 @@ export default function ErpRfqDetailPriceTrends4h() {
 
         const data = await response.json();
         setBidding(data);
-        console.log("remarks :", response);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -251,7 +248,6 @@ export default function ErpRfqDetailPriceTrends4h() {
 
         const data = await response.json();
         setParticipantsTabData(data);
-        console.log("remarks :", response);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -275,7 +271,6 @@ export default function ErpRfqDetailPriceTrends4h() {
 
         const data = await response.json();
         setRemarks(data);
-        console.log("remarks :", remarks);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -299,7 +294,6 @@ export default function ErpRfqDetailPriceTrends4h() {
 
         const data = await response.json();
         setParticipants(data);
-        console.log("participants :", participants);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -347,16 +341,16 @@ export default function ErpRfqDetailPriceTrends4h() {
                     </p>
                   </div>
                   <div className="d-flex align-items-center flex-column justify-content-center text-center">
-                    <button className="event-participant-cardBtn">
+                    <button className="event-participant-cardBtn d-flex align-items-center justify-content-between" style={{width:"80px",backgroundColor: "#de700885", padding:"5px 15px", color: "#000", border:'1px solid #de7008'}}>
                       <samp>
                         <svg
                           width={12}
                           height={12}
                           viewBox="0 0 12 12"
-                          fill="#ffff"
+                          fill="#fff"
                           xmlns="http://www.w3.org/2000/svg"
                         >
-                          <circle cx={6} cy={6} r={6} fill="black" />
+                          <circle cx={6} cy={6} r={6} fill="#de7008" />
                         </svg>
                       </samp>{" "}
                       Live

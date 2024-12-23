@@ -6,10 +6,27 @@ import ParticipantsIcon from "../Icon/ParticipantsIcon";
 import Accordion from "../../base/Accordion/Accordion";
 import ResponseVendor from "../ResponseVendor";
 import { FullScreen, useFullScreenHandle } from "react-full-screen";
+import BulkCounterOfferModal from "../Modal/BulkCounterOfferModal";
+import { useEffect } from "react";
+import axios from "axios";
 
 export default function ResponseTab({ data }) {
   const [isVendor, setIsVendor] = useState(false);
+  const [counterModal, setCounterModal] = useState(false);
+  const [BidCounterData, setBidCounterData] = useState(null);
+  const [bidId, setBidId] = useState(null);
+  const [eventId, setEventId] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const handle = useFullScreenHandle();
+
+  const handleCounterModalShow = () => {
+    setCounterModal(true);
+  };
+
+  const handleCounterModalClose = () => {
+    setCounterModal(false);
+  };
 
   const handleChange = (event) => {
     if (event.target.value === "vendor") {
@@ -19,13 +36,29 @@ export default function ResponseTab({ data }) {
     }
   };
 
-  console.log("data prop received in ResponseTab:", data);
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await axios.get(
+          `https://vendors.lockated.com/rfq/events/${eventId}/bids/${bidId}?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`
+        );
+
+        setBidCounterData(response.data);
+        console.log("BidCounterData",response, "response", BidCounterData);
+        
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [eventId, bidId]);
 
   const eventVendors = Array.isArray(data?.vendors) ? data.vendors : [];
-  console.log(
-    "eventVendors:",
-    eventVendors.map((item) => item.full_name)
-  );
 
   return (
     <div
@@ -127,7 +160,7 @@ export default function ResponseTab({ data }) {
       {isVendor ? (
         <ResponseVendor />
       ) : (
-        <FullScreen handle={handle} >
+        <FullScreen handle={handle}>
           <div className="">
             <div
               style={{
@@ -147,16 +180,45 @@ export default function ResponseTab({ data }) {
                   <tr>
                     <td></td>
                     {eventVendors.map((vendor) => {
-                      console.log("vendor:", vendor);
-
-                      return <td>{vendor.organization_name}</td>;
+                      return (
+                        <td key={vendor.id}>
+                          <div className="d-flex flex-column align-items-center justify-content-end">
+                            {vendor.organization_name}
+                            <button
+                              className="purple-btn2 d-block"
+                              onClick={() => {
+                                if (
+                                  vendor.bids &&
+                                  vendor.bids.length > 0 &&
+                                  vendor.bids[0].bid_materials &&
+                                  vendor.bids[0].bid_materials.length > 0
+                                ) {
+                                  handleCounterModalShow();
+                                  setEventId(vendor.bids[0].event_id);
+                                  setBidId(
+                                    vendor.bids[0].bid_materials[0].bid_id
+                                  );
+                                  console.log(
+                                    "bidId ------- ",
+                                    vendor.bids[0].bid_materials[0].bid_id
+                                  );
+                                } else {
+                                  console.log(
+                                    "No bid materials available for this vendor."
+                                  );
+                                }
+                              }}
+                            >
+                              Counter
+                            </button>
+                          </div>
+                        </td>
+                      );
                     })}
                   </tr>
                   <tr>
                     <td className="viewBy-tBody1-p">Gross Total</td>
                     {eventVendors.map((vendor) => {
-                      console.log("vendor:", vendor);
-
                       return <td>{vendor.gross_total || "_"}</td>;
                     })}
                   </tr>
@@ -230,6 +292,12 @@ export default function ResponseTab({ data }) {
           </div>
         </FullScreen>
       )}
+
+      <BulkCounterOfferModal
+        show={counterModal}
+        handleClose={handleCounterModalClose}
+        bidCounterData={BidCounterData}
+      />
     </div>
   );
 }

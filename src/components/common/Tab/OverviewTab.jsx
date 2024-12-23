@@ -117,8 +117,6 @@ export default function OverviewTab({
     }
   ];
 
-  console.log("overviewData:----", overviewData);
-
   const overviewDatas = overviewData?.event_materials?.map(item => ({
     product: item.inventory_name || "_",
     best_total_amount: item.amount || "_",
