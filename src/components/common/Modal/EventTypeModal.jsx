@@ -157,7 +157,7 @@ const EventTypeModal = ({
       <div className="ant-drawer-body setting-modal">
         <div className="ant-row ant-form-item">
           <div className="ant-col ant-form-item-label">
-            <label title="Event Type">Event Type</label>
+            <label title="Event Type">Event Type <span style={{ color: 'red' }}>*</span></label>
           </div>
           <div className="ant-col ant-form-item-control-wrapper">
             <div
@@ -563,7 +563,7 @@ const EventTypeModal = ({
 
         <div className="ant-col ant-form-item-label">
           <label title="How will you award the event?">
-            How will you award the event?
+            How will you award the event? <span style={{ color: 'red' }}>*</span>
           </label>
         </div>
 
@@ -700,7 +700,7 @@ const EventTypeModal = ({
               <>
                 <label htmlFor="Datepicker">
                   Extend closing time in last 1 min in case of rank / price
-                  changes in top selected bids.
+                  changes in top selected bids. <span style={{ color: 'red' }}>*</span>
                 </label>
                 <div className="d-flex align-items-center gap-2">
                   <div
@@ -803,7 +803,7 @@ const EventTypeModal = ({
                   style={{ gridTemplateColumns: "6fr 6fr" }}
                 >
                   <div className="trigger-time">
-                    <label>Trigger time extension on last</label>
+                    <label>Trigger time extension on last <span style={{ color: 'red' }}>*</span></label>
                     <input
                       type="number"
                       placeholder="Min(s)"
@@ -821,7 +821,7 @@ const EventTypeModal = ({
                     />
                   </div>
                   <div className="extend-time">
-                    <label>Extend time by</label>
+                    <label>Extend time by <span style={{ color: 'red' }}>*</span></label>
                     <input
                       type="number"
                       placeholder="Min(s)"
@@ -839,8 +839,9 @@ const EventTypeModal = ({
                     />
                   </div>
                   <div className="time-extention">
+                    <label>Time extension on change in: <span style={{ color: 'red' }}>*</span></label>
                     <SelectBox
-                      label={"Time extension on change in:"}
+                    label={""}
                       options={bidsType}
                       defaultValue={"Select Top bids"}
                       onChange={(value) => {

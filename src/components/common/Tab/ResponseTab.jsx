@@ -46,8 +46,6 @@ export default function ResponseTab({ data }) {
         );
 
         setBidCounterData(response.data);
-        console.log("BidCounterData",response, "response", BidCounterData);
-        
       } catch (err) {
         setError(err.message);
       } finally {
@@ -172,56 +170,63 @@ export default function ResponseTab({ data }) {
               }}
             ></div>
             <div className="px-4">
-              <table
-                className="tbl-container w-100"
-                style={{ boxShadow: "none", tableLayout: "fixed" }}
-              >
-                <tbody>
-                  <tr>
-                    <td></td>
-                    {eventVendors.map((vendor) => {
-                      return (
-                        <td key={vendor.id}>
-                          <div className="d-flex flex-column align-items-center justify-content-between" style={{height: "120px"}} >
-                            {vendor.organization_name}
-                            <button
-                              className="purple-btn2 d-block"
-                              onClick={() => {
-                                if (
-                                  vendor.bids &&
-                                  vendor.bids.length > 0 &&
-                                  vendor.bids[0].bid_materials &&
-                                  vendor.bids[0].bid_materials.length > 0
-                                ) {
-                                  handleCounterModalShow();
-                                  setEventId(vendor.bids[0].event_id);
-                                  setBidId(
-                                    vendor.bids[0].bid_materials[0].bid_id
-                                  );
-                                  console.log(
-                                    "bidId ------- ",
-                                    vendor.bids[0].bid_materials[0].bid_id
-                                  );
-                                } else {
-                                  alert("No bid materials available for this vendor.");
-                                }
-                              }}
+              <div style={{ overflowX: "auto" }}>
+                <table
+                  className="tbl-container w-100"
+                  style={{ boxShadow: "none" }}
+                >
+                  <tbody>
+                    <tr>
+                      <td></td>
+                      {eventVendors.map((vendor, index) => {
+                        return (
+                          <td key={vendor.id} style={{ width: "500px" }}>
+                            <div
+                              className="d-flex flex-column align-items-center justify-content-between"
+                              style={{ height: "120px" }}
                             >
-                              Counter
-                            </button>
-                          </div>
-                        </td>
-                      );
-                    })}
-                  </tr>
-                  <tr>
-                    <td className="viewBy-tBody1-p">Gross Total</td>
-                    {eventVendors.map((vendor) => {
-                      return <td>{vendor.gross_total || "_"}</td>;
-                    })}
-                  </tr>
-                </tbody>
-              </table>
+                              {vendor.organization_name}
+                              <button
+                                className="purple-btn2 d-block"
+                                onClick={() => {
+                                  if (
+                                    vendor.bids &&
+                                    vendor.bids.length > 0 &&
+                                    vendor.bids[0].bid_materials &&
+                                    vendor.bids[0].bid_materials.length > 0
+                                  ) {
+                                    handleCounterModalShow();
+                                    setEventId(vendor.bids[0].event_id);
+                                    setBidId(
+                                      vendor.bids[0].bid_materials[0].bid_id
+                                    );
+                                    console.log(
+                                      "bidId ------- ",
+                                      vendor.bids[0].bid_materials[0].bid_id
+                                    );
+                                  } else {
+                                    alert(
+                                      "No bid materials available for this vendor."
+                                    );
+                                  }
+                                }}
+                              >
+                                Counter
+                              </button>
+                            </div>
+                          </td>
+                        );
+                      })}
+                    </tr>
+                    <tr>
+                      <td className="viewBy-tBody1-p">Gross Total</td>
+                      {eventVendors.map((vendor) => {
+                        return <td>{vendor.gross_total || "_"}</td>;
+                      })}
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
             <Accordion
               tableColumn={[

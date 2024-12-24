@@ -106,7 +106,7 @@ export default function CreateRFQForm({ data, setData }) {
       <div className="card-body">
         <div className="mx-3">
           <div className="head-material d-flex justify-content-between">
-            <h4>Select Materials</h4>
+            <h4>Select Materials <span style={{ color: 'red', fontSize:'16px' }}>*</span></h4>
             <button
               className="purple-btn2"
               data-bs-toggle="modal"
@@ -121,6 +121,7 @@ export default function CreateRFQForm({ data, setData }) {
           </div>
           <Table
             columns={[
+              { label: "Sr no.", key: "srno" },
               { label: "Description of Item", key: "descriptionOfItem" },
               { label: "Quantity", key: "quantity" },
               { label: "UOM", key: "unit" },
@@ -131,10 +132,12 @@ export default function CreateRFQForm({ data, setData }) {
             ]}
             data={data}
             customRender={{
+              srno: (cell, rowIndex) => (
+                <p>{rowIndex + 1}</p>
+              ),
               descriptionOfItem: (cell, rowIndex) => (
                 <SelectBox
                   label={""}
-                  // options={product}
                   options={materialOptions}
                   defaultValue={cell}
                   onChange={(selected) =>

@@ -11,16 +11,7 @@ import {
   MultiSelector,
 } from "../components";
 
-import {
-  // @ts-ignore
-  auditLogColumns,
-  // @ts-ignore
-  auditLogData,
-  citiesList,
-  participantsTabColumns,
-  // @ts-ignore
-  participantsTabData,
-} from "../constant/data";
+import { citiesList, participantsTabColumns } from "../constant/data";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import Header from "../components/Header";
@@ -66,7 +57,7 @@ export default function CreateEvent() {
   const [selectedRows, setSelectedRows] = useState([]);
   const [eventNo, setEventNo] = useState("");
   const [eventName, seteventName] = useState("");
-  const [textareas, setTextareas] = useState([{ id: Date.now(), value: '' }]);
+  const [textareas, setTextareas] = useState([{ id: Date.now(), value: "" }]);
 
   // @ts-ignore
   const [createdOn] = useState(new Date().toISOString().split("T")[0]);
@@ -293,7 +284,7 @@ export default function CreateEvent() {
   };
 
   const handleAddTextarea = () => {
-    setTextareas([...textareas, { id: Date.now(), value: '' }]);
+    setTextareas([...textareas, { id: Date.now(), value: "" }]);
   };
 
   const handleRemoveTextarea = (id) => {
@@ -321,15 +312,13 @@ export default function CreateEvent() {
       return;
     }
 
-    const termsAndConditions = textareas.map((textarea, index) => 
-      `${index + 1}. ${textarea.value}`
-    );
-
-    console.log("Formatted Terms and Conditions:", termsAndConditions);
+    const termsAndConditions = textareas.map(
+      (textarea, index) => `${index + 1}. ${textarea.value}`
+    );    
 
     const payload = {
       event: {
-        // event_title: eventName,
+        event_title: eventName,
         event_no: eventNo,
         created_on: createdOn,
         status: 1,
@@ -341,8 +330,8 @@ export default function CreateEvent() {
           event_type_id: 1,
         },
         event_type_detail_attributes: {
-          event_type: Number(eventType),
-          award_scheme: Number(awardType),
+          event_type: eventType,
+          award_scheme: awardType,
           event_configuration: 2,
           dynamic_time_extension: dynamicExtension[1],
           time_extension_type:
@@ -393,6 +382,7 @@ export default function CreateEvent() {
 
       if (response.ok) {
         alert("Event created successfully!");
+        navigate("/event-list");
       } else {
         throw new Error("Failed to create event.");
       }
@@ -421,10 +411,12 @@ export default function CreateEvent() {
           <div className="row align-items-end justify-items-end mx-2 mb-5">
             <div className="col-md-4 col-sm-6 mt-0 mb-2">
               <div className="form-group">
-                <label className="po-fontBold">Event Name</label>
+                <label className="po-fontBold">
+                  Event Name <span style={{ color: "red" }}>*</span>
+                </label>
               </div>
               <input
-                className="form-control "
+                className="form-control"
                 placeholder="Enter Event Name"
                 value={eventName}
                 onChange={(e) => seteventName(e.target.value)}
@@ -432,10 +424,12 @@ export default function CreateEvent() {
             </div>
             <div className="col-md-4 col-sm-6 mt-0 mb-2">
               <div className="form-group">
-                <label className="po-fontBold">Event Type</label>
+                <label className="po-fontBold">
+                  Event Type <span style={{ color: "red" }}>*</span>
+                </label>
               </div>
               <input
-                className="form-control "
+                className="form-control"
                 onClick={handleEventTypeModalShow}
                 placeholder="Configure The Event"
                 value={eventTypeText} // Display the selected event type
@@ -444,7 +438,9 @@ export default function CreateEvent() {
             </div>
             <div className="col-md-4 col-sm-6 mt-0 mb-2">
               <div className="form-group">
-                <label className="po-fontBold">Event No.</label>
+                <label className="po-fontBold">
+                  Event No. <span style={{ color: "red" }}>*</span>
+                </label>
               </div>
               <input
                 className="form-control"
@@ -467,13 +463,14 @@ export default function CreateEvent() {
             </div>
             <div className="col-md-4 col-sm-6 mt-2">
               <div className="form-group">
-                <label className="po-fontBold">Event Schedule</label>
+                <label className="po-fontBold">
+                  Event Schedule <span style={{ color: "red" }}>*</span>
+                </label>
               </div>
               <input
-                className="form-control "
+                className="form-control"
                 onClick={handleEventScheduleModalShow}
-                placeholder="From [dd-mm-yy hh:mm] To [dd-mm-yy hh:mm] ([DD] Days
-                                                          [HH] Hrs [MM] Mins)"
+                placeholder="From [dd-mm-yy hh:mm] To [dd-mm-yy hh:mm] ([DD] Days [HH] Hrs [MM] Mins)"
                 value={eventScheduleText} // Display the selected event schedule
                 readOnly
               />
@@ -484,7 +481,10 @@ export default function CreateEvent() {
             setData={setMaterialFormData}
           />
           <div className="d-flex justify-content-between align-items-end mx-1 mt-5">
-            <h5 className=" ">Select Vendors</h5>
+            <h5 className=" ">
+              Select Vendors{" "}
+              <span style={{ color: "red", fontSize: "16px" }}>*</span>
+            </h5>
             <div className="card-tools">
               <button
                 className="purple-btn2"
@@ -500,7 +500,10 @@ export default function CreateEvent() {
             </div>
           </div>
           <div className="row justify-content-center mx-1">
-            <div className="tbl-container px-0 mx-5 mt-3">
+            <div
+              className="tbl-container px-0 mx-5 mt-3"
+              style={{ maxHeight: "250px", overflowY: "auto" }}
+            >
               <table className="w-100">
                 <thead>
                   <tr>
@@ -520,7 +523,7 @@ export default function CreateEvent() {
                       <tr key={vendor.id}>
                         <td>{vendor.name}</td>
                         <td>{vendor.phone}</td>
-                        <td></td> {/* Display the status */}
+                        <td>Invited</td> {/* Display the status */}
                       </tr>
                     ))}
                 </tbody>
@@ -529,19 +532,25 @@ export default function CreateEvent() {
           </div>
 
           <div>
-            <h5 className="mt-3">Terms And Condition</h5>
-            {textareas.map((textarea,index) => (
+            <h5 className="mt-3">
+              Terms And Condition{" "}
+              <span style={{ color: "red", fontSize: "16px" }}>*</span>
+            </h5>
+            {textareas.map((textarea, index) => (
               <div
                 key={index}
-                className="d-flex justify-content-between align-items-center mt-3"
+                className="d-flex justify-content-between align-items-center mt-4"
               >
-                <textarea
-                  className="form-control w-75"
-                  value={textarea.value}
-                  onChange={(e) =>
-                    handleTextareaChange(textarea.id, e.target.value)
-                  }
-                />
+                <div className="d-flex w-100">
+                  <span className="me-2">{index + 1}.</span> {/* Serial number */}
+                  <textarea
+                    className="form-control w-75"
+                    value={textarea.value}
+                    onChange={(e) =>
+                      handleTextareaChange(textarea.id, e.target.value)
+                    }
+                  />
+                </div>
                 <button
                   className="btn btn-danger ms-2"
                   onClick={() => handleRemoveTextarea(textarea.id)}
@@ -553,7 +562,7 @@ export default function CreateEvent() {
             ))}
             <button className="purple-btn2 mt-3" onClick={handleAddTextarea}>
               <span className="material-symbols-outlined align-text-top me-2">
-                add{" "}
+                add
               </span>
               <span>Add</span>
             </button>
