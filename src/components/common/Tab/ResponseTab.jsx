@@ -203,9 +203,7 @@ export default function ResponseTab({ data }) {
                                     vendor.bids[0].bid_materials[0].bid_id
                                   );
                                 } else {
-                                  console.log(
-                                    "No bid materials available for this vendor."
-                                  );
+                                  alert("No bid materials available for this vendor.");
                                 }
                               }}
                             >

@@ -32,10 +32,7 @@ export default function BulkCounterOfferModal({
     return {
       product: (
         <span>
-          {productName}{" "}
-          <span style={{ color: "var(--red)", cursor: "pointer" }}>
-            Details
-          </span>
+          {productName}
         </span>
       ),
       quantityRequested,
