@@ -1,6 +1,6 @@
 import React from "react";
 
-export default function ShortTable({ data, editable = false, onValueChange }) {
+export default function ShortTable({ data, editable = false, onValueChange, ...rest }) {
   const handleInputChange = (index, newValue) => {
     const updatedData = [...data];
     updatedData[index].value = newValue;
@@ -11,6 +11,7 @@ export default function ShortTable({ data, editable = false, onValueChange }) {
     <table
       className="tbl-container mt-4 ShortTable"
       style={{ width: "40% !important" }}
+      {...rest}
     >
       <tbody>
         {data.map((row, index) => (
