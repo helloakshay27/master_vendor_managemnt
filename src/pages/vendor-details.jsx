@@ -10,12 +10,12 @@ import ClockIcon from "../components/common/Icon/ClockIcon";
 
 export default function VendorDetails() {
   const [freightData, setFreightData] = useState([
-    { label: "Freight Charge", value: "₹4,000" },
-    { label: "GST on Freight", value: "18%" },
-    { label: "Realised Freight", value: "₹4,720" },
-    { label: "Warranty Clause *", value: "mtc" },
-    { label: "Payment Terms *", value: "advance" },
-    { label: "Loading / Unloading *", value: "under buyer" },
+    { label: "Freight Charge", value: "" },
+    { label: "GST on Freight", value: "" },
+    { label: "Realised Freight", value: "" },
+    { label: "Warranty Clause *", value: "" },
+    { label: "Payment Terms *", value: "" },
+    { label: "Loading / Unloading *", value: "" },
   ]);
 
   const [remark, setRemark] = useState("");
@@ -40,25 +40,99 @@ export default function VendorDetails() {
     setData(updatedData);
   };
 
-  // const handleInputChange = (value, rowIndex, key) => {
-  //   const updatedData = [...data];
-
-  //   if (key === "quantity") {
-  //     const maxQuantity = 3;
-  //     if (parseFloat(value) > maxQuantity) {
-  //       alert(`Quantity cannot exceed ${maxQuantity}`);
-  //       value = maxQuantity;
-  //     }
-  //   }
-
-  //   updatedData[rowIndex][key] = value;
-  //   setData(updatedData);
-  // };
-
   const handleInputChange = (value, rowIndex, key) => {
     const updatedData = [...data];
     updatedData[rowIndex][key] = value;
+
+    const price = parseFloat(updatedData[rowIndex].price) || 0;
+    const quantityAvail = parseFloat(updatedData[rowIndex].quantityAvail) || 0;
+    const discount = parseFloat(updatedData[rowIndex].discount) || 0;
+    const gst = parseFloat(updatedData[rowIndex].gst) || 0;
+
+    // Step 1: Calculate total amount (price * quantity)
+    const total = price * quantityAvail;
+
+    // Step 2: Calculate realised discount
+    const realisedDiscount = (total * discount) / 100;
+
+    // Step 3: Calculate landed amount (discounted total, before GST)
+    const landedAmount = total - realisedDiscount;
+
+    // Step 4: Calculate realised GST (based on landed amount)
+    let realisedGst = 0;
+    if (gst > 0) {
+      realisedGst = (landedAmount * gst) / 100; // GST applied on landed amount
+    }
+
+    // Step 5: Calculate final total (landed amount + GST)
+    const finalTotal = landedAmount + realisedGst;
+
+    // Update fields in the data array
+    updatedData[rowIndex].realisedDiscount = realisedDiscount.toFixed(2);
+    updatedData[rowIndex].landedAmount = landedAmount.toFixed(2); // Before GST
+    updatedData[rowIndex].realisedGst = realisedGst.toFixed(2);
+    updatedData[rowIndex].total = finalTotal.toFixed(2); // After GST
+
     setData(updatedData);
+  };
+
+  const calculateFreightTotal = () => {
+    const freightCharge =
+      parseFloat(
+        freightData
+          .find((row) => row.label === "Freight Charge")
+          ?.value.replace(/₹|,/g, "")
+      ) || 0;
+    const realisedFreight =
+      parseFloat(
+        freightData
+          .find((row) => row.label === "Realised Freight")
+          ?.value.replace(/₹|,/g, "")
+      ) || 0;
+
+    return realisedFreight;
+  };
+
+  // Calculate Sum Total (including Freight Total)
+  // const calculateSumTotal = () => {
+  //   // Calculate the sum of totals from 'data'
+  //   const sumFromData = data
+  //     .reduce((sum, row) => {
+  //       const total = parseFloat(row.total) || 0; // Ensure total is a number
+  //       return sum + total;
+  //     }, 0)
+  //     .toFixed(2); // Keep two decimal places
+
+  //   // Calculate the Freight Total
+  //   const freightTotal = calculateFreightTotal();
+
+  //   // Add the Freight Total to the Sum
+  //   const finalTotal = (parseFloat(sumFromData) + freightTotal).toFixed(2);
+
+  //   return finalTotal;
+  // };
+
+  const calculateDataSumTotal = () => {
+    // Calculate the sum of totals from 'data' (excluding Freight)
+    return data
+      .reduce((sum, row) => {
+        const total = parseFloat(row.total) || 0; // Ensure total is a number
+        return sum + total;
+      }, 0)
+      .toFixed(2); // Keep two decimal places
+  };
+
+  const calculateSumTotal = () => {
+    // Use `calculateDataSumTotal` to get sum from `data`
+    const sumFromData = parseFloat(calculateDataSumTotal());
+
+    // Calculate the Freight Total
+    const freightTotal = calculateFreightTotal();
+
+    // Add the Freight Total to the Sum
+    const finalTotal = (sumFromData + freightTotal).toFixed(2);
+
+    return finalTotal;
   };
 
   const tableContainerStyle = {
@@ -88,7 +162,7 @@ export default function VendorDetails() {
 
   useEffect(() => {
     const fetchEventMaterials = async () => {
-      console.log("Event ID:", eventId);
+      // console.log("Event ID:", eventId);
       try {
         // Fetch data directly without headers
         const response = await axios.get(
@@ -96,21 +170,44 @@ export default function VendorDetails() {
         );
 
         // Transform the API response into the required table data format
-        const formattedData = response.data.map((item) => ({
-          eventMaterialId: item.id,
-          descriptionOfItem: item.inventory_name,
-          quantity: item.quantity,
-          quantityAvail: "",
-          unit: item.uom,
-          location: item.location,
-          rate: "",
-          amount: item.amount,
-          totalAmt: "",
-          attachment: null,
-        }));
+        // const formattedData = response.data.map((item) => ({
+        //   eventMaterialId: item.id,
+        //   descriptionOfItem: item.inventory_name,
+        //   quantity: item.quantity,
+        //   quantityAvail: "",
+        //   unit: item.uom,
+        //   location: item.location,
+        //   rate: "",
+        //   amount: item.amount,
+        //   totalAmt: "",
+        //   attachment: null,
+        //   varient: item.material_type,
+        // }));
+
+        const formattedData = response.data.map((item) => {
+          // Extract material_type from bid_materials
+          const materialType =
+            item.bid_materials && item.bid_materials.length > 0
+              ? item.bid_materials[0].material_type
+              : null;
+
+          return {
+            eventMaterialId: item.id,
+            descriptionOfItem: item.inventory_name,
+            quantity: item.quantity,
+            quantityAvail: "", // Placeholder for user input
+            unit: item.uom,
+            location: item.location,
+            rate: item.rate || "", // Placeholder if rate is not available
+            amount: item.amount,
+            totalAmt: "", // Placeholder for calculated total amount
+            attachment: null, // Placeholder for attachment
+            varient: materialType, // Use extracted material_type
+          };
+        });
 
         setData(formattedData);
-        console.log(formattedData);
+        // console.log("formatedddddddd dataaaaaaaa", formattedData);
       } catch (err) {
         console.error("Error fetching event materials:", err);
         setError("Failed to load data.");
@@ -128,42 +225,71 @@ export default function VendorDetails() {
     freightData.find((item) => item.label === "Freight Charge")?.value || "0";
 
   const freightCharge21 = parseFloat(freightChargeRaw.replace(/₹|,/g, "")) || 0; // Remove ₹ and commas, then parse to number
-  console.log("freightCharge21", freightCharge21);
-
-  const warrantyClause =
-    freightData.find((item) => item.label === "Warranty Clause")?.value ||
-    "1-year warranty";
-  const paymentTerms =
-    freightData.find((item) => item.label === "Payment Terms")?.value ||
-    "Net 30";
-  const loadingUnloadingClause =
-    freightData.find((item) => item.label === "Loading / Unloading")?.value ||
-    "Loading at supplier's location, unloading at buyer's location";
+  // console.log("freightCharge21", freightCharge21);
 
   const preparePayload = () => {
+    // Use `calculateDataSumTotal` for the total amount
+    const totalAmount = parseFloat(calculateDataSumTotal());
+
     const bidMaterialsAttributes = data.map((row) => ({
       event_material_id: row.eventMaterialId, // Use the ID from the API data
       quantity_available: row.quantityAvail || 0, // Use the updated quantity
       price: row.price || 0, // Use the updated price
-      discount: row.discount || 0, // Use the updated discount
-      total_amount:
-        parseFloat(row.quantityAvail || 0) * parseFloat(row.price || 0), // Calculate total
+      discount: row.discount || 0,
+
+      vendor_remark: row.vendorRemark || "",
+      gst: row.gst || 0, // GST value from the row
+      realised_discount: row.realisedDiscount || 0, // Calculated realised discount
+      realised_gst: row.realisedGst || 0, // Calculated realised GST
+
+      total_amount: totalAmount, // Use `sumFromData` logic for total amount
     }));
+
+    // const freightChargeRaw =
+    //   freightData.find((item) => item.label === "Freight Charge")?.value || "0";
+    // const freightCharge = parseFloat(freightChargeRaw.replace(/₹|,/g, "")) || 0; // Remove ₹ and commas, then parse to number
 
     const freightChargeRaw =
       freightData.find((item) => item.label === "Freight Charge")?.value || "0";
-    const freightCharge = parseFloat(freightChargeRaw.replace(/₹|,/g, "")) || 0; // Remove ₹ and commas, then parse to number
+
+    const freightCharge21 =
+      parseFloat(freightChargeRaw.replace(/₹|,/g, "")) || 0; // Remove ₹ and commas, then parse to number
+    // console.log("freightCharge21", freightCharge21);
 
     const gstOnFreight =
       freightData.find((item) => item.label === "GST on Freight")?.value || "0";
 
     const gstOnFreightt = parseFloat(gstOnFreight.replace(/₹|,/g, "")) || 0; // Remove ₹ and commas, then parse to number
 
+    // const realisedFreightChargeAmount =
+    //   freightCharge21 + (freightCharge21 * gstOnFreightt) / 100;
+
+    const realisedFreightChargeAmount = parseFloat(
+      freightCharge21 + (freightCharge21 * gstOnFreightt) / 100
+    );
+
+    const warrantyClause =
+      freightData.find((item) => item.label === "Warranty Clause *")?.value ||
+      "1-year warranty";
+
+    const paymentTerms =
+      freightData.find((item) => item.label === "Payment Terms *")?.value ||
+      "Net 30";
+
+    const loadingUnloadingClause =
+      freightData.find((item) => item.label === "Loading / Unloading *")
+        ?.value ||
+      "Loading at supplier's location, unloading at buyer's location";
+
     const payload = {
       bid: {
         event_vendor_id: 10,
-        price: freightCharge,
-        discount: gstOnFreightt,
+        price: 2000,
+        discount: 10,
+        freight_charge_amount: freightCharge21,
+        gst_on_freight: gstOnFreightt,
+        realised_freight_charge_amount: realisedFreightChargeAmount,
+        gross_total: calculateSumTotal(),
         warranty_clause: warrantyClause,
         payment_terms: paymentTerms,
         remark: remark,
@@ -171,7 +297,6 @@ export default function VendorDetails() {
         bid_materials_attributes: bidMaterialsAttributes, // Pass the dynamically generated array
       },
     };
-
     console.log("Prepared Payload:", payload);
     return payload;
   };
@@ -179,23 +304,23 @@ export default function VendorDetails() {
   const handleSubmit = async () => {
     setLoading(true);
 
-    let missingFields = [];
+    // let missingFields = [];
 
-    // Loop through data to check which fields are empty
-    for (let row of data) {
-      if (!row.gst) missingFields.push("GST");
-      if (!row.price) missingFields.push("Price");
-      if (!row.discount) missingFields.push("Discount");
-    }
+    // // Loop through data to check which fields are empty
+    // for (let row of data) {
+    //   if (!row.gst) missingFields.push("GST");
+    //   if (!row.price) missingFields.push("Price");
+    //   if (!row.discount) missingFields.push("Discount");
+    // }
 
-    // If there are any missing fields, show an alert with the missing fields
-    if (missingFields.length > 0) {
-      const missingFieldsMessage = missingFields.join(", ");
-      alert(
-        `Please fill the following mandatory fields: ${missingFieldsMessage}`
-      );
-      return; // Prevent further execution if validation fails
-    }
+    // // If there are any missing fields, show an alert with the missing fields
+    // if (missingFields.length > 0) {
+    //   const missingFieldsMessage = missingFields.join(", ");
+    //   alert(
+    //     `Please fill the following mandatory fields: ${missingFieldsMessage}`
+    //   );
+    //   return; // Prevent further execution if validation fails
+    // }
 
     try {
       // Send POST request
@@ -241,7 +366,7 @@ export default function VendorDetails() {
   useEffect(() => {
     const fetchEventMaterials = async () => {
       // const eventId = 8
-      console.log("Event ID:", eventId);
+      // console.log("Event ID:", eventId);
       try {
         // Fetch data directly without headers
         const response = await axios.get(
@@ -251,11 +376,11 @@ export default function VendorDetails() {
         // Transform the API response into the required table data format
 
         setData1(response.data);
-        console.log("response:", response.data);
+        // console.log("response:", response.data);
         const isoDate = response.data.event_schedule.start_time;
         setDate(response.data.event_schedule.start_time);
         setEndDate(response.data.event_schedule.end_time_duration);
-        console.log("date:", isoDate);
+        // console.log("date:", isoDate);
       } catch (err) {
         console.error(
           "Error fetching event materials:",
@@ -309,7 +434,7 @@ export default function VendorDetails() {
 
   // Call the function and log the result
   const formattedDate = formatDate(isoDate);
-  console.log("Formatted Date:", formattedDate);
+  // console.log("Formatted Date:", formattedDate);
 
   //end date
   const calculateEndDate = (date) => {
@@ -333,14 +458,14 @@ export default function VendorDetails() {
 
   const formattedEndDate = calculateEndDate(endDate);
 
-  console.log(formattedEndDate);
-  console.log("end d", endDate);
+  // console.log(formattedEndDate);
+  // console.log("end d", endDate);
 
-  console.log("data1:", data1);
+  // console.log("data1:", data1);
 
   // Function to handle button click and navigate
   const handleNavigate = () => {
-    console.log("vendor list ");
+    // console.log("vendor list ");
     navigate("/vendor-list"); // Redirect to /vendor-list page
   };
 
@@ -997,12 +1122,12 @@ export default function VendorDetails() {
                         <Table
                           columns={[
                             { label: "Material", key: "descriptionOfItem" },
-                            { label: "Material Variant", key: "rate" },
+                            { label: "Material Variant", key: "varient" },
                             { label: "Quantity Requested", key: "quantity" },
                             { label: "Delivery Location", key: "location" },
                             { label: "Creator Attachment", key: "attachment" },
                             {
-                              label: "Quantity Available",
+                              label: "Quantity Available *",
                               key: "quantityAvail",
                             },
                             { label: "Price *", key: "price" },
@@ -1030,6 +1155,18 @@ export default function VendorDetails() {
                                 value={cell}
                                 readOnly
                                 style={otherColumnsStyle}
+                                disabled
+                              />
+                            ),
+
+                            varient: (cell, rowIndex) => (
+                              <input
+                                className="form-control"
+                                type="text"
+                                value={cell}
+                                readOnly
+                                style={otherColumnsStyle}
+                                disabled
                               />
                             ),
                             unit: (cell, rowIndex) => (
@@ -1052,6 +1189,7 @@ export default function VendorDetails() {
                                 value={cell}
                                 readOnly
                                 style={otherColumnsStyle}
+                                disabled
                               />
                             ),
                             quantity: (cell, rowIndex) => (
@@ -1129,15 +1267,16 @@ export default function VendorDetails() {
                                 className="form-control"
                                 type="number"
                                 value={cell}
-                                onChange={(e) =>
-                                  handleInputChange(
-                                    e.target.value,
-                                    rowIndex,
-                                    "realisedDiscount"
-                                  )
-                                }
-                                placeholder="Enter Discount (%)"
+                                // onChange={(e) =>
+                                //   handleInputChange(
+                                //     e.target.value,
+                                //     rowIndex,
+                                //     "realisedDiscount"
+                                //   )
+                                // }
+                                // placeholder="Enter Discount (%)"
                                 style={otherColumnsStyle}
+                                disabled
                               />
                             ),
 
@@ -1163,15 +1302,9 @@ export default function VendorDetails() {
                                 className="form-control"
                                 type="number"
                                 value={cell}
-                                onChange={(e) =>
-                                  handleInputChange(
-                                    e.target.value,
-                                    rowIndex,
-                                    "realisedGst"
-                                  )
-                                }
                                 placeholder="Enter Realised GST"
                                 style={otherColumnsStyle}
+                                disabled
                               />
                             ),
                             landedAmount: (cell, rowIndex) => (
@@ -1211,15 +1344,16 @@ export default function VendorDetails() {
                                 className="form-control"
                                 type="number"
                                 value={cell}
-                                onChange={(e) =>
-                                  handleInputChange(
-                                    e.target.value,
-                                    rowIndex,
-                                    "total"
-                                  )
-                                }
+                                // onChange={(e) =>
+                                //   handleInputChange(
+                                //     e.target.value,
+                                //     rowIndex,
+                                //     "total"
+                                //   )
+                                // }
                                 placeholder="Enter Total"
                                 style={otherColumnsStyle}
+                                readOnly
                               />
                             ),
 
@@ -1295,15 +1429,19 @@ export default function VendorDetails() {
                         <ShortTable
                           data={freightData}
                           editable={true} // Flag to enable input fields
-                          onValueChange={(updatedData) =>
-                            setFreightData(updatedData)
-                          } // Callback for changes
+                          // onValueChange={(updatedData) =>
+                          //   setFreightData(updatedData)
+                          // } // Callback for changes
+
+                          onValueChange={(updatedData) => {
+                            setFreightData(updatedData);
+                          }}
                         />
                       </div>
 
                       {/* </div> */}
                       <div className="d-flex justify-content-end">
-                        <h4>Sum Total 64684</h4>
+                        <h4>Sum Total : ₹{calculateSumTotal()}</h4>
                       </div>
                     </div>
                   </div>
