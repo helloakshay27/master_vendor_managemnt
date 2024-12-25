@@ -44,6 +44,7 @@ export default function ErpRfqDetailPriceTrends4h() {
   const [overviewData, setOverviewData] = useState([]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [analyticsData, setAnalyticsData] = useState([]);
 
   
 
@@ -304,6 +305,8 @@ export default function ErpRfqDetailPriceTrends4h() {
     fetchParticipants();
   }, [id]);
 
+
+
   return (
     <>
       <Header />
@@ -383,7 +386,7 @@ export default function ErpRfqDetailPriceTrends4h() {
                     orderDetails={orderDetails}
                   />
                   <ParticipantsTab data={participants} />
-                  <AnalyticsTab />
+                  <AnalyticsTab id={id} />
                   <ParicipantsRemarksTab data={remarks} />
                 </div>
               </div>
