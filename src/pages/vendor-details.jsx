@@ -349,10 +349,30 @@ export default function VendorDetails() {
     }
   };
 
+  // terms and condition
+
+  const [terms, setTerms] = useState([]); // To store terms and conditions
+
+  // Fetch data from the API
+  useEffect(() => {
+    const fetchTerms = async () => {
+      try {
+        const response = await axios.get(
+          `https://vendors.lockated.com/rfq/events/${eventId}?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`
+        );
+        setTerms(response.data.terms_and_conditions || []);
+      } catch (error) {
+        console.error("Error fetching terms and conditions:", error);
+      }
+    };
+
+    fetchTerms();
+  }, []);
+
   //user overview
 
   const [publishedStages, setPublishedStages] = useState(true);
-  const [terms, setTerms] = useState(true);
+
   const [Contact, setContact] = useState(true);
   const [lineItems, setLineItems] = useState(true);
   const [isHistoryActive, setIsHistoryActive] = useState(false);
@@ -581,7 +601,7 @@ export default function VendorDetails() {
             </span>
           </div>
           <div className="styles_projectTitleExtra__3ePz7">
-            <span>MARATHON REALTY PRIVATE LTD</span>
+            <span> PANCHSHIL REALTY PRIVATE LTD</span>
           </div>
         </div>
       </div>
@@ -636,10 +656,10 @@ export default function VendorDetails() {
 
             <div
               className="p-3 mb-2 "
-            // style={{
-            //   overflowY: "auto",
-            //   height: "calc(100vh - 100px)",
-            // }}
+              // style={{
+              //   overflowY: "auto",
+              //   height: "calc(100vh - 100px)",
+              // }}
             >
               {loading ? (
                 "Loading...."
@@ -985,68 +1005,70 @@ export default function VendorDetails() {
                                       </tr>
                                     </thead>
                                     <tbody>
-                                      {data1.event_materials.map((data,index) => (
-                                        <tr key={data.id}>
-                                          <td
-                                            className="text-start"
-                                            style={{ color: "#777777" }}
-                                          >
-                                            {index+1}
-                                          </td>
-                                          <td
-                                            className="text-start"
-                                            style={{ color: "#777777" }}
-                                          >
-                                            {data.inventory_name}
-                                          </td>
-                                          <td
-                                            className="text-start"
-                                            style={{ color: "#777777" }}
-                                          >
-                                            -
-                                          </td>
-                                          <td
-                                            className="text-start"
-                                            style={{ color: "#777777" }}
-                                          ></td>
-                                          <td
-                                            className="text-start"
-                                            style={{ color: "#777777" }}
-                                          >
-                                            NA - NA
-                                          </td>
-                                          <td
-                                            className="text-start"
-                                            style={{ color: "#777777" }}
-                                          >
-                                            -
-                                          </td>
-                                          <td
-                                            className="text-start"
-                                            style={{ color: "#777777" }}
-                                          >
-                                            {data.quantity}
-                                          </td>
-                                          <td
-                                            className="text-start"
-                                            style={{ color: "#777777" }}
-                                          >
-                                            -
-                                          </td>
-                                          <td
-                                            className="text-start"
-                                            style={{ color: "#777777" }}
-                                          >
-                                            -
-                                          </td>
-                                          <td
-                                            className="text-start"
-                                            style={{ color: "#777777" }}
-                                          >
-                                            -
-                                          </td>
-                                        </tr>
-                                      ))}
+                                      {data1.event_materials.map(
+                                        (data, index) => (
+                                          <tr key={data.id}>
+                                            <td
+                                              className="text-start"
+                                              style={{ color: "#777777" }}
+                                            >
+                                              {index + 1}
+                                            </td>
+                                            <td
+                                              className="text-start"
+                                              style={{ color: "#777777" }}
+                                            >
+                                              {data.inventory_name}
+                                            </td>
+                                            <td
+                                              className="text-start"
+                                              style={{ color: "#777777" }}
+                                            >
+                                              -
+                                            </td>
+                                            <td
+                                              className="text-start"
+                                              style={{ color: "#777777" }}
+                                            ></td>
+                                            <td
+                                              className="text-start"
+                                              style={{ color: "#777777" }}
+                                            >
+                                              NA - NA
+                                            </td>
+                                            <td
+                                              className="text-start"
+                                              style={{ color: "#777777" }}
+                                            >
+                                              -
+                                            </td>
+                                            <td
+                                              className="text-start"
+                                              style={{ color: "#777777" }}
+                                            >
+                                              {data.quantity}
+                                            </td>
+                                            <td
+                                              className="text-start"
+                                              style={{ color: "#777777" }}
+                                            >
+                                              -
+                                            </td>
+                                            <td
+                                              className="text-start"
+                                              style={{ color: "#777777" }}
+                                            >
+                                              -
+                                            </td>
+                                            <td
+                                              className="text-start"
+                                              style={{ color: "#777777" }}
+                                            >
+                                              -
+                                            </td>
+                                          </tr>
+                                        )
+                                      )}
                                     </tbody>
                                   </table>
                                 </div>
@@ -1440,7 +1462,7 @@ export default function VendorDetails() {
                       </div>
 
                       {/* </div> */}
-                      <div className="d-flex justify-content-end">
+                      <div className="d-flex justify-content-end mt-2 mx-2">
                         <h4>Sum Total : ₹{calculateSumTotal()}</h4>
                       </div>
                     </div>
@@ -1540,11 +1562,11 @@ export default function VendorDetails() {
                         Please find below the terms and conditions associated
                         with the orders
                       </p>
-                      <ol
+                      <ul
                         className="head-material  "
                         style={{ fontSize: "13px", marginLeft: "0px" }}
                       >
-                        <li className="mb-3 mt-3">
+                        {/* <li className="mb-3 mt-3">
                           90% ADVANCE ON BASIC AMOUNT (EXCLUDING GST) & BALANCE
                           PAYMENT WITHIN 30 WORKING DAYS AFTER SUBMISSION OF
                           INVOICES.
@@ -1557,8 +1579,14 @@ export default function VendorDetails() {
                           DELIVERY OF MATERIAL AS PER SITE REQUIREMENT OR AS PER
                           DELIVERY SCHEDULE.
                         </li>
-                        <li className="mb-3">UNLOADING WILL BE DONE BY US.</li>
-                      </ol>
+                        <li className="mb-3">UNLOADING WILL BE DONE BY US.</li> */}
+
+                        {terms.map((term) => (
+                          <li key={term.id} className="mb-3 mt-3">
+                            {term.condition}
+                          </li>
+                        ))}
+                      </ul>
                     </div>
                   </div>
 
