@@ -64,10 +64,12 @@ export default function CreateEvent() {
   // @ts-ignore
   const [selectedVendors, setSelectedVendors] = useState([]);
   // @ts-ignore
+  // @ts-ignore
   const [eventSchedule, setEventSchedule] = useState("");
   // @ts-ignore
   const [scheduleData, setScheduleData] = useState({});
 
+  // @ts-ignore
   // @ts-ignore
   const [data, setData] = useState([
     { user: "", date: "", status: "", remark: "" },
@@ -89,12 +91,12 @@ export default function CreateEvent() {
   };
   const handleCityChange = (selectedOption) => {
     setSelectedCity(selectedOption);
+    fetchData(1, searchTerm, selectedOption);
   };
 
   const navigate = useNavigate();
 
   const handleApply = () => {
-    console.log("Filters applied!");
     setShowPopup(false);
   };
 
@@ -104,6 +106,7 @@ export default function CreateEvent() {
   const handleEventTypeModalClose = () => {
     setEventTypeModal(false);
   };
+  // @ts-ignore
   const handleInviteModalShow = () => {
     setVendorModal(false);
     setInviteModal(true);
@@ -111,6 +114,7 @@ export default function CreateEvent() {
   const handleInviteModalClose = () => {
     setInviteModal(false);
   };
+  // @ts-ignore
   // @ts-ignore
   // @ts-ignore
   const handlePublishEventModalShow = () => {
@@ -127,10 +131,8 @@ export default function CreateEvent() {
   };
 
   const handleSaveSchedule = (data) => {
-    console.log("Received Data schedule:", data); // Debugging
     setScheduleData(data);
     handleEventScheduleModalClose();
-    // Set the event schedule text based on the selected schedule
     const scheduleText = `${data.start_time} ~ ${data.end_time_duration}`;
     setEventScheduleText(scheduleText);
   };
@@ -190,15 +192,16 @@ export default function CreateEvent() {
   const pageRange = 6; // Number of pages to display in the pagination
 
   // @ts-ignore
+  // @ts-ignore
   const [loading, setLoading] = useState(true);
 
-  const fetchData = async (page = 1) => {
+  const fetchData = async (page = 1, searchTerm = "", selectedCity = "") => {
     setLoading(true);
     try {
       const response = await axios.get(
-        `https://vendors.lockated.com/rfq/events/vendor_list?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&page=${page}`
+        `https://vendors.lockated.com/rfq/events/vendor_list?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&page=${page}&q[first_name_or_last_name_or_email_or_mobile_or_nature_of_business_name_in]=${searchTerm}`
       );
-
+      
       const vendors = Array.isArray(response.data.vendors)
         ? response.data.vendors
         : [];
@@ -259,15 +262,12 @@ export default function CreateEvent() {
   };
 
   const handleSaveButtonClick = () => {
-    console.log("Selected Vendors:", selectedRows);
 
-    // Remove selected vendors from tableData
     const updatedTableData = tableData.filter(
       (vendor) =>
         !selectedRows.some((selectedVendor) => selectedVendor.id === vendor.id)
     );
 
-    console.log("Updated tableData:", updatedTableData);
 
     setTableData(updatedTableData);
     setSelectedVendors((prev) => [...prev, ...selectedRows]);
@@ -324,8 +324,11 @@ export default function CreateEvent() {
         status: 1,
         created_by_id: 2,
         event_schedule_attributes: {
+          // @ts-ignore
           start_time: scheduleData.start_time,
+          // @ts-ignore
           end_time_duration: scheduleData.end_time_duration,
+          // @ts-ignore
           evaluation_time: scheduleData.evaluation_time,
           event_type_id: 1,
         },
@@ -367,7 +370,6 @@ export default function CreateEvent() {
     };
 
     try {
-      console.log("payload :", payload);
 
       const response = await fetch(
         "https://vendors.lockated.com/rfq/events?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414",
@@ -406,15 +408,13 @@ export default function CreateEvent() {
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
     if (e.target.value === "") {
-      setFilteredTableData(tableData);
+      // @ts-ignore
+      fetchData(1, searchTerm, selectedCity); // Fetch all data when search input is cleared
     }
   };
 
   const handleSearchClick = () => {
-    const filtered = tableData.filter((vendor) =>
-      vendor.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-    setFilteredTableData(filtered);
+    fetchData(1, searchTerm, selectedCity);
   };
 
   return (
@@ -735,13 +735,13 @@ export default function CreateEvent() {
                       <i className="bi bi-person-plus"></i>
                       <span className="ms-2">Invite</span>
                     </button> */}
-                    <button
+                    {/* <button
                       className="purple-btn2 viewBy-main-child2P mb-0"
                       onClick={() => setShowPopup(true)}
                     >
                       <i className="bi bi-filter"></i>
                       <span className="ms-2">Filters</span>
-                    </button>
+                    </button> */}
 
                     <PopupBox
                       title="Filter by"
@@ -775,7 +775,7 @@ export default function CreateEvent() {
                             />
                           </div>
 
-                          <div style={{ marginBottom: "12px" }}>
+                          {/* <div style={{ marginBottom: "12px" }}>
                             <p>Filter By Tags</p>
                             <MultiSelector
                               options={options}
@@ -783,8 +783,8 @@ export default function CreateEvent() {
                               onChange={handleChange}
                               placeholder={"Filter by tags"}
                             />
-                          </div>
-                          <div className="d-flex align-items-center">
+                          </div> */}
+                          {/* <div className="d-flex align-items-center">
                             <div className="form-check form-switch mt-1">
                               <input
                                 className="form-check-input"
@@ -796,23 +796,27 @@ export default function CreateEvent() {
                             <p className="mb-0 pe-1">
                               Show only selected vendors
                             </p>
-                          </div>
+                          </div> */}
                         </div>
                       }
                     />
                   </div>
                 </div>
                 <div className="d-flex flex-column justify-content-center align-items-center h-100">
-                  <Table
-                    columns={participantsTabColumns}
-                    showCheckbox={true}
-                    data={filteredTableData}
-                    handleCheckboxChange={handleCheckboxChange}
-                    isRowSelected={isVendorSelected}
-                    resetSelectedRows={resetSelectedRows}
-                    onResetComplete={() => setResetSelectedRows(false)}
-                    onRowSelect={undefined}
-                  />
+                  {filteredTableData.length > 0 ? (
+                    <Table
+                      columns={participantsTabColumns}
+                      showCheckbox={true}
+                      data={filteredTableData}
+                      handleCheckboxChange={handleCheckboxChange}
+                      isRowSelected={isVendorSelected}
+                      resetSelectedRows={resetSelectedRows}
+                      onResetComplete={() => setResetSelectedRows(false)}
+                      onRowSelect={undefined}
+                    />
+                  ) : (
+                    <p>No vendors found</p>
+                  )}
                 </div>
                 <div className="d-flex justify-content-between align-items-center px-1 mt-2">
                   <ul className="pagination justify-content-center d-flex ">
