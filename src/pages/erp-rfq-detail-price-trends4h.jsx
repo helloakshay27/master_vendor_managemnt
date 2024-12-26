@@ -306,6 +306,7 @@ export default function ErpRfqDetailPriceTrends4h() {
   }, [id]);
 
 
+  console.log(overviewData);
   
 
 
@@ -341,8 +342,7 @@ export default function ErpRfqDetailPriceTrends4h() {
                 <div className="d-flex align-items-center justify-content-between eventList-child2">
                   <div className="m-2">
                     <p className="event-participant-cardHead mb-1">
-                      ''Event No: RFQ1233132 | Companies: MNRL, MRPL | Projects:
-                      Nexttown, Nexzone | Material: Doors, Door Frames.
+                      ''Event No: {" "}{overviewData?.event_no} | {overviewData?.event_title}
                     </p>
                   </div>
                   <div className="d-flex align-items-center flex-column justify-content-center text-center">

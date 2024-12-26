@@ -8,6 +8,7 @@ import {
 } from "../..";
 import { participantsData } from "../../../constant/data";
 import { Tab } from "react-bootstrap";
+import { event } from "jquery";
 
 export default function OverviewTab({
   handleParticipants,
@@ -85,13 +86,20 @@ export default function OverviewTab({
     const seconds = duration.getUTCSeconds();
     return `${hours}h ${minutes}m ${seconds}s`;
   };
+
+  const startTime = overviewData?.event_schedule?.start_time;
+
+  const endTime = overviewData?.event_schedule?.end_time_duration;
   
-  const OrderEndTime = new Date(overviewData?.event_schedule?.end_time);
+  const OrderEndTime = new Date(endTime);
+  console.log("OrderEndTime", OrderEndTime);
+  console.log(overviewData, "overviewData");
+  
   
   const orderConfig = [
     {
       label: "Order Type",
-      value: overviewData?.event_type_detail?.event_type || "_",
+      value: overviewData?.event_type_detail?.event_title || "_",
     },
     {
       label: "Order Mode",
@@ -107,8 +115,8 @@ export default function OverviewTab({
     },
     {
       label: "Order Duration",
-      value: calculateOrderDuration(overviewData?.event_schedule?.start_time, OrderEndTime) || "_",
-    },
+      value: calculateOrderDuration(startTime, endTime),
+    },,
     {
       label: "Evaluation Time",
       value: overviewData?.event_schedule?.evaluation_time || "_",

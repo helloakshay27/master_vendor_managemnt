@@ -70,7 +70,7 @@ export default function ResponseTab({ data }) {
       <div className="viewBy-main">
         <div className="viewBy-main-child1">
           <div className="d-flex align-items-center mb-3">
-            <select
+            {/* <select
               style={{ marginRight: "20px" }}
               name="language"
               className=" viewBy-headerForm"
@@ -82,7 +82,7 @@ export default function ResponseTab({ data }) {
               </option>
               <option value="vendor">Vendor</option>
               <option value="product">Product</option>
-            </select>
+            </select> */}
             <div
               className="d-flex align-items-center"
               style={{ marginRight: "20px" }}
@@ -159,7 +159,9 @@ export default function ResponseTab({ data }) {
                 alignItems: "center",
               }}
             ></div>
-            <div style={{ overflowX: "auto" }}>
+            { eventVendors.length > 0 ? (
+              <>
+              <div style={{ overflowX: "auto" }}>
               <table
                 className="tbl-container w-100 mb-0"
                 style={{ boxShadow: "none" }}
@@ -285,6 +287,8 @@ export default function ResponseTab({ data }) {
                 }))
               )}
             />
+            </>
+            ) : <h4 className="h-100 w-100 d-flex justify-content-center align-items-center pt-5">No Bid Details found</h4>}
           </div>
         </FullScreen>
       )}
