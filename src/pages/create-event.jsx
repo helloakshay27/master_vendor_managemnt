@@ -392,6 +392,31 @@ export default function CreateEvent() {
     }
   };
 
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filteredTableData, setFilteredTableData] = useState([]);
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    setFilteredTableData(tableData);
+  }, [tableData]);
+
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+    if (e.target.value === "") {
+      setFilteredTableData(tableData);
+    }
+  };
+
+  const handleSearchClick = () => {
+    const filtered = tableData.filter((vendor) =>
+      vendor.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    setFilteredTableData(filtered);
+  };
+
   return (
     <>
       <Header />
@@ -680,9 +705,15 @@ export default function CreateEvent() {
                       id="searchInput"
                       className="tbl-search form-control"
                       placeholder="Search Vendors"
+                      value={searchTerm}
+                      onChange={handleSearchChange}
                     />
                     <div className="input-group-append">
-                      <button type="button" className="btn btn-md btn-default">
+                      <button
+                        type="button"
+                        className="btn btn-md btn-default"
+                        onClick={handleSearchClick}
+                      >
                         <SearchIcon />
                       </button>
                     </div>
@@ -766,7 +797,7 @@ export default function CreateEvent() {
                   <Table
                     columns={participantsTabColumns}
                     showCheckbox={true}
-                    data={tableData}
+                    data={filteredTableData}
                     handleCheckboxChange={handleCheckboxChange}
                     isRowSelected={isVendorSelected}
                     resetSelectedRows={resetSelectedRows}

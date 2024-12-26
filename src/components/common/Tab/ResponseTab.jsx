@@ -58,6 +58,8 @@ export default function ResponseTab({ data }) {
 
   const eventVendors = Array.isArray(data?.vendors) ? data.vendors : [];
 
+  console.log("eventVendors", eventVendors);
+  
   return (
     <div
       className="tab-pane fade show active"
@@ -203,10 +205,6 @@ export default function ResponseTab({ data }) {
                                     console.log(
                                       "bidId ------- ",
                                       vendor.bids[0].bid_materials[0].bid_id
-                                    );
-                                  } else {
-                                    alert(
-                                      "No bid materials available for this vendor."
                                     );
                                   }
                                 }}

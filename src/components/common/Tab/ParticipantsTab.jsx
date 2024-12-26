@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Table from "../../base/Table/Table";
 import { participantsTabColumns } from "../../../constant/data";
 import SearchIcon from "../Icon/SearchIcon";
@@ -6,6 +6,23 @@ import SearchIcon from "../Icon/SearchIcon";
 export default function ParticipantsTab({ data }) {
   const [isSelectCheckboxes, setIsSelectCheckboxes] = useState(false);
   const [selectedRows, setSelectedRows] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filteredData, setFilteredData] = useState([]);
+
+  useEffect(() => {
+    setFilteredData(
+      Array.isArray(data?.event_vendors)
+        ? data.event_vendors.map((vendor) => {
+            const { organization_name, contact_number, email } = vendor.pms_supplier || {};
+            return {
+              name: organization_name || "_",
+              phone: contact_number || "_",
+              email: email || "_",
+            };
+          })
+        : []
+    );
+  }, [data]);
 
   const handleSwitchChange = (e) => {
     const checked = e.target.checked;
@@ -15,17 +32,44 @@ export default function ParticipantsTab({ data }) {
       setSelectedRows([]);
     }
   };
-  
-  const tableData = Array.isArray(data?.event_vendors)
-    ? data.event_vendors.map((vendor) => {
-        const { organization_name, contact_number, email } = vendor.pms_supplier || {};
-        return {
-          name: organization_name || "_",
-          phone: contact_number || "_",
-          email: email || "_",
-        };
-      })
-    : [];
+
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+    if (e.target.value === "") {
+      setFilteredData(
+        Array.isArray(data?.event_vendors)
+          ? data.event_vendors.map((vendor) => {
+              const { organization_name, contact_number, email } = vendor.pms_supplier || {};
+              return {
+                name: organization_name || "_",
+                phone: contact_number || "_",
+                email: email || "_",
+              };
+            })
+          : []
+      );
+    }
+  };
+
+  const handleSearchClick = () => {
+    const filtered = Array.isArray(data?.event_vendors)
+      ? data.event_vendors
+          .map((vendor) => {
+            const { organization_name, contact_number, email } = vendor.pms_supplier || {};
+            return {
+              name: organization_name || "_",
+              phone: contact_number || "_",
+              email: email || "_",
+            };
+          })
+          .filter((vendor) =>
+            vendor.name.toLowerCase().includes(searchTerm.toLowerCase())
+          )
+      : [];
+    setFilteredData(filtered);
+  };
+
+  const tableData = filteredData;
 
   return (
     <div
@@ -43,16 +87,18 @@ export default function ParticipantsTab({ data }) {
               id="searchInput"
               className="w-50 tbl-search"
               placeholder="Type your vendors here"
-              style={{ width: "100px !important", marginLeft: "20px", paddingLeft: "10px" }}
+              style={{ paddingLeft: "10px" }}
+              value={searchTerm}
+              onChange={handleSearchChange}
             />
             <div className="input-group-append">
-              <button type="button" className="btn btn-md btn-default">
+              <button type="button" className="btn btn-md btn-default" onClick={handleSearchClick}>
                 <SearchIcon />
               </button>
             </div>
           </div>
           <div className="d-flex align-items-center">
-            <div className="d-flex align-items-center">
+            {/* <div className="d-flex align-items-center">
               <p className="eventList-p1 mb-0 me-2" style={{ textWrap: "nowrap" }}>
                 Show only selected vendors
               </p>
@@ -66,7 +112,7 @@ export default function ParticipantsTab({ data }) {
                   onChange={handleSwitchChange}
                 />
               </div>
-            </div>
+            </div> */}
             <div>
               <img
                 className="me-2"
@@ -88,10 +134,14 @@ export default function ParticipantsTab({ data }) {
             </select> */}
           </div>
         </div>
-        <Table
-          columns={participantsTabColumns}
-          data={tableData}
-        />
+        {tableData.length > 0 ? (
+          <Table
+            columns={participantsTabColumns}
+            data={tableData}
+          />
+        ) : (
+          <div className="text-center mt-4">No data found</div>
+        )}
       </div>
     </div>
   );
