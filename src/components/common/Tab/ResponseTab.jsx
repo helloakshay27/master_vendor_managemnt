@@ -177,7 +177,7 @@ export default function ResponseTab({ data }) {
                 >
                   <tbody>
                     <tr>
-                      <td></td>
+                      <td style={{ width: "500px" }}></td>
                       {eventVendors.map((vendor, index) => {
                         return (
                           <td key={vendor.id} style={{ width: "500px" }}>
@@ -219,7 +219,7 @@ export default function ResponseTab({ data }) {
                       })}
                     </tr>
                     <tr>
-                      <td className="viewBy-tBody1-p">Gross Total</td>
+                      <td className="viewBy-tBody1-p" style={{width:"500px"}}>Gross Total</td>
                       {eventVendors.map((vendor) => {
                         return <td>{vendor.gross_total || "_"}</td>;
                       })}

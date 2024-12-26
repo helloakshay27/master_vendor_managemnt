@@ -525,23 +525,21 @@ export const freightData = [
   { label: "Loading / Unloading", value: "under buyer" },
 ];
 export  const productTableColumns = [
-  { label: "Product*", key: "product" },
+  { label: "S no.*", key: "Sno" },
+  { label: "Material*", key: "product" },
   { label: "Quantity Requested*", key: "quantityRequested" },
   { label: "Quantity Available", key: "quantityAvailable" },
-  { label: "Best Total Amount", key: "bestTotalAmount" },
   { label: "Price*", key: "price" },
-  { label: "Total Amount*", key: "totalAmount" },
-  { label: "S no.*", key: "Sno" },
   { label: "Delivery location*", key: "deliveryLocation" },
   { label: "Creator Attachment", key: "creatorAttachment" },
   { label: "Discount", key: "discount" },
   { label: "Realised Discount*", key: "realisedDiscount" },
   { label: "GST*", key: "gst" },
   { label: "Realised GST", key: "realisedGst" },
-  { label: "Landed Amount*", key: "landedAmount" },
   { label: "Participant Attachment", key: "participantAttachment" },
-  { label: "Remark*", key: "remark" },
   { label: "Vendor Remark*", key: "vendorRemark" },
+  { label: "Landed Amount*", key: "landedAmount" },
+  { label: "Total Amount*", key: "totalAmount" },
 ];
 
 export const biddingData = [

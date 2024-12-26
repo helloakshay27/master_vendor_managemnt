@@ -10,24 +10,20 @@ export default function BulkCounterOfferModal({
   handleClose,
   bidCounterData,
 }) {
-  
   const [formData, setFormData] = useState({});
+  const [sumTotal, setSumTotal] = useState(0);
 
   useEffect(() => {
-    setFormData(bidCounterData);
+    if (bidCounterData) {
+      setFormData(bidCounterData);
+      const initialSumTotal = bidCounterData.bid_materials.reduce(
+        (acc, item) => acc + (parseFloat(item.total_amount) || 0),
+        0
+      );
+      setSumTotal(initialSumTotal);
+    }
   }, [bidCounterData]);
   
-  const handleInputChange = (e, field) => {
-    const newFormData = { ...formData };
-    newFormData[field] = e.target.value;
-    setFormData(newFormData);
-  };
-
-  const handleMaterialInputChange = (e, field, index) => {
-    const newFormData = { ...formData };
-    newFormData.bid_materials[index][field] = e.target.value;
-    setFormData(newFormData);
-  };
 
   const handleSubmit = async () => {
     const payload = {
@@ -42,137 +38,240 @@ export default function BulkCounterOfferModal({
         warranty_clause: formData.warranty_clause,
         payment_terms: formData.payment_terms,
         loading_unloading_clause: formData.loading_unloading_clause,
-        counter_bid_materials_attributes: formData.bid_materials.map((item) => ({
-          event_material_id: item.event_material_id,
-          quantity_available: item.quantity_available,
-          price: item.price,
-          discount: item.discount,
-          total_amount: item.total_amount,
-          realised_discount: item.realised_discount,
-          gst: item.gst,
-          realised_gst: item.realised_gst,
-          vendor_remark: item.vendor_remark,
-        })),
+        counter_bid_materials_attributes: formData.bid_materials.map(
+          (item) => ({
+            event_material_id: item.event_material_id,
+            bid_material_id: item.id,
+            quantity_available: item.quantity_available,
+            price: item.price,
+            discount: item.discount,
+            total_amount: item.total_amount,
+            realised_discount: item.realised_discount,
+            gst: item.gst,
+            realised_gst: item.realised_gst,
+            vendor_remark: item.vendor_remark,
+          })
+        ),
       },
     };
     console.log(payload, "payload");
-    
 
-    const response = await fetch('https://vendors.lockated.com/rfq/events/31/bids/37/counter_bids?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
-    });
+    const response = await fetch(
+      "https://vendors.lockated.com/rfq/events/31/bids/37/counter_bids?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      }
+    );
     if (response.ok) {
       handleClose();
     } else {
-      console.error('Failed to submit counter bid');
+      console.error("Failed to submit counter bid");
     }
   };
-  
-  const productTableData = formData?.bid_materials?.map((item, index) => {
-    const productName = item.material_name || "_";
-    const quantityRequested = item.quantity_requested || "N/A";  
-    const quantityAvailable = (
-      <input
-      type="number"
-      className="form-control"
-      value={item.quantity_available}
-        onChange={(e) => handleMaterialInputChange(e, 'quantity_available', index)}
-      />
-    );
-    const bestTotalAmount = item.best_total_amount || "_"; 
-    const price = (
-      <input
-        type="number"
-        className="form-control" style={{width: "auto"}}
-        value={item.price}
-        onChange={(e) => handleMaterialInputChange(e, 'price', index)}
-      />
-    );
-    const totalAmount = (
-      <input
-        type="number"
-        className="form-control" style={{width: "auto"}}
-        value={item.total_amount}
-        onChange={(e) => handleMaterialInputChange(e, 'total_amount', index)}
-      />
-    );
-    const sno = item.sno || "_"; 
-    const discount = (
-      <input
-        type="number"
-        className="form-control" style={{width: "auto"}}
-        value={item.discount}
-        onChange={(e) => handleMaterialInputChange(e, 'discount', index)}
-      />
-    );
-    const realisedDiscount = (
-      <input
-        type="number"
-        className="form-control" style={{width: "auto"}}
-        value={item.realised_discount}
-        onChange={(e) => handleMaterialInputChange(e, 'realised_discount', index)}
-      />
-    );
-    const gst = (
-      <input
-        type="number"
-        className="form-control" style={{width: "auto"}}
-        value={item.gst}
-        onChange={(e) => handleMaterialInputChange(e, 'gst', index)}
-      />
-    );
-    const realisedGst = (
-      <input
-        type="number"
-        className="form-control" style={{width: "auto"}}
-        value={item.realised_gst}
-        onChange={(e) => handleMaterialInputChange(e, 'realised_gst', index)}
-      />
-    );
-    const landedAmount = item.landed_amount || "_";
-    const remark = item.remark || "_";
-    const vendorRemark = (
-      <input
-        type="text"
-        className="form-control" style={{width: "auto"}}
-        value={item.vendor_remark}
-        onChange={(e) => handleMaterialInputChange(e, 'vendor_remark', index)}
-      />
-    );
-    
-    const deliveryLocation = bidCounterData?.event?.delivary_location || "N/A";
-    
-    return {
-      product: (
-        <span>
-          {productName}
-        </span>
-      ),
-      quantityRequested,
-      quantityAvailable,
-      bestTotalAmount,
-      price,
-      totalAmount,
-      Sno: index + 1,
-      deliveryLocation,
-      creatorAttachment: <input type="file" className="form-control" style={{width: "auto"}} />,
-      discount,
-      realisedDiscount,
-      gst,
-      realisedGst,
-      landedAmount,
-      participantAttachment: <input type="file" className="form-control" style={{width: "auto"}} />,
-      remark,
-      vendorRemark,
-    };
-  }) || [];
 
-  // console.log("productTableDatas:", productTableData, bidCounterData);
-  
+  const handleMaterialInputChange = (e, field, index) => {
+    const value = e.target.value;
+    const updatedMaterials = [...formData.bid_materials];
+    updatedMaterials[index][field] = value;
+
+    const price = parseFloat(updatedMaterials[index].price) || 0;
+    const quantityAvail =
+      parseFloat(updatedMaterials[index].quantity_available) || 0;
+    const discount = parseFloat(updatedMaterials[index].discount) || 0;
+    const gst = parseFloat(updatedMaterials[index].gst) || 0;
+
+    // Step 1: Calculate total amount (price * quantity)
+    const total = price * quantityAvail;
+
+    // Step 2: Calculate realised discount
+    const realisedDiscount = (total * discount) / 100;
+
+    // Step 3: Calculate landed amount (discounted total, before GST)
+    const landedAmount = total - realisedDiscount;
+
+    // Step 4: Calculate realised GST (based on landed amount)
+    let realisedGst = 0;
+    if (gst > 0) {
+      realisedGst = (landedAmount * gst) / 100; // GST applied on landed amount
+    }
+
+    // Step 5: Calculate final total (landed amount + GST)
+    const finalTotal = landedAmount + realisedGst;
+
+    // Update fields in the data array
+    updatedMaterials[index].realised_discount = realisedDiscount.toFixed(2);
+    updatedMaterials[index].landed_amount = landedAmount.toFixed(2); // Before GST
+    updatedMaterials[index].realised_gst = realisedGst.toFixed(2);
+    updatedMaterials[index].total_amount = finalTotal.toFixed(2); // After GST
+
+    setSumTotal(
+      updatedMaterials.reduce(
+        (acc, item) => acc + parseFloat(item.total_amount),
+        0
+      )
+    );
+
+    setFormData({
+      ...formData,
+      bid_materials: updatedMaterials,
+    });
+  };
+
+  const handleInputChange = (e, field) => {
+    const value = e.target.value;
+    const updatedFormData = { ...formData, [field]: value };
+
+    if (field === "freight_charge_amount" || field === "gst_on_freight") {
+      const freightCharge =
+        parseFloat(updatedFormData.freight_charge_amount) || 0;
+      const gstOnFreight = parseFloat(updatedFormData.gst_on_freight) || 0;
+      updatedFormData.realised_freight_charge_amount =
+        freightCharge + (freightCharge * gstOnFreight) / 100;
+    }
+
+    const sumTotal = formData.bid_materials.reduce(
+      (acc, item) => acc + (parseFloat(item.total_amount) || 0),
+      0
+    );
+    const totalSum =
+      sumTotal + (updatedFormData.realised_freight_charge_amount || 0);
+
+    setFormData(updatedFormData);
+    setSumTotal(totalSum); // Update the sumTotal state
+  };
+
+  const productTableData =
+    formData?.bid_materials?.map((item, index) => {
+      const productName = item.material_name || "_";
+      const quantityRequested = (
+        <input
+          type="number"
+          className="form-control"
+          value={item.quantity_requested}
+          style={{ width: "auto" }}
+          onChange={(e) =>
+            handleMaterialInputChange(e, "quantity_requested", index)
+          }
+          disabled
+        />
+      );
+      const quantityAvailable = (
+        <input
+          type="number"
+          className="form-control"
+          value={item.quantity_available}
+          style={{ width: "auto" }}
+          onChange={(e) =>
+            handleMaterialInputChange(e, "quantity_available", index)
+          }
+        />
+      );
+      const bestTotalAmount = item.best_total_amount || "_";
+      const price = (
+        <input
+          type="number"
+          className="form-control"
+          style={{ width: "auto" }}
+          value={item.price}
+          onChange={(e) => handleMaterialInputChange(e, "price", index)}
+        />
+      );
+      const totalAmount = (
+        <input
+          type="number"
+          className="form-control"
+          style={{ width: "auto" }}
+          value={item.total_amount}
+          readOnly
+        />
+      );
+      const sno = item.sno || "_";
+      const discount = (
+        <input
+          type="number"
+          className="form-control"
+          style={{ width: "auto" }}
+          value={item.discount}
+          onChange={(e) => handleMaterialInputChange(e, "discount", index)}
+        />
+      );
+      const realisedDiscount = (
+        <input
+          type="number"
+          className="form-control"
+          style={{ width: "auto" }}
+          value={item.realised_discount}
+          disabled
+        />
+      );
+      const gst = (
+        <input
+          type="number"
+          className="form-control"
+          style={{ width: "auto" }}
+          value={item.gst}
+          onChange={(e) => handleMaterialInputChange(e, "gst", index)}
+        />
+      );
+      const realisedGst = (
+        <input
+          type="number"
+          className="form-control"
+          style={{ width: "auto" }}
+          value={item.realised_gst}
+          disabled
+        />
+      );
+      const landedAmount = item.landed_amount || "_";
+      const remark = item.remark || "_";
+      const vendorRemark = (
+        <input
+          type="text"
+          className="form-control"
+          style={{ width: "auto" }}
+          value={item.vendor_remark}
+          onChange={(e) => handleMaterialInputChange(e, "vendor_remark", index)}
+        />
+      );
+
+      const deliveryLocation =
+        bidCounterData?.event?.delivary_location || "N/A";
+
+      return {
+        Sno: index + 1,
+        product: <span>{productName}</span>,
+        quantityRequested,
+        quantityAvailable,
+        bestTotalAmount,
+        price,
+        deliveryLocation,
+        creatorAttachment: (
+          <input
+            type="file"
+            className="form-control"
+            style={{ width: "auto" }}
+          />
+        ),
+        discount,
+        realisedDiscount,
+        gst,
+        realisedGst,
+        participantAttachment: (
+          <input
+            type="file"
+            className="form-control"
+            style={{ width: "auto" }}
+          />
+        ),
+        vendorRemark,
+        landedAmount,
+        totalAmount,
+      };
+    }) || [];
 
   const freightData = [
     {
@@ -180,9 +279,10 @@ export default function BulkCounterOfferModal({
       value: (
         <input
           type="number"
-          className="form-control" style={{width: "auto"}}
-          value={formData?.freight_charge_amount || "_"}
-          onChange={(e) => handleInputChange(e, 'freight_charge_amount')}
+          className="form-control"
+          style={{ width: "auto" }}
+          value={formData?.freight_charge_amount || ""}
+          onChange={(e) => handleInputChange(e, "freight_charge_amount")}
         />
       ),
     },
@@ -191,20 +291,22 @@ export default function BulkCounterOfferModal({
       value: (
         <input
           type="number"
-          className="form-control" style={{width: "auto"}}
-          value={formData?.gst_on_freight || "_"}
-          onChange={(e) => handleInputChange(e, 'gst_on_freight')}
+          className="form-control"
+          style={{ width: "auto" }}
+          value={formData?.gst_on_freight || ""}
+          onChange={(e) => handleInputChange(e, "gst_on_freight")}
         />
       ),
     },
     {
-      label: "Realised Freight",
+      label: "Realised Freight ",
       value: (
         <input
           type="number"
-          className="form-control" style={{width: "auto"}}
-          value={formData?.realised_freight_charge_amount || "_"}
-          onChange={(e) => handleInputChange(e, 'realised_freight_charge_amount')}
+          className="form-control"
+          style={{ width: "auto" }}
+          value={formData?.realised_freight_charge_amount}
+          disabled
         />
       ),
     },
@@ -213,9 +315,10 @@ export default function BulkCounterOfferModal({
       value: (
         <input
           type="text"
-          className="form-control" style={{width: "auto"}}
-          value={formData?.warranty_clause || "_"}
-          onChange={(e) => handleInputChange(e, 'warranty_clause')}
+          className="form-control"
+          style={{ width: "auto" }}
+          value={formData?.warranty_clause || ""}
+          onChange={(e) => handleInputChange(e, "warranty_clause")}
         />
       ),
     },
@@ -224,9 +327,10 @@ export default function BulkCounterOfferModal({
       value: (
         <input
           type="text"
-          className="form-control" style={{width: "auto"}}
-          value={formData?.payment_terms || "_"}
-          onChange={(e) => handleInputChange(e, 'payment_terms')}
+          className="form-control"
+          style={{ width: "auto" }}
+          value={formData?.payment_terms || ""}
+          onChange={(e) => handleInputChange(e, "payment_terms")}
         />
       ),
     },
@@ -235,9 +339,10 @@ export default function BulkCounterOfferModal({
       value: (
         <input
           type="text"
-          className="form-control" style={{width: "auto"}}
-          value={formData?.loading_unloading_clause || "_"}
-          onChange={(e) => handleInputChange(e, 'loading_unloading_clause')}
+          className="form-control"
+          style={{ width: "auto" }}
+          value={formData?.loading_unloading_clause || ""}
+          onChange={(e) => handleInputChange(e, "loading_unloading_clause")}
         />
       ),
     },
@@ -258,14 +363,13 @@ export default function BulkCounterOfferModal({
       ]}
     >
       <h5 className="mt-5">Product Sheet</h5>
-      <Table
-        columns={productTableColumns}
-        data={productTableData}
-        showCheckbox={true}
-      />
+      <Table columns={productTableColumns} data={productTableData} />
 
       <div className="d-flex justify-content-end">
         <ShortTable data={freightData} />
+      </div>
+      <div className="d-flex justify-content-end">
+        <h4>Sum Total : ₹{sumTotal}</h4>
       </div>
 
       <div className="form-group">

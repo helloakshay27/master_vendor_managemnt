@@ -108,12 +108,12 @@ export default function Table({
               <tr key={rowIndex}>
                 <td
                   className="main2-th"
-                  style={{ fontWeight: "bold", textAlign: "left" }}
+                  style={{ fontWeight: "bold", textAlign: "left", width: "500px" }}
                 >
                   {row.header}
                 </td>
                 {row.values.map((value, valueIndex) => (
-                  <td key={valueIndex}>
+                  <td key={valueIndex} style={{width: '500px'}}>
                     {customRender[columns[rowIndex]?.key]
                       ? customRender[columns[rowIndex]?.key](
                           value,
