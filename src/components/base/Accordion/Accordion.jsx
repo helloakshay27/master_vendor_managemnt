@@ -7,8 +7,8 @@ export default function Accordion({ title, isDefault, tableColumn, tableData }) 
 
   const toggleAccordion = () => setIsOpen(!isOpen);
   return (
-    <div className="accordion" id="accordionExample">
-      <div className="accordion-item py-3">
+    <div className="accordion rounded-0 border-0 mb-0" id="accordionExample">
+      <div className="accordion-item rounded-0">
         <h2 className="accordion-header">
           <button
             className="accordion-button viewBy-collapT1"
@@ -27,7 +27,7 @@ export default function Accordion({ title, isDefault, tableColumn, tableData }) 
           className={`accordion-collapse collapse ${isOpen ? "show" : ""}`}
           aria-labelledby="headingOne"
         >
-          <div className="accordion-body">
+          <div className="accordion-body p-0">
             {/* <table className="tbl-container">
               <tbody>
                 {tableData.map((row, rowIndex) => (
@@ -51,16 +51,6 @@ export default function Accordion({ title, isDefault, tableColumn, tableData }) 
               data={tableData}
               isHorizontal={true}
             />
-            {isDefault && (
-              <div className="default-val mt-4">
-                <div className="col-md-2">
-                  <p className="d-flex gap-1 align-items-center">
-                    Default: <span className="viewBy-tBody1-R">₹</span>
-                    68{" "}
-                  </p>
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </div>

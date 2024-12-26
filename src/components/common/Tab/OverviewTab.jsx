@@ -129,10 +129,7 @@ export default function OverviewTab({
     realised_discount: "_",
     gst: "_",
     realised_gst: "_"
-  }));
-  
-  console.log("overviewData", overviewData);
-  
+  }));  
 
   return (
     <div

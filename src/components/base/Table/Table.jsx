@@ -93,13 +93,13 @@ export default function Table({
   if (isHorizontal) {
     const transposedData = transposeData(data, columns);
     return (
-      <div className="bid-tbl px-0 mt-3" {...rest}>
+      <div className="bid-tbl mb-0" {...rest}>
         <table className="w-100">
           <thead>
             <tr style={{ backgroundColor: "#d3d3d3" }}>
               <th />
               {data.map((_, index) => (
-                <th key={index} className="main2-th"></th>
+                <th key={index} className="main2-th" style={{height:'0px !important'}}></th>
               ))}
             </tr>
           </thead>

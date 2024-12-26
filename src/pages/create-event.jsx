@@ -539,18 +539,28 @@ export default function CreateEvent() {
                 </thead>
 
                 <tbody>
-                  {selectedVendors
-                    .filter(
-                      (vendor, index, self) =>
-                        index === self.findIndex((v) => v.id === vendor.id) // Ensure uniqueness by id
-                    )
-                    .map((vendor) => (
-                      <tr key={vendor.id}>
-                        <td>{vendor.name}</td>
-                        <td>{vendor.phone}</td>
-                        <td>Invited</td> {/* Display the status */}
-                      </tr>
-                    ))}
+                  {selectedVendors.length > 0 ? (
+                    selectedVendors
+                      .filter(
+                        (vendor, index, self) =>
+                          index === self.findIndex((v) => v.id === vendor.id) // Ensure uniqueness by id
+                      )
+                      .map((vendor) => (
+                        <tr key={vendor.id}>
+                          <td>{vendor.name}</td>
+                          <td>{vendor.phone}</td>
+                          <td>Invited</td> {/* Display the status */}
+                        </tr>
+                      ))
+                  ) : (
+                    <tr>
+                      <td 
+// @ts-ignore
+                      colSpan="3" className="text-center">
+                        No vendors selected
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -594,9 +604,8 @@ export default function CreateEvent() {
           </div>
 
           <div className="row mt-4 mt-3">
-            <h5>Audit Log</h5>
+            {/* <h5>Audit Log</h5>
             <div className="mx-0">
-              {/* <Table columns={auditLogColumns} data={auditLogData} /> */}
               <div className="tbl-container px-0 mt-3">
                 <table className="w-100">
                   <thead>
@@ -607,7 +616,7 @@ export default function CreateEvent() {
                       <th>Remark</th>
                     </tr>
                   </thead>
-                  {/* <tbody>
+                  <tbody>
                     <tr>
                       <td>
                         <input
@@ -638,10 +647,10 @@ export default function CreateEvent() {
                         />
                       </td>
                     </tr>
-                  </tbody> */}
+                  </tbody>
                 </table>
               </div>
-            </div>
+            </div> */}
 
             <EventScheduleModal
               show={eventScheduleModal}
