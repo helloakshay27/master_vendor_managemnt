@@ -639,7 +639,7 @@ export default function VendorDetails() {
               aria-selected="false"
               style={{ color: "black" }}
             >
-              [1000291945] PLUMBIN...
+              [{data1?.event_no}] {data1?.event_title}
             </a>
           </li>
         </ul>
@@ -656,10 +656,10 @@ export default function VendorDetails() {
 
             <div
               className="p-3 mb-2 "
-              // style={{
-              //   overflowY: "auto",
-              //   height: "calc(100vh - 100px)",
-              // }}
+            // style={{
+            //   overflowY: "auto",
+            //   height: "calc(100vh - 100px)",
+            // }}
             >
               {loading ? (
                 "Loading...."
@@ -711,6 +711,9 @@ export default function VendorDetails() {
                                   <table className="w-100 table">
                                     <thead>
                                       <tr>
+                                      <th className="text-start">
+                                          Sr. No.
+                                        </th>
                                         <th className="text-start">
                                           Stage Title
                                         </th>
@@ -725,6 +728,12 @@ export default function VendorDetails() {
                                     </thead>
                                     <tbody>
                                       <tr>
+                                        <td 
+                                         className="text-start"
+                                         style={{ color: "#777777" }}
+                                        >
+                                         1
+                                        </td>
                                         <td
                                           className="text-start"
                                           style={{ color: "#777777" }}
@@ -800,19 +809,18 @@ export default function VendorDetails() {
                               className=""
                               style={{ paddingLeft: "24px" }}
                             >
-                              <div className=" card card-body rounded-3 p-4">
-                                <p>
-                                  1. Payment terms: Net 30 days.
-                                  <br />
-                                  <br />
-                                  2. Delivery within 15 business days.
-                                  <br />
-                                  <br />
-                                  3. Warranty: 1 year from the date of purchase.
-                                  <br />
-                                  <br />
-                                  4. Returns are subject to company policy.
-                                </p>
+                              <div className=" card card-body rounded-3 p-0">
+                               
+                                <ul
+                                  className=" mt-3 mb-3"
+                                  // style={{ fontSize: "13px", marginLeft: "0px" }}
+                                >
+                                  {terms.map((term) => (
+                                    <li key={term.id} className="mb-3 mt-3">
+                                      {term.condition}
+                                    </li>
+                                  ))}
+                                </ul>
                               </div>
                             </div>
                           )}
@@ -868,6 +876,9 @@ export default function VendorDetails() {
                                   <table className="w-100 table">
                                     <thead>
                                       <tr>
+                                      <th className="text-start">
+                                          Sr.No.
+                                        </th>
                                         <th className="text-start">
                                           Buyer Name
                                         </th>
@@ -877,6 +888,12 @@ export default function VendorDetails() {
                                     </thead>
                                     <tbody>
                                       <tr>
+                                      <td
+                                          className="text-start"
+                                          style={{ color: "#777777" }}
+                                        >
+                                         1
+                                        </td>
                                         <td
                                           className="text-start"
                                           style={{ color: "#777777" }}
