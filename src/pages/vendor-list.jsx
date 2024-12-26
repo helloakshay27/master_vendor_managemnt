@@ -7,6 +7,8 @@ import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { Formik, Field, Form, ErrorMessage } from "formik";
 import axios from "axios";
+import { useParams, useLocation, useNavigate } from "react-router-dom";
+
 
 import {
   LayoutModal,
@@ -29,6 +31,8 @@ import { eventProjectColumns } from "../constant/data";
 export default function VendorListPage() {
   const [settingShow, setSettingShow] = useState(false);
   const [show, setShow] = useState(false);
+  const location = useLocation();
+
   const [activeTab, setActiveTab] = useState("all");
   const [liveEvents, setLiveEvents] = useState([]);
   const [historyEvents, setHistoryEvents] = useState([]);
@@ -112,11 +116,14 @@ export default function VendorListPage() {
     const fetchFilterOptions = async () => {
       setLoading(true);
       try {
+        const urlParams = new URLSearchParams(location.search);
+        const token = urlParams.get("token");
+        
         const response = await axios.get(
           "https://vendors.lockated.com/rfq/events/advance_filter_options",
           {
             params: {
-              token: "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414",
+              token: token,
             },
           }
         );
@@ -162,17 +169,19 @@ export default function VendorListPage() {
   const fetchEvents = async (page = 1) => {
     setLoading(true);
     try {
+      const urlParams = new URLSearchParams(location.search);
+      const token = urlParams.get("token");
       const [liveResponse, historyResponse, allResponse] = await Promise.all([
         axios.get("https://vendors.lockated.com/rfq/events/live_events", {
           params: {
-            token: "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414",
+            token: token,
             page: page,
             ...filters,
           },
         }),
         axios.get("https://vendors.lockated.com/rfq/events/vendor_list", {
           params: {
-            token: "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414",
+            token: token,
             q: "9970804349,mahendra.lungare@lockated.com",
             page: page,
             ...filters,
@@ -180,7 +189,7 @@ export default function VendorListPage() {
         }),
         axios.get("https://vendors.lockated.com/rfq/events", {
           params: {
-            token: "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414",
+            token: token,
             page: page,
             ...filters,
           },
@@ -258,8 +267,10 @@ export default function VendorListPage() {
 
   const handleSearch = async () => {
     try {
+      const urlParams = new URLSearchParams(location.search);
+      const token = urlParams.get("token");
       const response = await axios.get(
-        `https://vendors.lockated.com/rfq/events?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&q[event_title_or_event_no_or_status_or_created_at_or_event_schedule_start_time_or_event_schedule_end_time_cont]=${searchQuery}`
+        `https://vendors.lockated.com/rfq/events?token=${token}&q[event_title_or_event_no_or_status_or_created_at_or_event_schedule_start_time_or_event_schedule_end_time_cont]=${searchQuery}`
       );
 
       setLiveEvents(response.data.liveEvents || []);
@@ -282,12 +293,14 @@ export default function VendorListPage() {
 
   const vendorDetails = async () => {
     try {
+      const urlParams = new URLSearchParams(location.search);
+      const token = urlParams.get("token");
       const response = await axios.get(
         "https://vendors.lockated.com/rfq/events/event_vendors_list",
         {
           params: {
-            token: "bfa5004e7b0175622be8f7e69b37d01290b737f82e078411",
-            page: 1,
+            token: token,
+            // page: 1,
           },
         }
       );
