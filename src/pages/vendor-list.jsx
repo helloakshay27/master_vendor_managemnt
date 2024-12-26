@@ -4,10 +4,8 @@ import "../styles/mor.css";
 import Select from "react-select";
 import { Modal } from "react-bootstrap";
 import { Link } from "react-router-dom";
-
 import { useNavigate } from "react-router-dom";
 import { Formik, Field, Form, ErrorMessage } from "formik";
-
 import axios from "axios";
 
 import {
@@ -31,7 +29,7 @@ import { eventProjectColumns } from "../constant/data";
 export default function VendorListPage() {
   const [settingShow, setSettingShow] = useState(false);
   const [show, setShow] = useState(false);
-  const [activeTab, setActiveTab] = useState("all"); // Added `activeTab` state to handle tab changes
+  const [activeTab, setActiveTab] = useState("all");
   const [liveEvents, setLiveEvents] = useState([]);
   const [historyEvents, setHistoryEvents] = useState([]);
   const [allEventsData, setAllEventsData] = useState([]);
@@ -39,14 +37,6 @@ export default function VendorListPage() {
   const [HistoryEvents1, setHistoryEvents1] = useState([]);
   const [AllEventsData1, setAllEventsData1] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  const navigate = useNavigate();
-
-  const handleSettingClose = () => setSettingShow(false);
-  const handleClose = () => setShow(false);
-  const handleSettingModalShow = () => setSettingShow(true);
-  const handleModalShow = () => setShow(true);
-
   const [filters, setFilters] = useState({
     created_by_id_in: "",
     event_type_detail_award_scheme_in: "",
@@ -56,7 +46,6 @@ export default function VendorListPage() {
     event_materials_pms_inventory_inventory_type_id_in: "",
     event_materials_id_in: "",
   });
-
   const [filterOptions, setFilterOptions] = useState({
     event_titles: [],
     event_numbers: [],
@@ -66,10 +55,24 @@ export default function VendorListPage() {
     material_type: [],
     locations: [],
   });
-
   const [isMyEvent, setIsMyEvent] = useState(false);
+  const [error, setError] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const pageSize = 10;
+  const pageRange = 6;
+  const [searchQuery, setSearchQuery] = useState("");
+  const [vendorId, setVendorId] = useState("");
+  const [vendorOptions, setVendorOptions] = useState([]);
+
+  const navigate = useNavigate();
+
+  const handleSettingClose = () => setSettingShow(false);
+  const handleClose = () => setShow(false);
+  const handleSettingModalShow = () => setSettingShow(true);
+  const handleModalShow = () => setShow(true);
+
   const handleReset = () => {
-    // Reset filters
     setFilters({
       created_by_id_in: "",
       event_type_detail_award_scheme_in: "",
@@ -79,8 +82,6 @@ export default function VendorListPage() {
       event_materials_pms_inventory_inventory_type_id_in: "",
       event_materials_id_in: "",
     });
-
-    // Reset filter options
     setFilterOptions({
       event_titles: [],
       event_numbers: [],
@@ -90,12 +91,8 @@ export default function VendorListPage() {
       material_type: [],
       locations: [],
     });
-
-    // Reset other related states
     setIsMyEvent(false);
   };
-
-  const [error, setError] = useState("");
 
   const preprocessOptions = (array, isKeyValuePair = false) => {
     if (!array) return [];
@@ -151,20 +148,14 @@ export default function VendorListPage() {
     fetchFilterOptions();
   }, []);
 
-  // Fetch events based on filters
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1); // Default total pages
-  const pageSize = 10; // Number of items per page
-  const pageRange = 6; // Number of pages to display in the pagination
-
   const fetchData = async (url, params) => {
     try {
       const response = await axios.get(url, { params });
-      console.log(`Response from ${url}:`, response.data); // Log response for debugging
-      return response.data; // Return only the data from the API response
+      console.log(`Response from ${url}:`, response.data);
+      return response.data;
     } catch (err) {
       console.error(`Error fetching data from ${url}:`, err);
-      throw err; // Throw the error to be handled by the caller
+      throw err;
     }
   };
 
@@ -176,7 +167,6 @@ export default function VendorListPage() {
           params: {
             token: "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414",
             page: page,
-
             ...filters,
           },
         }),
@@ -185,7 +175,6 @@ export default function VendorListPage() {
             token: "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414",
             q: "9970804349,mahendra.lungare@lockated.com",
             page: page,
-
             ...filters,
           },
         }),
@@ -205,9 +194,7 @@ export default function VendorListPage() {
       setHistoryEvents1(historyResponse.data.pagination || []);
       setAllEventsData1(allResponse.data.pagination || []);
 
-      // Set total pages dynamically based on all events count
-
-      const totalEventCount = allResponse.data.pagination.total_pages || 0; // Adjust key based on API response
+      const totalEventCount = allResponse.data.pagination.total_pages || 0;
       setTotalPages(totalEventCount);
     } catch (error) {
       console.error("Error fetching event data:", error);
@@ -228,11 +215,9 @@ export default function VendorListPage() {
   };
 
   const getPageRange = () => {
-    // Calculate the starting page for the range
     let startPage = Math.max(currentPage - Math.floor(pageRange / 2), 1);
     let endPage = startPage + pageRange - 1;
 
-    // Ensure the range doesn't exceed the total pages
     if (endPage > totalPages) {
       endPage = totalPages;
       startPage = Math.max(endPage - pageRange + 1, 1);
@@ -247,9 +232,8 @@ export default function VendorListPage() {
 
   useEffect(() => {
     fetchEvents();
-  }, []); // Fetch data on component mount
+  }, []);
 
-  // Handle filter changes
   const handleFilterChange = (key, value) => {
     setFilters((prevFilters) => ({
       ...prevFilters,
@@ -257,34 +241,27 @@ export default function VendorListPage() {
     }));
   };
 
-  // Submit filter form
-
-  // Handle Tab Change
   const handleTabChange = (tab) => {
     setActiveTab(tab);
   };
 
-  // Get Filtered Data Based on Active Tab
   const getFilteredData = () => {
     if (activeTab === "live") return liveEvents;
     if (activeTab === "history") return historyEvents;
     return allEventsData;
   };
 
-  // Submit Filters
   const handleSubmit = (e) => {
     e.preventDefault();
     fetchEvents();
   };
 
-  const [searchQuery, setSearchQuery] = useState("");
   const handleSearch = async () => {
     try {
       const response = await axios.get(
         `https://vendors.lockated.com/rfq/events?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&q[event_title_or_event_no_or_status_or_created_at_or_event_schedule_start_time_or_event_schedule_end_time_cont]=${searchQuery}`
       );
 
-      // Assuming the API returns the same structure for all responses
       setLiveEvents(response.data.liveEvents || []);
       setHistoryEvents(response.data.historyEvents || []);
       setAllEventsData(response.data.allEvents || []);
@@ -294,19 +271,15 @@ export default function VendorListPage() {
     }
   };
 
-  // Debounced search effect
   useEffect(() => {
     if (searchQuery.trim() !== "") {
       const debounce = setTimeout(() => {
         handleSearch();
-      }, 500); // Debounce delay of 500ms to reduce API calls
-      return () => clearTimeout(debounce); // Cleanup function
+      }, 500);
+      return () => clearTimeout(debounce);
     }
   }, [searchQuery]);
-  const [vendorId, setVendorId] = useState(""); // State to store selected vendor ID
-  const [vendorOptions, setVendorOptions] = useState([]); // Options for the dropdown
 
-  // Function to fetch vendor details
   const vendorDetails = async () => {
     try {
       const response = await axios.get(
@@ -321,36 +294,33 @@ export default function VendorListPage() {
 
       const vendorData = response.data.list;
 
-      // Process the data to remove duplicates
       const options = Array.from(
         new Map(vendorData.map((item) => [item[0], item])).values()
       ).map((item) => ({
-        value: item[1], // Use ID as the value
-        label: item[0], // Use name as the label
+        value: item[1],
+        label: item[0],
       }));
 
-      setVendorOptions(options); // Set options for the dropdown
+      setVendorOptions(options);
     } catch (error) {
       console.error("Error fetching vendor details:", error.message);
     }
   };
 
-  // Fetch vendor details when the component mounts
   useEffect(() => {
     vendorDetails();
   }, []);
 
-  // Handle dropdown selection
   const handleSelectChange = (selectedOption) => {
     console.log("Selected vendor:", selectedOption);
-    setVendorId(selectedOption ? selectedOption.value : ""); // Update selected vendor ID
+    setVendorId(selectedOption ? selectedOption.value : "");
   };
 
   const flattenedData = getFilteredData().map((event, index) => ({
     srNo: index + 1,
     ...event,
-    event_type: event.event_type_detail?.event_type || "N/A", // Extract 'event_type'
-    event_configuration: event.event_type_detail?.event_configuration || "N/A", // Extract 'event_configuration'
+    event_type: event.event_type_detail?.event_type || "N/A",
+    event_configuration: event.event_type_detail?.event_configuration || "N/A",
   }));
 
   const handleActionClick = (row) => {
@@ -653,7 +623,7 @@ export default function VendorListPage() {
                           </div>
                         </div>
                         <div className="col-md-4">
-                          <button
+                          {/* <button
                             className="purple-btn2"
                             onClick={() => navigate("/create-event")}
                           >
@@ -661,7 +631,7 @@ export default function VendorListPage() {
                               add
                             </span>
                             New Event
-                          </button>
+                          </button> */}
                         </div>
                       </div>
                     </div>
