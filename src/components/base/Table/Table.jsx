@@ -152,7 +152,7 @@ export default function Table({
               </th>
             )}
             {columns.map((col, index) => (
-              <th key={index} className="main2-th">
+              <th key={index} className="main2-th" style={{whiteSpace:'nowrap'}}>
                 {col.label}
               </th>
             ))}

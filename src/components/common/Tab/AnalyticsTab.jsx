@@ -3,7 +3,6 @@ import ScatterChart from "../Chart/ScatterChart";
 import axios from "axios";
 
 export default function AnalyticsTab({ id }) {
-  console.log("analyticsid,", id);
 
   const [selectedFilter, setSelectedFilter] = useState('gross_total'); // Default filter value
   const [analyticsData, setAnalyticsData] = useState(null); // State to hold fetched analytics data
@@ -32,10 +31,8 @@ export default function AnalyticsTab({ id }) {
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
-        console.log("res:",response)
         const data = await response.json();
         setAnalyticsData(data); // Set the fetched data for the chart
-        console.log('Fetched analytics data:', data);
       } catch (err) {
         setError(err.message); // Set error message if fetch fails
       } finally {
@@ -78,12 +75,6 @@ export default function AnalyticsTab({ id }) {
   const handleDropdownChange = (event) => {
     setSelectedMaterialId(event.target.value); // Set selected company ID
   };
-
-  console.log("analytics data:",analyticsData)
-  
-  console.log("c0mpany id:",selectedMaterialId)
- 
-  console.log("selected filter",selectedFilter)
 
   return (
     <div

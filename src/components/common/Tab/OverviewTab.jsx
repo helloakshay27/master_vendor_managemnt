@@ -42,7 +42,7 @@ export default function OverviewTab({
     {
       label: "Total Bids",
       id: "total-bids",
-      value: participantsData.total_bids ? 1 : 0,
+      value: participantsData.total_bids,
     },
     {
       label: "Revised bids",
@@ -56,9 +56,7 @@ export default function OverviewTab({
       label: "Counter offers",
       id: "counter-offers",
       value:
-        participantsData.counter_office == null
-          ? 0
-          : participantsData.revised_bids, // Assuming 1 if counter_office exists
+        participantsData.counter_office  // Assuming 1 if counter_office exists
     },
     {
       label: "Accepted Counter Offers",
@@ -132,6 +130,8 @@ export default function OverviewTab({
     gst: "_",
     realised_gst: "_"
   }));
+  
+  console.log("overviewData", overviewData);
   
 
   return (
@@ -451,18 +451,9 @@ export default function OverviewTab({
           {termsOpen && (
             <div id="terms-conditions" className="mx-5">
               <div className="card card-body p-4">
-                <p>
-                  1. Payment terms: Net 30 days.
-                  <br />
-                  <br />
-                  2. Delivery within 15 business days.
-                  <br />
-                  <br />
-                  3. Warranty: 1 year from the date of purchase.
-                  <br />
-                  <br />
-                  4. Returns are subject to company policy.
-                </p>
+                {overviewData.terms_and_conditions.map((item, index) => (
+                  <p key={index}>{`${item.condition}`}</p>
+                ))}
               </div>
             </div>
           )}

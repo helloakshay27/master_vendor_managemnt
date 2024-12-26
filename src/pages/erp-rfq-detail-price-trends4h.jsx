@@ -306,6 +306,8 @@ export default function ErpRfqDetailPriceTrends4h() {
   }, [id]);
 
 
+  
+
 
   return (
     <>

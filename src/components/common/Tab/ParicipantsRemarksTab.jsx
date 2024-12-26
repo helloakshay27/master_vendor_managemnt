@@ -14,19 +14,26 @@ export default function ParticipantsRemarksTab({ data }) {
       <div className="priceTrends-list">
         {remarks.map((remarkItem) => (
           <div key={remarkItem.id} className="priceTrends-item my-3 d-flex">
-            <div
-              className="item-label rounded-circle bg-light me-2 d-flex justify-content-center align-items-center"
-              style={{ width: "35px", height: "35px" }}
-            >
-              {remarkItem.event_vendor?.full_name?.[0]?.toUpperCase() || "N/A"}
-            </div>
-            <div className="priceTrends-list-child go-shadow-k p-3 rounded-2">
-              <p className="eventList-p2 mb-0 fw-bold">
-                {remarkItem.event_vendor?.full_name || "_"} from{" "}
-                {remarkItem.event_vendor?.organization_name || "Unknown"}
-              </p>
-              <p className="eventList-p1 mb-0">{remarkItem.remark}</p>
-            </div>
+            {remarkItem.event_vendor?.full_name == " " ||
+              remarkItem.event_vendor?.full_name !== null &&
+              <>
+                <div
+                  className="item-label rounded-circle bg-light me-2 d-flex justify-content-center align-items-center"
+                  style={{ width: "35px", height: "35px" }}
+                >
+                  {remarkItem.event_vendor?.full_name?.[0]?.toUpperCase() ||
+                    "N/A"}
+                </div>
+
+                <div className="priceTrends-list-child go-shadow-k p-3 rounded-2">
+                  <p className="eventList-p2 mb-0 fw-bold">
+                    {remarkItem.event_vendor?.full_name || "_"} from{" "}
+                    {remarkItem.event_vendor?.organization_name || "Unknown"}
+                  </p>
+                  <p className="eventList-p1 mb-0">{remarkItem.remark}</p>
+                </div>
+              </>
+            }
           </div>
         ))}
       </div>
