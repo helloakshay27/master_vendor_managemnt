@@ -28,7 +28,7 @@ import Sidebar from "../components/Sidebar";
 import CollapsibleCard from "../components/base/Card/CollapsibleCards";
 import { eventProjectColumns } from "../constant/data";
 
-export default function VendorListPage() {
+export default function adminList() {
   const [settingShow, setSettingShow] = useState(false);
   const [show, setShow] = useState(false);
   const [activeTab, setActiveTab] = useState("all"); // Added `activeTab` state to handle tab changes
@@ -356,7 +356,7 @@ export default function VendorListPage() {
 
   const handleActionClick = (row) => {
     // Navigate to detail price page with eventData.id
-    navigate(`/user-list/${row.id}`);
+    navigate(`/erp-rfq-detail-price-trends4h/${row.id}`);
     console.log("View details for:", row);
   };
 
