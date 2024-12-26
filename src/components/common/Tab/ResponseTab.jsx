@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import FullClipIcon from "../Icon/FullClipIcon";
 import FullScreenIcon from "../Icon/FullScreenIcon";
 import ShowIcon from "../Icon/ShowIcon";
@@ -7,7 +7,6 @@ import Accordion from "../../base/Accordion/Accordion";
 import ResponseVendor from "../ResponseVendor";
 import { FullScreen, useFullScreenHandle } from "react-full-screen";
 import BulkCounterOfferModal from "../Modal/BulkCounterOfferModal";
-import { useEffect } from "react";
 import axios from "axios";
 
 export default function ResponseTab({ data }) {
@@ -84,30 +83,19 @@ export default function ResponseTab({ data }) {
               <option value="vendor">Vendor</option>
               <option value="product">Product</option>
             </select>
-            <select
-              style={{ marginRight: "20px" }}
-              name="language"
-              className="viewBy-headerForm"
-              required
-            >
-              <option value="">Actions</option>
-              <option value="indian">xxxxxxxx</option>
-              <option value="nepali">xxxxxxxx</option>
-              <option value="others">Others</option>
-            </select>
             <div
               className="d-flex align-items-center"
               style={{ marginRight: "20px" }}
             >
-              <div className="">
+              {/* <div className="">
                 <p className="viewBy-headerFormP">
                   <span className="me-1">
                     <ShowIcon />
                   </span>
                   Show / Hide
                 </p>
-              </div>
-              <div className="me-2">
+              </div> */}
+              {/* <div className="me-2">
                 <p className="viewBy-headerFormP" onClick={handle.enter}>
                   <span className="me-1">
                     <FullScreenIcon />
@@ -117,7 +105,7 @@ export default function ResponseTab({ data }) {
               </div>
               <div>
                 <FullClipIcon />
-              </div>
+              </div> */}
             </div>
           </div>
         </div>
@@ -178,10 +166,10 @@ export default function ResponseTab({ data }) {
               >
                 <tbody>
                   <tr>
-                    <td style={{ width: "500px" }}></td>
+                    <td style={{ width: "200px" }}></td>
                     {eventVendors.map((vendor, index) => {
                       return (
-                        <td key={vendor.id} style={{ width: "500px" }}>
+                        <td key={vendor.id} style={{ width: "200px" }}>
                           <div
                             className="d-flex flex-column align-items-center justify-content-between"
                             style={{ height: "120px" }}
@@ -216,11 +204,15 @@ export default function ResponseTab({ data }) {
                     })}
                   </tr>
                   <tr>
-                    <td className="viewBy-tBody1-p" style={{ width: "500px" }}>
+                    <td className="viewBy-tBody1-p" style={{ width: "200px" }}>
                       Gross Total
                     </td>
                     {eventVendors.map((vendor) => {
-                      return <td>{vendor.gross_total || "_"}</td>;
+                      return (
+                        <td>
+                          {vendor.bids.map((item) => item.gross_total) || "_"}
+                        </td>
+                      );
                     })}
                   </tr>
                 </tbody>
@@ -230,7 +222,9 @@ export default function ResponseTab({ data }) {
               return (
                 <Accordion
                   key={index}
-                  title={vendor.bids.map((bid) => bid.bid_materials[index].material_name)}
+                  title={vendor.bids.map(
+                    (bid) => bid.bid_materials[index].material_name
+                  )}
                   isDefault={true}
                   tableColumn={[
                     { label: "Best Total Amount", key: "bestTotalAmount" },
@@ -264,7 +258,7 @@ export default function ResponseTab({ data }) {
                 />
               );
             })}
-            {/* <Accordion
+            <Accordion
               title={"Other Charges"}
               isDefault={true}
               tableColumn={[
@@ -279,21 +273,18 @@ export default function ResponseTab({ data }) {
                 { label: "Loading / Unloading Clause", key: "loading" },
                 { label: "Gross Total", key: "grossTotal" },
               ]}
-              tableData={eventVendors.bids?.flatMap((bid) =>
-                bid.bid_materials?.map((material) => ({
-                  bestTotalAmount: material.total_amount || "_",
-                  quantityAvailable: material.quantity_available || "_",
-                  price: material.price || "_",
-                  discount: material.discount || "_",
-                  realisedDiscount: material.discount || "_",
-                  gst: "_",
-                  realisedGST: "_",
-                  landedAmount: material.total_amount,
-                  participantAttachment: "_",
-                  totalAmount: material.total_amount,
+              tableData={eventVendors.flatMap((vendor) =>
+                vendor.bids?.map((bid) => ({
+                  freightChrg: bid.freight_charge_amount || "_",
+                  freightGst: bid.gst_on_freight || "_",
+                  freightRealised: bid.realised_freight_charge_amount || "_",
+                  warranty: bid.warranty_clause || "_",
+                  payment: bid.payment_terms || "_",
+                  loading: bid.loading_unloading_clause || "_",
+                  grossTotal: bid.gross_total || "_",
                 }))
               )}
-            /> */}
+            />
           </div>
         </FullScreen>
       )}

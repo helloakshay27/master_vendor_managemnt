@@ -45,7 +45,6 @@ export default function Accordion({ title, isDefault, tableColumn, tableData }) 
                 ))}
               </tbody>
             </table> */}
-
             <Table
               columns={tableColumn}
               data={tableData}

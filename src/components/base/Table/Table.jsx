@@ -11,7 +11,7 @@ const transposeData = (data, columns) => {
 
 export default function Table({
   columns,
-  data,
+  data = [], // Ensure data is always an array
   onActionClick = null,
   showCheckbox = false,
   actionIcon = null,
@@ -93,13 +93,13 @@ export default function Table({
   if (isHorizontal) {
     const transposedData = transposeData(data, columns);
     return (
-      <div className="bid-tbl mb-0" {...rest}>
+      <div className="bid-tbl mb-0" {...rest} style={{ overflowX: "auto" }}>
         <table className="w-100">
           <thead>
             <tr style={{ backgroundColor: "#d3d3d3" }}>
-              <th />
+              <th style={{ width: "200px" }} />
               {data.map((_, index) => (
-                <th key={index} className="main2-th" style={{height:'0px !important'}}></th>
+                <th key={index} className="main2-th" style={{ width: "200px" }}></th>
               ))}
             </tr>
           </thead>
@@ -108,12 +108,12 @@ export default function Table({
               <tr key={rowIndex}>
                 <td
                   className="main2-th"
-                  style={{ fontWeight: "bold", textAlign: "left", width: "500px" }}
+                  style={{ fontWeight: "bold", textAlign: "left", width: "200px" }}
                 >
                   {row.header}
                 </td>
                 {row.values.map((value, valueIndex) => (
-                  <td key={valueIndex} style={{width: '500px'}}>
+                  <td key={valueIndex} style={{ width: "200px" }}>
                     {customRender[columns[rowIndex]?.key]
                       ? customRender[columns[rowIndex]?.key](
                           value,
@@ -152,7 +152,7 @@ export default function Table({
               </th>
             )}
             {columns.map((col, index) => (
-              <th key={index} className="main2-th" style={{whiteSpace:'nowrap'}}>
+              <th key={index} className="main2-th" style={{ whiteSpace: "nowrap" }}>
                 {col.label}
               </th>
             ))}
