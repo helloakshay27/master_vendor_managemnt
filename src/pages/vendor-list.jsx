@@ -79,7 +79,7 @@ export default function VendorListPage() {
       event_materials_pms_inventory_inventory_type_id_in: "",
       event_materials_id_in: "",
     });
-  
+
     // Reset filter options
     setFilterOptions({
       event_titles: [],
@@ -90,11 +90,10 @@ export default function VendorListPage() {
       material_type: [],
       locations: [],
     });
-  
+
     // Reset other related states
     setIsMyEvent(false);
   };
-  
 
   const [error, setError] = useState("");
 
@@ -365,7 +364,7 @@ export default function VendorListPage() {
       <div className="main-content">
         <div className="website-content overflow-auto">
           <div className="module-data-section p-3">
-            <div className="d-flex justify-content-between align-items-center px-4 py-3 bg-light border-bottom thead">
+            <div className="d-flex justify-content-between align-items-center px-4 py-2 bg-light border-bottom thead">
               <nav aria-label="breadcrumb">
                 <ol className="breadcrumb mb-0">
                   <li className="breadcrumb-item">
@@ -380,16 +379,17 @@ export default function VendorListPage() {
               </nav>
               <h5 className="mt-3 ms-3">RFQ &amp; Auction Events</h5>
               <div style={{ width: "15%" }}>
-              <Select
-      options={vendorOptions}
-      placeholder="Select a Vendor"
-      isClearable
-      value={vendorOptions.find((option) => option.value === vendorId)}
-      onChange={(selectedOption) =>
-        setVendorId(selectedOption ? selectedOption.value : "")
-      }
-    />
-  
+                <Select
+                  options={vendorOptions}
+                  placeholder="Select a Vendor"
+                  isClearable
+                  value={vendorOptions.find(
+                    (option) => option.value === vendorId
+                  )}
+                  onChange={(selectedOption) =>
+                    setVendorId(selectedOption ? selectedOption.value : "")
+                  }
+                />
               </div>
             </div>
 
@@ -849,107 +849,106 @@ export default function VendorListPage() {
                     </div>
                   </div>
                 </Modal.Header>
-                <form onSubmit={handleSubmit}>                  
-
-                <div className="modal-body" style={{ overflowY: "scroll" }}>
-                  <div className="form-group mb-4">
-                    <div className="form-group">
-                      <label htmlFor="mor-date-from">Enter Title </label>
-                      <Select
-                        options={filterOptions.event_titles}
-                        placeholder="Select an Event Title"
-                        isClearable
-                        selectedValue={filters.title_in}
-                        handleChange={(value) =>
-                          handleFilterChange("title_in", value)
-                        }
-                      />
-                    </div>
-                  </div>
-                  <div className="form-group mb-4">
-                    <div className="form-group">
-                      <label htmlFor="mor-date-from">Product</label>
-                      <Select
-                        options={filterOptions.material_name}
-                        placeholder="Select an Event Title"
-                        isClearable
-                        selectedValue={filters.event_materials_inventory_id_in}
-                        handleChange={(value) =>
-                          handleFilterChange(
-                            "event_materials_inventory_id_in",
-                            value
-                          )
-                        }
-                      />
-                    </div>
-                  </div>
-                  <div className="form-group mb-4">
-                    <div className="form-group">
-                      <label htmlFor="mor-date-from">Product Category</label>
-                      <Select
-                        options={filterOptions.material_type}
-                        placeholder="Select an Event Title"
-                        isClearable
-                        selectedValue={
-                          filters.event_materials_pms_inventory_inventory_type_id_in
-                        }
-                        handleChange={(value) =>
-                          handleFilterChange(
-                            "event_materials_pms_inventory_inventory_type_id_in",
-                            value
-                          )
-                        }
-                      />
-                    </div>
-                  </div>
-                  <div className="form-group mb-4">
-                    <div className="form-group">
-                      <label htmlFor="mor-date-from">Location</label>
-                      <Select
-                        options={filterOptions.locations}
-                        placeholder="Select an Event Title"
-                        isClearable
-                        selectedValue={filters.event_materials_id_in}
-                        handleChange={(value) =>
-                          handleFilterChange("event_materials_id_in", value)
-                        }
-                      />
-                    </div>
-                  </div>
-                  <div className="form-group mb-4">
-                    <div className="form-group">
-                      <label htmlFor="mor-date-from">Created By</label>
-                      <Select
-                        options={filterOptions.locations}
-                        placeholder="Select an Event Title"
-                        isClearable
-                      />
-                    </div>
-                  </div>
-                  <div className="form-group mb-4">
-                    <div className="form-group d-flex align-items-start">
-                      <label htmlFor="mor-date-from">My Event</label>
-                      <div className="form-check form-switch ms-5">
-                        <input
-                          className="form-check-input"
-                          type="checkbox"
-                          role="switch"
-                          id="flexSwitchCheckDefault"
-                          checked={isMyEvent}
-                          onChange={(e) => setIsMyEvent(e.target.checked)}
+                <form onSubmit={handleSubmit}>
+                  <div className="modal-body" style={{ overflowY: "scroll" }}>
+                    <div className="form-group mb-4">
+                      <div className="form-group">
+                        <label htmlFor="mor-date-from">Enter Title </label>
+                        <Select
+                          options={filterOptions.event_titles}
+                          placeholder="Select an Event Title"
+                          isClearable
+                          selectedValue={filters.title_in}
+                          handleChange={(value) =>
+                            handleFilterChange("title_in", value)
+                          }
                         />
                       </div>
                     </div>
+                    <div className="form-group mb-4">
+                      <div className="form-group">
+                        <label htmlFor="mor-date-from">Product</label>
+                        <Select
+                          options={filterOptions.material_name}
+                          placeholder="Select an Event Title"
+                          isClearable
+                          selectedValue={
+                            filters.event_materials_inventory_id_in
+                          }
+                          handleChange={(value) =>
+                            handleFilterChange(
+                              "event_materials_inventory_id_in",
+                              value
+                            )
+                          }
+                        />
+                      </div>
+                    </div>
+                    <div className="form-group mb-4">
+                      <div className="form-group">
+                        <label htmlFor="mor-date-from">Product Category</label>
+                        <Select
+                          options={filterOptions.material_type}
+                          placeholder="Select an Event Title"
+                          isClearable
+                          selectedValue={
+                            filters.event_materials_pms_inventory_inventory_type_id_in
+                          }
+                          handleChange={(value) =>
+                            handleFilterChange(
+                              "event_materials_pms_inventory_inventory_type_id_in",
+                              value
+                            )
+                          }
+                        />
+                      </div>
+                    </div>
+                    <div className="form-group mb-4">
+                      <div className="form-group">
+                        <label htmlFor="mor-date-from">Location</label>
+                        <Select
+                          options={filterOptions.locations}
+                          placeholder="Select an Event Title"
+                          isClearable
+                          selectedValue={filters.event_materials_id_in}
+                          handleChange={(value) =>
+                            handleFilterChange("event_materials_id_in", value)
+                          }
+                        />
+                      </div>
+                    </div>
+                    <div className="form-group mb-4">
+                      <div className="form-group">
+                        <label htmlFor="mor-date-from">Created By</label>
+                        <Select
+                          options={filterOptions.locations}
+                          placeholder="Select an Event Title"
+                          isClearable
+                        />
+                      </div>
+                    </div>
+                    <div className="form-group mb-4">
+                      <div className="form-group d-flex align-items-start">
+                        <label htmlFor="mor-date-from">My Event</label>
+                        <div className="form-check form-switch ms-5">
+                          <input
+                            className="form-check-input"
+                            type="checkbox"
+                            role="switch"
+                            id="flexSwitchCheckDefault"
+                            checked={isMyEvent}
+                            onChange={(e) => setIsMyEvent(e.target.checked)}
+                          />
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                </div>
-                <div className="modal-footer justify-content-center">
-                  <button type="submit" className="purple-btn2">
-                    Go
-                  </button>
-                </div>
-
+                  <div className="modal-footer justify-content-center">
+                    <button type="submit" className="purple-btn2">
+                      Go
+                    </button>
+                  </div>
                 </form>
-
               </Modal>
             </div>
           </div>

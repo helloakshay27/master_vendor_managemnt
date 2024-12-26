@@ -365,7 +365,7 @@ export default function adminList() {
       <div className="main-content">
         <div className="website-content overflow-auto">
           <div className="module-data-section p-3">
-            <div className="d-flex justify-content-between align-items-center px-4 py-3 bg-light border-bottom thead">
+            <div className="d-flex justify-content-between align-items-center px-4 py-2 bg-light border-bottom thead">
               <nav aria-label="breadcrumb">
                 <ol className="breadcrumb mb-0">
                   <li className="breadcrumb-item">
