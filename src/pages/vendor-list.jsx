@@ -374,13 +374,22 @@ export default function VendorListPage() {
                     </a>
                   </li>
                   <li className="breadcrumb-item active" aria-current="page">
-                    Event List
+                    Vendor List
                   </li>
                 </ol>
               </nav>
               <h5 className="mt-3 ms-3">RFQ &amp; Auction Events</h5>
               <div style={{ width: "15%" }}>
-
+              <Select
+      options={vendorOptions}
+      placeholder="Select a Vendor"
+      isClearable
+      value={vendorOptions.find((option) => option.value === vendorId)}
+      onChange={(selectedOption) =>
+        setVendorId(selectedOption ? selectedOption.value : "")
+      }
+    />
+  
               </div>
             </div>
 
