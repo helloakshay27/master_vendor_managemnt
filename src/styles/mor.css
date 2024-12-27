@@ -845,6 +845,10 @@ input[type="checkbox"] {
   border-bottom: 1px solid #dee2e6 !important;
 }
 
+.full-width-table {  
+  width: 100% !important; /* Using !important to ensure it occupies full width */  
+} 
+
 .thead {
   background-color: #dee2e6;
   position: sticky !important;

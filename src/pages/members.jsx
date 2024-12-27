@@ -18,7 +18,7 @@ function Members() {
                 <Link to="/create-event">create_event</Link>
               </li>
               <li>
-                <Link to="/event-list">event_list</Link>
+                <Link to="/event-list?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414">event_list</Link>
               </li>
               <li>
                 <Link to="/erp-rfq-detail-price-trends4h">
@@ -27,7 +27,7 @@ function Members() {
               </li>
 
               <li>
-                <Link to="/vendor-list">vendor_list</Link>
+                <Link to="/vendor-list?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414">vendor_list</Link>
               </li>
 
               {/* <li>

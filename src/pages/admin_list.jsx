@@ -7,6 +7,10 @@ import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { Formik, Field, Form, ErrorMessage } from "formik";
 import axios from "axios";
+import { useParams, useLocation } from "react-router-dom";
+import DataTable from "datatables.net-react";
+import DT from "datatables.net-dt";
+DataTable.use(DT);
 
 import {
   LayoutModal,
@@ -29,13 +33,19 @@ import { eventProjectColumns } from "../constant/data";
 export default function adminList() {
   const [settingShow, setSettingShow] = useState(false);
   const [show, setShow] = useState(false);
+  const location = useLocation();
+
   const [activeTab, setActiveTab] = useState("all");
-  const [liveEvents, setLiveEvents] = useState([]);
-  const [historyEvents, setHistoryEvents] = useState([]);
-  const [allEventsData, setAllEventsData] = useState([]);
-  const [LiveEvents1, setLiveEvents1] = useState([]);
-  const [HistoryEvents1, setHistoryEvents1] = useState([]);
-  const [AllEventsData1, setAllEventsData1] = useState([]);
+  const [liveEvents, setLiveEvents] = useState({ events: [], pagination: {} });
+  const [historyEvents, setHistoryEvents] = useState({
+    events: [],
+    pagination: {},
+  });
+  const [allEventsData, setAllEventsData] = useState({
+    events: [],
+    pagination: {},
+  });
+
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
     created_by_id_in: "",
@@ -57,8 +67,6 @@ export default function adminList() {
   });
   const [isMyEvent, setIsMyEvent] = useState(false);
   const [error, setError] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
   const pageSize = 10;
   const pageRange = 6;
   const [searchQuery, setSearchQuery] = useState("");
@@ -112,11 +120,14 @@ export default function adminList() {
     const fetchFilterOptions = async () => {
       setLoading(true);
       try {
+        const urlParams = new URLSearchParams(location.search);
+        const token = urlParams.get("token");
+
         const response = await axios.get(
           "https://vendors.lockated.com/rfq/events/advance_filter_options",
           {
             params: {
-              token: "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414",
+              token: token,
             },
           }
         );
@@ -151,7 +162,7 @@ export default function adminList() {
   const fetchData = async (url, params) => {
     try {
       const response = await axios.get(url, { params });
-      console.log(`Response from ${url}:`, response.data);
+      // console.log(`Response from ${url}:`, response.data);
       return response.data;
     } catch (err) {
       console.error(`Error fetching data from ${url}:`, err);
@@ -162,17 +173,19 @@ export default function adminList() {
   const fetchEvents = async (page = 1) => {
     setLoading(true);
     try {
+      const urlParams = new URLSearchParams(location.search);
+      const token = urlParams.get("token");
       const [liveResponse, historyResponse, allResponse] = await Promise.all([
         axios.get("https://vendors.lockated.com/rfq/events/live_events", {
           params: {
-            token: "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414",
+            token: token,
             page: page,
             ...filters,
           },
         }),
         axios.get("https://vendors.lockated.com/rfq/events/vendor_list", {
           params: {
-            token: "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414",
+            token: token,
             q: "9970804349,mahendra.lungare@lockated.com",
             page: page,
             ...filters,
@@ -180,22 +193,30 @@ export default function adminList() {
         }),
         axios.get("https://vendors.lockated.com/rfq/events", {
           params: {
-            token: "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414",
+            token: token,
             page: page,
             ...filters,
           },
         }),
       ]);
 
-      setLiveEvents(liveResponse.data.events || []);
-      setHistoryEvents(historyResponse.data.events || []);
-      setAllEventsData(allResponse.data.events || []);
-      setLiveEvents1(liveResponse.data.pagination || []);
-      setHistoryEvents1(historyResponse.data.pagination || []);
-      setAllEventsData1(allResponse.data.pagination || []);
+      // Set state for live events with pagination
+      setLiveEvents({
+        events: liveResponse.data.events || [],
+        pagination: liveResponse.data.pagination || {},
+      });
 
-      const totalEventCount = allResponse.data.pagination.total_pages || 0;
-      setTotalPages(totalEventCount);
+      // Set state for history events with pagination
+      setHistoryEvents({
+        events: historyResponse.data.events || [],
+        pagination: historyResponse.data.pagination || {},
+      });
+
+      // Set state for all events with pagination
+      setAllEventsData({
+        events: allResponse.data.events || [],
+        pagination: allResponse.data.pagination || {},
+      });
     } catch (error) {
       console.error("Error fetching event data:", error);
       setError(error.response?.data?.message || "Failed to fetch events");
@@ -206,16 +227,42 @@ export default function adminList() {
 
   useEffect(() => {
     fetchEvents();
-  }, [filters]);
+  }, [filters, activeTab]); // Fetch data whenever filters or active tab change
 
   const handlePageChange = (newPage) => {
-    if (newPage >= 1 && newPage <= totalPages) {
+    if (newPage >= 1 && newPage <= pagination.total_pages) {
       fetchEvents(newPage);
     }
   };
 
+  const getFilteredData = () => {
+    switch (activeTab) {
+      case "live":
+        return { events: liveEvents.events, pagination: liveEvents.pagination };
+      case "history":
+        return {
+          events: historyEvents.events,
+          pagination: historyEvents.pagination,
+        };
+      case "all":
+        return {
+          events: allEventsData.events,
+          pagination: allEventsData.pagination,
+        };
+      default:
+        return { events: [], pagination: {} };
+    }
+  };
+
+  const { events: eventsToDisplay, pagination } = getFilteredData(); // Destructure to get events and pagination
+
+  // Get the range of pages to display
   const getPageRange = () => {
-    let startPage = Math.max(currentPage - Math.floor(pageRange / 2), 1);
+    const totalPages = pagination.total_pages || 1; // Default to 1 if total_pages is undefined
+    let startPage = Math.max(
+      pagination.current_page - Math.floor(pageRange / 2),
+      1
+    );
     let endPage = startPage + pageRange - 1;
 
     if (endPage > totalPages) {
@@ -229,6 +276,8 @@ export default function adminList() {
     }
     return pages;
   };
+
+  const pageNumbers = getPageRange(); // Get the current page range for display
 
   useEffect(() => {
     fetchEvents();
@@ -245,11 +294,7 @@ export default function adminList() {
     setActiveTab(tab);
   };
 
-  const getFilteredData = () => {
-    if (activeTab === "live") return liveEvents;
-    if (activeTab === "history") return historyEvents;
-    return allEventsData;
-  };
+  // console.log(activeTab);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -258,8 +303,10 @@ export default function adminList() {
 
   const handleSearch = async () => {
     try {
+      const urlParams = new URLSearchParams(location.search);
+      const token = urlParams.get("token");
       const response = await axios.get(
-        `https://vendors.lockated.com/rfq/events?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&q[event_title_or_event_no_or_status_or_created_at_or_event_schedule_start_time_or_event_schedule_end_time_cont]=${searchQuery}`
+        `https://vendors.lockated.com/rfq/events?token=${token}&q[event_title_or_event_no_or_status_or_created_at_or_event_schedule_start_time_or_event_schedule_end_time_cont]=${searchQuery}`
       );
 
       setLiveEvents(response.data.liveEvents || []);
@@ -282,14 +329,10 @@ export default function adminList() {
 
   const vendorDetails = async () => {
     try {
+      const urlParams = new URLSearchParams(location.search);
+      const token = urlParams.get("token");
       const response = await axios.get(
-        "https://vendors.lockated.com/rfq/events/event_vendors_list",
-        {
-          params: {
-            token: "bfa5004e7b0175622be8f7e69b37d01290b737f82e078411",
-            page: 1,
-          },
-        }
+        "https://vendors.lockated.com/rfq/events/event_vendors_list?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078411&page=1"
       );
 
       const vendorData = response.data.list;
@@ -312,21 +355,23 @@ export default function adminList() {
   }, []);
 
   const handleSelectChange = (selectedOption) => {
-    console.log("Selected vendor:", selectedOption);
-    setVendorId(selectedOption ? selectedOption.value : "");
+    // console.log("Selected vendor:", selectedOption);
+    const vendorValue = selectedOption ? selectedOption.value : "";
+    setVendorId(vendorValue);
+    sessionStorage.setItem("selectedId", vendorValue); // Store the new selection in session storage
   };
 
-  const flattenedData = getFilteredData().map((event, index) => ({
-    srNo: index + 1,
-    ...event,
-    event_type: event.event_type_detail?.event_type || "N/A",
-    event_configuration: event.event_type_detail?.event_configuration || "N/A",
-  }));
-
-  const handleActionClick = (row) => {
-    navigate(`/erp-rfq-detail-price-trends4h/${row.id}`);
-    console.log("View details for:", row);
-  };
+  const eventProjectColumns = [
+    { label: "Sr.No.", key: "srNo" },
+    { label: "Event Title", key: "event_title" },
+    { label: "Event No", key: "event_no" },
+    { label: "Created At", key: "created_at" },
+    { label: "Created By", key: "created_by" },
+    { label: "Event Type", key: "event_type" },
+    { label: "Event Configuration", key: "event_configuration" },
+    { label: "Status", key: "status" },
+    { label: "Action" },
+  ];
 
   return (
     <>
@@ -342,12 +387,14 @@ export default function adminList() {
                     </a>
                   </li>
                   <li className="breadcrumb-item active" aria-current="page">
-                    Event List
+                    Vendor List
                   </li>
                 </ol>
               </nav>
               <h5 className="mt-3 ms-3">RFQ &amp; Auction Events</h5>
-              <div style={{ width: "15%" }}></div>
+              <div style={{ width: "15%" }}>
+                
+              </div>
             </div>
 
             <div className="material-boxes mt-3">
@@ -370,7 +417,7 @@ export default function adminList() {
                     >
                       <h4 className="content-box-title">All Events</h4>
                       <p className="content-box-sub">
-                        {AllEventsData1.total_count || []}
+                        {allEventsData.pagination?.total_count || 0}
                       </p>
                     </div>
                   </div>
@@ -392,7 +439,7 @@ export default function adminList() {
                     >
                       <h4 className="content-box-title">Live Events</h4>
                       <p className="content-box-sub">
-                        {LiveEvents1.total_count}
+                        {liveEvents.pagination?.total_count}
                       </p>
                     </div>
                   </div>
@@ -400,7 +447,7 @@ export default function adminList() {
                   <div className="col-md-2 text-center">
                     <div
                       className="content-box"
-                      onClick={() => handleTabChange("history")}
+                      onClick={() => handleTabChange("historyEvents")}
                       style={{
                         cursor: "pointer",
                         border:
@@ -414,7 +461,7 @@ export default function adminList() {
                     >
                       <h4 className="content-box-title">History Events</h4>
                       <p className="content-box-sub">
-                        {HistoryEvents1.total_count}
+                        {historyEvents.pagination?.total_count}{" "}
                       </p>
                     </div>
                   </div>
@@ -610,7 +657,7 @@ export default function adminList() {
                           </div>
                         </div>
                         <div className="col-md-4">
-                          <button
+                          {/* <button
                             className="purple-btn2"
                             onClick={() => navigate("/create-event")}
                           >
@@ -618,135 +665,182 @@ export default function adminList() {
                               add
                             </span>
                             New Event
-                          </button>
+                          </button> */}
                         </div>
                       </div>
                     </div>
                   </div>
-                  <div className="mx-3">
-                    <Table
-                      columns={eventProjectColumns}
-                      data={flattenedData}
-                      // showCheckbox={true}
-                      onRowSelect={undefined}
-                      handleCheckboxChange={undefined}
-                      // resetSelectedRows={undefined}
-                      onResetComplete={undefined}
-                      actionIcon={true}
-                      onActionClick={handleActionClick}
-                    />
-                    <div className="d-flex justify-content-between align-items-center px-1 mt-2">
-                      <ul className="pagination justify-content-center d-flex ">
-                        {/* First Button */}
+                  <div className="tbl-container mt-3 px-3">
+                    <table className="w-100">
+                      <thead>
+                        <tr>
+                          {eventProjectColumns.map((column) => (
+                            <th key={column.key}>{column.label}</th>
+                          ))}
+                        </tr>
+                      </thead>
+
+                      <tbody>
+                        {eventsToDisplay.length === 0 ? (
+                          <tr>
+                            <td colSpan="9">No events found.</td>
+                          </tr>
+                        ) : (
+                          eventsToDisplay.map((event, index) => (
+                            <tr key={index}>
+                              <td>
+                                {(pagination.current_page - 1) * 10 + index + 1}
+                              </td>
+                              <td>{event.event_title || "N/A"}</td>
+                              <td>{event.event_no || "N/A"}</td>
+                              <td>{event.created_at || "N/A"}</td>
+                              <td>{event.created_by || "N/A"}</td>
+                              <td>
+                                {event.event_type_detail?.event_type || "N/A"}
+                              </td>
+                              <td>
+                                {event.event_type_detail?.event_configuration ||
+                                  "N/A"}
+                              </td>
+                              <td>{event.status || "N/A"}</td>
+                              <td>
+                                <button
+                                  className="btn "
+                                  onClick={() =>
+                                    navigate(`/erp-rfq-detail-price-trends4h/${event.id}`)
+                                  }
+                                >
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="16"
+                                    height="16"
+                                    fill="currentColor"
+                                    class="bi bi-eye"
+                                    viewBox="0 0 16 16"
+                                  >
+                                    <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8M1.173 8a13 13 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5s3.879 1.168 5.168 2.457A13 13 0 0 1 14.828 8q-.086.13-.195.288c-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5s-3.879-1.168-5.168-2.457A13 13 0 0 1 1.172 8z"></path>
+                                    <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5M4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0"></path>
+                                  </svg>{" "}
+                                </button>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                  <div className="d-flex justify-content-between align-items-center px-3 mt-2">
+                    <ul className="pagination justify-content-center d-flex">
+                      {/* First Button */}
+                      <li
+                        className={`page-item ${
+                          pagination.current_page === 1 ? "disabled" : ""
+                        }`}
+                      >
+                        <button
+                          className="page-link"
+                          onClick={() => handlePageChange(1)}
+                        >
+                          First
+                        </button>
+                      </li>
+
+                      {/* Previous Button */}
+                      <li
+                        className={`page-item ${
+                          pagination.current_page === 1 ? "disabled" : ""
+                        }`}
+                      >
+                        <button
+                          className="page-link"
+                          onClick={() =>
+                            handlePageChange(pagination.current_page - 1)
+                          }
+                          disabled={pagination.current_page === 1}
+                        >
+                          Prev
+                        </button>
+                      </li>
+
+                      {/* Dynamic Page Numbers */}
+                      {pageNumbers.map((pageNumber) => (
                         <li
+                          key={pageNumber}
                           className={`page-item ${
-                            currentPage === 1 ? "disabled" : ""
+                            pagination.current_page === pageNumber
+                              ? "active"
+                              : ""
                           }`}
                         >
                           <button
                             className="page-link"
-                            onClick={() => handlePageChange(1)}
+                            onClick={() => handlePageChange(pageNumber)}
                           >
-                            First
+                            {pageNumber}
                           </button>
                         </li>
+                      ))}
 
-                        {/* Previous Button */}
-                        <li
-                          className={`page-item ${
-                            currentPage === 1 ? "disabled" : ""
-                          }`}
+                      {/* Next Button */}
+                      <li
+                        className={`page-item ${
+                          pagination.current_page === pagination.total_pages
+                            ? "disabled"
+                            : ""
+                        }`}
+                      >
+                        <button
+                          className="page-link"
+                          onClick={() =>
+                            handlePageChange(pagination.current_page + 1)
+                          }
+                          disabled={
+                            pagination.current_page === pagination.total_pages
+                          }
                         >
-                          <button
-                            className="page-link"
-                            onClick={() => handlePageChange(currentPage - 1)}
-                            disabled={currentPage === 1}
-                          >
-                            Prev
-                          </button>
-                        </li>
+                          Next
+                        </button>
+                      </li>
 
-                        {/* Dynamic Page Numbers */}
-                        {getPageRange().map((pageNumber) => (
-                          <li
-                            key={pageNumber}
-                            className={`page-item ${
-                              currentPage === pageNumber ? "active" : ""
-                            }`}
-                          >
-                            <button
-                              className="page-link"
-                              onClick={() => handlePageChange(pageNumber)}
-                            >
-                              {pageNumber}
-                            </button>
-                          </li>
-                        ))}
-
-                        {/* Next Button */}
-                        <li
-                          className={`page-item ${
-                            currentPage === totalPages ? "disabled" : ""
-                          }`}
+                      {/* Last Button */}
+                      <li
+                        className={`page-item ${
+                          pagination.current_page === pagination.total_pages
+                            ? "disabled"
+                            : ""
+                        }`}
+                      >
+                        <button
+                          className="page-link"
+                          onClick={() =>
+                            handlePageChange(pagination.total_pages)
+                          }
+                          disabled={
+                            pagination.current_page === pagination.total_pages
+                          }
                         >
-                          <button
-                            className="page-link"
-                            onClick={() => handlePageChange(currentPage + 1)}
-                            disabled={currentPage === totalPages}
-                          >
-                            Next
-                          </button>
-                        </li>
+                          Last
+                        </button>
+                      </li>
+                    </ul>
 
-                        {/* Last Button */}
-                        <li
-                          className={`page-item ${
-                            currentPage === totalPages ? "disabled" : ""
-                          }`}
-                        >
-                          <button
-                            className="page-link"
-                            onClick={() => handlePageChange(totalPages)}
-                            disabled={currentPage === totalPages}
-                          >
-                            Last
-                          </button>
-                        </li>
-                      </ul>
-                      {/* Display Data */}
-
-                      {/* Showing entries count */}
-                      <div>
-                        <p>
-                          Showing {currentPage * pageSize - (pageSize - 1)} to{" "}
-                          {Math.min(
-                            currentPage * pageSize,
-                            totalPages * pageSize
-                          )}{" "}
-                          of {totalPages * pageSize} entries
-                        </p>
-                      </div>
+                    {/* Showing entries count */}
+                    <div>
+                      <p>
+                        Showing{" "}
+                        {Math.min(
+                          (pagination.current_page - 1) * pageSize + 1 || 1,
+                          pagination.total_count
+                        )}{" "}
+                        to{" "}
+                        {Math.min(
+                          pagination.current_page * pageSize,
+                          pagination.total_count
+                        )}{" "}
+                        of {pagination.total_count} entries
+                      </p>
                     </div>
                   </div>
-                  {/* <div className="row mt-3 px-3">
-                    <div className="col-md-3">
-                      <div className="form-group">
-                        <label htmlFor="">Rows Per Page</label>
-                        <select
-                          className="form-control form-select per_page"
-                          style={{ width: "100%" }}
-                        >
-                          <option value={10} selected>
-                            10 Rows
-                          </option>
-                          <option value={20}>20 Rows</option>
-                          <option value={50}>50 Rows</option>
-                          <option value={100}>100 Rows</option>
-                        </select>
-                      </div>
-                    </div>
-                  </div> */}
-                  {/* </div> */}
                 </div>
               </div>
 
