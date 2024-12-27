@@ -24,7 +24,7 @@ export default function BulkCounterOfferModal({
     }
   }, [bidCounterData]);
   
-  const eventId = bidCounterData.event?.id;
+  const eventId = bidCounterData?.event?.id;
   const bidId = bidCounterData?.bid_materials?.map((item) => item?.bid_id)?.[0];  
   
   const handleSubmit = async () => {
