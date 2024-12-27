@@ -27,7 +27,7 @@ function Members() {
               </li>
 
               <li>
-                <Link to="/vendor-list?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414">vendor_list</Link>
+                <Link to="/vendor-list?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078411">vendor_list</Link>
               </li>
 
               {/* <li>
