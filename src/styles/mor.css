@@ -652,7 +652,7 @@ section .locked img {
 
 .site-content,
 .website-content {
-  /* height: 90vh; */
+  height: 99vh;
   overflow: auto;
 
 
@@ -660,7 +660,7 @@ section .locked img {
 }
 
 .module-data-section {
-  padding: 1.5rem;
+  padding: 0rem !important;
   margin-bottom: 20px;
 }
 
@@ -863,7 +863,7 @@ input[type="checkbox"] {
 
 .tbl-container thead {
   background-color: #dee2e6;
-  position: sticky;
+  /* position: sticky; */
   top: 0;
   min-height: 50px;
   z-index: 111;

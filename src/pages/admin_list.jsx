@@ -387,7 +387,7 @@ export default function adminList() {
                     </a>
                   </li>
                   <li className="breadcrumb-item active" aria-current="page">
-                    Vendor List
+                    Admin List
                   </li>
                 </ol>
               </nav>
