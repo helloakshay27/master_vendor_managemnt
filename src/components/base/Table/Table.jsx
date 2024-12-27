@@ -97,9 +97,9 @@ export default function Table({
         <table className="w-100">
           <thead>
             <tr style={{ backgroundColor: "#d3d3d3" }}>
-              <th style={{ width: "200px" }} />
+              <th style={{ width: "200px", display:'none' }} />
               {data.map((_, index) => (
-                <th key={index} className="main2-th" style={{ width: "200px" }}></th>
+                <th key={index} className="main2-th" style={{ width: "200px", display:'none' }}></th>
               ))}
             </tr>
           </thead>
