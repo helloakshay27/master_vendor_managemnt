@@ -12,8 +12,6 @@ export default function BulkCounterOfferModal({
 }) {
   const [formData, setFormData] = useState({});
   const [sumTotal, setSumTotal] = useState(0);
-  const [eventId, setEventId] = useState('');
-  const [bidId, setBidId] = useState('');
 
   useEffect(() => {
     if (bidCounterData) {
@@ -25,11 +23,9 @@ export default function BulkCounterOfferModal({
       setSumTotal(initialSumTotal);
     }
   }, [bidCounterData]);
-
-  useEffect(() => {
-    setEventId(bidCounterData.event?.id);
-    setBidId(bidCounterData.bid_materials?.map((item) => item?.bid_id));  
-  }, [])  
+  
+  const eventId = bidCounterData.event?.id;
+  const bidId = bidCounterData?.bid_materials?.map((item) => item?.bid_id)?.[0];  
   
   const handleSubmit = async () => {
     const payload = {
@@ -89,29 +85,22 @@ export default function BulkCounterOfferModal({
     const discount = parseFloat(updatedMaterials[index].discount) || 0;
     const gst = parseFloat(updatedMaterials[index].gst) || 0;
 
-    // Step 1: Calculate total amount (price * quantity)
     const total = price * quantityAvail;
 
-    // Step 2: Calculate realised discount
     const realisedDiscount = (total * discount) / 100;
 
-    // Step 3: Calculate landed amount (discounted total, before GST)
     const landedAmount = total - realisedDiscount;
-
-    // Step 4: Calculate realised GST (based on landed amount)
     let realisedGst = 0;
     if (gst > 0) {
-      realisedGst = (landedAmount * gst) / 100; // GST applied on landed amount
+      realisedGst = (landedAmount * gst) / 100; 
     }
 
-    // Step 5: Calculate final total (landed amount + GST)
     const finalTotal = landedAmount + realisedGst;
 
-    // Update fields in the data array
     updatedMaterials[index].realised_discount = realisedDiscount.toFixed(2);
-    updatedMaterials[index].landed_amount = landedAmount.toFixed(2); // Before GST
+    updatedMaterials[index].landed_amount = landedAmount.toFixed(2); 
     updatedMaterials[index].realised_gst = realisedGst.toFixed(2);
-    updatedMaterials[index].total_amount = finalTotal.toFixed(2); // After GST
+    updatedMaterials[index].total_amount = finalTotal.toFixed(2); 
 
     setSumTotal(
       updatedMaterials.reduce(
@@ -146,7 +135,7 @@ export default function BulkCounterOfferModal({
       sumTotal + (updatedFormData.realised_freight_charge_amount || 0);
 
     setFormData(updatedFormData);
-    setSumTotal(totalSum); // Update the sumTotal state
+    setSumTotal(totalSum); 
   };
 
   const productTableData =
