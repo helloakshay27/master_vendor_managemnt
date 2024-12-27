@@ -57,7 +57,6 @@ export default function ResponseTab({ data }) {
 
   const eventVendors = Array.isArray(data?.vendors) ? data.vendors : [];
 
-  console.log("eventVendors", eventVendors);
 
   return (
     <div
@@ -189,10 +188,6 @@ export default function ResponseTab({ data }) {
                                   handleCounterModalShow();
                                   setEventId(vendor.bids[0].event_id);
                                   setBidId(
-                                    vendor.bids[0].bid_materials[0].bid_id
-                                  );
-                                  console.log(
-                                    "bidId ------- ",
                                     vendor.bids[0].bid_materials[0].bid_id
                                   );
                                 }

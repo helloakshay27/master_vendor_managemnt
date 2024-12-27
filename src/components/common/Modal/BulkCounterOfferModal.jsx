@@ -12,6 +12,8 @@ export default function BulkCounterOfferModal({
 }) {
   const [formData, setFormData] = useState({});
   const [sumTotal, setSumTotal] = useState(0);
+  const [eventId, setEventId] = useState('');
+  const [bidId, setBidId] = useState('');
 
   useEffect(() => {
     if (bidCounterData) {
@@ -23,8 +25,12 @@ export default function BulkCounterOfferModal({
       setSumTotal(initialSumTotal);
     }
   }, [bidCounterData]);
-  
 
+  useEffect(() => {
+    setEventId(bidCounterData.event?.id);
+    setBidId(bidCounterData.bid_materials?.map((item) => item?.bid_id));  
+  }, [])  
+  
   const handleSubmit = async () => {
     const payload = {
       counter_bid: {
@@ -54,10 +60,9 @@ export default function BulkCounterOfferModal({
         ),
       },
     };
-    console.log(payload, "payload");
 
     const response = await fetch(
-      "https://vendors.lockated.com/rfq/events/31/bids/37/counter_bids?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414",
+      `https://vendors.lockated.com/rfq/events/${eventId}/bids/${bidId}/counter_bids?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`,
       {
         method: "POST",
         headers: {
