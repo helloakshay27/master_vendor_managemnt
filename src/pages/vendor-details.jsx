@@ -20,6 +20,7 @@ export default function VendorDetails() {
 
   const [remark, setRemark] = useState("");
 
+  const [revisedBid, setRevisedBid] = useState(false);
   const [data, setData] = useState([]);
 
   const navigate = useNavigate();
@@ -93,7 +94,6 @@ export default function VendorDetails() {
     return realisedFreight;
   };
 
-  // Calculate Sum Total (including Freight Total)
   // const calculateSumTotal = () => {
   //   // Calculate the sum of totals from 'data'
   //   const sumFromData = data
@@ -114,6 +114,9 @@ export default function VendorDetails() {
 
   const calculateDataSumTotal = () => {
     // Calculate the sum of totals from 'data' (excluding Freight)
+    // if (!data) {
+    //   return 0;
+    // }
     return data
       .reduce((sum, row) => {
         const total = parseFloat(row.total) || 0; // Ensure total is a number
@@ -159,67 +162,120 @@ export default function VendorDetails() {
   // console.log("Event ID from URL:", eventId);
 
   const [loading, setLoading] = useState(true);
+  const [isBidCreated, setIsBidCreated] = useState(false); // Track bid creation status
 
   useEffect(() => {
-    const fetchEventMaterials = async () => {
-      // console.log("Event ID:", eventId);
+    const fetchEventData = async () => {
       try {
-        // Fetch data directly without headers
-        const response = await axios.get(
+        // Step 1: Fetch the initial API to get `revised_bid`
+        const initialResponse = await axios.get(
           `https://vendors.lockated.com/rfq/events/${eventId}/event_materials?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&page=1&q[event_vendor_id_cont]=10`
         );
 
-        // Transform the API response into the required table data format
-        // const formattedData = response.data.map((item) => ({
-        //   eventMaterialId: item.id,
-        //   descriptionOfItem: item.inventory_name,
-        //   quantity: item.quantity,
-        //   quantityAvail: "",
-        //   unit: item.uom,
-        //   location: item.location,
-        //   rate: "",
-        //   amount: item.amount,
-        //   totalAmt: "",
-        //   attachment: null,
-        //   varient: item.material_type,
-        // }));
+        const initialData = initialResponse.data;
+        const revisedBid = initialData.revised_bid; // Extract
 
-        const formattedData = response.data.map((item) => {
-          // Extract material_type from bid_materials
-          const materialType =
-            item.bid_materials && item.bid_materials.length > 0
-              ? item.bid_materials[0].material_type
-              : null;
+        // revisedBid from the response
 
-          return {
-            eventMaterialId: item.id,
-            descriptionOfItem: item.inventory_name,
-            quantity: item.quantity,
-            quantityAvail: "", // Placeholder for user input
-            unit: item.uom,
-            location: item.location,
-            rate: item.rate || "", // Placeholder if rate is not available
-            amount: item.amount,
-            totalAmt: "", // Placeholder for calculated total amount
-            attachment: null, // Placeholder for attachment
-            varient: materialType, // Use extracted material_type
-          };
-        });
+        setRevisedBid(revisedBid);
 
-        setData(formattedData);
-        // console.log("formatedddddddd dataaaaaaaa", formattedData);
-      } catch (err) {
-        console.error("Error fetching event materials:", err);
-        setError("Failed to load data.");
-      } finally {
-        setLoading(false);
+        console.log("initial data ", initialData);
+        console.log("revised data ", revisedBid);
+
+        if (!revisedBid) {
+          // If revisedBid is false, format the event materials data
+          const formattedData = initialData.event_materials.map((item) => {
+            const materialType =
+              item.bid_materials && item.bid_materials.length > 0
+                ? item.bid_materials[0].material_type
+                : null;
+
+            return {
+              eventMaterialId: item.id,
+              descriptionOfItem: item.inventory_name,
+              quantity: item.quantity,
+              quantityAvail: "", // Placeholder for user input
+              unit: item.uom,
+              location: item.location,
+              rate: item.rate || "", // Placeholder if rate is not available
+              amount: item.amount,
+              totalAmt: "", // Placeholder for calculated total amount
+              attachment: null, // Placeholder for attachment
+              varient: materialType, // Use extracted material_type
+            };
+          });
+
+          setData(formattedData);
+        } else {
+          // Step 2: Fetch the bid data if `revised_bid` is true
+          const bidResponse = await axios.get(
+            `https://vendors.lockated.com/rfq/events/${eventId}/bids?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`
+          );
+
+          console.log("bid responced", bidResponse.data.bids[0]);
+
+          const bids = bidResponse.data.bids;
+
+          // Process only the first element of the bids array
+          if (bids.length > 0) {
+            const firstBid = bids[0];
+
+            const updatedFreightData = [
+              {
+                label: "Freight Charge",
+                value: firstBid.freight_charge_amount || "",
+              },
+              { label: "GST on Freight", value: firstBid.gst_on_freight || "" },
+              {
+                label: "Realised Freight",
+                value: firstBid.realised_freight_charge_amount || "",
+              },
+              {
+                label: "Warranty Clause *",
+                value: firstBid.warranty_clause || "",
+              },
+              { label: "Payment Terms *", value: firstBid.payment_terms || "" },
+              {
+                label: "Loading / Unloading *",
+                value: firstBid.loading_unloading_clause || "",
+              },
+            ];
+
+            console.log("Updated Freight Data: ", updatedFreightData);
+            setFreightData(updatedFreightData); //
+
+            const mappedData = firstBid.bid_materials.map((material) => ({
+              descriptionOfItem: material.material_name, // Map to "descriptionOfItem"
+              varient: material.material_type, // Map to "varient"
+              quantity: material.quantity_available, // Map to "quantity"
+              location: firstBid.event.delivary_location, // Use event data for location
+              attachment: null, // Placeholder for "attachment"
+              quantityAvail: material.quantity_available, // Map to "quantityAvail"
+              price: material.price, // Map to "price"
+              discount: material.discount, // Map to "discount"
+              realisedDiscount: material.realised_discount, // Map to "realisedDiscount"
+              gst: material.gst, // Map to "gst"
+              realisedGst: material.realised_gst, // Map to "realisedGst"
+              landedAmount: material.total_amount, // Map to "landedAmount"
+              vendorRemark: material.vendor_remark, // Map to "vendorRemark"
+              total: material.total_amount, // Map to "total"
+            }));
+
+            setData(mappedData);
+
+            console.log("Mapped first bid data: ", mappedData);
+            setData(mappedData); // Assuming you want to set this data to state
+          } else {
+            console.log("No bids available");
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
       }
     };
 
-    fetchEventMaterials();
+    fetchEventData();
   }, [eventId]);
-
-  // post api
 
   const freightChargeRaw =
     freightData.find((item) => item.label === "Freight Charge")?.value || "0";
@@ -341,6 +397,8 @@ export default function VendorDetails() {
 
       console.log("API Response:", response.data);
       alert("Bid submitted successfully!");
+
+      setData(response.data.bid_materials_attributes || []);
     } catch (error) {
       console.error("Error submitting bid:", error);
       alert("Failed to submit bid. Please try again.");
@@ -348,6 +406,29 @@ export default function VendorDetails() {
       setLoading(false);
     }
   };
+
+  // useEffect(() => {
+  //   const fetchSubmittedData = async () => {
+  //     try {
+  //       // Make a GET request to fetch the submitted data
+  //       const response = await axios.get(
+  //         `https://vendors.lockated.com/rfq/events/${eventId}/bids?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`
+  //       );
+
+  //       console.log("bids repsnoce", response);
+
+  //       // If there is a previous bid response, set the data in state
+  //       if (response.data && response.data.bid_materials_attributes) {
+  //         setData(response.data.bid_materials_attributes);
+  //       }
+  //     } catch (error) {
+  //       console.error("Error fetching submitted bid data:", error);
+  //     }
+  //   };
+
+  //   // Call the function on component mount (on page refresh)
+  //   fetchSubmittedData();
+  // }, [eventId]);
 
   // terms and condition
 
@@ -656,10 +737,10 @@ export default function VendorDetails() {
 
             <div
               className="p-3 mb-2 "
-            // style={{
-            //   overflowY: "auto",
-            //   height: "calc(100vh - 100px)",
-            // }}
+              // style={{
+              //   overflowY: "auto",
+              //   height: "calc(100vh - 100px)",
+              // }}
             >
               {loading ? (
                 "Loading...."
@@ -711,9 +792,7 @@ export default function VendorDetails() {
                                   <table className="w-100 table">
                                     <thead>
                                       <tr>
-                                      <th className="text-start">
-                                          Sr. No.
-                                        </th>
+                                        <th className="text-start">Sr. No.</th>
                                         <th className="text-start">
                                           Stage Title
                                         </th>
@@ -728,11 +807,11 @@ export default function VendorDetails() {
                                     </thead>
                                     <tbody>
                                       <tr>
-                                        <td 
-                                         className="text-start"
-                                         style={{ color: "#777777" }}
+                                        <td
+                                          className="text-start"
+                                          style={{ color: "#777777" }}
                                         >
-                                         1
+                                          1
                                         </td>
                                         <td
                                           className="text-start"
@@ -810,7 +889,6 @@ export default function VendorDetails() {
                               style={{ paddingLeft: "24px" }}
                             >
                               <div className=" card card-body rounded-3 p-0">
-                               
                                 <ul
                                   className=" mt-3 mb-3"
                                   // style={{ fontSize: "13px", marginLeft: "0px" }}
@@ -876,9 +954,7 @@ export default function VendorDetails() {
                                   <table className="w-100 table">
                                     <thead>
                                       <tr>
-                                      <th className="text-start">
-                                          Sr.No.
-                                        </th>
+                                        <th className="text-start">Sr.No.</th>
                                         <th className="text-start">
                                           Buyer Name
                                         </th>
@@ -888,11 +964,11 @@ export default function VendorDetails() {
                                     </thead>
                                     <tbody>
                                       <tr>
-                                      <td
+                                        <td
                                           className="text-start"
                                           style={{ color: "#777777" }}
                                         >
-                                         1
+                                          1
                                         </td>
                                         <td
                                           className="text-start"
@@ -1608,12 +1684,19 @@ export default function VendorDetails() {
                   </div>
 
                   <div className=" d-flex justify-content-end">
-                    <button
+                    {/* <button
                       onClick={handleSubmit}
                       disabled={loading}
                       className="purple-btn2 m-0"
                     >
                       Create Bid
+                    </button> */}
+                    <button
+                      onClick={handleSubmit}
+                      disabled={loading}
+                      className="purple-btn2 m-0"
+                    >
+                      {revisedBid ? "Revise Bid" : "Create Bid"}
                     </button>
                   </div>
                 </div>
