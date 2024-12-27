@@ -419,9 +419,6 @@ export default function CreateEvent() {
 
   return (
     <>
-      <Header />
-      <div className="main-content">
-        <Sidebar />
         <div
           className="w-100 p-4 mb-2"
           style={{
@@ -1232,7 +1229,6 @@ export default function CreateEvent() {
             </div>
           </div>
         </div>
-      </div>
     </>
   );
 }

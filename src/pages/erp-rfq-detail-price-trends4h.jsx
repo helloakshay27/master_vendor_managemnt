@@ -312,9 +312,6 @@ export default function ErpRfqDetailPriceTrends4h() {
 
   return (
     <>
-      <Header />
-      <div className="main-content">
-        <Sidebar />
         <div className="website-content overflow-auto">
           <div className="module-data-section p-0 ">
             <div className="event-order-page">
@@ -395,7 +392,6 @@ export default function ErpRfqDetailPriceTrends4h() {
             </div>
           </div>
         </div>
-      </div>
     </>
   );
 }
