@@ -22,6 +22,8 @@ export default function VendorDetails() {
 
   const [revisedBid, setRevisedBid] = useState(false);
   const [data, setData] = useState([]);
+  const [counterData, setCounterData] = useState(0);
+  const [counterId, setCounterId] = useState(0);
 
   const navigate = useNavigate();
 
@@ -83,7 +85,7 @@ export default function VendorDetails() {
       const row = freightData.find((row) => row.label === label);
 
       // Check if the row exists and the value is a string
-      if (row && typeof row.value === 'string') {
+      if (row && typeof row.value === "string") {
         // Remove ₹ and commas, and convert to a float
         return parseFloat(row.value.replace(/₹|,/g, "")) || 0;
       }
@@ -99,9 +101,6 @@ export default function VendorDetails() {
     return realisedFreight;
   };
 
-
-
-
   const calculateDataSumTotal = () => {
     // Calculate the sum of totals from 'data' (excluding Freight)
     // if (!data) {
@@ -114,7 +113,6 @@ export default function VendorDetails() {
       }, 0)
       .toFixed(2); // Keep two decimal places
   };
-
 
   const calculateSumTotal = () => {
     // Use `calculateDataSumTotal` to get sum from `data`
@@ -150,7 +148,6 @@ export default function VendorDetails() {
   };
 
   const { eventId } = useParams();
-  // console.log("Event ID from URL:", eventId);
 
   const [loading, setLoading] = useState(true);
   const [isBidCreated, setIsBidCreated] = useState(false); // Track bid creation status
@@ -204,8 +201,10 @@ export default function VendorDetails() {
             `https://vendors.lockated.com/rfq/events/${eventId}/bids?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`
           );
 
-          console.log("bid responced", bidResponse.data.bids[0]);
-
+          setCounterData(bidResponse.data?.bids[0]?.counter_bids.length);
+          setCounterId(bidResponse.data?.bids[0]?.counter_bids[0]?.id);
+          setBidIds(bidResponse.data.bids[0].id);
+          
           const bids = bidResponse.data.bids;
 
           // Process only the first element of the bids array
@@ -277,10 +276,10 @@ export default function VendorDetails() {
     fetchEventData();
   }, [eventId]);
 
-
-
   // Get the freight charge value as a string (if available, otherwise default to "0")
-  const freightChargeRaw = String(freightData.find((item) => item.label === "Freight Charge")?.value || "0");
+  const freightChargeRaw = String(
+    freightData.find((item) => item.label === "Freight Charge")?.value || "0"
+  );
 
   // Ensure freightChargeRaw is a string before replacing ₹ and commas
   console.log("Type of freightChargeRaw:", typeof freightChargeRaw);
@@ -290,7 +289,6 @@ export default function VendorDetails() {
 
   // Log the parsed value
   console.log("Parsed freight charge:", freightCharge21);
-
 
   const preparePayload = () => {
     // Use `calculateDataSumTotal` for the total amount
@@ -310,26 +308,27 @@ export default function VendorDetails() {
       total_amount: totalAmount, // Use `sumFromData` logic for total amount
     }));
 
-
-    const freightChargeRaw = String(freightData.find((item) => item.label === "Freight Charge")?.value || "0");
+    const freightChargeRaw = String(
+      freightData.find((item) => item.label === "Freight Charge")?.value || "0"
+    );
 
     // Ensure freightChargeRaw is a string before replacing ₹ and commas
     console.log("Type of freightChargeRaw:", typeof freightChargeRaw);
 
     // Remove ₹ and commas, then parse it to a float (if not a valid number, default to 0)
-    const freightCharge21 = parseFloat(freightChargeRaw.replace(/₹|,/g, "")) || 0;
+    const freightCharge21 =
+      parseFloat(freightChargeRaw.replace(/₹|,/g, "")) || 0;
 
-
-    const gstOnFreight = freightData.find((item) => item.label === "GST on Freight")?.value || "0";
+    const gstOnFreight =
+      freightData.find((item) => item.label === "GST on Freight")?.value || "0";
 
     // Check if gstOnFreight is a string before calling replace and parse
-    const gstOnFreightt = typeof gstOnFreight === 'string'
-      ? parseFloat(gstOnFreight.replace(/₹|,/g, "")) || 0
-      : 0; // Default to 0 if it's not a string
+    const gstOnFreightt =
+      typeof gstOnFreight === "string"
+        ? parseFloat(gstOnFreight.replace(/₹|,/g, "")) || 0
+        : 0; // Default to 0 if it's not a string
 
     console.log(gstOnFreightt);
-
-
 
     const realisedFreightChargeAmount = parseFloat(
       freightCharge21 + (freightCharge21 * gstOnFreightt) / 100
@@ -371,7 +370,6 @@ export default function VendorDetails() {
   const handleSubmit = async () => {
     setLoading(true);
 
-
     try {
       // Send POST request
 
@@ -401,7 +399,6 @@ export default function VendorDetails() {
     }
   };
 
-
   // terms and condition
 
   const [terms, setTerms] = useState([]); // To store terms and conditions
@@ -429,36 +426,40 @@ export default function VendorDetails() {
     const totalAmount = parseFloat(calculateDataSumTotal());
 
     const bidMaterialsAttributes = data.map((row) => ({
-      "event_material_id": row.eventMaterialId, // Use the ID from the API data
-      "quantity_available": row.quantityAvail || 0, // Use the updated quantity
-      "price": Number(row.price || 0), // Use the updated price
-      "discount": Number(row.discount || 0),
-      "bid_material_id": row.bidId,
-      "vendor_remark": row.vendorRemark || "",
-      "gst": row.gst || 0, // GST value from the row
-      "realised_discount": row.realisedDiscount || 0, // Calculated realised discount
-      "realised_gst": row.realisedGst || 0, // Calculated realised GST
+      event_material_id: row.eventMaterialId, // Use the ID from the API data
+      quantity_available: row.quantityAvail || 0, // Use the updated quantity
+      price: Number(row.price || 0), // Use the updated price
+      discount: Number(row.discount || 0),
+      bid_material_id: row.bidId,
+      vendor_remark: row.vendorRemark || "",
+      gst: row.gst || 0, // GST value from the row
+      realised_discount: row.realisedDiscount || 0, // Calculated realised discount
+      realised_gst: row.realisedGst || 0, // Calculated realised GST
 
-      "total_amount": totalAmount, // Use `sumFromData` logic for total amount
+      total_amount: totalAmount, // Use `sumFromData` logic for total amount
     }));
-    console.log("------bid material :", bidMaterialsAttributes)
+    console.log("------bid material :", bidMaterialsAttributes);
 
-
-    const freightChargeRaw = String(freightData.find((item) => item.label === "Freight Charge")?.value || "0");
+    const freightChargeRaw = String(
+      freightData.find((item) => item.label === "Freight Charge")?.value || "0"
+    );
 
     // Ensure freightChargeRaw is a string before replacing ₹ and commas
     console.log("Type of freightChargeRaw:", typeof freightChargeRaw);
 
     // Remove ₹ and commas, then parse it to a float (if not a valid number, default to 0)
-    const freightCharge21 = parseFloat(freightChargeRaw.replace(/₹|,/g, "")) || 0;
-    console.log('21 fr:', typeof freightCharge21)
+    const freightCharge21 =
+      parseFloat(freightChargeRaw.replace(/₹|,/g, "")) || 0;
+    console.log("21 fr:", typeof freightCharge21);
 
-    const gstOnFreight = freightData.find((item) => item.label === "GST on Freight")?.value || "0";
+    const gstOnFreight =
+      freightData.find((item) => item.label === "GST on Freight")?.value || "0";
 
     // Check if gstOnFreight is a string before calling replace and parse
-    const gstOnFreightt = typeof gstOnFreight === 'string'
-      ? parseFloat(gstOnFreight.replace(/₹|,/g, "")) || 0
-      : 0; // Default to 0 if it's not a string
+    const gstOnFreightt =
+      typeof gstOnFreight === "string"
+        ? parseFloat(gstOnFreight.replace(/₹|,/g, "")) || 0
+        : 0; // Default to 0 if it's not a string
 
     console.log(gstOnFreightt);
     const realisedFreightChargeAmount = parseFloat(
@@ -478,23 +479,21 @@ export default function VendorDetails() {
         ?.value ||
       "Loading at supplier's location, unloading at buyer's location";
 
-    const payload =
-    {
-      "revised_bid": {
-        "event_vendor_id": 10,
-        "price": 500.0,
-        "discount": 10.0,
-        "freight_charge_amount": freightCharge21,
-        "gst_on_freight": gstOnFreightt,
-        "realised_freight_charge_amount": realisedFreightChargeAmount,
-        "gross_total": calculateSumTotal(),
-        "warranty_clause": warrantyClause,
-        "payment_terms": paymentTerms,
-        "loading_unloading_clause": loadingUnloadingClause,
-        "revised_bid_materials_attributes":
-          bidMaterialsAttributes
-      }
-    }
+    const payload = {
+      revised_bid: {
+        event_vendor_id: 10,
+        price: 500.0,
+        discount: 10.0,
+        freight_charge_amount: freightCharge21,
+        gst_on_freight: gstOnFreightt,
+        realised_freight_charge_amount: realisedFreightChargeAmount,
+        gross_total: calculateSumTotal(),
+        warranty_clause: warrantyClause,
+        payment_terms: paymentTerms,
+        loading_unloading_clause: loadingUnloadingClause,
+        revised_bid_materials_attributes: bidMaterialsAttributes,
+      },
+    };
     console.log("Prepared Payload: revised,,", payload);
     return payload;
   };
@@ -507,7 +506,7 @@ export default function VendorDetails() {
     try {
       // Send POST request
 
-      const payload2 = preparePayload2()
+      const payload2 = preparePayload2();
       console.log("payloadssss2 revised", payload2);
 
       const response = await axios.post(
@@ -536,7 +535,7 @@ export default function VendorDetails() {
   //user overview
 
   const [publishedStages, setPublishedStages] = useState(true);
-  const [termss, setTermss] = useState(true)
+  const [termss, setTermss] = useState(true);
   const [Contact, setContact] = useState(true);
   const [lineItems, setLineItems] = useState(true);
   const [isHistoryActive, setIsHistoryActive] = useState(false);
@@ -653,10 +652,49 @@ export default function VendorDetails() {
     navigate("/vendor-list"); // Redirect to /vendor-list page
   };
 
+  const handleDecline = async () => {
+    const payload = { status: "rejected" };
+    const response = await fetch(
+      `https://vendors.lockated.com/rfq/events/${eventId}/bids/${bidIds}/counter_bids/15/update_status?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      }
+    );
+    if (response.ok) {
+      console.log("Counter offer declined");
+      // Handle successful decline (e.g., update UI, show notification)
+    } else {
+      console.error("Failed to decline counter offer");
+    }
+  };
+
+  const handleAccept = async () => {
+    const payload = { status: "accepted" };
+    const response = await fetch(
+      `https://vendors.lockated.com/rfq/events/${eventId}/bids/${bidIds}/counter_bids/${counterId}/update_status?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      }
+    );
+    
+    if (response.ok) {
+      console.log("Counter offer accepted");
+      // Handle successful acceptance (e.g., update UI, show notification)
+    } else {
+      console.error("Failed to accept counter offer");
+    }
+  };
+
   return (
     <div className="">
-    
-
       <style>
         {`
           #project-header {
@@ -784,7 +822,7 @@ export default function VendorDetails() {
               role="tab"
               aria-controls="home"
               aria-selected="true"
-              style={{ color: "#DE7008",fontSize:'16px' }}
+              style={{ color: "#DE7008", fontSize: "16px" }}
             >
               Event Overview
             </a>
@@ -798,7 +836,7 @@ export default function VendorDetails() {
               role="tab"
               aria-controls="profile"
               aria-selected="false"
-              style={{ color: "#DE7008" ,fontSize:'16px'}}
+              style={{ color: "#DE7008", fontSize: "16px" }}
             >
               [{data1?.event_no}] {data1?.event_title}
             </a>
@@ -817,10 +855,10 @@ export default function VendorDetails() {
 
             <div
               className="p-3 mb-2 "
-            // style={{
-            //   overflowY: "auto",
-            //   height: "calc(100vh - 100px)",
-            // }}
+              // style={{
+              //   overflowY: "auto",
+              //   height: "calc(100vh - 100px)",
+              // }}
             >
               {loading ? (
                 "Loading...."
@@ -833,7 +871,10 @@ export default function VendorDetails() {
                       {/* Published Stages */}
 
                       <div className="card mb-5 p-3 mt-2 rounded-3 ">
-                        <div className="col-12" style={{ paddingBottom: '20px' }}>
+                        <div
+                          className="col-12"
+                          style={{ paddingBottom: "20px" }}
+                        >
                           <a
                             className="btn"
                             data-bs-toggle="collapse"
@@ -842,15 +883,19 @@ export default function VendorDetails() {
                             aria-expanded={publishedStages}
                             aria-controls="participation-summary"
                             onClick={handlepublishedStages}
-
                           >
                             <span
                               id="participation-summary-icon"
                               className="icon-1"
                               // style={{ marginRight: "8px" }}
                               style={{
-                                marginRight: "8px", border: "1px solid #dee2e6", paddingTop: '10px', paddingBottom: "10px",
-                                paddingLeft: '8px', paddingRight: '8px', fontSize: "12px"
+                                marginRight: "8px",
+                                border: "1px solid #dee2e6",
+                                paddingTop: "10px",
+                                paddingBottom: "10px",
+                                paddingLeft: "8px",
+                                paddingRight: "8px",
+                                fontSize: "12px",
                               }}
                             >
                               {publishedStages ? (
@@ -955,8 +1000,13 @@ export default function VendorDetails() {
                               className="icon-1"
                               // style={{ marginRight: "8px" }}
                               style={{
-                                marginRight: "8px", border: "1px solid #dee2e6", paddingTop: '10px', paddingBottom: "10px",
-                                paddingLeft: '8px', paddingRight: '8px', fontSize: "12px"
+                                marginRight: "8px",
+                                border: "1px solid #dee2e6",
+                                paddingTop: "10px",
+                                paddingBottom: "10px",
+                                paddingLeft: "8px",
+                                paddingRight: "8px",
+                                fontSize: "12px",
                               }}
                             >
                               {termss ? (
@@ -980,7 +1030,7 @@ export default function VendorDetails() {
                               <div className=" card card-body rounded-3 p-0">
                                 <ul
                                   className=" mt-3 mb-3"
-                                // style={{ fontSize: "13px", marginLeft: "0px" }}
+                                  // style={{ fontSize: "13px", marginLeft: "0px" }}
                                 >
                                   {terms.map((term) => (
                                     <li key={term.id} className="mb-3 mt-3">
@@ -1020,8 +1070,13 @@ export default function VendorDetails() {
                               className="icon-1"
                               // style={{ marginRight: "8px" }}
                               style={{
-                                marginRight: "8px", border: "1px solid #dee2e6", paddingTop: '10px', paddingBottom: "10px",
-                                paddingLeft: '8px', paddingRight: '8px', fontSize: "12px"
+                                marginRight: "8px",
+                                border: "1px solid #dee2e6",
+                                paddingTop: "10px",
+                                paddingBottom: "10px",
+                                paddingLeft: "8px",
+                                paddingRight: "8px",
+                                fontSize: "12px",
                               }}
                             >
                               {Contact ? (
@@ -1110,8 +1165,13 @@ export default function VendorDetails() {
                                 className="icon-1"
                                 // style={{ marginRight: "8px" }} // Adds gap between icon and text
                                 style={{
-                                  marginRight: "8px", border: "1px solid #dee2e6", paddingTop: '10px', paddingBottom: "10px",
-                                  paddingLeft: '8px', paddingRight: '8px', fontSize: "12px"
+                                  marginRight: "8px",
+                                  border: "1px solid #dee2e6",
+                                  paddingTop: "10px",
+                                  paddingBottom: "10px",
+                                  paddingLeft: "8px",
+                                  paddingRight: "8px",
+                                  fontSize: "12px",
                                 }}
                               >
                                 {lineItems ? (
@@ -1131,7 +1191,7 @@ export default function VendorDetails() {
                             </div>
                             {/* Right-aligned button */}
                             {/* <div className=""> */}
-                              {/* <button
+                            {/* <button
                                 className="purple-btn2"
                                 data-bs-toggle="modal"
                                 data-bs-target="#venderModal"
@@ -1159,25 +1219,25 @@ export default function VendorDetails() {
                                 <span style={{ fontSize: '16px' }}>Download Attachment</span>
                               </button> */}
 
-                              <div className="d-flex align-items-center align-bottom">
-                                <button className="buyEvent-mainBtn download-reportBtn">
-                                  <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    width="20"
-                                    height="20"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    // stroke-width="1"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                  >
-                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                                    <polyline points="7 10 12 15 17 10" />
-                                    <line x1="12" y1="15" x2="12" y2="3" />
-                                  </svg>
-                                  Download Attachment
-                                </button>
+                            <div className="d-flex align-items-center align-bottom">
+                              <button className="buyEvent-mainBtn download-reportBtn">
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="20"
+                                  height="20"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  // stroke-width="1"
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                >
+                                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                  <polyline points="7 10 12 15 17 10" />
+                                  <line x1="12" y1="15" x2="12" y2="3" />
+                                </svg>
+                                Download Attachment
+                              </button>
                               {/* </div> */}
                             </div>
                           </a>
@@ -1351,6 +1411,23 @@ export default function VendorDetails() {
                         </span>
                       </h4>
                     </div>
+
+                    {counterData > 0 && (
+                      <div className="d-flex justify-content-between align-items-center mx-3 bg-light p-3 rounded-3">
+                        <div className="">
+                          <p>Counter Offer</p>
+                          <p>
+                            A counter is pending on your bid. You cannot ake any
+                            further changes to your bid untill your resolve the
+                            counter offer
+                          </p>
+                        </div>
+                        <div className="d-flex">
+                          <button className="purple-btn1" onClick={handleDecline}>Decline</button>
+                          <button className="purple-btn2" onClick={handleAccept}>Accept Offer</button>
+                        </div>
+                      </div>
+                    )}
 
                     <div className="card-body">
                       <div style={tableContainerStyle}>
@@ -1676,7 +1753,9 @@ export default function VendorDetails() {
 
                       {/* </div> */}
                       <div className="d-flex justify-content-end mt-2 mx-2">
-                        <span style={{fontSize:'16px'}}>Sum Total : ₹{calculateSumTotal()}</span>
+                        <span style={{ fontSize: "16px" }}>
+                          Sum Total : ₹{calculateSumTotal()}
+                        </span>
                       </div>
                     </div>
                   </div>
