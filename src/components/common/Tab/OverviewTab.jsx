@@ -103,10 +103,10 @@ export default function OverviewTab({
       label: "Order Mode",
       value: overviewData?.event_type_detail?.award_scheme || "_",
     },
-    {
-      label: "Closing Mode",
-      value: "_",
-    },
+    // {
+    //   label: "Closing Mode",
+    //   value: "_",
+    // },
     {
       label: "Started at",
       value: new Date(overviewData?.event_schedule?.start_time).toLocaleString() || "_",
@@ -235,98 +235,7 @@ export default function OverviewTab({
             </div>
           )}
         </div>
-        <div className="col-12 my-3">
-          <a
-            className="btn"
-            data-bs-toggle="collapse"
-            href="#savings-summary"
-            role="button"
-            aria-expanded={savingsOpen}
-            aria-controls="savings-summary"
-            onClick={handleSavings}
-            style={{ fontSize: "16px", fontWeight: "normal" }}
-          >
-            <span id="savings-summary-icon" className="icon-1">
-              {savingsOpen ? (
-                <i className="bi bi-dash-lg"></i>
-              ) : (
-                <i className="bi bi-plus-lg"></i>
-              )}
-            </span>
-            Savings Summary
-          </a>
-          {savingsOpen && (
-            <div id="savings-summary" className="mx-5">
-              <div className="card card-body p-4  pt-0 ">
-                {/* View By Section */}
-                {/* <div className="viewBy-main">
-                  <div className="viewBy-main-child2">
-                    <div className="view">View</div>
-                  </div>
-                </div> */}
-
-                {/* Savings Reference Section */}
-                {/* <div className="saving-ref">
-                  <div className="default-sec d-flex align-items-center justify-content-between">
-                    <div className="default d-flex gap-2 align-items-center">
-                      <svg
-                        width={13}
-                        height={14}
-                        viewBox="0 0 10 11"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M4.35725 0.572266H0.285819C0.167962 0.572266 0.0715332 0.668694 0.0715332 0.786551V4.85798C0.0715332 4.97584 0.167962 5.07227 0.285819 5.07227H4.35725C4.4751 5.07227 4.57153 4.97584 4.57153 4.85798V0.786551C4.57153 0.668694 4.4751 0.572266 4.35725 0.572266ZM3.66082 4.16155H0.982248V1.48298H3.66082V4.16155ZM9.71439 0.572266H5.64296C5.52511 0.572266 5.42868 0.668694 5.42868 0.786551V4.85798C5.42868 4.97584 5.52511 5.07227 5.64296 5.07227H9.71439C9.83225 5.07227 9.92868 4.97584 9.92868 4.85798V0.786551C9.92868 0.668694 9.83225 0.572266 9.71439 0.572266ZM9.01796 4.16155H6.33939V1.48298H9.01796V4.16155ZM4.35725 5.92941H0.285819C0.167962 5.92941 0.0715332 6.02584 0.0715332 6.14369V10.2151C0.0715332 10.333 0.167962 10.4294 0.285819 10.4294H4.35725C4.4751 10.4294 4.57153 10.333 4.57153 10.2151V6.14369C4.57153 6.02584 4.4751 5.92941 4.35725 5.92941ZM3.66082 9.51869H0.982248V6.84012H3.66082V9.51869ZM9.71439 5.92941H5.64296C5.52511 5.92941 5.42868 6.02584 5.42868 6.14369V10.2151C5.42868 10.333 5.52511 10.4294 5.64296 10.4294H9.71439C9.83225 10.4294 9.92868 10.333 9.92868 10.2151V6.14369C9.92868 6.02584 9.83225 5.92941 9.71439 5.92941ZM9.01796 9.51869H6.33939V6.84012H9.01796V9.51869Z"
-                          fill="#262626"
-                        />
-                      </svg>
-                      <span>Default</span>
-                    </div>
-                    <span>-</span>
-                  </div>
-
-                  <div className="saving-sec d-flex justify-content-between align-items-center mt-2">
-                    <div className="saving-text">SAVINGS REFERENCE</div>
-                    <div className="default d-flex align-items-center gap-3">
-                      <span>-</span>
-                      <span className="saving-amount">₹58,05,671.79</span>
-                    </div>
-                  </div>
-                </div> */}
-
-                {/* Table Section */}
-                <div className="tbl-container mt-3">
-                  <table className="w-100 table">
-                    <thead>
-                      <tr>
-                        <th>Product</th>
-                        <th>Variant</th>
-                        <th>Default Reference</th>
-                        <th>Default Savings</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {Array(6)
-                        // @ts-ignore
-                        .fill()
-                        .map((_, index) => (
-                          <tr key={index}>
-                            <td>Wooden Frd Door</td>
-                            <td>
-                              WOODEN DOOR SHUTTER 2 HRS FIRE RATED (MAIN DOOR)
-                            </td>
-                            <td>₹ 12850 /Nos</td>
-                            <td>₹ 0/Nos</td>
-                          </tr>
-                        ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
+        
         <div className="col-12 my-3">
           <a
             className="btn"
