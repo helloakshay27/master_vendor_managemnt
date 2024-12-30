@@ -767,7 +767,7 @@ export default function VendorListPage() {
                                 <button
                                   className="btn "
                                   onClick={() =>
-                                    navigate(`/erp-rfq-detail-price-trends4h/${event.id}`)
+                                    navigate(`/user-list/${event.id}`)
                                   }
                                 >
                                   <svg
