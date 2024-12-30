@@ -29,6 +29,7 @@ import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 import CollapsibleCard from "../components/base/Card/CollapsibleCards";
 import { eventProjectColumns } from "../constant/data";
+import FormatDate from "../components/FormatDate";
 
 export default function VendorListPage() {
   const [settingShow, setSettingShow] = useState(false);
@@ -183,7 +184,7 @@ export default function VendorListPage() {
             ...filters,
           },
         }),
-        axios.get("https://vendors.lockated.com/rfq/events/vendor_list", {
+        axios.get("https://vendors.lockated.com/rfq/events/past_events", {
           params: {
             token: token,
             q: "9970804349,mahendra.lungare@lockated.com",
@@ -365,6 +366,10 @@ export default function VendorListPage() {
     { label: "Sr.No.", key: "srNo" },
     { label: "Event Title", key: "event_title" },
     { label: "Event No", key: "event_no" },
+    { label: "Start Time", key: "start_time" },
+
+    { label: "End Time", key: "end_time" },
+
     { label: "Created At", key: "created_at" },
     { label: "Created By", key: "created_by" },
     { label: "Event Type", key: "event_type" },
@@ -457,11 +462,11 @@ export default function VendorListPage() {
                   <div className="col-md-2 text-center">
                     <div
                       className="content-box"
-                      onClick={() => handleTabChange("historyEvents")}
+                      onClick={() => handleTabChange("history")}
                       style={{
                         cursor: "pointer",
                         border:
-                          activeTab === "live"
+                          activeTab === "history"
                             ? "2px solid #007bff"
                             : "1px solid #ccc",
                         backgroundColor:
@@ -507,8 +512,8 @@ export default function VendorListPage() {
                             value={
                               filters.title_in
                                 ? filterOptions.event_titles.find(
-                                    (opt) => opt.value === filters.title_in
-                                  )
+                                  (opt) => opt.value === filters.title_in
+                                )
                                 : null
                             }
                             placeholder="Select Event Title"
@@ -531,8 +536,8 @@ export default function VendorListPage() {
                             value={
                               filters.event_no_in
                                 ? filterOptions.event_numbers.find(
-                                    (opt) => opt.value === filters.event_no_in
-                                  )
+                                  (opt) => opt.value === filters.event_no_in
+                                )
                                 : null
                             }
                             placeholder="Select Event Number"
@@ -555,8 +560,8 @@ export default function VendorListPage() {
                             value={
                               filters.status_in
                                 ? filterOptions.statuses.find(
-                                    (opt) => opt.value === filters.status_in
-                                  )
+                                  (opt) => opt.value === filters.status_in
+                                )
                                 : null
                             }
                             placeholder="Select Status"
@@ -579,9 +584,9 @@ export default function VendorListPage() {
                             value={
                               filters.created_by_id_in
                                 ? filterOptions.creaters.find(
-                                    (opt) =>
-                                      opt.value === filters.created_by_id_in
-                                  )
+                                  (opt) =>
+                                    opt.value === filters.created_by_id_in
+                                )
                                 : null
                             }
                             placeholder="Select Creator"
@@ -703,7 +708,29 @@ export default function VendorListPage() {
                               </td>
                               <td>{event.event_title || "N/A"}</td>
                               <td>{event.event_no || "N/A"}</td>
-                              <td>{event.created_at || "N/A"}</td>
+                              <td>
+                                {event.event_schedule.start_time ? (
+                                  <FormatDate timestamp={event.event_schedule.start_time} />
+                                ) : (
+                                  "N/A"
+                                )}
+                              </td>
+
+                              <td>
+                                {event.event_schedule.end_time_duration ? (
+                                  <FormatDate timestamp={event.event_schedule.end_time_duration} />
+                                ) : (
+                                  "N/A"
+                                )}
+                              </td>
+                              <td>
+                                {event.created_at ? (
+                                  <FormatDate timestamp={event.created_at} />
+                                ) : (
+                                  "N/A"
+                                )}
+
+                              </td>
                               <td>{event.created_by || "N/A"}</td>
                               <td>
                                 {event.event_type_detail?.event_type || "N/A"}
@@ -717,7 +744,7 @@ export default function VendorListPage() {
                                 <button
                                   className="btn "
                                   onClick={() =>
-                                    navigate(`/user-list/${event.id}`)
+                                    navigate(`/erp-rfq-detail-price-trends4h/${event.id}`)
                                   }
                                 >
                                   <svg
@@ -743,9 +770,8 @@ export default function VendorListPage() {
                     <ul className="pagination justify-content-center d-flex">
                       {/* First Button */}
                       <li
-                        className={`page-item ${
-                          pagination.current_page === 1 ? "disabled" : ""
-                        }`}
+                        className={`page-item ${pagination.current_page === 1 ? "disabled" : ""
+                          }`}
                       >
                         <button
                           className="page-link"
@@ -757,9 +783,8 @@ export default function VendorListPage() {
 
                       {/* Previous Button */}
                       <li
-                        className={`page-item ${
-                          pagination.current_page === 1 ? "disabled" : ""
-                        }`}
+                        className={`page-item ${pagination.current_page === 1 ? "disabled" : ""
+                          }`}
                       >
                         <button
                           className="page-link"
@@ -776,11 +801,10 @@ export default function VendorListPage() {
                       {pageNumbers.map((pageNumber) => (
                         <li
                           key={pageNumber}
-                          className={`page-item ${
-                            pagination.current_page === pageNumber
-                              ? "active"
-                              : ""
-                          }`}
+                          className={`page-item ${pagination.current_page === pageNumber
+                            ? "active"
+                            : ""
+                            }`}
                         >
                           <button
                             className="page-link"
@@ -793,11 +817,10 @@ export default function VendorListPage() {
 
                       {/* Next Button */}
                       <li
-                        className={`page-item ${
-                          pagination.current_page === pagination.total_pages
-                            ? "disabled"
-                            : ""
-                        }`}
+                        className={`page-item ${pagination.current_page === pagination.total_pages
+                          ? "disabled"
+                          : ""
+                          }`}
                       >
                         <button
                           className="page-link"
@@ -814,11 +837,10 @@ export default function VendorListPage() {
 
                       {/* Last Button */}
                       <li
-                        className={`page-item ${
-                          pagination.current_page === pagination.total_pages
-                            ? "disabled"
-                            : ""
-                        }`}
+                        className={`page-item ${pagination.current_page === pagination.total_pages
+                          ? "disabled"
+                          : ""
+                          }`}
                       >
                         <button
                           className="page-link"
