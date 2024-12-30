@@ -657,7 +657,7 @@ export default function adminList() {
                           </div>
                         </div>
                         <div className="col-md-4">
-                          {/* <button
+                          <button
                             className="purple-btn2"
                             onClick={() => navigate("/create-event")}
                           >
@@ -665,7 +665,7 @@ export default function adminList() {
                               add
                             </span>
                             New Event
-                          </button> */}
+                          </button>
                         </div>
                       </div>
                     </div>
