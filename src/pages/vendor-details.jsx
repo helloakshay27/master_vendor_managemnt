@@ -18,6 +18,11 @@ export default function VendorDetails() {
     { label: "Loading / Unloading *", value: "" },
   ]);
 
+  const [vendorId, setVendorId] = useState(() => {
+    // Retrieve the vendorId from sessionStorage or default to an empty string
+    return sessionStorage.getItem('vendorId') || "";
+  });
+
   const [remark, setRemark] = useState("");
 
   const [revisedBid, setRevisedBid] = useState(false);
@@ -204,7 +209,7 @@ export default function VendorDetails() {
           setCounterData(bidResponse.data?.bids[0]?.counter_bids.length);
           setCounterId(bidResponse.data?.bids[0]?.counter_bids[0]?.id);
           setBidIds(bidResponse.data.bids[0].id);
-          
+
           const bids = bidResponse.data.bids;
 
           // Process only the first element of the bids array
@@ -377,7 +382,7 @@ export default function VendorDetails() {
       console.log("payloadssss", payload);
 
       const response = await axios.post(
-        `https://vendors.lockated.com/rfq/events/${eventId}/bids?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`, // Replace with your API endpoint
+        `https://vendors.lockated.com/rfq/events/${eventId}/bids?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&event_vendor_id=${vendorId}`, // Replace with your API endpoint
         payload,
         {
           headers: {
@@ -510,7 +515,7 @@ export default function VendorDetails() {
       console.log("payloadssss2 revised", payload2);
 
       const response = await axios.post(
-        `https://vendors.lockated.com/rfq/events/${eventId}/bids/${bidIds}/revised_bids?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`, // Replace with your API endpoint
+        `https://vendors.lockated.com/rfq/events/${eventId}/bids/${bidIds}/revised_bids?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&event_vendor_id=${vendorId}`, // Replace with your API endpoint
         payload2,
         {
           headers: {
@@ -684,7 +689,7 @@ export default function VendorDetails() {
         body: JSON.stringify(payload),
       }
     );
-    
+
     if (response.ok) {
       console.log("Counter offer accepted");
       // Handle successful acceptance (e.g., update UI, show notification)
@@ -855,10 +860,10 @@ export default function VendorDetails() {
 
             <div
               className="p-3 mb-2 "
-              // style={{
-              //   overflowY: "auto",
-              //   height: "calc(100vh - 100px)",
-              // }}
+            // style={{
+            //   overflowY: "auto",
+            //   height: "calc(100vh - 100px)",
+            // }}
             >
               {loading ? (
                 "Loading...."
@@ -1030,7 +1035,7 @@ export default function VendorDetails() {
                               <div className=" card card-body rounded-3 p-0">
                                 <ul
                                   className=" mt-3 mb-3"
-                                  // style={{ fontSize: "13px", marginLeft: "0px" }}
+                                // style={{ fontSize: "13px", marginLeft: "0px" }}
                                 >
                                   {terms.map((term) => (
                                     <li key={term.id} className="mb-3 mt-3">

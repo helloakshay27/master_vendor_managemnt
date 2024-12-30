@@ -84,6 +84,7 @@ export default function VendorListPage() {
 
     sessionStorage.setItem('vendorId', vendorId);
   }, [vendorId]);
+  const [vendorList, setVendorList] = useState([]);
 
   const [vendorOptions, setVendorOptions] = useState([]);
 
@@ -248,7 +249,8 @@ export default function VendorListPage() {
   useEffect(() => {
     fetchEvents();
   }, [filters, activeTab, vendorId]);
-  
+
+
 
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= pagination.total_pages) {
@@ -365,7 +367,7 @@ export default function VendorListPage() {
         label: item[0],
       }));
 
-      setVendorOptions(options);
+      setVendorList(options);
     } catch (error) {
       console.error("Error fetching vendor details:", error.message);
     }
@@ -419,17 +421,17 @@ export default function VendorListPage() {
               <h5 className="mt-3 ms-3">RFQ &amp; Auction Events</h5>
               <div style={{ width: "15%" }}>
                 <Select
-                  options={vendorOptions}
+                  options={vendorList}
                   placeholder="Select a Vendor"
                   isClearable
-                  value={vendorOptions.find((option) => option.value === vendorId)}
+                  value={vendorList.find((option) => option.value === vendorId)?.label || "No Vendor Selected"} // Find selected vendor
                   onChange={(selectedOption) => {
-                    const newVendorId = selectedOption ? selectedOption.value : "";
-                    setVendorId(newVendorId);
-                    sessionStorage.setItem("vendorId", newVendorId); // Save to session storage
-                    // window.location.reload(); // Reload the page
+                    const newVendorId = selectedOption ? selectedOption.value : ""; // Line 427
+                    setVendorId(newVendorId); // Line 430
                   }}
+
                 />
+
 
 
               </div>
