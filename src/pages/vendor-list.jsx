@@ -71,7 +71,20 @@ export default function VendorListPage() {
   const pageSize = 10;
   const pageRange = 6;
   const [searchQuery, setSearchQuery] = useState("");
-  const [vendorId, setVendorId] = useState("");
+  const [vendorId, setVendorId] = useState(() => {
+    // Retrieve the vendorId from sessionStorage or default to an empty string
+    return sessionStorage.getItem('vendorId') || "";
+  });
+
+  useEffect(() => {
+    // Save vendorId in session storage
+
+    console.log('vendorId', vendorId);
+
+
+    sessionStorage.setItem('vendorId', vendorId);
+  }, [vendorId]);
+
   const [vendorOptions, setVendorOptions] = useState([]);
 
   const navigate = useNavigate();
@@ -181,6 +194,8 @@ export default function VendorListPage() {
           params: {
             token: token,
             page: page,
+            event_vendor_id: vendorId,
+
             ...filters,
           },
         }),
@@ -189,6 +204,8 @@ export default function VendorListPage() {
             token: token,
             q: "9970804349,mahendra.lungare@lockated.com",
             page: page,
+            event_vendor_id: vendorId,
+
             ...filters,
           },
         }),
@@ -196,6 +213,8 @@ export default function VendorListPage() {
           params: {
             token: token,
             page: page,
+            event_vendor_id: vendorId,
+
             ...filters,
           },
         }),
@@ -228,7 +247,8 @@ export default function VendorListPage() {
 
   useEffect(() => {
     fetchEvents();
-  }, [filters, activeTab]); // Fetch data whenever filters or active tab change
+  }, [filters, activeTab, vendorId]);
+  
 
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= pagination.total_pages) {
@@ -402,13 +422,16 @@ export default function VendorListPage() {
                   options={vendorOptions}
                   placeholder="Select a Vendor"
                   isClearable
-                  value={vendorOptions.find(
-                    (option) => option.value === vendorId
-                  )}
-                  onChange={(selectedOption) =>
-                    setVendorId(selectedOption ? selectedOption.value : "")
-                  }
+                  value={vendorOptions.find((option) => option.value === vendorId)}
+                  onChange={(selectedOption) => {
+                    const newVendorId = selectedOption ? selectedOption.value : "";
+                    setVendorId(newVendorId);
+                    sessionStorage.setItem("vendorId", newVendorId); // Save to session storage
+                    // window.location.reload(); // Reload the page
+                  }}
                 />
+
+
               </div>
             </div>
 
