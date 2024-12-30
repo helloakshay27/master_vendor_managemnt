@@ -158,131 +158,131 @@ export default function ResponseTab({ data }) {
                 alignItems: "center",
               }}
             ></div>
-            { eventVendors.length > 0 ? (
+            {eventVendors.length > 0 ? (
               <>
-              <div style={{ overflowX: "auto" }}>
-              <table
-                className="tbl-container w-100 mb-0"
-                style={{ boxShadow: "none" }}
-              >
-                <tbody>
-                  <tr>
-                    <td style={{ width: "200px" }}></td>
-                    {eventVendors.map((vendor, index) => {
-                      return (
-                        <td key={vendor.id} style={{ width: "200px" }}>
-                          <div
-                            className="d-flex flex-column align-items-center justify-content-between"
-                            style={{ height: "120px" }}
-                          >
-                            {vendor.organization_name}
-                            <button
-                              className="purple-btn2 d-block"
-                              onClick={() => {
-                                if (
-                                  vendor.bids &&
-                                  vendor.bids.length > 0 &&
-                                  vendor.bids[0].bid_materials &&
-                                  vendor.bids[0].bid_materials.length > 0
-                                ) {
-                                  handleCounterModalShow();
-                                  setEventId(vendor.bids[0].event_id);
-                                  setBidId(
-                                    vendor.bids[0].bid_materials[0].bid_id
-                                  );
-                                }
-                              }}
-                            >
-                              Counter
-                            </button>
-                          </div>
+                <div style={{ overflowX: "auto" }}>
+                  <table
+                    className="tbl-container w-100 mb-0"
+                    style={{ boxShadow: "none" }}
+                  >
+                    <tbody>
+                      <tr>
+                        <td style={{ width: "200px" }}></td>
+                        {eventVendors.map((vendor, index) => {
+                          return (
+                            <td key={vendor.id} style={{ width: "200px" }}>
+                              <div
+                                className="d-flex flex-column align-items-center justify-content-between"
+                                style={{ height: "120px" }}
+                              >
+                                {vendor.organization_name}
+                                <button
+                                  className="purple-btn2 d-block"
+                                  onClick={() => {
+                                    if (
+                                      vendor.bids &&
+                                      vendor.bids.length > 0 &&
+                                      vendor.bids[0].bid_materials &&
+                                      vendor.bids[0].bid_materials.length > 0
+                                    ) {
+                                      handleCounterModalShow();
+                                      setEventId(vendor.bids[0].event_id);
+                                      setBidId(
+                                        vendor.bids[0].bid_materials[0].bid_id
+                                      );
+                                    }
+                                  }}
+                                >
+                                  Counter
+                                </button>
+                              </div>
+                            </td>
+                          );
+                        })}
+                      </tr>
+                      <tr>
+                        <td className="viewBy-tBody1-p" style={{ width: "200px" }}>
+                          Gross Total
                         </td>
-                      );
-                    })}
-                  </tr>
-                  <tr>
-                    <td className="viewBy-tBody1-p" style={{ width: "200px" }}>
-                      Gross Total
-                    </td>
-                    {eventVendors.map((vendor) => {
-                      return (
-                        <td>
-                          {vendor.bids.map((item) => item.gross_total) || "_"}
-                        </td>
-                      );
-                    })}
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-            {eventVendors.map((vendor, index) => {
-              return (
+                        {eventVendors.map((vendor) => {
+                          return (
+                            <td>
+                              {vendor.bids.map((item) => item.gross_total) || "_"}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                {eventVendors.map((vendor, index) => {
+                  return (
+                    <Accordion
+                      key={index}
+                      title={vendor.bids.map(
+                        (bid) => bid.bid_materials[index]?.material_name || "_"
+                      )}
+                      isDefault={true}
+                      tableColumn={[
+                        { label: "Best Total Amount", key: "bestTotalAmount" },
+                        { label: "Quantity Available", key: "quantityAvailable" },
+                        { label: "Price", key: "price" },
+                        { label: "Discount", key: "discount" },
+                        { label: "Realised Discount", key: "realisedDiscount" },
+                        { label: "GST", key: "gst" },
+                        { label: "Realised GST", key: "realisedGST" },
+                        { label: "Landed Amount", key: "landedAmount" },
+                        {
+                          label: "Participant Attachment",
+                          key: "participantAttachment",
+                        },
+                        { label: "Total Amount", key: "totalAmount" },
+                      ]}
+                      tableData={vendor.bids?.flatMap((bid) =>
+                        bid.bid_materials?.map((material) => ({
+                          bestTotalAmount: material.total_amount || "_",
+                          quantityAvailable: material.quantity_available || "_",
+                          price: material.price || "_",
+                          discount: material.discount || "_",
+                          realisedDiscount: material.discount || "_",
+                          gst: "_",
+                          realisedGST: "_",
+                          landedAmount: material.total_amount || "_",
+                          participantAttachment: "_",
+                          totalAmount: material.total_amount || "_",
+                        }))
+                      )}
+                    />
+                  );
+                })}
                 <Accordion
-                  key={index}
-                  title={vendor.bids.map(
-                    (bid) => bid.bid_materials[index]?.material_name
-                  )}
+                  title={"Other Charges"}
                   isDefault={true}
                   tableColumn={[
-                    { label: "Best Total Amount", key: "bestTotalAmount" },
-                    { label: "Quantity Available", key: "quantityAvailable" },
-                    { label: "Price", key: "price" },
-                    { label: "Discount", key: "discount" },
-                    { label: "Realised Discount", key: "realisedDiscount" },
-                    { label: "GST", key: "gst" },
-                    { label: "Realised GST", key: "realisedGST" },
-                    { label: "Landed Amount", key: "landedAmount" },
+                    { label: "Freight Charge Amount", key: "freightChrg" },
+                    { label: "GST on Freight", key: "freightGst" },
                     {
-                      label: "Participant Attachment",
-                      key: "participantAttachment",
+                      label: "Realised Freight Amount",
+                      key: "freightRealised",
                     },
-                    { label: "Total Amount", key: "totalAmount" },
+                    { label: "Warranty Clause", key: "warranty" },
+                    { label: "Payment Terms", key: "payment" },
+                    { label: "Loading / Unloading Clause", key: "loading" },
+                    { label: "Gross Total", key: "grossTotal" },
                   ]}
-                  tableData={vendor.bids?.flatMap((bid) =>
-                    bid.bid_materials?.map((material) => ({
-                      bestTotalAmount: material.total_amount || "_",
-                      quantityAvailable: material.quantity_available || "_",
-                      price: material.price || "_",
-                      discount: material.discount || "_",
-                      realisedDiscount: material.discount || "_",
-                      gst: "_",
-                      realisedGST: "_",
-                      landedAmount: material.total_amount || "_",
-                      participantAttachment: "_",
-                      totalAmount: material.total_amount || "_",
+                  tableData={eventVendors.flatMap((vendor) =>
+                    vendor.bids?.map((bid) => ({
+                      freightChrg: bid.freight_charge_amount || "_",
+                      freightGst: bid.gst_on_freight || "_",
+                      freightRealised: bid.realised_freight_charge_amount || "_",
+                      warranty: bid.warranty_clause || "_",
+                      payment: bid.payment_terms || "_",
+                      loading: bid.loading_unloading_clause || "_",
+                      grossTotal: bid.gross_total || "_",
                     }))
                   )}
                 />
-              );
-            })}
-            <Accordion
-              title={"Other Charges"}
-              isDefault={true}
-              tableColumn={[
-                { label: "Freight Charge Amount", key: "freightChrg" },
-                { label: "GST on Freight", key: "freightGst" },
-                {
-                  label: "Realised Freight Amount",
-                  key: "freightRealised",
-                },
-                { label: "Warranty Clause", key: "warranty" },
-                { label: "Payment Terms", key: "payment" },
-                { label: "Loading / Unloading Clause", key: "loading" },
-                { label: "Gross Total", key: "grossTotal" },
-              ]}
-              tableData={eventVendors.flatMap((vendor) =>
-                vendor.bids?.map((bid) => ({
-                  freightChrg: bid.freight_charge_amount || "_",
-                  freightGst: bid.gst_on_freight || "_",
-                  freightRealised: bid.realised_freight_charge_amount || "_",
-                  warranty: bid.warranty_clause || "_",
-                  payment: bid.payment_terms || "_",
-                  loading: bid.loading_unloading_clause || "_",
-                  grossTotal: bid.gross_total || "_",
-                }))
-              )}
-            />
-            </>
+              </>
             ) : <h4 className="h-100 w-100 d-flex justify-content-center align-items-center pt-5">No Bid Details found</h4>}
           </div>
         </FullScreen>
