@@ -254,7 +254,7 @@ export default function VendorDetails() {
         } else {
           // Step 2: Fetch the bid data if `revised_bid` is true
           const bidResponse = await axios.get(
-            `https://vendors.lockated.com/rfq/events/${eventId}/bids?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&q[event_vendor_id_cont]=${vendorId}`
+            `https://vendors.lockated.com/rfq/events/${eventId}/bids?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&q[event_vendor_id_in]=${vendorId}`
           );
 
           setCounterData(bidResponse.data?.bids[0]?.counter_bids.length);
@@ -406,7 +406,7 @@ export default function VendorDetails() {
 
     const payload = {
       bid: {
-        event_vendor_id: 10,
+        event_vendor_id: vendorId,
         price: 2000,
         discount: 10,
         freight_charge_amount: freightCharge21,
@@ -549,7 +549,7 @@ export default function VendorDetails() {
 
     const payload = {
       revised_bid: {
-        event_vendor_id: 78,
+        event_vendor_id: vendorId,
         price: 500.0,
         discount: 10.0,
         freight_charge_amount: freightCharge21,
