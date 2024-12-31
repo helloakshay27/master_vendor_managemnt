@@ -3,6 +3,7 @@ import DynamicModalBox from "../../base/Modal/DynamicModalBox";
 import SelectBox from "../../base/Select/SelectBox";
 // @ts-ignore
 import format from "date-fns/format";
+import { event } from "jquery";
 
 const EventScheduleModal = ({ show, onHide, handleSaveSchedule }) => {
   const [isLater, setIsLater] = useState(false);
@@ -95,12 +96,13 @@ const EventScheduleModal = ({ show, onHide, handleSaveSchedule }) => {
 
     const evaluationTimeFormatted = `${evaluationDurationVal} ${customEvaluationDuration}`;
 
+    console.log("eve",typeof evaluationTimeFormatted, evaluationTimeFormatted);
     
 
     const data = {
       start_time: startTime,
       end_time_duration: endTimeFormatted,
-      evaluation_time: evaluationDurationVal,
+      evaluation_time: evaluationTimeFormatted,
     };
     handleSaveSchedule(data);
   };

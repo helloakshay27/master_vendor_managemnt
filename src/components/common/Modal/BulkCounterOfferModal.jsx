@@ -346,7 +346,7 @@ export default function BulkCounterOfferModal({
     <DynamicModalBox
       show={show}
       onHide={handleClose}
-      title="Bulk Counter Offer"
+      title="Counter Offer"
       size="xl"
       footerButtons={[
         {

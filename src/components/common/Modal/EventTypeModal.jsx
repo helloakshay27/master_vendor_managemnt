@@ -244,26 +244,26 @@ const EventTypeModal = ({
           >
             <div
               className={`pro-radio-tabs__tab ${
-                selectedStrategy === "0" ? "pro-radio-tabs__tab__selected" : ""
+                selectedStrategy === "rank_based" ? "pro-radio-tabs__tab__selected" : ""
               }`}
               tabIndex={0}
               role="radio"
-              aria-checked={selectedStrategy === "0"}
-              onClick={() => handleRadioChange("0")}
+              aria-checked={selectedStrategy === "rank_based"}
+              onClick={() => handleRadioChange("rank_based")}
             >
               <div className="pro-radio-tabs__check-icon">
                 <label className="ant-radio-wrapper">
                   <span
                     className={`ant-radio ${
-                      selectedStrategy === "0" ? "ant-radio-checked" : ""
+                      selectedStrategy === "rank_based" ? "ant-radio-checked" : ""
                     }`}
                   >
                     <input
                       type="radio"
                       tabIndex={-1}
                       className="ant-radio-input"
-                      checked={selectedStrategy === "0"}
-                      onChange={() => handleRadioChange("0")}
+                      checked={selectedStrategy === "rank_based"}
+                      onChange={() => handleRadioChange("rank_based")}
                     />
                     <div className="ant-radio-inner" />
                   </span>
@@ -282,26 +282,26 @@ const EventTypeModal = ({
             </div>
             <div
               className={`pro-radio-tabs__tab ${
-                selectedStrategy === "1" ? "pro-radio-tabs__tab__selected" : ""
+                selectedStrategy === "price_based" ? "pro-radio-tabs__tab__selected" : ""
               }`}
               tabIndex={0}
               role="radio"
-              aria-checked={selectedStrategy === "1"}
-              onClick={() => handleRadioChange("1")}
+              aria-checked={selectedStrategy === "price_based"}
+              onClick={() => handleRadioChange("price_based")}
             >
               <div className="pro-radio-tabs__check-icon">
                 <label className="ant-radio-wrapper">
                   <span
                     className={`ant-radio ${
-                      selectedStrategy === "1" ? "ant-radio-checked" : ""
+                      selectedStrategy === "price_based" ? "ant-radio-checked" : ""
                     }`}
                   >
                     <input
                       type="radio"
                       tabIndex={-1}
                       className="ant-radio-input"
-                      checked={selectedStrategy === "1"}
-                      onChange={() => handleRadioChange("1")}
+                      checked={selectedStrategy === "price_based"}
+                      onChange={() => handleRadioChange("price_based")}
                     />
                     <div className="ant-radio-inner" />
                   </span>
@@ -365,26 +365,26 @@ const EventTypeModal = ({
 
             <div
               className={`pro-radio-tabs__tab ${
-                selectedStrategy === "2" ? "pro-radio-tabs__tab__selected" : ""
+                selectedStrategy === "traffic_light" ? "pro-radio-tabs__tab__selected" : ""
               }`}
               tabIndex={0}
               role="radio"
-              aria-checked={selectedStrategy === "2"}
-              onClick={() => handleRadioChange("2")}
+              aria-checked={selectedStrategy === "traffic_light"}
+              onClick={() => handleRadioChange("traffic_light")}
             >
               <div className="pro-radio-tabs__check-icon">
                 <label className="ant-radio-wrapper">
                   <span
                     className={`ant-radio ${
-                      selectedStrategy === "2" ? "ant-radio-checked" : ""
+                      selectedStrategy === "traffic_light" ? "ant-radio-checked" : ""
                     }`}
                   >
                     <input
                       type="radio"
                       tabIndex={-1}
                       className="ant-radio-input"
-                      checked={selectedStrategy === "2"}
-                      onChange={() => handleRadioChange("2")}
+                      checked={selectedStrategy === "traffic_light"}
+                      onChange={() => handleRadioChange("traffic_light")}
                     />
                     <div className="ant-radio-inner" />
                   </span>

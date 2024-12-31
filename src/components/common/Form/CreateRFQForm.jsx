@@ -5,8 +5,31 @@ import Table from "../../base/Table/Table";
 import React, { useState } from "react";
 import { useEffect } from "react";
 import axios from "axios";
+import { type } from "jquery";
 
 export default function CreateRFQForm({ data, setData }) {
+  const [materials, setMaterials] = useState([]);
+  const [selectedMaterial, setSelectedMaterial] = useState(null);
+
+  useEffect(() => {
+    const fetchMaterials = async () => {
+      try {
+        const response = await axios.get(
+          "https://vendors.lockated.com/rfq/events/material_list?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414"
+        ); 
+        if (response.data && Array.isArray(response.data.materials)) {
+          setMaterials(response.data.materials);           
+        } else {
+          console.error("Unexpected response structure:", response.data);
+        }
+      } catch (error) {
+        console.error("Error fetching materials:", error);
+      }
+    };
+
+    fetchMaterials();
+  }, []);
+
   const handleUnitChange = (selected, rowIndex) => {
     const updatedData = [...data];
     updatedData[rowIndex].unit = selected;
@@ -32,6 +55,7 @@ export default function CreateRFQForm({ data, setData }) {
       descriptionOfItem: [],
       quantity: "",
       unit: [],
+      type: materials[0].type,
       location: [],
       rate: 10,
       amount: 0,
@@ -40,27 +64,6 @@ export default function CreateRFQForm({ data, setData }) {
     setData([...data, newRow]);
   };
 
-  const [materials, setMaterials] = useState([]);
-  const [selectedMaterial, setSelectedMaterial] = useState(null);
-
-  useEffect(() => {
-    const fetchMaterials = async () => {
-      try {
-        const response = await axios.get(
-          "https://vendors.lockated.com/rfq/events/material_list?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414"
-        ); 
-        if (response.data && Array.isArray(response.data.materials)) {
-          setMaterials(response.data.materials); 
-        } else {
-          console.error("Unexpected response structure:", response.data);
-        }
-      } catch (error) {
-        console.error("Error fetching materials:", error);
-      }
-    };
-
-    fetchMaterials();
-  }, []);
 
   const handleInputChange = (value, rowIndex, key) => {
     const updatedData = [...data];
@@ -97,7 +100,7 @@ export default function CreateRFQForm({ data, setData }) {
     } else {
       updatedData[rowIndex].unit = ""; // Set empty if no UOM found
     }
-
+    updatedData[rowIndex].type = selectedMaterial?.type || "N/A";
     setData(updatedData);
   };
 
@@ -125,6 +128,7 @@ export default function CreateRFQForm({ data, setData }) {
               { label: "Description of Item", key: "descriptionOfItem" },
               { label: "Quantity", key: "quantity" },
               { label: "UOM", key: "unit" },
+              { label: "Type", key: "type" },
               { label: "Location", key: "location" },
               { label: "Rate", key: "rate" },
               { label: "Amount", key: "amount" },
@@ -152,6 +156,15 @@ export default function CreateRFQForm({ data, setData }) {
                   value={cell}
                   readOnly
                 />
+              ),
+              type: (cell, rowIndex) => (
+                // <input
+                //   className="form-control"
+                //   type="text"
+                //   value={cell}
+                //   readOnly
+                // />
+                <p>{cell}</p>
               ),
               location: (cell, rowIndex) => (
                 <input

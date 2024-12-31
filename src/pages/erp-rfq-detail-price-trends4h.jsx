@@ -46,9 +46,6 @@ export default function ErpRfqDetailPriceTrends4h() {
   const [loading, setLoading] = useState(true);
   const [analyticsData, setAnalyticsData] = useState([]);
 
-  
-
-
   useEffect(() => {
     const timer = setInterval(() => {
       setRemainingTime((prevTime) => (prevTime > 0 ? prevTime - 1 : 0));
@@ -160,7 +157,9 @@ export default function ErpRfqDetailPriceTrends4h() {
         return (
           <BulkCounterOfferModal
             show={showModal}
-            handleClose={handleCloseModal} bidCounterData={undefined}          />
+            handleClose={handleCloseModal}
+            bidCounterData={undefined}
+          />
         );
       default:
         return null;
@@ -305,93 +304,124 @@ export default function ErpRfqDetailPriceTrends4h() {
     fetchParticipants();
   }, [id]);
 
-
   console.log(overviewData);
-  
-
 
   return (
     <>
-        <div className="website-content overflow-auto">
-          <div className="module-data-section p-0 ">
-            <div className="event-order-page">
-              <div className=" event-tabs">
-                <div>
-                  <h4 className="event-head px-2 ">Events</h4>
-                </div>
-                <div className="d-flex flex-row-reverse ">
-                  <div
-                    className="eventList-child1 event-participant-time py-3"
-                    style={{ width: "250px" }}
+      <div className="website-content overflow-auto">
+        <div className="module-data-section p-0 ">
+          <div className="event-order-page">
+            <div className=" event-tabs">
+              <div className="d-flex align-items-center">
+                <button
+                  type="button"
+                  className="ant-btn styles_headerCtaLink__2kCN6 ant-btn-link"
+                  onClick={() => navigate("/event-list")}
+                >
+                  <svg
+                    width="1em"
+                    height="1em"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    role="img"
+                    className="pro-icon"
                   >
-                    <div className="eventList-time d-flex align-items-center gap-2">
-                      <ClockIcon />
-                      <span>{formatTime(remainingTime)}</span>
-                      <span>Upcoming </span>
-                    </div>
-                  </div>
-                  <div className="d-flex align-items-center align-bottom">
-                    <button className="buyEvent-mainBtn download-reportBtn">
-                      Download Report
-                    </button>
+                    <path
+                      fillRule="evenodd"
+                      clipRule="evenodd"
+                      d="M12.707 4.293a1 1 0 0 1 0 1.414L7.414 11H19a1 1 0 1 1 0 2H7.414l5.293 5.293a1 1 0 0 1-1.414 1.414l-7-7a1 1 0 0 1 0-1.414l7-7a1 1 0 0 1 1.414 0Z"
+                      fill="currentColor"
+                    ></path>
+                  </svg>
+                </button>
+                <div>
+                  <h4 className="event-head px-2 pt-2 ms-2">Events</h4>
+                </div>
+              </div>
+              <div className="d-flex flex-row-reverse ">
+                <div
+                  className="eventList-child1 event-participant-time py-3"
+                  style={{ width: "250px" }}
+                >
+                  <div className="eventList-time d-flex align-items-center gap-2">
+                    <ClockIcon />
+                    <span>{formatTime(remainingTime)}</span>
+                    <span>Upcoming </span>
                   </div>
                 </div>
-                <div className="d-flex align-items-center justify-content-between eventList-child2">
-                  <div className="m-2">
-                    <p className="event-participant-cardHead mb-1">
-                      ''Event No: {" "}{overviewData?.event_no} | {overviewData?.event_title}
-                    </p>
-                  </div>
-                  <div className="d-flex align-items-center flex-column justify-content-center text-center">
-                    <button className="event-participant-cardBtn d-flex align-items-center justify-content-between" style={{width:"80px",backgroundColor: "#de700885", padding:"5px 15px", color: "#000", border:'1px solid #de7008'}}>
-                      <samp>
-                        <svg
-                          width={12}
-                          height={12}
-                          viewBox="0 0 12 12"
-                          fill="#fff"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <circle cx={6} cy={6} r={6} fill="#de7008" />
-                        </svg>
-                      </samp>{" "}
-                      Live
-                    </button>
-                  </div>
+                <div className="d-flex align-items-center align-bottom">
+                  <button className="buyEvent-mainBtn download-reportBtn">
+                    Download Report
+                  </button>
                 </div>
-                <TabsList
-                  handleShowModal={handleShowModal}
-                  renderModal={renderModal}
+              </div>
+              <div className="d-flex align-items-center justify-content-between eventList-child2">
+                <div className="m-2">
+                  <p className="event-participant-cardHead mb-1">
+                    ''Event No: {overviewData?.event_no} |{" "}
+                    {overviewData?.event_title}
+                  </p>
+                </div>
+                <div className="d-flex align-items-center flex-column justify-content-center text-center">
+                  <button
+                    className="event-participant-cardBtn d-flex align-items-center justify-content-between"
+                    style={{
+                      width: "80px",
+                      backgroundColor: "#de700885",
+                      padding: "5px 15px",
+                      color: "#000",
+                      border: "1px solid #de7008",
+                    }}
+                  >
+                    <samp>
+                      <svg
+                        width={12}
+                        height={12}
+                        viewBox="0 0 12 12"
+                        fill="#fff"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <circle cx={6} cy={6} r={6} fill="#de7008" />
+                      </svg>
+                    </samp>{" "}
+                    Live
+                  </button>
+                </div>
+              </div>
+              <TabsList
+                handleShowModal={handleShowModal}
+                renderModal={renderModal}
+              />
+              <div className="tab-content mt-3 main-scroll-div">
+                <ResponseTab data={response} />
+                <OverviewTab
+                  overviewData={overviewData}
+                  participantsOpen={participantsOpen}
+                  participantsData={participantsTabData}
+                  savingsOpen={savingsOpen}
+                  biddingOpen={biddingOpen}
+                  biddingData={bidding}
+                  productOpen={productOpen}
+                  handleParticipants={participantsAccordion}
+                  handleSavings={savingsAccordion}
+                  handleBiddings={biddingsAccordion}
+                  handleProducts={productAccordion}
+                  handleTerms={termsAccordion}
+                  handleOrderConf={orderConfAccordion}
+                  handleOrderDetails={orderDetailsAccordion}
+                  termsOpen={termAndCond}
+                  orderConfOpen={orderConf}
+                  orderDetails={orderDetails}
                 />
-                <div className="tab-content mt-3 main-scroll-div">
-                  <ResponseTab data={response} />
-                  <OverviewTab
-                    overviewData={overviewData}
-                    participantsOpen={participantsOpen}
-                    participantsData={participantsTabData}
-                    savingsOpen={savingsOpen}
-                    biddingOpen={biddingOpen}
-                    biddingData={bidding}
-                    productOpen={productOpen}
-                    handleParticipants={participantsAccordion}
-                    handleSavings={savingsAccordion}
-                    handleBiddings={biddingsAccordion}
-                    handleProducts={productAccordion}
-                    handleTerms={termsAccordion}
-                    handleOrderConf={orderConfAccordion}
-                    handleOrderDetails={orderDetailsAccordion}
-                    termsOpen={termAndCond}
-                    orderConfOpen={orderConf}
-                    orderDetails={orderDetails}
-                  />
-                  <ParticipantsTab data={participants} />
-                  <AnalyticsTab id={id} />
-                  <ParicipantsRemarksTab data={remarks} />
-                </div>
+                <ParticipantsTab data={participants} />
+                <AnalyticsTab id={id} />
+                <ParicipantsRemarksTab data={remarks} />
               </div>
             </div>
           </div>
         </div>
+      </div>
     </>
   );
 }

@@ -34,6 +34,7 @@ export default function ResponseTab({ data }) {
       setIsVendor(false);
     }
   };
+  console.log("data", data);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -45,6 +46,7 @@ export default function ResponseTab({ data }) {
         );
 
         setBidCounterData(response.data);
+        console.log("bidCounter", response.data);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -56,7 +58,6 @@ export default function ResponseTab({ data }) {
   }, [eventId, bidId]);
 
   const eventVendors = Array.isArray(data?.vendors) ? data.vendors : [];
-
 
   return (
     <div
@@ -201,13 +202,17 @@ export default function ResponseTab({ data }) {
                         })}
                       </tr>
                       <tr>
-                        <td className="viewBy-tBody1-p" style={{ width: "200px" }}>
+                        <td
+                          className="viewBy-tBody1-p"
+                          style={{ width: "200px" }}
+                        >
                           Gross Total
                         </td>
                         {eventVendors.map((vendor) => {
                           return (
                             <td>
-                              {vendor.bids.map((item) => item.gross_total) || "_"}
+                              {vendor.bids.map((item) => item.gross_total) ||
+                                "_"}
                             </td>
                           );
                         })}
@@ -220,12 +225,15 @@ export default function ResponseTab({ data }) {
                     <Accordion
                       key={index}
                       title={vendor.bids.map(
-                        (bid) => bid.bid_materials[index]?.material_name || "_"
+                        (bid) => bid.bid_materials[0]?.material_name
                       )}
                       isDefault={true}
                       tableColumn={[
                         { label: "Best Total Amount", key: "bestTotalAmount" },
-                        { label: "Quantity Available", key: "quantityAvailable" },
+                        {
+                          label: "Quantity Available",
+                          key: "quantityAvailable",
+                        },
                         { label: "Price", key: "price" },
                         { label: "Discount", key: "discount" },
                         { label: "Realised Discount", key: "realisedDiscount" },
@@ -274,7 +282,8 @@ export default function ResponseTab({ data }) {
                     vendor.bids?.map((bid) => ({
                       freightChrg: bid.freight_charge_amount || "_",
                       freightGst: bid.gst_on_freight || "_",
-                      freightRealised: bid.realised_freight_charge_amount || "_",
+                      freightRealised:
+                        bid.realised_freight_charge_amount || "_",
                       warranty: bid.warranty_clause || "_",
                       payment: bid.payment_terms || "_",
                       loading: bid.loading_unloading_clause || "_",
@@ -283,7 +292,11 @@ export default function ResponseTab({ data }) {
                   )}
                 />
               </>
-            ) : <h4 className="h-100 w-100 d-flex justify-content-center align-items-center pt-5">No Bid Details found</h4>}
+            ) : (
+              <h4 className="h-100 w-100 d-flex justify-content-center align-items-center pt-5">
+                No Bid Details found
+              </h4>
+            )}
           </div>
         </FullScreen>
       )}
