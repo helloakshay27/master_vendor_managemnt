@@ -111,6 +111,9 @@ export default function VendorDetails() {
     // if (!data) {
     //   return 0;
     // }
+    if (!Array.isArray(data)) {
+      return 0;
+    }
     return data
       .reduce((sum, row) => {
         const total = parseFloat(row.total) || 0; // Ensure total is a number
@@ -157,6 +160,49 @@ export default function VendorDetails() {
   const [loading, setLoading] = useState(true);
   const [isBidCreated, setIsBidCreated] = useState(false); // Track bid creation status
   const [bidIds, setBidIds] = useState([]);
+
+  const validateMandatoryFields = () => {
+    const mandatoryFields = [
+      { label: "Warranty Clause *", key: "Warranty Clause" },
+      { label: "Payment Terms *", key: "Payment Terms" },
+      { label: "Loading / Unloading *", key: "Loading / Unloading" },
+    ];
+
+    for (const field of mandatoryFields) {
+      const fieldValue =
+        freightData.find((item) => item.label === field.label)?.value || "";
+      if (!fieldValue.trim()) {
+        alert(`Please fill the mandatory field: ${field.key}`);
+        return false; // Exit immediately after the first invalid field
+      }
+    }
+
+    return true;
+  };
+
+  const validateTableData = () => {
+    for (const row of data) {
+      const fieldsToValidate = [
+        { key: "quantityAvail", value: row.quantityAvail },
+        { key: "price", value: row.price },
+        { key: "gst", value: row.gst },
+        { key: "discount", value: row.discount },
+      ];
+
+      for (const field of fieldsToValidate) {
+        if (
+          field.value === undefined ||
+          field.value === null ||
+          field.value <= 0
+        ) {
+          alert("Please fill the All mandatory field ");
+          return false; // Exit immediately after the first invalid field
+        }
+      }
+    }
+
+    return true;
+  };
 
   useEffect(() => {
     const fetchEventData = async () => {
@@ -378,6 +424,12 @@ export default function VendorDetails() {
     try {
       // Send POST request
 
+      // Validate mandatory fields
+      if (!validateMandatoryFields() || !validateTableData()) {
+        setLoading(false);
+        return; // Stop further execution if validation fails
+      }
+
       const payload = preparePayload();
       console.log("payloadssss", payload);
 
@@ -395,7 +447,7 @@ export default function VendorDetails() {
       console.log("API Response:", response.data);
       alert("Bid submitted successfully!");
 
-      setData(response.data.bid_materials_attributes || []);
+      // setData(response.data.bid_materials_attributes || []);
     } catch (error) {
       console.error("Error submitting bid:", error);
       alert("Failed to submit bid. Please try again.");
@@ -486,7 +538,7 @@ export default function VendorDetails() {
 
     const payload = {
       revised_bid: {
-        event_vendor_id: 10,
+        event_vendor_id: 78,
         price: 500.0,
         discount: 10.0,
         freight_charge_amount: freightCharge21,
@@ -506,10 +558,17 @@ export default function VendorDetails() {
   const handleReviseBid = async () => {
     // Logic for revising an existing bid
     console.log("Revising the existing bid...");
+
     // Example: API call to revise the bid
 
     try {
       // Send POST request
+
+      // Validate mandatory fields
+      if (!validateMandatoryFields() || !validateTableData()) {
+        setLoading(false);
+        return; // Stop further execution if validation fails
+      }
 
       const payload2 = preparePayload2();
       console.log("payloadssss2 revised", payload2);
@@ -526,9 +585,10 @@ export default function VendorDetails() {
       );
 
       console.log("API Response revised....:", response.data);
+
       alert("Bid revised successfully!");
 
-      setData(response.data.bid_materials_attributes || []);
+      // setData(response.data.bid_materials_attributes);
     } catch (error) {
       console.error("Error revising bid:", error);
       alert("Failed to revise bid. Please try again.");
@@ -1428,8 +1488,18 @@ export default function VendorDetails() {
                           </p>
                         </div>
                         <div className="d-flex">
-                          <button className="purple-btn1" onClick={handleDecline}>Decline</button>
-                          <button className="purple-btn2" onClick={handleAccept}>Accept Offer</button>
+                          <button
+                            className="purple-btn1"
+                            onClick={handleDecline}
+                          >
+                            Decline
+                          </button>
+                          <button
+                            className="purple-btn2"
+                            onClick={handleAccept}
+                          >
+                            Accept Offer
+                          </button>
                         </div>
                       </div>
                     )}
@@ -1619,7 +1689,7 @@ export default function VendorDetails() {
                                 className="form-control"
                                 type="number"
                                 value={cell}
-                                placeholder="Enter Realised GST"
+                                // placeholder="Enter Realised GST"
                                 style={otherColumnsStyle}
                                 disabled
                               />
@@ -1758,9 +1828,10 @@ export default function VendorDetails() {
 
                       {/* </div> */}
                       <div className="d-flex justify-content-end mt-2 mx-2">
-                        <span style={{ fontSize: "16px" }}>
+                        {/* <span style={{ fontSize: "16px" }}>
                           Sum Total : ₹{calculateSumTotal()}
-                        </span>
+                        </span> */}
+                        <h4>Sum Total : ₹{calculateSumTotal()}</h4>
                       </div>
                     </div>
                   </div>
