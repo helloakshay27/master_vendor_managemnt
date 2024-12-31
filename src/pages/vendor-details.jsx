@@ -206,128 +206,250 @@ export default function VendorDetails() {
     return true;
   };
 
-  useEffect(() => {
-    const fetchEventData = async () => {
-      try {
-        // Step 1: Fetch the initial API to get `revised_bid`
-        const initialResponse = await axios.get(
-          `https://vendors.lockated.com/rfq/events/${eventId}/event_materials?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&page=1&q[event_vendor_id_cont]=${vendorId}`
+  const fetchEventData = async () => {
+    try {
+      // Step 1: Fetch the initial API to get `revised_bid`
+      const initialResponse = await axios.get(
+        `https://vendors.lockated.com/rfq/events/${eventId}/event_materials?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&page=1&q[event_vendor_id_cont]=${vendorId}`
+      );
+
+      const initialData = initialResponse.data;
+
+      const revisedBid = initialData.revised_bid; // Extract
+
+      // revisedBid from the response
+
+      setRevisedBid(revisedBid);
+
+      console.log("initial data ", initialData);
+      console.log("revised data ", revisedBid);
+
+      if (!revisedBid) {
+        // If revisedBid is false, format the event materials data
+        const formattedData = initialData.event_materials.map((item) => {
+          const materialType =
+            item.bid_materials && item.bid_materials.length > 0
+              ? item.bid_materials[0].material_type
+              : null;
+
+          console.log("material type", materialType);
+
+          return {
+            eventMaterialId: item.id,
+            descriptionOfItem: item.inventory_name,
+            quantity: item.quantity,
+            quantityAvail: "", // Placeholder for user input
+            unit: item.uom,
+            location: item.location,
+            rate: item.rate || "", // Placeholder if rate is not available
+            amount: item.amount,
+            totalAmt: "", // Placeholder for calculated total amount
+            attachment: null, // Placeholder for attachment
+            varient: materialType, // Use extracted material_type
+          };
+        });
+
+        setData(formattedData);
+      } else {
+        // Step 2: Fetch the bid data if `revised_bid` is true
+        const bidResponse = await axios.get(
+          `https://vendors.lockated.com/rfq/events/${eventId}/bids?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&q[event_vendor_id_in]=${vendorId}`
         );
 
-        const initialData = initialResponse.data;
+        setCounterData(bidResponse.data?.bids[0]?.counter_bids.length);
+        setCounterId(bidResponse.data?.bids[0]?.counter_bids[0]?.id);
+        setBidIds(bidResponse.data.bids[0].id);
 
-        const revisedBid = initialData.revised_bid; // Extract
+        const bids = bidResponse.data.bids;
 
-        // revisedBid from the response
+        // Process only the first element of the bids array
+        if (bids.length > 0) {
+          const firstBid = bids[0];
 
-        setRevisedBid(revisedBid);
+          const updatedFreightData = [
+            {
+              label: "Freight Charge",
+              value: firstBid.freight_charge_amount || "",
+            },
+            { label: "GST on Freight", value: firstBid.gst_on_freight || "" },
+            {
+              label: "Realised Freight",
+              value: firstBid.realised_freight_charge_amount || "",
+            },
+            {
+              label: "Warranty Clause *",
+              value: firstBid.warranty_clause || "",
+            },
+            { label: "Payment Terms *", value: firstBid.payment_terms || "" },
+            {
+              label: "Loading / Unloading *",
+              value: firstBid.loading_unloading_clause || "",
+            },
+          ];
 
-        console.log("initial data ", initialData);
-        console.log("revised data ", revisedBid);
+          console.log("Updated Freight Data: ", updatedFreightData);
+          setFreightData(updatedFreightData); //
 
-        if (!revisedBid) {
-          // If revisedBid is false, format the event materials data
-          const formattedData = initialData.event_materials.map((item) => {
-            const materialType =
-              item.bid_materials && item.bid_materials.length > 0
-                ? item.bid_materials[0].material_type
-                : null;
+          const mappedData = firstBid.bid_materials.map((material) => ({
+            bidId: material.bid_id,
+            eventMaterialId: material.event_material_id,
+            descriptionOfItem: material.material_name, // Map to "descriptionOfItem"
+            varient: material.material_type, // Map to "varient"
+            quantity: material.quantity_available, // Map to "quantity"
+            location: firstBid.event.delivary_location, // Use event data for location
+            attachment: null, // Placeholder for "attachment"
+            quantityAvail: material.quantity_available, // Map to "quantityAvail"
+            price: material.price, // Map to "price"
+            discount: material.discount, // Map to "discount"
+            realisedDiscount: material.realised_discount, // Map to "realisedDiscount"
+            gst: material.gst, // Map to "gst"
+            realisedGst: material.realised_gst, // Map to "realisedGst"
+            landedAmount: material.landed_amount, // Map to "landedAmount"
+            vendorRemark: material.vendor_remark, // Map to "vendorRemark"
+            total: material.total_amount, // Map to "total"
+          }));
 
-            console.log("material type", materialType);
+          setData(mappedData);
 
-            return {
-              eventMaterialId: item.id,
-              descriptionOfItem: item.inventory_name,
-              quantity: item.quantity,
-              quantityAvail: "", // Placeholder for user input
-              unit: item.uom,
-              location: item.location,
-              rate: item.rate || "", // Placeholder if rate is not available
-              amount: item.amount,
-              totalAmt: "", // Placeholder for calculated total amount
-              attachment: null, // Placeholder for attachment
-              varient: materialType, // Use extracted material_type
-            };
-          });
+          // Extract all bidIds from the mapped data
+          const bidIds = mappedData.map((material) => material.bidId);
 
-          setData(formattedData);
+          // Store the bidIds in a state
+          setBidIds(bidIds); // Use your state setter for the bidIds
+
+          console.log("Mapped first bid data: ", mappedData);
+          setData(mappedData); // Assuming you want to set this data to state
         } else {
-          // Step 2: Fetch the bid data if `revised_bid` is true
-          const bidResponse = await axios.get(
-            `https://vendors.lockated.com/rfq/events/${eventId}/bids?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&q[event_vendor_id_in]=${vendorId}`
-          );
-
-          setCounterData(bidResponse.data?.bids[0]?.counter_bids.length);
-          setCounterId(bidResponse.data?.bids[0]?.counter_bids[0]?.id);
-          setBidIds(bidResponse.data.bids[0].id);
-
-          const bids = bidResponse.data.bids;
-
-          // Process only the first element of the bids array
-          if (bids.length > 0) {
-            const firstBid = bids[0];
-
-            const updatedFreightData = [
-              {
-                label: "Freight Charge",
-                value: firstBid.freight_charge_amount || "",
-              },
-              { label: "GST on Freight", value: firstBid.gst_on_freight || "" },
-              {
-                label: "Realised Freight",
-                value: firstBid.realised_freight_charge_amount || "",
-              },
-              {
-                label: "Warranty Clause *",
-                value: firstBid.warranty_clause || "",
-              },
-              { label: "Payment Terms *", value: firstBid.payment_terms || "" },
-              {
-                label: "Loading / Unloading *",
-                value: firstBid.loading_unloading_clause || "",
-              },
-            ];
-
-            console.log("Updated Freight Data: ", updatedFreightData);
-            setFreightData(updatedFreightData); //
-
-            const mappedData = firstBid.bid_materials.map((material) => ({
-              bidId: material.bid_id,
-              eventMaterialId: material.event_material_id,
-              descriptionOfItem: material.material_name, // Map to "descriptionOfItem"
-              varient: material.material_type, // Map to "varient"
-              quantity: material.quantity_available, // Map to "quantity"
-              location: firstBid.event.delivary_location, // Use event data for location
-              attachment: null, // Placeholder for "attachment"
-              quantityAvail: material.quantity_available, // Map to "quantityAvail"
-              price: material.price, // Map to "price"
-              discount: material.discount, // Map to "discount"
-              realisedDiscount: material.realised_discount, // Map to "realisedDiscount"
-              gst: material.gst, // Map to "gst"
-              realisedGst: material.realised_gst, // Map to "realisedGst"
-              landedAmount: material.landed_amount, // Map to "landedAmount"
-              vendorRemark: material.vendor_remark, // Map to "vendorRemark"
-              total: material.total_amount, // Map to "total"
-            }));
-
-            setData(mappedData);
-
-            // Extract all bidIds from the mapped data
-            const bidIds = mappedData.map((material) => material.bidId);
-
-            // Store the bidIds in a state
-            setBidIds(bidIds); // Use your state setter for the bidIds
-
-            console.log("Mapped first bid data: ", mappedData);
-            setData(mappedData); // Assuming you want to set this data to state
-          } else {
-            console.log("No bids available");
-          }
+          console.log("No bids available");
         }
-      } catch (error) {
-        console.error("Error fetching data:", error);
       }
-    };
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  };
+
+  useEffect(() => {
+    // const fetchEventData = async () => {
+    //   try {
+    //     // Step 1: Fetch the initial API to get `revised_bid`
+    //     const initialResponse = await axios.get(
+    //       `https://vendors.lockated.com/rfq/events/${eventId}/event_materials?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&page=1&q[event_vendor_id_cont]=${vendorId}`
+    //     );
+
+    //     const initialData = initialResponse.data;
+
+    //     const revisedBid = initialData.revised_bid; // Extract
+
+    //     // revisedBid from the response
+
+    //     setRevisedBid(revisedBid);
+
+    //     console.log("initial data ", initialData);
+    //     console.log("revised data ", revisedBid);
+
+    //     if (!revisedBid) {
+    //       // If revisedBid is false, format the event materials data
+    //       const formattedData = initialData.event_materials.map((item) => {
+    //         const materialType =
+    //           item.bid_materials && item.bid_materials.length > 0
+    //             ? item.bid_materials[0].material_type
+    //             : null;
+
+    //         console.log("material type", materialType);
+
+    //         return {
+    //           eventMaterialId: item.id,
+    //           descriptionOfItem: item.inventory_name,
+    //           quantity: item.quantity,
+    //           quantityAvail: "", // Placeholder for user input
+    //           unit: item.uom,
+    //           location: item.location,
+    //           rate: item.rate || "", // Placeholder if rate is not available
+    //           amount: item.amount,
+    //           totalAmt: "", // Placeholder for calculated total amount
+    //           attachment: null, // Placeholder for attachment
+    //           varient: materialType, // Use extracted material_type
+    //         };
+    //       });
+
+    //       setData(formattedData);
+    //     } else {
+    //       // Step 2: Fetch the bid data if `revised_bid` is true
+    //       const bidResponse = await axios.get(
+    //         `https://vendors.lockated.com/rfq/events/${eventId}/bids?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&q[event_vendor_id_in]=${vendorId}`
+    //       );
+
+    //       setCounterData(bidResponse.data?.bids[0]?.counter_bids.length);
+    //       setCounterId(bidResponse.data?.bids[0]?.counter_bids[0]?.id);
+    //       setBidIds(bidResponse.data.bids[0].id);
+
+    //       const bids = bidResponse.data.bids;
+
+    //       // Process only the first element of the bids array
+    //       if (bids.length > 0) {
+    //         const firstBid = bids[0];
+
+    //         const updatedFreightData = [
+    //           {
+    //             label: "Freight Charge",
+    //             value: firstBid.freight_charge_amount || "",
+    //           },
+    //           { label: "GST on Freight", value: firstBid.gst_on_freight || "" },
+    //           {
+    //             label: "Realised Freight",
+    //             value: firstBid.realised_freight_charge_amount || "",
+    //           },
+    //           {
+    //             label: "Warranty Clause *",
+    //             value: firstBid.warranty_clause || "",
+    //           },
+    //           { label: "Payment Terms *", value: firstBid.payment_terms || "" },
+    //           {
+    //             label: "Loading / Unloading *",
+    //             value: firstBid.loading_unloading_clause || "",
+    //           },
+    //         ];
+
+    //         console.log("Updated Freight Data: ", updatedFreightData);
+    //         setFreightData(updatedFreightData); //
+
+    //         const mappedData = firstBid.bid_materials.map((material) => ({
+    //           bidId: material.bid_id,
+    //           eventMaterialId: material.event_material_id,
+    //           descriptionOfItem: material.material_name, // Map to "descriptionOfItem"
+    //           varient: material.material_type, // Map to "varient"
+    //           quantity: material.quantity_available, // Map to "quantity"
+    //           location: firstBid.event.delivary_location, // Use event data for location
+    //           attachment: null, // Placeholder for "attachment"
+    //           quantityAvail: material.quantity_available, // Map to "quantityAvail"
+    //           price: material.price, // Map to "price"
+    //           discount: material.discount, // Map to "discount"
+    //           realisedDiscount: material.realised_discount, // Map to "realisedDiscount"
+    //           gst: material.gst, // Map to "gst"
+    //           realisedGst: material.realised_gst, // Map to "realisedGst"
+    //           landedAmount: material.landed_amount, // Map to "landedAmount"
+    //           vendorRemark: material.vendor_remark, // Map to "vendorRemark"
+    //           total: material.total_amount, // Map to "total"
+    //         }));
+
+    //         setData(mappedData);
+
+    //         // Extract all bidIds from the mapped data
+    //         const bidIds = mappedData.map((material) => material.bidId);
+
+    //         // Store the bidIds in a state
+    //         setBidIds(bidIds); // Use your state setter for the bidIds
+
+    //         console.log("Mapped first bid data: ", mappedData);
+    //         setData(mappedData); // Assuming you want to set this data to state
+    //       } else {
+    //         console.log("No bids available");
+    //       }
+    //     }
+    //   } catch (error) {
+    //     console.error("Error fetching data:", error);
+    //   }
+    // };
 
     fetchEventData();
   }, [eventId]);
@@ -455,6 +577,7 @@ export default function VendorDetails() {
 
       console.log("API Response:", response.data);
       alert("Bid submitted successfully!");
+      await fetchEventData();
       console.log("vendor ID2", vendorId);
 
       // setData(response.data.bid_materials_attributes || []);
