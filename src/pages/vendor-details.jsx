@@ -20,8 +20,10 @@ export default function VendorDetails() {
 
   const [vendorId, setVendorId] = useState(() => {
     // Retrieve the vendorId from sessionStorage or default to an empty string
-    return sessionStorage.getItem('vendorId') || "";
+    return sessionStorage.getItem("vendorId") || "";
   });
+
+  console.log(" vednor idddddddddddddddddd", vendorId);
 
   const [remark, setRemark] = useState("");
 
@@ -209,10 +211,11 @@ export default function VendorDetails() {
       try {
         // Step 1: Fetch the initial API to get `revised_bid`
         const initialResponse = await axios.get(
-          `https://vendors.lockated.com/rfq/events/${eventId}/event_materials?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&page=1&q[event_vendor_id_cont]=10`
+          `https://vendors.lockated.com/rfq/events/${eventId}/event_materials?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&page=1&q[event_vendor_id_cont]=${vendorId}`
         );
 
         const initialData = initialResponse.data;
+
         const revisedBid = initialData.revised_bid; // Extract
 
         // revisedBid from the response
@@ -229,6 +232,8 @@ export default function VendorDetails() {
               item.bid_materials && item.bid_materials.length > 0
                 ? item.bid_materials[0].material_type
                 : null;
+
+            console.log("material type", materialType);
 
             return {
               eventMaterialId: item.id,
@@ -249,7 +254,7 @@ export default function VendorDetails() {
         } else {
           // Step 2: Fetch the bid data if `revised_bid` is true
           const bidResponse = await axios.get(
-            `https://vendors.lockated.com/rfq/events/${eventId}/bids?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`
+            `https://vendors.lockated.com/rfq/events/${eventId}/bids?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&q[event_vendor_id_cont]=${vendorId}`
           );
 
           setCounterData(bidResponse.data?.bids[0]?.counter_bids.length);
@@ -300,7 +305,7 @@ export default function VendorDetails() {
               realisedDiscount: material.realised_discount, // Map to "realisedDiscount"
               gst: material.gst, // Map to "gst"
               realisedGst: material.realised_gst, // Map to "realisedGst"
-              landedAmount: material.total_amount, // Map to "landedAmount"
+              landedAmount: material.landed_amount, // Map to "landedAmount"
               vendorRemark: material.vendor_remark, // Map to "vendorRemark"
               total: material.total_amount, // Map to "total"
             }));
@@ -350,6 +355,7 @@ export default function VendorDetails() {
       quantity_available: row.quantityAvail || 0, // Use the updated quantity
       price: row.price || 0, // Use the updated price
       discount: row.discount || 0,
+      landed_amount: row.landedAmount || 0,
 
       vendor_remark: row.vendorRemark || "",
       gst: row.gst || 0, // GST value from the row
@@ -431,7 +437,10 @@ export default function VendorDetails() {
       }
 
       const payload = preparePayload();
+
       console.log("payloadssss", payload);
+
+      console.log("vendor ID", vendorId);
 
       const response = await axios.post(
         `https://vendors.lockated.com/rfq/events/${eventId}/bids?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&event_vendor_id=${vendorId}`, // Replace with your API endpoint
@@ -446,6 +455,7 @@ export default function VendorDetails() {
 
       console.log("API Response:", response.data);
       alert("Bid submitted successfully!");
+      console.log("vendor ID2", vendorId);
 
       // setData(response.data.bid_materials_attributes || []);
     } catch (error) {
@@ -491,7 +501,8 @@ export default function VendorDetails() {
       vendor_remark: row.vendorRemark || "",
       gst: row.gst || 0, // GST value from the row
       realised_discount: row.realisedDiscount || 0, // Calculated realised discount
-      realised_gst: row.realisedGst || 0, // Calculated realised GST
+      realised_gst: row.realisedGst || 0,
+      landed_amount: row.landedAmount || 0,
 
       total_amount: totalAmount, // Use `sumFromData` logic for total amount
     }));
@@ -920,10 +931,10 @@ export default function VendorDetails() {
 
             <div
               className="p-3 mb-2 "
-            // style={{
-            //   overflowY: "auto",
-            //   height: "calc(100vh - 100px)",
-            // }}
+              // style={{
+              //   overflowY: "auto",
+              //   height: "calc(100vh - 100px)",
+              // }}
             >
               {loading ? (
                 "Loading...."
@@ -1095,7 +1106,7 @@ export default function VendorDetails() {
                               <div className=" card card-body rounded-3 p-0">
                                 <ul
                                   className=" mt-3 mb-3"
-                                // style={{ fontSize: "13px", marginLeft: "0px" }}
+                                  // style={{ fontSize: "13px", marginLeft: "0px" }}
                                 >
                                   {terms.map((term) => (
                                     <li key={term.id} className="mb-3 mt-3">
