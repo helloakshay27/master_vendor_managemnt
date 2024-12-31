@@ -377,12 +377,12 @@ export default function VendorListPage() {
     vendorDetails();
   }, []);
 
-  const handleSelectChange = (selectedOption) => {
-    // console.log("Selected vendor:", selectedOption);
-    const vendorValue = selectedOption ? selectedOption.value : "";
-    setVendorId(vendorValue);
-    sessionStorage.setItem("selectedId", vendorValue); // Store the new selection in session storage
-  };
+  // const handleSelectChange = (selectedOption) => {
+  //   // console.log("Selected vendor:", selectedOption);
+  //   const vendorValue = selectedOption ? selectedOption.value : "";
+  //   setVendorId(vendorValue);
+  //   sessionStorage.setItem("selectedId", vendorValue); // Store the new selection in session storage
+  // };
 
   const eventProjectColumns = [
     { label: "Sr.No.", key: "srNo" },
@@ -399,6 +399,13 @@ export default function VendorListPage() {
     { label: "Status", key: "status" },
     { label: "Action" },
   ];
+
+  const selectedVendor = vendorList.find((option) => option.value === vendorId);
+
+  const handleSelectChange = (event) => {
+    const newVendorId = event.target.value || ""; // Get the selected value
+    setVendorId(newVendorId);
+  };
 
   return (
     <>
@@ -419,18 +426,20 @@ export default function VendorListPage() {
                 </ol>
               </nav>
               <h5 className="mt-3 ms-3">RFQ &amp; Auction Events</h5>
-              <div style={{ width: "15%" }}>
-                <Select
-                  options={vendorList}
-                  placeholder="Select a Vendor"
-                  isClearable
-                  value={vendorList.find((option) => option.value === vendorId)?.label || "No Vendor Selected"} // Find selected vendor
-                  onChange={(selectedOption) => {
-                    const newVendorId = selectedOption ? selectedOption.value : ""; // Line 427
-                    setVendorId(newVendorId); // Line 430
-                  }}
-
-                />
+              <div style={{ width: "14%" }}>
+                <select
+                  id="vendorDropdown"
+                  className="form-control form-select"
+                  value={vendorId || ""}
+                  onChange={handleSelectChange}
+                >
+                  <option value="">No Vendor Selected</option>
+                  {vendorList.map((vendor) => (
+                    <option key={vendor.value} value={vendor.value}>
+                      {vendor.label}
+                    </option>
+                  ))}
+                </select>
 
 
 
