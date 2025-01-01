@@ -177,32 +177,39 @@ export default function adminList() {
       const urlParams = new URLSearchParams(location.search);
       const token = urlParams.get("token");
       const queryFilters = {
-        "q[created_by_id_in]": filters.created_by_id_in,
-        "q[event_type_detail_award_scheme_in]": filters.event_type_detail_award_scheme_in,
-        "q[status_in]": filters.status_in,
-        "q[title_in]": filters.title_in,
-        "q[event_materials_inventory_id_in]": filters.event_materials_inventory_id_in,
-        "q[event_materials_pms_inventory_inventory_type_id_in]": filters.event_materials_pms_inventory_inventory_type_id_in,
-        "q[event_materials_id_in]": filters.event_materials_id_in,
+        ...(filters.created_by_id_in && { "q[created_by_id_in]": filters.created_by_id_in }),
+        ...(filters.event_type_detail_award_scheme_in && { "q[event_type_detail_award_scheme_in]": filters.event_type_detail_award_scheme_in }),
+        ...(filters.status_in && { "q[status_in]": filters.status_in }),
+        ...(filters.title_in && { "q[title_in]": filters.title_in }),
+        ...(filters.event_materials_inventory_id_in && { "q[event_materials_inventory_id_in]": filters.event_materials_inventory_id_in }),
+        ...(filters.event_materials_pms_inventory_inventory_type_id_in && { "q[event_materials_pms_inventory_inventory_type_id_in]": filters.event_materials_pms_inventory_inventory_type_id_in }),
+        ...(filters.event_materials_id_in && { "q[event_materials_id_in]": filters.event_materials_id_in }),
       };
 
+      const liveEventsUrl = "https://vendors.lockated.com/rfq/events/live_events";
+      const pastEventsUrl = "https://vendors.lockated.com/rfq/events/past_events";
+      const allEventsUrl = "https://vendors.lockated.com/rfq/events";
+
+      console.log("Live Events URL:", liveEventsUrl, { token, page, ...queryFilters });
+      console.log("Past Events URL:", pastEventsUrl, { token, page, ...queryFilters });
+      console.log("All Events URL:", allEventsUrl, { token, page, ...queryFilters });
+
       const [liveResponse, historyResponse, allResponse] = await Promise.all([
-        axios.get("https://vendors.lockated.com/rfq/events/live_events", {
+        axios.get(liveEventsUrl, {
           params: {
             token: token,
             page: page,
             ...queryFilters,
           },
         }),
-        axios.get("https://vendors.lockated.com/rfq/events/past_events", {
+        axios.get(pastEventsUrl, {
           params: {
             token: token,
-            q: "9970804349,mahendra.lungare@lockated.com",
             page: page,
             ...queryFilters,
           },
         }),
-        axios.get("https://vendors.lockated.com/rfq/events", {
+        axios.get(allEventsUrl, {
           params: {
             token: token,
             page: page,
@@ -305,11 +312,12 @@ export default function adminList() {
     setActiveTab(tab);
   };
 
-  // console.log(activeTab);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     fetchEvents();
+    handleClose(); 
+    handleReset();
   };
 
   const handleSearch = async () => {
