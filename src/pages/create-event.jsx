@@ -8,7 +8,6 @@ import {
   SearchIcon,
   SelectBox,
   Table,
-  MultiSelector,
 } from "../components";
 
 import { citiesList, participantsTabColumns } from "../constant/data";
@@ -545,14 +544,14 @@ export default function CreateEvent() {
                   selectedVendors
                     .filter(
                       (vendor, index, self) =>
-                        index === self.findIndex((v) => v.id === vendor.id) // Ensure uniqueness by id
+                        index === self.findIndex((v) => v.id === vendor.id) 
                     )
                     .map((vendor, index) => (
                       <tr key={vendor.id}>
-                        <td>{index + 1}</td> {/* Add serial number */}
+                        <td>{index + 1}</td>
                         <td>{vendor.name}</td>
                         <td>{vendor.phone}</td>
-                        <td>Invited</td> {/* Display the status */}
+                        <td>Invited</td> 
                       </tr>
                     ))
                 ) : (

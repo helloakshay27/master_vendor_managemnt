@@ -1,14 +1,10 @@
 import React from "react";
 import {
-  CheckedCircleIcon,
   EnvelopeIcon,
   ParticipantsIcon,
   ShowIcon,
   Table,
 } from "../..";
-import { participantsData } from "../../../constant/data";
-import { Tab } from "react-bootstrap";
-import { event } from "jquery";
 
 export default function OverviewTab({
   handleParticipants,

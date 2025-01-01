@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigation, useNavigate } from "react-router-dom";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import "../styles/event.css";
 import {
@@ -45,6 +45,8 @@ export default function ErpRfqDetailPriceTrends4h() {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
   const [analyticsData, setAnalyticsData] = useState([]);
+
+  const navigate = useNavigate()
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -425,3 +427,4 @@ export default function ErpRfqDetailPriceTrends4h() {
     </>
   );
 }
+

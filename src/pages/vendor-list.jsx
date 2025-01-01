@@ -190,14 +190,23 @@ export default function VendorListPage() {
     try {
       const urlParams = new URLSearchParams(location.search);
       const token = urlParams.get("token");
+      const queryFilters = {
+        "q[created_by_id_in]": filters.created_by_id_in,
+        "q[event_type_detail_award_scheme_in]": filters.event_type_detail_award_scheme_in,
+        "q[status_in]": filters.status_in,
+        "q[title_in]": filters.title_in,
+        "q[event_materials_inventory_id_in]": filters.event_materials_inventory_id_in,
+        "q[event_materials_pms_inventory_inventory_type_id_in]": filters.event_materials_pms_inventory_inventory_type_id_in,
+        "q[event_materials_id_in]": filters.event_materials_id_in,
+      };
+
       const [liveResponse, historyResponse, allResponse] = await Promise.all([
         axios.get("https://vendors.lockated.com/rfq/events/live_events", {
           params: {
             token: token,
             page: page,
             event_vendor_id: vendorId,
-
-            ...filters,
+            ...queryFilters,
           },
         }),
         axios.get("https://vendors.lockated.com/rfq/events/past_events", {
@@ -206,8 +215,7 @@ export default function VendorListPage() {
             q: "9970804349,mahendra.lungare@lockated.com",
             page: page,
             event_vendor_id: vendorId,
-
-            ...filters,
+            ...queryFilters,
           },
         }),
         axios.get("https://vendors.lockated.com/rfq/events", {
@@ -215,8 +223,7 @@ export default function VendorListPage() {
             token: token,
             page: page,
             event_vendor_id: vendorId,
-
-            ...filters,
+            ...queryFilters,
           },
         }),
       ]);
@@ -975,9 +982,11 @@ export default function VendorListPage() {
                           options={filterOptions.event_titles}
                           placeholder="Select an Event Title"
                           isClearable
-                          selectedValue={filters.title_in}
-                          handleChange={(value) =>
-                            handleFilterChange("title_in", value)
+                          value={filterOptions.event_titles.find(
+                            (opt) => opt.value === filters.title_in
+                          )}
+                          onChange={(option) =>
+                            handleFilterChange("title_in", option?.value || "")
                           }
                         />
                       </div>
@@ -987,15 +996,16 @@ export default function VendorListPage() {
                         <label htmlFor="mor-date-from">Product</label>
                         <Select
                           options={filterOptions.material_name}
-                          placeholder="Select an Event Title"
+                          placeholder="Select a Product"
                           isClearable
-                          selectedValue={
-                            filters.event_materials_inventory_id_in
-                          }
-                          handleChange={(value) =>
+                          value={filterOptions.material_name.find(
+                            (opt) =>
+                              opt.value === filters.event_materials_inventory_id_in
+                          )}
+                          onChange={(option) =>
                             handleFilterChange(
                               "event_materials_inventory_id_in",
-                              value
+                              option?.value || ""
                             )
                           }
                         />
@@ -1006,15 +1016,17 @@ export default function VendorListPage() {
                         <label htmlFor="mor-date-from">Product Category</label>
                         <Select
                           options={filterOptions.material_type}
-                          placeholder="Select an Event Title"
+                          placeholder="Select a Product Category"
                           isClearable
-                          selectedValue={
-                            filters.event_materials_pms_inventory_inventory_type_id_in
-                          }
-                          handleChange={(value) =>
+                          value={filterOptions.material_type.find(
+                            (opt) =>
+                              opt.value ===
+                              filters.event_materials_pms_inventory_inventory_type_id_in
+                          )}
+                          onChange={(option) =>
                             handleFilterChange(
                               "event_materials_pms_inventory_inventory_type_id_in",
-                              value
+                              option?.value || ""
                             )
                           }
                         />
@@ -1025,11 +1037,16 @@ export default function VendorListPage() {
                         <label htmlFor="mor-date-from">Location</label>
                         <Select
                           options={filterOptions.locations}
-                          placeholder="Select an Event Title"
+                          placeholder="Select a Location"
                           isClearable
-                          selectedValue={filters.event_materials_id_in}
-                          handleChange={(value) =>
-                            handleFilterChange("event_materials_id_in", value)
+                          value={filterOptions.locations.find(
+                            (opt) => opt.value === filters.event_materials_id_in
+                          )}
+                          onChange={(option) =>
+                            handleFilterChange(
+                              "event_materials_id_in",
+                              option?.value || ""
+                            )
                           }
                         />
                       </div>
@@ -1038,9 +1055,18 @@ export default function VendorListPage() {
                       <div className="form-group">
                         <label htmlFor="mor-date-from">Created By</label>
                         <Select
-                          options={filterOptions.locations}
-                          placeholder="Select an Event Title"
+                          options={filterOptions.creaters}
+                          placeholder="Select a Creator"
                           isClearable
+                          value={filterOptions.creaters.find(
+                            (opt) => opt.value === filters.created_by_id_in
+                          )}
+                          onChange={(option) =>
+                            handleFilterChange(
+                              "created_by_id_in",
+                              option?.value || ""
+                            )
+                          }
                         />
                       </div>
                     </div>
