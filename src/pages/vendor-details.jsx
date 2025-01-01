@@ -253,7 +253,7 @@ export default function VendorDetails() {
       } else {
         // Step 2: Fetch the bid data if `revised_bid` is true
         const bidResponse = await axios.get(
-          `https://vendors.lockated.com/rfq/events/${eventId}/bids?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&q[event_vendor_id_in]=${vendorId}`
+          `https://vendors.lockated.com/rfq/events/${eventId}/bids?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&q[event_vendor_pms_supplier_id_in]=${vendorId}`
         );
 
         setCounterData(bidResponse.data?.bids[0]?.counter_bids.length);
@@ -292,6 +292,7 @@ export default function VendorDetails() {
 
           const mappedData = firstBid.bid_materials.map((material) => ({
             bidId: material.bid_id,
+            id: material.id,
             eventMaterialId: material.event_material_id,
             descriptionOfItem: material.material_name, // Map to "descriptionOfItem"
             varient: material.material_type, // Map to "varient"
@@ -620,7 +621,7 @@ export default function VendorDetails() {
       quantity_available: row.quantityAvail || 0, // Use the updated quantity
       price: Number(row.price || 0), // Use the updated price
       discount: Number(row.discount || 0),
-      bid_material_id: row.bidId,
+      bid_material_id: row.id,
       vendor_remark: row.vendorRemark || "",
       gst: row.gst || 0, // GST value from the row
       realised_discount: row.realisedDiscount || 0, // Calculated realised discount
