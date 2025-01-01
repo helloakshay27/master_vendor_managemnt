@@ -56,8 +56,7 @@ export default function OverviewTab({
     {
       label: "Counter offers",
       id: "counter-offers",
-      value:
-        participantsData.counter_office  // Assuming 1 if counter_office exists
+      value: participantsData.counter_office, // Assuming 1 if counter_office exists
     },
     {
       label: "Accepted Counter Offers",
@@ -77,6 +76,8 @@ export default function OverviewTab({
     },
   ];
 
+  console.log("overviewData", overviewData);
+
   const calculateOrderDuration = (start, end) => {
     const startTime = new Date(start);
     const endTime = new Date(end);
@@ -90,14 +91,13 @@ export default function OverviewTab({
   const startTime = overviewData?.event_schedule?.start_time;
 
   const endTime = overviewData?.event_schedule?.end_time_duration;
-  
+
   // const OrderEndTime = new Date(endTime);
-  
-  
+
   const orderConfig = [
     {
       label: "Order Type",
-      value: overviewData?.event_type_detail?.event_title || "_",
+      value: overviewData?.event_type_detail?.event_type || "_",
     },
     {
       label: "Order Mode",
@@ -109,19 +109,28 @@ export default function OverviewTab({
     // },
     {
       label: "Started at",
-      value: new Date(overviewData?.event_schedule?.start_time).toLocaleString() || "_",
+      value:
+        new Date(overviewData?.event_schedule?.start_time).toLocaleString() ||
+        "_",
+    },
+    {
+      label: "Ended at",
+      value:
+        new Date(overviewData?.event_schedule?.end_time).toLocaleString() ||
+        "_",
     },
     {
       label: "Order Duration",
       value: calculateOrderDuration(startTime, endTime),
-    },,
+    },
+    ,
     {
       label: "Evaluation Time",
       value: overviewData?.event_schedule?.evaluation_time || "_",
-    }
+    },
   ];
 
-  const overviewDatas = overviewData?.event_materials?.map(item => ({
+  const overviewDatas = overviewData?.event_materials?.map((item) => ({
     product: item.inventory_name || "_",
     best_total_amount: item.amount || "_",
     product_variant: "_",
@@ -134,8 +143,18 @@ export default function OverviewTab({
     discount: item.discount || "_",
     realised_discount: "_",
     gst: "_",
-    realised_gst: "_"
-  }));  
+    realised_gst: "_",
+  }));
+
+  const formatValue = (value) => {
+    if (typeof value === "string") {
+      return value
+        .split("_")
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(" ");
+    }
+    return value;
+  };
 
   return (
     <div
@@ -235,7 +254,7 @@ export default function OverviewTab({
             </div>
           )}
         </div>
-        
+
         <div className="col-12 my-3">
           <a
             className="btn"
@@ -318,23 +337,23 @@ export default function OverviewTab({
             <div id="product-sheet" className="mx-5">
               <div className="card card-body p-4 rounded-3">
                 <Table
-                    columns={[
-                      { label: "Product", key: "product" },
-                      { label: "Best Total Amount", key: "best_total_amount" },
-                      { label: "Product Variant", key: "product_variant" },
-                      { label: "Quantity Requested", key: "quatity_requested" },
-                      { label: "Delivery Location", key: "delivery_location" },
-                      { label: "Creator Attachment", key: "creator_attachment" },
-                      { label: "Additional Info", key: "additional_info" },
-                      { label: "Quantity Available", key: "quantity_available" },
-                      { label: "Price", key: "price" },
-                      { label: "Discount", key: "discount" },
-                      { label: "Realised Discount", key: "realised_discount" },
-                      { label: "GST", key: "gst" },
-                      { label: "Realised GST", key: "realised_gst" },
-                    ]}
-                    data={overviewDatas}
-                  />
+                  columns={[
+                    { label: "Product", key: "product" },
+                    { label: "Best Total Amount", key: "best_total_amount" },
+                    { label: "Product Variant", key: "product_variant" },
+                    { label: "Quantity Requested", key: "quatity_requested" },
+                    { label: "Delivery Location", key: "delivery_location" },
+                    { label: "Creator Attachment", key: "creator_attachment" },
+                    { label: "Additional Info", key: "additional_info" },
+                    { label: "Quantity Available", key: "quantity_available" },
+                    { label: "Price", key: "price" },
+                    { label: "Discount", key: "discount" },
+                    { label: "Realised Discount", key: "realised_discount" },
+                    { label: "GST", key: "gst" },
+                    { label: "Realised GST", key: "realised_gst" },
+                  ]}
+                  data={overviewDatas}
+                />
               </div>
             </div>
           )}
@@ -403,7 +422,7 @@ export default function OverviewTab({
                         key={item.id}
                       >
                         <p>{item.label}</p>
-                        <p id={item.id}>{item.value}</p>
+                        <p id={item.id}>{formatValue(item.value)}</p> {/* Format the value */}
                       </div>
                     ))}
                   </div>
@@ -438,9 +457,7 @@ export default function OverviewTab({
             <div id="order-details" className="mx-5">
               <div className="card card-body p-4">
                 <p>Event Title</p>
-                <p>
-                  {`${overviewData.event_no}  ${overviewData.event_title}`}
-                </p>
+                <p>{`${overviewData.event_no}  ${overviewData.event_title}`}</p>
               </div>
             </div>
           )}

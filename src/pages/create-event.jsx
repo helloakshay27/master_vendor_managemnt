@@ -533,6 +533,7 @@ export default function CreateEvent() {
             <table className="w-100">
               <thead>
                 <tr>
+                  <th>Sr No.</th> {/* Add serial number column header */}
                   <th>Vendor Name</th>
                   <th>Mob No.</th>
                   <th>Status</th>
@@ -546,8 +547,9 @@ export default function CreateEvent() {
                       (vendor, index, self) =>
                         index === self.findIndex((v) => v.id === vendor.id) // Ensure uniqueness by id
                     )
-                    .map((vendor) => (
+                    .map((vendor, index) => (
                       <tr key={vendor.id}>
+                        <td>{index + 1}</td> {/* Add serial number */}
                         <td>{vendor.name}</td>
                         <td>{vendor.phone}</td>
                         <td>Invited</td> {/* Display the status */}
@@ -557,7 +559,7 @@ export default function CreateEvent() {
                   <tr>
                     <td
                       // @ts-ignore
-                      colSpan="3"
+                      colSpan="4"
                       className="text-center"
                     >
                       No vendors selected

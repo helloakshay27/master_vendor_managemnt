@@ -69,7 +69,11 @@ export default function ParticipantsTab({ data }) {
     setFilteredData(filtered);
   };
 
-  const tableData = filteredData;
+  const tableData = filteredData.map((vendor, index) => ({
+    srNo: index + 1, // Add serial number
+    ...vendor,
+  }));
+
 
   return (
     <div
@@ -136,7 +140,7 @@ export default function ParticipantsTab({ data }) {
         </div>
         {tableData.length > 0 ? (
           <Table
-            columns={participantsTabColumns}
+            columns={participantsTabColumns} // Use columns with serial number
             data={tableData}
           />
         ) : (

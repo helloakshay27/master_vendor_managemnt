@@ -191,6 +191,7 @@ export const auditLogData = [
 ];
 
 export const participantsTabColumns = [
+  { label: "Sr No", key: "srNo" }, 
   { label: "Name", key: "name" },
   { label: "Phone", key: "phone" },
   { label: "Email", key: "email" },
