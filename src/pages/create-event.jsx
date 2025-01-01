@@ -380,7 +380,7 @@ export default function CreateEvent() {
 
       if (response.ok) {
         alert("Event created successfully!");
-        navigate("/event-list");
+        navigate("/event-list?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414");
       } else {
         const errorData = await response.json();
         console.error("Error response data:", errorData);
@@ -427,7 +427,7 @@ export default function CreateEvent() {
         <button
           type="button"
           className="ant-btn styles_headerCtaLink__2kCN6 ant-btn-link"
-          onClick={() => navigate("/event-list")}
+          onClick={() => navigate("/event-list?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414")}
         >
           <svg
             width="1em"
@@ -1226,7 +1226,7 @@ export default function CreateEvent() {
             <button
               className="purple-btn1 w-100"
               onClick={() => {
-                navigate("/event-list");
+                navigate("/event-list?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414/event-list");
               }}
             >
               Cancel

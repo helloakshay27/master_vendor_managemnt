@@ -190,10 +190,6 @@ export default function adminList() {
       const pastEventsUrl = "https://vendors.lockated.com/rfq/events/past_events";
       const allEventsUrl = "https://vendors.lockated.com/rfq/events";
 
-      console.log("Live Events URL:", liveEventsUrl, { token, page, ...queryFilters });
-      console.log("Past Events URL:", pastEventsUrl, { token, page, ...queryFilters });
-      console.log("All Events URL:", allEventsUrl, { token, page, ...queryFilters });
-
       const [liveResponse, historyResponse, allResponse] = await Promise.all([
         axios.get(liveEventsUrl, {
           params: {
@@ -374,7 +370,6 @@ export default function adminList() {
   }, []);
 
   const handleSelectChange = (selectedOption) => {
-    // console.log("Selected vendor:", selectedOption);
     const vendorValue = selectedOption ? selectedOption.value : "";
     setVendorId(vendorValue);
     sessionStorage.setItem("selectedId", vendorValue); // Store the new selection in session storage

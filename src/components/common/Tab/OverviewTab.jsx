@@ -72,8 +72,6 @@ export default function OverviewTab({
     },
   ];
 
-  console.log("overviewData", overviewData);
-
   const calculateOrderDuration = (start, end) => {
     const startTime = new Date(start);
     const endTime = new Date(end);

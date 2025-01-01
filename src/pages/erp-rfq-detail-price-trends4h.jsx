@@ -283,12 +283,17 @@ export default function ErpRfqDetailPriceTrends4h() {
     fetchRemarks();
   }, [id]);
 
+  console.log('id -----',id);
+  
   useEffect(() => {
     const fetchParticipants = async () => {
       try {
         const response = await fetch(
           `https://vendors.lockated.com/rfq/events/${id}/event_vendors?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&page=1`
         );
+
+        console.log(response);
+        
 
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -306,8 +311,6 @@ export default function ErpRfqDetailPriceTrends4h() {
     fetchParticipants();
   }, [id]);
 
-  console.log(overviewData);
-
   return (
     <>
       <div className="website-content overflow-auto">
@@ -318,7 +321,7 @@ export default function ErpRfqDetailPriceTrends4h() {
                 <button
                   type="button"
                   className="ant-btn styles_headerCtaLink__2kCN6 ant-btn-link"
-                  onClick={() => navigate("/event-list")}
+                  onClick={() => navigate("/event-list?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414")}
                 >
                   <svg
                     width="1em"

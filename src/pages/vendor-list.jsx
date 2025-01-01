@@ -79,8 +79,6 @@ export default function VendorListPage() {
   useEffect(() => {
     // Save vendorId in session storage
 
-    console.log('vendorId', vendorId);
-
 
     sessionStorage.setItem('vendorId', vendorId);
   }, [vendorId]);
@@ -177,7 +175,6 @@ export default function VendorListPage() {
   const fetchData = async (url, params) => {
     try {
       const response = await axios.get(url, { params });
-      // console.log(`Response from ${url}:`, response.data);
       return response.data;
     } catch (err) {
       console.error(`Error fetching data from ${url}:`, err);
@@ -203,10 +200,6 @@ export default function VendorListPage() {
       const liveEventsUrl = "https://vendors.lockated.com/rfq/events/live_events";
       const pastEventsUrl = "https://vendors.lockated.com/rfq/events/past_events";
       const allEventsUrl = "https://vendors.lockated.com/rfq/events";
-
-      console.log("Live Events URL:", liveEventsUrl, { token, page, event_vendor_id: vendorId, ...queryFilters });
-      console.log("Past Events URL:", pastEventsUrl, { token, page, event_vendor_id: vendorId, ...queryFilters });
-      console.log("All Events URL:", allEventsUrl, { token, page, event_vendor_id: vendorId, ...queryFilters });
 
       const [liveResponse, historyResponse, allResponse] = await Promise.all([
         axios.get(liveEventsUrl, {
