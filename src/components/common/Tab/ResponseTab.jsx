@@ -225,7 +225,7 @@ export default function ResponseTab({ data }) {
                     <Accordion
                       key={index}
                       title={vendor.bids.map(
-                        (bid) => bid.bid_materials[0]?.material_name
+                        (bid) => bid.bid_materials[index]?.material_name
                       )}
                       isDefault={true}
                       tableColumn={[

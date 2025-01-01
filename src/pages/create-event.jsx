@@ -301,7 +301,6 @@ export default function CreateEvent() {
   const handleSubmit = async () => {
     if (
       !eventName ||
-      !eventNo ||
       !createdOn ||
       !scheduleData ||
       selectedVendors.length === 0
@@ -366,6 +365,8 @@ export default function CreateEvent() {
       },
     };
 
+    console.log("Payload", payload);
+
     try {
       const response = await fetch(
         "https://vendors.lockated.com/rfq/events?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414",
@@ -382,6 +383,8 @@ export default function CreateEvent() {
         alert("Event created successfully!");
         navigate("/event-list");
       } else {
+        const errorData = await response.json();
+        console.error("Error response data:", errorData);
         throw new Error("Failed to create event.");
       }
     } catch (error) {
