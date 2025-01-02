@@ -117,45 +117,48 @@ export default function adminList() {
     return Array.from(uniqueMap.values());
   };
 
+
+  const fetchFilterOptions = async () => {
+    setLoading(true);
+    try {
+      const urlParams = new URLSearchParams(location.search);
+      const token = urlParams.get("token");
+
+      const response = await axios.get(
+        "https://vendors.lockated.com/rfq/events/advance_filter_options",
+        {
+          params: {
+            token: token,
+          },
+        }
+      );
+
+      setFilterOptions({
+        event_titles: preprocessOptions(response.data.event_titles),
+        event_numbers: preprocessOptions(response.data.event_numbers),
+        creaters: preprocessOptions(response.data.creaters, true),
+        statuses: preprocessOptions(
+          response.data.statuses.map((status) => ({
+            name: status,
+            value: status,
+          }))
+        ),
+        material_name: preprocessOptions(response.data?.material_name || []),
+        material_type: preprocessOptions(response.data?.material_type || []),
+        locations: preprocessOptions(response.data?.locations || []),
+      });
+    } catch (err) {
+      console.error("Error fetching filter options:", err);
+      setError(
+        err.response?.data?.message || "Failed to fetch filter options"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchFilterOptions = async () => {
-      setLoading(true);
-      try {
-        const urlParams = new URLSearchParams(location.search);
-        const token = urlParams.get("token");
 
-        const response = await axios.get(
-          "https://vendors.lockated.com/rfq/events/advance_filter_options",
-          {
-            params: {
-              token: token,
-            },
-          }
-        );
-
-        setFilterOptions({
-          event_titles: preprocessOptions(response.data.event_titles),
-          event_numbers: preprocessOptions(response.data.event_numbers),
-          creaters: preprocessOptions(response.data.creaters, true),
-          statuses: preprocessOptions(
-            response.data.statuses.map((status) => ({
-              name: status,
-              value: status,
-            }))
-          ),
-          material_name: preprocessOptions(response.data?.material_name || []),
-          material_type: preprocessOptions(response.data?.material_type || []),
-          locations: preprocessOptions(response.data?.locations || []),
-        });
-      } catch (err) {
-        console.error("Error fetching filter options:", err);
-        setError(
-          err.response?.data?.message || "Failed to fetch filter options"
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
 
     fetchFilterOptions();
   }, []);
@@ -293,9 +296,7 @@ export default function adminList() {
 
   const pageNumbers = getPageRange(); // Get the current page range for display
 
-  useEffect(() => {
-    fetchEvents();
-  }, []);
+
 
   const handleFilterChange = (key, name) => {
     setFilters((prevFilters) => ({
@@ -312,8 +313,8 @@ export default function adminList() {
   const handleSubmit = (e) => {
     e.preventDefault();
     fetchEvents();
-    handleClose(); 
-    handleReset();
+    handleClose();
+    // handleReset();
   };
 
   const handleSearch = async () => {
@@ -827,8 +828,8 @@ export default function adminList() {
                         <li
                           key={pageNumber}
                           className={`page-item ${pagination.current_page === pageNumber
-                              ? "active"
-                              : ""
+                            ? "active"
+                            : ""
                             }`}
                         >
                           <button
@@ -843,8 +844,8 @@ export default function adminList() {
                       {/* Next Button */}
                       <li
                         className={`page-item ${pagination.current_page === pagination.total_pages
-                            ? "disabled"
-                            : ""
+                          ? "disabled"
+                          : ""
                           }`}
                       >
                         <button
@@ -863,8 +864,8 @@ export default function adminList() {
                       {/* Last Button */}
                       <li
                         className={`page-item ${pagination.current_page === pagination.total_pages
-                            ? "disabled"
-                            : ""
+                          ? "disabled"
+                          : ""
                           }`}
                       >
                         <button
