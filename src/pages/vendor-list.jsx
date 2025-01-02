@@ -779,8 +779,8 @@ export default function VendorListPage() {
                               </td>
 
                               <td>
-                                {event.event_schedule.end_time_duration ? (
-                                  <FormatDate timestamp={event.event_schedule.end_time_duration} />
+                                {event.event_schedule.end_time ? (
+                                  <FormatDate timestamp={event.event_schedule.end_time} />
                                 ) : (
                                   "N/A"
                                 )}
