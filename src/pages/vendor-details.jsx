@@ -855,7 +855,7 @@ export default function VendorDetails() {
   const handleDecline = async () => {
     const payload = { status: "rejected" };
     const response = await fetch(
-      `https://vendors.lockated.com/rfq/events/${eventId}/bids/${bidIds}/counter_bids/15/update_status?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`,
+      `https://vendors.lockated.com/rfq/events/${eventId}/bids/${bidIds}/counter_bids/${counterId}/update_status?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`,
       {
         method: "POST",
         headers: {
@@ -866,7 +866,7 @@ export default function VendorDetails() {
     );
     if (response.ok) {
       console.log("Counter offer declined");
-      // Handle successful decline (e.g., update UI, show notification)
+      setCounterData(0);
     } else {
       console.error("Failed to decline counter offer");
     }
@@ -887,7 +887,7 @@ export default function VendorDetails() {
 
     if (response.ok) {
       console.log("Counter offer accepted");
-      // Handle successful acceptance (e.g., update UI, show notification)
+      setCounterData(0);
     } else {
       console.error("Failed to accept counter offer");
     }
