@@ -56,6 +56,8 @@ export default function adminList() {
     event_materials_inventory_id_in: "",
     event_materials_pms_inventory_inventory_type_id_in: "",
     event_materials_id_in: "",
+    event_no_cont:""
+
   });
   const [filterOptions, setFilterOptions] = useState({
     event_titles: [],
@@ -90,6 +92,7 @@ export default function adminList() {
       event_materials_inventory_id_in: "",
       event_materials_pms_inventory_inventory_type_id_in: "",
       event_materials_id_in: "",
+      event_no_cont:""
     });
     setFilterOptions({
       event_titles: [],
@@ -188,7 +191,9 @@ export default function adminList() {
         ...(filters.event_materials_inventory_id_in && { "q[event_materials_inventory_id_in]": filters.event_materials_inventory_id_in }),
         ...(filters.event_materials_pms_inventory_inventory_type_id_in && { "q[event_materials_pms_inventory_inventory_type_id_in]": filters.event_materials_pms_inventory_inventory_type_id_in }),
         ...(filters.event_materials_id_in && { "q[event_materials_id_in]": filters.event_materials_id_in }),
+        ...(filters.event_no_cont && { "q[event_no_cont]": filters.event_no_cont }),
       };
+
 
       const liveEventsUrl = "https://vendors.lockated.com/rfq/events/live_events";
       const pastEventsUrl = "https://vendors.lockated.com/rfq/events/past_events";
@@ -557,14 +562,14 @@ export default function adminList() {
                             options={filterOptions.event_numbers}
                             onChange={(option) =>
                               handleFilterChange(
-                                "event_no_in",
+                                "event_no_cont",
                                 option?.value || ""
                               )
                             }
                             value={
-                              filters.event_no_in
+                              filters.event_no_cont
                                 ? filterOptions.event_numbers.find(
-                                  (opt) => opt.value === filters.event_no_in
+                                  (opt) => opt.value === filters.event_no_cont
                                 )
                                 : null
                             }
