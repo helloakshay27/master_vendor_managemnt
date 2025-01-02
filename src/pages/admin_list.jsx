@@ -297,10 +297,10 @@ export default function adminList() {
     fetchEvents();
   }, []);
 
-  const handleFilterChange = (key, value) => {
+  const handleFilterChange = (key, name) => {
     setFilters((prevFilters) => ({
       ...prevFilters,
-      [key]: value,
+      [key]: name,
     }));
   };
 
@@ -721,7 +721,7 @@ export default function adminList() {
 
                               <td>
                                 {event.event_schedule.end_time_duration ? (
-                                  <FormatDate timestamp={event.event_schedule.end_time_duration} />
+                                  <FormatDate timestamp={event.event_schedule.end_time} />
                                 ) : (
                                   "N/A"
                                 )}
