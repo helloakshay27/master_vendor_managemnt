@@ -116,6 +116,7 @@ export default function adminList() {
       });
     return Array.from(uniqueMap.values());
   };
+  const token = new URLSearchParams(window.location.search).get("token");
 
 
   const fetchFilterOptions = async () => {
