@@ -1072,7 +1072,7 @@ export default function VendorDetails() {
                                           className="text-start"
                                           style={{ color: "#777777" }}
                                         >
-                                          {data1.material_title}
+                                          [{data1.event_no}] {data1.event_title}
                                         </td>
                                         <td
                                           className="text-start"
