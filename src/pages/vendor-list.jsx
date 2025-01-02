@@ -78,7 +78,7 @@ export default function VendorListPage() {
 
   useEffect(() => {
     // Save vendorId in session storage
-
+    console.log("vendorId", vendorId);
 
     sessionStorage.setItem('vendorId', vendorId);
   }, [vendorId]);
@@ -172,15 +172,8 @@ export default function VendorListPage() {
     fetchFilterOptions();
   }, []);
 
-  const fetchData = async (url, params) => {
-    try {
-      const response = await axios.get(url, { params });
-      return response.data;
-    } catch (err) {
-      console.error(`Error fetching data from ${url}:`, err);
-      throw err;
-    }
-  };
+  const token = new URLSearchParams(window.location.search).get("token");
+
 
   const fetchEvents = async (page = 1) => {
     setLoading(true);
@@ -255,7 +248,7 @@ export default function VendorListPage() {
 
   useEffect(() => {
     fetchEvents();
-  }, [filters, activeTab, vendorId]);
+  }, [activeTab, vendorId]);
 
 
 
@@ -328,33 +321,59 @@ export default function VendorListPage() {
   const handleSubmit = (e) => {
     e.preventDefault();
     fetchEvents();
-    handleClose(); 
-    handleReset(); 
+    handleClose();
+    handleReset();
   };
 
+
   const handleSearch = async () => {
+    setLoading(true);
     try {
-      const urlParams = new URLSearchParams(location.search);
-      const token = urlParams.get("token");
       const response = await axios.get(
         `https://vendors.lockated.com/rfq/events?token=${token}&q[event_title_or_event_no_or_status_or_created_at_or_event_schedule_start_time_or_event_schedule_end_time_cont]=${searchQuery}`
       );
 
-      setLiveEvents(response.data.liveEvents || []);
-      setHistoryEvents(response.data.historyEvents || []);
-      setAllEventsData(response.data.allEvents || []);
+      // Set state for live events with pagination
+      setLiveEvents({
+        events: response.data.live_events?.events || [],
+        pagination: response.data.live_events?.pagination || {},
+      });
+
+      // Set state for history events with pagination
+      setHistoryEvents({
+        events: response.data.history_events?.events || [],
+        pagination: response.data.history_events?.pagination || {},
+      });
+
+      // Set state for all events with pagination
+      setAllEventsData({
+        events: response.data.all_events?.events || [],
+        pagination: response.data.all_events?.pagination || {},
+      });
     } catch (error) {
       console.error("Error fetching search results:", error);
-      alert("Unable to fetch search results. Please try again later.");
+      setError("Unable to fetch search results. Please try again later.");
+    } finally {
+      setLoading(false);
     }
   };
 
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    handleSearch();
+    // handleResetSearch();
+  };
+
+  const handleResetSearch = async () => {
+    if (searchQuery.trim() === "") {
+      fetchEvents();
+    } else {
+      setSearchQuery("");
+    }
+  };
   useEffect(() => {
-    if (searchQuery.trim() !== "") {
-      const debounce = setTimeout(() => {
-        handleSearch();
-      }, 500);
-      return () => clearTimeout(debounce);
+    if (searchQuery.trim() === "") {
+      handleResetSearch();
     }
   }, [searchQuery]);
 
@@ -644,7 +663,7 @@ export default function VendorListPage() {
 
                   <div className="d-flex mt-3 align-items-end px-3">
                     <div className="col-md-6">
-                      <form>
+                      <form onSubmit={handleSearchSubmit}>
                         <div className="input-group">
                           <input
                             type="search"
@@ -655,12 +674,13 @@ export default function VendorListPage() {
                             onChange={(e) => setSearchQuery(e.target.value)}
                           />
                           <div className="input-group-append">
-                            <button
-                              type="button"
+                            <button type="sumbit"
+
                               className="btn btn-md btn-default"
                             >
                               <SearchIcon />
                             </button>
+                            
                           </div>
                         </div>
                       </form>
