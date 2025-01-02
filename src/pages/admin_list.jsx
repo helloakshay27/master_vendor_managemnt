@@ -498,7 +498,6 @@ export default function adminList() {
                       )}
 
                       <div className="row my-2 align-items-end">
-                        {/* Event Title */}
                         <div className="col-md-2">
                           <label htmlFor="event-title-select">
                             Event Title
@@ -524,7 +523,6 @@ export default function adminList() {
                           />
                         </div>
 
-                        {/* Event Number */}
                         <div className="col-md-2">
                           <label htmlFor="event-no-select">Event Number</label>
                           <Select
@@ -548,7 +546,6 @@ export default function adminList() {
                           />
                         </div>
 
-                        {/* Status */}
                         <div className="col-md-2">
                           <label htmlFor="status-select">Status</label>
                           <Select
