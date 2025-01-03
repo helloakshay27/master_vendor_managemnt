@@ -926,7 +926,7 @@ export default function VendorDetails() {
             </span>
           </div>
           <div className="styles_projectTitleExtra__3ePz7">
-            <span> PANCHSHIL REALTY PRIVATE LTD</span>
+            <span>  REALTY PRIVATE LTD</span>
           </div>
         </div>
       </div>
