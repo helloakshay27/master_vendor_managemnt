@@ -252,6 +252,7 @@ export default function VendorListPage() {
 
   useEffect(() => {
     fetchEvents();
+
   }, [activeTab, vendorId]);
 
 
@@ -335,30 +336,33 @@ export default function VendorListPage() {
         `https://vendors.lockated.com/rfq/events?token=${token}&q[event_title_or_event_no_or_status_or_created_at_or_event_schedule_start_time_or_event_schedule_end_time_cont]=${searchQuery}`
       );
 
+      // const { live_events, history_events, all_events } = response.data;
+
       // Set state for live events with pagination
-      setLiveEvents({
-        events: response.data.live_events?.events || [],
-        pagination: response.data.live_events?.pagination || {},
-      });
-
-      // Set state for history events with pagination
-      setHistoryEvents({
-        events: response.data.history_events?.events || [],
-        pagination: response.data.history_events?.pagination || {},
-      });
-
-      // Set state for all events with pagination
-      setAllEventsData({
-        events: response.data.all_events?.events || [],
-        pagination: response.data.all_events?.pagination || {},
-      });
-    } catch (error) {
-      console.error("Error fetching search results:", error);
-      setError("Unable to fetch search results. Please try again later.");
-    } finally {
-      setLoading(false);
-    }
-  };
+           // Set state for live events with pagination
+           setLiveEvents({
+            events: response.data?.events || [],
+            pagination: response.data?.pagination || {},
+          });
+      
+          // Set state for history events with pagination
+          setHistoryEvents({
+            events: response.data?.events || [],
+            pagination: response.data?.pagination || {},
+          });
+      
+          // Set state for all events with pagination
+          setAllEventsData({
+            events: response.data?.events || [],
+            pagination: response.data?.pagination || {},
+          });
+        } catch (error) {
+          console.error("Error fetching search results:", error);
+          setError("Unable to fetch search results. Please try again later.");
+        } finally {
+          setLoading(false);
+        }
+      };
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
