@@ -262,6 +262,8 @@ export default function VendorListPage() {
       fetchEvents(newPage);
     }
   };
+  const [suggestions, setSuggestions] = useState([]);
+  const [isSuggestionsVisible, setIsSuggestionsVisible] = useState(false);
 
   const getFilteredData = () => {
     switch (activeTab) {
@@ -329,8 +331,15 @@ export default function VendorListPage() {
   };
 
 
-  const handleSearch = async () => {
+  const fetchSuggestions = async (query) => {
+    if (!query) {
+      setSuggestions([]);
+      setIsSuggestionsVisible(false);
+      return;
+    }
+
     setLoading(true);
+    setError("");
     try {
       const response = await axios.get(
         `https://vendors.lockated.com/rfq/events?token=${token}&q[event_title_or_event_no_or_status_or_created_at_or_event_schedule_start_time_or_event_schedule_end_time_cont]=${searchQuery}`
@@ -340,6 +349,8 @@ export default function VendorListPage() {
 
       // Set state for live events with pagination
       // Set state for live events with pagination
+      setSuggestions(response.data?.events); // Populate suggestions with event data
+
       setLiveEvents({
         events: response.data?.events || [],
         pagination: response.data?.pagination || {},
@@ -364,10 +375,36 @@ export default function VendorListPage() {
     }
   };
 
+  // const handleSearchSubmit = (e) => {
+  //   e.preventDefault();
+  //   handleSearch();
+  //   // handleResetSearch();
+  // };
+
+  const handleInputChange = (e) => {
+    const query = e.target.value;
+    setSearchQuery(query);
+
+    if (query) {
+      fetchSuggestions(query);
+    } else {
+      setSuggestions([]);
+      setIsSuggestionsVisible(false);
+    }
+  };
+
+  const handleSuggestionClick = (suggestion) => {
+    setSearchQuery(suggestion.event_title); // Assuming `event_title` is the property you want
+    setIsSuggestionsVisible(false);
+    // Perform any additional actions on suggestion click, like triggering search
+  };
+
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    handleSearch();
-    // handleResetSearch();
+    setIsSuggestionsVisible(false);
+    // Trigger search logic with `searchQuery`
+    console.log("Search submitted for:", searchQuery);
+    fetchSuggestions(searchQuery);
   };
 
   const handleResetSearch = async () => {
@@ -410,12 +447,7 @@ export default function VendorListPage() {
     vendorDetails();
   }, []);
 
-  // const handleSelectChange = (selectedOption) => {
-  //   // console.log("Selected vendor:", selectedOption);
-  //   const vendorValue = selectedOption ? selectedOption.value : "";
-  //   setVendorId(vendorValue);
-  //   sessionStorage.setItem("selectedId", vendorValue); // Store the new selection in session storage
-  // };
+
 
   const eventProjectColumns = [
     { label: "Sr.No.", key: "srNo" },
@@ -668,7 +700,7 @@ export default function VendorListPage() {
                   </CollapsibleCard>
 
                   <div className="d-flex mt-3 align-items-end px-3">
-                    <div className="col-md-6">
+                    <div className="col-md-6 position-relative">
                       <form onSubmit={handleSearchSubmit}>
                         <div className="input-group">
                           <input
@@ -677,8 +709,11 @@ export default function VendorListPage() {
                             className="tbl-search form-control"
                             placeholder="Type your keywords here"
                             value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
+                            onChange={handleInputChange}
+                            onFocus={() => setIsSuggestionsVisible(true)}
+                            onBlur={() => setTimeout(() => setIsSuggestionsVisible(false), 200)}
                           />
+
                           <div className="input-group-append">
                             <button type="sumbit"
 
@@ -688,8 +723,27 @@ export default function VendorListPage() {
                             </button>
 
                           </div>
+
+
                         </div>
+
+
                       </form>
+                      {isSuggestionsVisible && suggestions.length > 0 && (
+                        <ul className="suggestions-list">
+                          {suggestions.map((suggestion) => (
+                            <li
+                              key={suggestion.id} // Use unique identifier if available
+                              className="suggestion-item"
+                              onClick={() => handleSuggestionClick(suggestion)}
+                            >
+                              {suggestion.event_title} {/* Display event title */}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                      {loading && <p>Loading suggestions...</p>}
+                      {error && <p className="error-message">{error}</p>}
                     </div>
 
                     <div className="col-md-6">

@@ -849,6 +849,33 @@ input[type="checkbox"] {
   width: 100% !important; /* Using !important to ensure it occupies full width */  
 } 
 
+.suggestions-list {
+  position: absolute;
+  background: white;
+  border: 1px solid #ddd;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 150px;
+  overflow-y: auto;
+  width: 100%;
+  z-index: 1000;
+}
+
+.suggestion-item {
+  padding: 10px;
+  cursor: pointer;
+}
+
+.suggestion-item:hover {
+  background-color: #f0f0f0;
+}
+
+.error-message {
+  color: red;
+}
+
+
 .thead {
   background-color: #dee2e6;
   position: sticky !important;
