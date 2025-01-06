@@ -170,7 +170,7 @@ export default function VendorListPage() {
 
 
   useEffect(() => {
- 
+
     fetchFilterOptions();
   }, []);
 
@@ -339,30 +339,30 @@ export default function VendorListPage() {
       // const { live_events, history_events, all_events } = response.data;
 
       // Set state for live events with pagination
-           // Set state for live events with pagination
-           setLiveEvents({
-            events: response.data?.events || [],
-            pagination: response.data?.pagination || {},
-          });
-      
-          // Set state for history events with pagination
-          setHistoryEvents({
-            events: response.data?.events || [],
-            pagination: response.data?.pagination || {},
-          });
-      
-          // Set state for all events with pagination
-          setAllEventsData({
-            events: response.data?.events || [],
-            pagination: response.data?.pagination || {},
-          });
-        } catch (error) {
-          console.error("Error fetching search results:", error);
-          setError("Unable to fetch search results. Please try again later.");
-        } finally {
-          setLoading(false);
-        }
-      };
+      // Set state for live events with pagination
+      setLiveEvents({
+        events: response.data?.events || [],
+        pagination: response.data?.pagination || {},
+      });
+
+      // Set state for history events with pagination
+      setHistoryEvents({
+        events: response.data?.events || [],
+        pagination: response.data?.pagination || {},
+      });
+
+      // Set state for all events with pagination
+      setAllEventsData({
+        events: response.data?.events || [],
+        pagination: response.data?.pagination || {},
+      });
+    } catch (error) {
+      console.error("Error fetching search results:", error);
+      setError("Unable to fetch search results. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -686,7 +686,7 @@ export default function VendorListPage() {
                             >
                               <SearchIcon />
                             </button>
-                            
+
                           </div>
                         </div>
                       </form>

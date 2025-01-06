@@ -56,7 +56,7 @@ export default function adminList() {
     event_materials_inventory_id_in: "",
     event_materials_pms_inventory_inventory_type_id_in: "",
     event_materials_id_in: "",
-    event_no_cont: ""
+    event_no_cont:""
 
   });
   const [filterOptions, setFilterOptions] = useState({
@@ -92,7 +92,7 @@ export default function adminList() {
       event_materials_inventory_id_in: "",
       event_materials_pms_inventory_inventory_type_id_in: "",
       event_materials_id_in: "",
-      event_no_cont: ""
+      event_no_cont:""
     });
     setFilterOptions({
       event_titles: [],
@@ -333,30 +333,30 @@ export default function adminList() {
       // const { live_events, history_events, all_events } = response.data;
 
       // Set state for live events with pagination
-      // Set state for live events with pagination
-      setLiveEvents({
-        events: response.data?.events || [],
-        pagination: response.data?.pagination || {},
-      });
-
-      // Set state for history events with pagination
-      setHistoryEvents({
-        events: response.data?.events || [],
-        pagination: response.data?.pagination || {},
-      });
-
-      // Set state for all events with pagination
-      setAllEventsData({
-        events: response.data?.events || [],
-        pagination: response.data?.pagination || {},
-      });
-    } catch (error) {
-      console.error("Error fetching search results:", error);
-      setError("Unable to fetch search results. Please try again later.");
-    } finally {
-      setLoading(false);
-    }
-  };
+           // Set state for live events with pagination
+           setLiveEvents({
+            events: response.data?.events || [],
+            pagination: response.data?.pagination || {},
+          });
+      
+          // Set state for history events with pagination
+          setHistoryEvents({
+            events: response.data?.events || [],
+            pagination: response.data?.pagination || {},
+          });
+      
+          // Set state for all events with pagination
+          setAllEventsData({
+            events: response.data?.events || [],
+            pagination: response.data?.pagination || {},
+          });
+        } catch (error) {
+          console.error("Error fetching search results:", error);
+          setError("Unable to fetch search results. Please try again later.");
+        } finally {
+          setLoading(false);
+        }
+      };
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -919,7 +919,7 @@ export default function adminList() {
                 dialogClassName="modal-right"
                 className="setting-modal"
                 backdrop={true}
-                style={{ height: "100vh", overflowY: "scroll" }}
+                style={{height:"100vh", overflowY:"scroll"}}
               >
                 <Modal.Header>
                   <div className="container-fluid p-0">
