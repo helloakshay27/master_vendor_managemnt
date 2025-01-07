@@ -8,16 +8,20 @@ import ResponseVendor from "../ResponseVendor";
 import { FullScreen, useFullScreenHandle } from "react-full-screen";
 import BulkCounterOfferModal from "../Modal/BulkCounterOfferModal";
 import axios from "axios";
+import { event } from "jquery";
+import SelectBox from "../../base/Select/SelectBox";
 
 export default function ResponseTab({ data }) {
   const [isVendor, setIsVendor] = useState(false);
   const [counterModal, setCounterModal] = useState(false);
   const [BidCounterData, setBidCounterData] = useState(null);
+  const [responseTableData, setResponseTableData] = useState([]);
   const [bidId, setBidId] = useState(null);
-  const [eventId, setEventId] = useState(null);
+  const [eventId, setEventId] = useState(data?.vendors?.[0]?.bids?.[0]?.event_id || null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const handle = useFullScreenHandle();
+  
 
   const handleCounterModalShow = () => {
     setCounterModal(true);
@@ -35,13 +39,47 @@ export default function ResponseTab({ data }) {
     }
   };
 
+  // const handleSelectChange = async (vendorId, e) => {
+  //   const revisionNumber = e;
+  //   console.log("revisionNumber :---------", e);
+    
+  //   if (revisionNumber === "currentBid") return;
+
+  //   setLoading(true);
+  //   setError(null);
+  //   try {
+  //     const response = await axios.get(
+  //       `https://vendors.lockated.com/rfq/events/${eventId}/bids/bids_by_revision?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&revision_number=${revisionNumber}`
+  //     );
+
+  //     // const updatedVendors = eventVendors.map((vendor) => {
+  //     //   if (vendor.id === vendorId) {
+  //     //     return {
+  //     //       ...vendor,
+  //     //       bids: response.data,
+  //     //     };
+  //     //   }
+  //     //   return vendor;
+  //     // });
+  //     // console.log("updatedVendors :-----",updatedVendors);
+      
+  //     setResponseTableData(response.data);
+  //     console.log("responseTableData :-----",responseTableData);
+      
+  //   } catch (err) {
+  //     setError(err.message);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       setError(null);
       try {
         const response = await axios.get(
-          `https://vendors.lockated.com/rfq/events/${eventId}/bids/${bidId}?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`
+          `https://vendors.lockated.com/rfq/events/49/bids/${bidId}?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`
         );
 
         setBidCounterData(response.data);
@@ -54,8 +92,24 @@ export default function ResponseTab({ data }) {
 
     fetchData();
   }, [eventId, bidId]);
-
+  console.log("data :----",data);
+  
   const eventVendors = Array.isArray(data?.vendors) ? data.vendors : [];
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "_";
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return "_";
+    const options = {
+      hour: "numeric",
+      minute: "numeric",
+      hour12: true,
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    };
+    return date.toLocaleString("en-US", options);
+  };
 
   return (
     <div
@@ -172,23 +226,33 @@ export default function ResponseTab({ data }) {
                             <td key={vendor.id} style={{ width: "200px" }}>
                               <div
                                 className="d-flex flex-column align-items-center justify-content-between"
-                                style={{ height: "120px" }}
+                                style={{ height: "150px" }}
                               >
-                                {vendor.organization_name}
+                                <div className="">
+                                  {vendor.organization_name}
+                                  <p>
+                                    {vendor.bids.map((item) =>
+                                      formatDate(item.created_at)
+                                    )}
+                                  </p>
+                                </div>
+                                {/* <SelectBox
+                                  label={""}
+                                  options={[
+                                    { label: "Current Bid", value: "currentBid" },
+                                    { label: "Initial Bid", value: "0" },
+                                    { label: "1st Revision", value: "1" },
+                                  ]}
+                                  defaultValue={""}
+                                  onChange={(e) => handleSelectChange(vendor.id, e)}
+                                /> */}
                                 <button
                                   className="purple-btn2 d-block"
                                   onClick={() => {
-                                    if (
-                                      vendor.bids &&
-                                      vendor.bids.length > 0 &&
-                                      vendor.bids[0].bid_materials &&
-                                      vendor.bids[0].bid_materials.length > 0
-                                    ) {
+                                    if (vendor.bids && vendor.bids.length > 0 && vendor.bids[0].bid_materials && vendor.bids[0].bid_materials.length > 0) {
                                       handleCounterModalShow();
                                       setEventId(vendor.bids[0].event_id);
-                                      setBidId(
-                                        vendor.bids[0].bid_materials[0].bid_id
-                                      );
+                                      setBidId(vendor.bids[0].bid_materials[0].bid_id);
                                     }
                                   }}
                                 >
@@ -218,197 +282,98 @@ export default function ResponseTab({ data }) {
                     </tbody>
                   </table>
                 </div>
-                {eventVendors.length > 1 ? (
-                  <>
-                    {eventVendors.map((vendor, index) => {
-                      return (
-                        <Accordion
-                          key={index}
-                          title={vendor.bids.map(
-                            (bid) => bid.bid_materials[index]?.material_name
-                          )}
-                          isDefault={true}
-                          tableColumn={[
-                            {
-                              label: "Best Total Amount",
-                              key: "bestTotalAmount",
-                            },
-                            {
-                              label: "Quantity Available",
-                              key: "quantityAvailable",
-                            },
-                            { label: "Price", key: "price" },
-                            { label: "Discount", key: "discount" },
-                            {
-                              label: "Realised Discount",
-                              key: "realisedDiscount",
-                            },
-                            { label: "GST", key: "gst" },
-                            { label: "Realised GST", key: "realisedGST" },
-                            { label: "Landed Amount", key: "landedAmount" },
-                            {
-                              label: "Participant Attachment",
-                              key: "participantAttachment",
-                            },
-                            { label: "Total Amount", key: "totalAmount" },
-                          ]}
-                          tableData={vendor.bids?.flatMap((bid) =>
-                            bid.bid_materials?.map((material) => ({
-                              bestTotalAmount: material.total_amount || "_",
-                              quantityAvailable:
-                                material.quantity_available || "_",
-                              price: material.price || "_",
-                              discount: material.discount || "_",
-                              realisedDiscount: material.discount || "_",
-                              gst: "_",
-                              realisedGST: "_",
-                              landedAmount: material.total_amount || "_",
-                              participantAttachment: "_",
-                              totalAmount: material.total_amount || "_",
-                            }))
-                          )}
-                        />
-                      );
-                    })}
-                    {
-                      <Accordion
-                        title={"Other Charges"}
-                        isDefault={true}
-                        tableColumn={[
-                          {
-                            label: "Freight Charge Amount",
-                            key: "freightChrg",
-                          },
-                          { label: "GST on Freight", key: "freightGst" },
-                          {
-                            label: "Realised Freight Amount",
-                            key: "freightRealised",
-                          },
-                          { label: "Warranty Clause", key: "warranty" },
-                          { label: "Payment Terms", key: "payment" },
-                          {
-                            label: "Loading / Unloading Clause",
-                            key: "loading",
-                          },
-                          { label: "Gross Total", key: "grossTotal" },
-                        ]}
-                        tableData={eventVendors.flatMap((vendor) =>
-                          vendor.bids?.map((bid) => ({
-                            freightChrg: bid.freight_charge_amount || "_",
-                            freightGst: bid.gst_on_freight || "_",
-                            freightRealised:
-                              bid.realised_freight_charge_amount || "_",
-                            warranty: bid.warranty_clause || "_",
-                            payment: bid.payment_terms || "_",
-                            loading: bid.loading_unloading_clause || "_",
-                            grossTotal: bid.gross_total || "_",
-                          }))
-                        )}
-                      />
-                    }
-                  </>
-                ) : (
-                  <div>
-                    {eventVendors.map((vendor, vendorIndex) => (
-                      <div key={vendorIndex}>
-                        {vendor.bids?.map((bid, bidIndex) => (
-                          <div key={bidIndex}>
-                            {bid.bid_materials?.map(
-                              (material, materialIndex) => (
-                                <Accordion
-                                  key={materialIndex}
-                                  title={material.material_name}
-                                  isDefault={true}
-                                  tableColumn={[
-                                    {
-                                      label: "Best Total Amount",
-                                      key: "bestTotalAmount",
-                                    },
-                                    {
-                                      label: "Quantity Available",
-                                      key: "quantityAvailable",
-                                    },
-                                    { label: "Price", key: "price" },
-                                    { label: "Discount", key: "discount" },
-                                    {
-                                      label: "Realised Discount",
-                                      key: "realisedDiscount",
-                                    },
-                                    { label: "GST", key: "gst" },
-                                    {
-                                      label: "Realised GST",
-                                      key: "realisedGST",
-                                    },
-                                    {
-                                      label: "Landed Amount",
-                                      key: "landedAmount",
-                                    },
-                                    {
-                                      label: "Participant Attachment",
-                                      key: "participantAttachment",
-                                    },
-                                    {
-                                      label: "Total Amount",
-                                      key: "totalAmount",
-                                    },
-                                  ]}
-                                  tableData={[
-                                    {
-                                      bestTotalAmount:
-                                        material.total_amount || "_",
-                                      quantityAvailable:
-                                        material.quantity_available || "_",
-                                      price: material.price || "_",
-                                      discount: material.discount || "_",
-                                      realisedDiscount:
-                                        material.realised_discount || "_",
-                                      gst: material.gst || "_",
-                                      realisedGST: material.realised_gst || "_",
-                                      landedAmount:
-                                        material.landed_amount || "_",
-                                      participantAttachment: "_",
-                                      totalAmount: material.total_amount || "_",
-                                    },
-                                  ]}
-                                />
-                              )
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    ))}
+                {eventVendors.map((vendor, ind) => {
+                  if (vendor.bids.length > 1) {
+                    vendor.bids = [vendor.bids[vendor.bids.length - 1]];                    
+                  }
+                  return (
                     <Accordion
-                      title={"Other Charges"}
+                      key={ind}
+                      title={vendor.bids.map((bid) => bid.bid_materials.map((material, idx) => {
+                            return (
+                              <div key={idx}>
+                                {material.material_name}
+                              </div>
+                            );                         
+                        }
+                      ))}
                       isDefault={true}
                       tableColumn={[
-                        { label: "Freight Charge Amount", key: "freightChrg" },
-                        { label: "GST on Freight", key: "freightGst" },
                         {
-                          label: "Realised Freight Amount",
-                          key: "freightRealised",
+                          label: "Best Total Amount",
+                          key: "bestTotalAmount",
                         },
-                        { label: "Warranty Clause", key: "warranty" },
-                        { label: "Payment Terms", key: "payment" },
-                        { label: "Loading / Unloading Clause", key: "loading" },
-                        { label: "Gross Total", key: "grossTotal" },
+                        {
+                          label: "Quantity Available",
+                          key: "quantityAvailable",
+                        },
+                        { label: "Price", key: "price" },
+                        { label: "Discount", key: "discount" },
+                        {
+                          label: "Realised Discount",
+                          key: "realisedDiscount",
+                        },
+                        { label: "GST", key: "gst" },
+                        { label: "Realised GST", key: "realisedGST" },
+                        { label: "Landed Amount", key: "landedAmount" },
+                        {
+                          label: "Participant Attachment",
+                          key: "participantAttachment",
+                        },
+                        { label: "Total Amount", key: "totalAmount" },
                       ]}
-                      tableData={eventVendors.flatMap((vendor) =>
-                        vendor.bids.flatMap((bid) => [
-                          {
-                            freightChrg: bid.freight_charge_amount || "_",
-                            freightGst: bid.gst_on_freight || "_",
-                            freightRealised:
-                              bid.realised_freight_charge_amount || "_",
-                            warranty: bid.warranty_clause || "_",
-                            payment: bid.payment_terms || "_",
-                            loading: bid.loading_unloading_clause || "_",
-                            grossTotal: bid.gross_total || "_",
-                          },
-                        ])
+                      tableData={vendor.bids?.flatMap((bid) =>
+                        bid.bid_materials.map((material) => ({
+                          bestTotalAmount: material.total_amount || "_",
+                          quantityAvailable: material.quantity_available || "_",
+                          price: material.price || "_",
+                          discount: material.discount || "_",
+                          realisedDiscount: material.discount || "_",
+                          gst: material.gst || "_",
+                          realisedGST: material.realised_gst || "_",
+                          landedAmount: material.total_amount || "_",
+                          participantAttachment: "_",
+                          totalAmount: material.total_amount || "_",
+                        }))
                       )}
                     />
-                  </div>
-                )}
+                  );
+                })}
+                <Accordion
+                  title={"Other Charges"}
+                  isDefault={true}
+                  tableColumn={[
+                    {
+                      label: "Freight Charge Amount",
+                      key: "freightChrg",
+                    },
+                    { label: "GST on Freight", key: "freightGst" },
+                    {
+                      label: "Realised Freight Amount",
+                      key: "freightRealised",
+                    },
+                    { label: "Warranty Clause", key: "warranty" },
+                    { label: "Payment Terms", key: "payment" },
+                    {
+                      label: "Loading / Unloading Clause",
+                      key: "loading",
+                    },
+                    { label: "Gross Total", key: "grossTotal" },
+                  ]}
+                  tableData={eventVendors.flatMap((vendor) =>
+                    vendor.bids.flatMap((bid) => [
+                      {
+                        freightChrg: bid.freight_charge_amount || "_",
+                        freightGst: bid.gst_on_freight || "_",
+                        freightRealised: bid.realised_freight_charge_amount || "_",
+                        warranty: bid.warranty_clause || "_",
+                        payment: bid.payment_terms || "_",
+                        loading: bid.loading_unloading_clause || "_",
+                        grossTotal: bid.gross_total || "_",
+                      },
+                    ])
+                  )}
+                />
               </>
             ) : (
               <h4 className="h-100 w-100 d-flex justify-content-center align-items-center pt-5">

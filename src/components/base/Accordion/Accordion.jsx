@@ -28,23 +28,6 @@ export default function Accordion({ title, isDefault, tableColumn, tableData }) 
           aria-labelledby="headingOne"
         >
           <div className="accordion-body p-0">
-            {/* <table className="tbl-container">
-              <tbody>
-                {tableData.map((row, rowIndex) => (
-                  <tr key={rowIndex}>
-                    {row.map((cell, cellIndex) => (
-                      <td
-                        key={cellIndex}
-                        className={cell.className}
-                        style={cell.style || {}}
-                      >
-                        {cell.content}
-                      </td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table> */}
             <Table
               columns={tableColumn}
               data={tableData}

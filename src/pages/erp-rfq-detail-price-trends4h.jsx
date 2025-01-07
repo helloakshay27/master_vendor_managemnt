@@ -282,8 +282,6 @@ export default function ErpRfqDetailPriceTrends4h() {
 
     fetchRemarks();
   }, [id]);
-
-  console.log('id -----',id);
   
   useEffect(() => {
     const fetchParticipants = async () => {
