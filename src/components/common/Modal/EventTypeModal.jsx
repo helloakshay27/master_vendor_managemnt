@@ -162,7 +162,7 @@ const EventTypeModal = ({
           <div className="ant-col ant-form-item-control-wrapper">
             <div
               className="pro-radio-tabs"
-              style={{ gridTemplateColumns: "6fr 6fr" }}
+              style={{ gridTemplateColumns: "4fr 4fr 4fr" }}
             >
               <div
                 className={`pro-radio-tabs__tab ${
@@ -234,6 +234,41 @@ const EventTypeModal = ({
                 </div>
                 <p className="pro-text pro-body pro-text--normal">Auction</p>
               </div>
+              {/* Contracts Tab */}
+<div
+  className={`pro-radio-tabs__tab ${
+    eventType === "contracts" ? "pro-radio-tabs__tab__selected" : ""
+  }`}
+  role="radio"
+  aria-checked={eventType === "rfq"}
+  tabIndex={0}
+  onClick={() => handleEventTypeChange("rfq")}
+>
+  <div className="pro-radio-tabs__check-icon">
+    <label
+      className={`ant-radio-wrapper ${
+        eventType === "rfq" ? "ant-radio-wrapper-checked" : ""
+      }`}
+    >
+      <span
+        className={`ant-radio ${
+          eventType === "contracts" ? "ant-radio-checked" : ""
+        }`}
+      >
+        <input
+          type="radio"
+          className="ant-radio-input"
+          value="contracts"
+          checked={eventType === "contracts"}
+          onChange={() => handleEventTypeChange("contracts")}
+        />
+        <div className="ant-radio-inner"></div>
+      </span>
+    </label>
+  </div>
+  <p className="pro-text pro-body pro-text--normal">Contracts</p>
+</div>
+
             </div>
           </div>
         </div>

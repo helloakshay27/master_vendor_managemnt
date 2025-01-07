@@ -817,6 +817,7 @@ export default function CreateEvent() {
                     resetSelectedRows={resetSelectedRows}
                     onResetComplete={() => setResetSelectedRows(false)}
                     onRowSelect={undefined}
+                    cellClass="text-start"
                   />
                 ) : (
                   <p>No vendors found</p>

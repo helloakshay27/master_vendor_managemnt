@@ -916,6 +916,7 @@ export default function adminList() {
                 dialogClassName="modal-right"
                 className="setting-modal"
                 backdrop={true}
+                style={{height:"100vh", overflowY:"scroll"}}
               >
                 <Modal.Header>
                   <div className="container-fluid p-0">

@@ -113,7 +113,7 @@ export default function Table({
                   {row.header}
                 </td>
                 {row.values.map((value, valueIndex) => (
-                  <td key={valueIndex} style={{ width: "200px" }}>
+                  <td key={valueIndex} style={{ width: "200px", textAlign: "left" }}>
                     {customRender[columns[rowIndex]?.key]
                       ? customRender[columns[rowIndex]?.key](
                           value,
