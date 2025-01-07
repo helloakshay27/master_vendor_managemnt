@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Header from "../components/Header";
 import { Table, ShortTable, SelectBox } from "../components";
+import ShortDataTable from "../components/base/Table/ShortDataTable";
 import "../styles/mor.css";
 import { mumbaiLocations, product, unitMeasure } from "../constant/data";
 import { useNavigate, useParams } from "react-router-dom";
@@ -9,13 +10,23 @@ import axios from "axios";
 import ClockIcon from "../components/common/Icon/ClockIcon";
 
 export default function VendorDetails() {
+  // const [freightData, setFreightData] = useState([
+
+  //   { label: "Freight Charge", value: "" },
+  //   { label: "GST on Freight", value: "" },
+  //   { label: "Realised Freight", value: "" },
+  //   { label: "Warranty Clause *", value: "" },
+  //   { label: "Payment Terms *", value: "" },
+  //   { label: "Loading / Unloading *", value: "" },
+  // ]);
+
   const [freightData, setFreightData] = useState([
-    { label: "Freight Charge", value: "" },
-    { label: "GST on Freight", value: "" },
-    { label: "Realised Freight", value: "" },
-    { label: "Warranty Clause *", value: "" },
-    { label: "Payment Terms *", value: "" },
-    { label: "Loading / Unloading *", value: "" },
+    { label: "Freight Charge", value: { firstBid: "", counterBid: "" } },
+    { label: "GST on Freight", value: { firstBid: "", counterBid: "" } },
+    { label: "Realised Freight", value: { firstBid: "", counterBid: "" } },
+    { label: "Warranty Clause *", value: { firstBid: "", counterBid: "" } },
+    { label: "Payment Terms *", value: { firstBid: "", counterBid: "" } },
+    { label: "Loading / Unloading *", value: { firstBid: "", counterBid: "" } },
   ]);
 
   const [vendorId, setVendorId] = useState(() => {
@@ -86,27 +97,61 @@ export default function VendorDetails() {
     setData(updatedData);
   };
 
+  // const calculateFreightTotal = () => {
+  //   const getFreightValue = (label) => {
+  //     // Find the row by label
+  //     const row = freightData.find((row) => row.label === label);
+
+  //     // Check if the row exists and the value is a string
+  //     if (row && typeof row.value === "string") {
+  //       // Remove ₹ and commas, and convert to a float
+  //       return parseFloat(row.value.replace(/₹|,/g, "")) || 0;
+  //     }
+
+  //     // If the value is not a string or row is missing, return 0
+  //     return 0;
+  //   };
+
+  //   const freightCharge = getFreightValue("Freight Charge");
+  //   const realisedFreight = getFreightValue("Realised Freight");
+
+  //   // You can adjust this return value based on your logic
+  //   return realisedFreight;
+  // };
+
   const calculateFreightTotal = () => {
     const getFreightValue = (label) => {
       // Find the row by label
       const row = freightData.find((row) => row.label === label);
 
-      // Check if the row exists and the value is a string
-      if (row && typeof row.value === "string") {
-        // Remove ₹ and commas, and convert to a float
-        return parseFloat(row.value.replace(/₹|,/g, "")) || 0;
+      // Check if the row exists and has valid `firstBid` or `counterBid` values
+      if (row && row.value) {
+        const { firstBid, counterBid } = row.value;
+
+        // Use `counterBid` if available; otherwise, fallback to `firstBid`
+        const valueToParse = counterBid || firstBid;
+
+        if (typeof valueToParse === "string") {
+          // Remove ₹ and commas, and convert to a float
+          return parseFloat(valueToParse.replace(/₹|,/g, "")) || 0;
+        }
       }
 
-      // If the value is not a string or row is missing, return 0
+      // If the row or value is missing, return 0
       return 0;
     };
 
     const freightCharge = getFreightValue("Freight Charge");
     const realisedFreight = getFreightValue("Realised Freight");
 
-    // You can adjust this return value based on your logic
-    return realisedFreight;
+    console.log("Freight Charge:", freightCharge);
+    console.log("Realised Freight:", realisedFreight);
+
+    // Adjust this return value based on your calculation logic
+    return realisedFreight || freightCharge;
   };
+
+  console.log("hjedhde", calculateFreightTotal());
 
   const calculateDataSumTotal = () => {
     // Calculate the sum of totals from 'data' (excluding Freight)
@@ -132,7 +177,9 @@ export default function VendorDetails() {
     const freightTotal = calculateFreightTotal() || 0;
 
     // Add the Freight Total to the Sum and round to two decimal places
-    const finalTotal = Math.round((sumFromData + freightTotal) * 100) / 100; // Ensures two decimal places and returns a number
+    const finalTotal = Math.round((sumFromData + freightTotal) * 100) / 100;
+    console.log("finalllllll totalllll", finalTotal);
+    // Ensures two decimal places and returns a number
 
     return finalTotal;
   };
@@ -171,8 +218,15 @@ export default function VendorDetails() {
     ];
 
     for (const field of mandatoryFields) {
-      const fieldValue =
-        freightData.find((item) => item.label === field.label)?.value || "";
+      const fieldData = freightData.find(
+        (item) => item.label === field.label
+      )?.value;
+
+      // Check if fieldData exists and extract the firstBid or counterBid
+      const fieldValue = fieldData
+        ? fieldData.counterBid || fieldData.firstBid || "" // Prioritize counterBid if present
+        : "";
+
       if (!fieldValue.trim()) {
         alert(`Please fill the mandatory field: ${field.key}`);
         return false; // Exit immediately after the first invalid field
@@ -205,6 +259,9 @@ export default function VendorDetails() {
 
     return true;
   };
+
+  const [previousData, setPreviousData] = useState([]); // Holds the data from bid_materials
+  const [updatedData, setUpdatedData] = useState([]); // Holds th
 
   const fetchEventData = async () => {
     try {
@@ -264,62 +321,122 @@ export default function VendorDetails() {
 
         // Process only the first element of the bids array
         if (bids.length > 0) {
+          // const firstBid = bids[0];
+
+          const processFreightData = (bid) => {
+            const counterBid = bid.counter_bids?.[0]; // Check if counter bid exists
+
+            // Process data with both first bid and counter bid
+            return [
+              {
+                label: "Freight Charge",
+                value: {
+                  firstBid: bid.freight_charge_amount || "",
+                  counterBid: counterBid?.freight_charge_amount || "",
+                },
+              },
+              {
+                label: "GST on Freight",
+                value: {
+                  firstBid: bid.gst_on_freight || "",
+                  counterBid: counterBid?.gst_on_freight || "",
+                },
+              },
+              {
+                label: "Realised Freight",
+                value: {
+                  firstBid: bid.realised_freight_charge_amount || "",
+                  counterBid: counterBid?.realised_freight_charge_amount || "",
+                },
+              },
+              {
+                label: "Warranty Clause *",
+                value: {
+                  firstBid: bid.warranty_clause || "",
+                  counterBid: counterBid?.warranty_clause || "",
+                },
+              },
+              {
+                label: "Payment Terms *",
+                value: {
+                  firstBid: bid.payment_terms || "",
+                  counterBid: counterBid?.payment_terms || "",
+                },
+              },
+              {
+                label: "Loading / Unloading *",
+                value: {
+                  firstBid: bid.loading_unloading_clause || "",
+                  counterBid: counterBid?.loading_unloading_clause || "",
+                },
+              },
+            ];
+          };
+
+          // Example usage
           const firstBid = bids[0];
+          const freightData = processFreightData(firstBid);
+          console.log("Processed Freight Data: ", freightData);
+          setFreightData(freightData);
 
-          const updatedFreightData = [
-            {
-              label: "Freight Charge",
-              value: firstBid.freight_charge_amount || "",
-            },
-            { label: "GST on Freight", value: firstBid.gst_on_freight || "" },
-            {
-              label: "Realised Freight",
-              value: firstBid.realised_freight_charge_amount || "",
-            },
-            {
-              label: "Warranty Clause *",
-              value: firstBid.warranty_clause || "",
-            },
-            { label: "Payment Terms *", value: firstBid.payment_terms || "" },
-            {
-              label: "Loading / Unloading *",
-              value: firstBid.loading_unloading_clause || "",
-            },
-          ];
-
-          console.log("Updated Freight Data: ", updatedFreightData);
-          setFreightData(updatedFreightData); //
-
-          const mappedData = firstBid.bid_materials.map((material) => ({
+          const previousData = firstBid.bid_materials.map((material) => ({
             bidId: material.bid_id,
-            id: material.id,
             eventMaterialId: material.event_material_id,
-            descriptionOfItem: material.material_name, // Map to "descriptionOfItem"
-            varient: material.material_type, // Map to "varient"
-            quantity: material.quantity_available, // Map to "quantity"
-            location: firstBid.event.delivary_location, // Use event data for location
-            attachment: null, // Placeholder for "attachment"
-            quantityAvail: material.quantity_available, // Map to "quantityAvail"
-            price: material.price, // Map to "price"
-            discount: material.discount, // Map to "discount"
-            realisedDiscount: material.realised_discount, // Map to "realisedDiscount"
-            gst: material.gst, // Map to "gst"
-            realisedGst: material.realised_gst, // Map to "realisedGst"
-            landedAmount: material.landed_amount, // Map to "landedAmount"
-            vendorRemark: material.vendor_remark, // Map to "vendorRemark"
-            total: material.total_amount, // Map to "total"
+            descriptionOfItem: material.material_name,
+            varient: material.material_type,
+            quantity: material.event_material.quantity,
+            quantityAvail: material.quantity_available,
+            price: material.price,
+            discount: material.discount,
+            realisedDiscount: material.realised_discount,
+            gst: material.gst,
+            realisedGst: material.realised_gst,
+            total: material.total_amount,
+
+            location: material.event_material.location,
+            vendorRemark: material.vendor_remark,
+            landedAmount: material.landed_amount,
           }));
 
-          setData(mappedData);
+          // Map updated data (counter_bid_materials)
+          const updatedData = firstBid.bid_materials
+            .map((material) => {
+              const counterMaterial = material.counter_bid_materials?.[0];
+              return counterMaterial
+                ? {
+                    bidId: counterMaterial.counter_bid_id,
+                    eventMaterialId: counterMaterial.event_material_id,
+                    descriptionOfItem: counterMaterial.material_name,
+                    varient: material.material_type,
+                    quantity: material.event_material.quantity,
+                    quantityAvail: counterMaterial.quantity_available,
+                    price: counterMaterial.price,
+                    discount: counterMaterial.discount,
+                    realisedDiscount: counterMaterial.realised_discount,
+                    gst: counterMaterial.gst,
+                    realisedGst: counterMaterial.realised_gst,
+                    total: counterMaterial.total_amount,
+                    location: material.event_material.location,
+                    vendorRemark: counterMaterial.vendor_remark,
+                    landedAmount: counterMaterial.landed_amount,
+                  }
+                : null; // Handle missing counter bids
+            })
+            .filter(Boolean); // Remove null entries if counter bids are missing
 
-          // Extract all bidIds from the mapped data
-          const bidIds = mappedData.map((material) => material.bidId);
+          setPreviousData(previousData);
+          setUpdatedData(updatedData);
+          setData(updatedData.length > 0 ? updatedData : previousData);
+
+          const bidIds = previousData.map((material) => material.bidId);
 
           // Store the bidIds in a state
           setBidIds(bidIds); // Use your state setter for the bidIds
+          console.log("previous data", previousData);
+          console.log("updated data", updatedData);
 
-          console.log("Mapped first bid data: ", mappedData);
-          setData(mappedData); // Assuming you want to set this data to state
+          // console.log("Mapped first bid data: ", mappedData);
+          // setData(mappedData); // Assuming you want to set this data to state
         } else {
           console.log("No bids available");
         }
@@ -330,128 +447,6 @@ export default function VendorDetails() {
   };
 
   useEffect(() => {
-    // const fetchEventData = async () => {
-    //   try {
-    //     // Step 1: Fetch the initial API to get `revised_bid`
-    //     const initialResponse = await axios.get(
-    //       `https://vendors.lockated.com/rfq/events/${eventId}/event_materials?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&page=1&q[event_vendor_id_cont]=${vendorId}`
-    //     );
-
-    //     const initialData = initialResponse.data;
-
-    //     const revisedBid = initialData.revised_bid; // Extract
-
-    //     // revisedBid from the response
-
-    //     setRevisedBid(revisedBid);
-
-    //     console.log("initial data ", initialData);
-    //     console.log("revised data ", revisedBid);
-
-    //     if (!revisedBid) {
-    //       // If revisedBid is false, format the event materials data
-    //       const formattedData = initialData.event_materials.map((item) => {
-    //         const materialType =
-    //           item.bid_materials && item.bid_materials.length > 0
-    //             ? item.bid_materials[0].material_type
-    //             : null;
-
-    //         console.log("material type", materialType);
-
-    //         return {
-    //           eventMaterialId: item.id,
-    //           descriptionOfItem: item.inventory_name,
-    //           quantity: item.quantity,
-    //           quantityAvail: "", // Placeholder for user input
-    //           unit: item.uom,
-    //           location: item.location,
-    //           rate: item.rate || "", // Placeholder if rate is not available
-    //           amount: item.amount,
-    //           totalAmt: "", // Placeholder for calculated total amount
-    //           attachment: null, // Placeholder for attachment
-    //           varient: materialType, // Use extracted material_type
-    //         };
-    //       });
-
-    //       setData(formattedData);
-    //     } else {
-    //       // Step 2: Fetch the bid data if `revised_bid` is true
-    //       const bidResponse = await axios.get(
-    //         `https://vendors.lockated.com/rfq/events/${eventId}/bids?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&q[event_vendor_id_in]=${vendorId}`
-    //       );
-
-    //       setCounterData(bidResponse.data?.bids[0]?.counter_bids.length);
-    //       setCounterId(bidResponse.data?.bids[0]?.counter_bids[0]?.id);
-    //       setBidIds(bidResponse.data.bids[0].id);
-
-    //       const bids = bidResponse.data.bids;
-
-    //       // Process only the first element of the bids array
-    //       if (bids.length > 0) {
-    //         const firstBid = bids[0];
-
-    //         const updatedFreightData = [
-    //           {
-    //             label: "Freight Charge",
-    //             value: firstBid.freight_charge_amount || "",
-    //           },
-    //           { label: "GST on Freight", value: firstBid.gst_on_freight || "" },
-    //           {
-    //             label: "Realised Freight",
-    //             value: firstBid.realised_freight_charge_amount || "",
-    //           },
-    //           {
-    //             label: "Warranty Clause *",
-    //             value: firstBid.warranty_clause || "",
-    //           },
-    //           { label: "Payment Terms *", value: firstBid.payment_terms || "" },
-    //           {
-    //             label: "Loading / Unloading *",
-    //             value: firstBid.loading_unloading_clause || "",
-    //           },
-    //         ];
-
-    //         console.log("Updated Freight Data: ", updatedFreightData);
-    //         setFreightData(updatedFreightData); //
-
-    //         const mappedData = firstBid.bid_materials.map((material) => ({
-    //           bidId: material.bid_id,
-    //           eventMaterialId: material.event_material_id,
-    //           descriptionOfItem: material.material_name, // Map to "descriptionOfItem"
-    //           varient: material.material_type, // Map to "varient"
-    //           quantity: material.quantity_available, // Map to "quantity"
-    //           location: firstBid.event.delivary_location, // Use event data for location
-    //           attachment: null, // Placeholder for "attachment"
-    //           quantityAvail: material.quantity_available, // Map to "quantityAvail"
-    //           price: material.price, // Map to "price"
-    //           discount: material.discount, // Map to "discount"
-    //           realisedDiscount: material.realised_discount, // Map to "realisedDiscount"
-    //           gst: material.gst, // Map to "gst"
-    //           realisedGst: material.realised_gst, // Map to "realisedGst"
-    //           landedAmount: material.landed_amount, // Map to "landedAmount"
-    //           vendorRemark: material.vendor_remark, // Map to "vendorRemark"
-    //           total: material.total_amount, // Map to "total"
-    //         }));
-
-    //         setData(mappedData);
-
-    //         // Extract all bidIds from the mapped data
-    //         const bidIds = mappedData.map((material) => material.bidId);
-
-    //         // Store the bidIds in a state
-    //         setBidIds(bidIds); // Use your state setter for the bidIds
-
-    //         console.log("Mapped first bid data: ", mappedData);
-    //         setData(mappedData); // Assuming you want to set this data to state
-    //       } else {
-    //         console.log("No bids available");
-    //       }
-    //     }
-    //   } catch (error) {
-    //     console.error("Error fetching data:", error);
-    //   }
-    // };
-
     fetchEventData();
   }, [eventId]);
 
@@ -612,65 +607,139 @@ export default function VendorDetails() {
 
   //revised bid
 
+  // const preparePayload2 = () => {
+  //   // Use `calculateDataSumTotal` for the total amount
+  //   const totalAmount = parseFloat(calculateDataSumTotal());
+
+  //   const bidMaterialsAttributes = data.map((row) => ({
+  //     event_material_id: row.eventMaterialId, // Use the ID from the API data
+  //     quantity_available: row.quantityAvail || 0, // Use the updated quantity
+  //     price: Number(row.price || 0), // Use the updated price
+  //     discount: Number(row.discount || 0),
+  //     bid_material_id: row.id,
+  //     vendor_remark: row.vendorRemark || "",
+  //     gst: row.gst || 0, // GST value from the row
+  //     realised_discount: row.realisedDiscount || 0, // Calculated realised discount
+  //     realised_gst: row.realisedGst || 0,
+  //     landed_amount: row.landedAmount || 0,
+
+  //     total_amount: totalAmount, // Use `sumFromData` logic for total amount
+  //   }));
+  //   console.log("------bid material :", bidMaterialsAttributes);
+
+  //   const freightChargeRaw = String(
+  //     freightData.find((item) => item.label === "Freight Charge")?.value || "0"
+  //   );
+
+  //   // Ensure freightChargeRaw is a string before replacing ₹ and commas
+  //   console.log("Type of freightChargeRaw:", typeof freightChargeRaw);
+
+  //   // Remove ₹ and commas, then parse it to a float (if not a valid number, default to 0)
+  //   const freightCharge21 =
+  //     parseFloat(freightChargeRaw.replace(/₹|,/g, "")) || 0;
+  //   console.log("21 fr:", typeof freightCharge21);
+
+  //   const gstOnFreight =
+  //     freightData.find((item) => item.label === "GST on Freight")?.value || "0";
+
+  //   // Check if gstOnFreight is a string before calling replace and parse
+  //   const gstOnFreightt =
+  //     typeof gstOnFreight === "string"
+  //       ? parseFloat(gstOnFreight.replace(/₹|,/g, "")) || 0
+  //       : 0; // Default to 0 if it's not a string
+
+  //   console.log(gstOnFreightt);
+  //   const realisedFreightChargeAmount = parseFloat(
+  //     freightCharge21 + (freightCharge21 * gstOnFreightt) / 100
+  //   );
+
+  //   const warrantyClause =
+  //     freightData.find((item) => item.label === "Warranty Clause *")?.value ||
+  //     "1-year warranty";
+
+  //   const paymentTerms =
+  //     freightData.find((item) => item.label === "Payment Terms *")?.value ||
+  //     "Net 30";
+
+  //   const loadingUnloadingClause =
+  //     freightData.find((item) => item.label === "Loading / Unloading *")
+  //       ?.value ||
+  //     "Loading at supplier's location, unloading at buyer's location";
+
+  //   const payload = {
+  //     revised_bid: {
+  //       event_vendor_id: vendorId,
+  //       price: 500.0,
+  //       discount: 10.0,
+  //       freight_charge_amount: freightCharge21,
+  //       gst_on_freight: gstOnFreightt,
+  //       realised_freight_charge_amount: realisedFreightChargeAmount,
+  //       gross_total: calculateSumTotal(),
+  //       warranty_clause: warrantyClause,
+  //       payment_terms: paymentTerms,
+  //       loading_unloading_clause: loadingUnloadingClause,
+  //       revised_bid_materials_attributes: bidMaterialsAttributes,
+  //     },
+  //   };
+  //   console.log("Prepared Payload: revised,,", payload);
+  //   return payload;
+  // };
+
   const preparePayload2 = () => {
-    // Use `calculateDataSumTotal` for the total amount
     const totalAmount = parseFloat(calculateDataSumTotal());
 
     const bidMaterialsAttributes = data.map((row) => ({
-      event_material_id: row.eventMaterialId, // Use the ID from the API data
-      quantity_available: row.quantityAvail || 0, // Use the updated quantity
-      price: Number(row.price || 0), // Use the updated price
+      event_material_id: row.eventMaterialId,
+      quantity_available: row.quantityAvail || 0,
+      price: Number(row.price || 0),
       discount: Number(row.discount || 0),
       bid_material_id: row.id,
       vendor_remark: row.vendorRemark || "",
-      gst: row.gst || 0, // GST value from the row
-      realised_discount: row.realisedDiscount || 0, // Calculated realised discount
+      gst: row.gst || 0,
+      realised_discount: row.realisedDiscount || 0,
       realised_gst: row.realisedGst || 0,
       landed_amount: row.landedAmount || 0,
-
-      total_amount: totalAmount, // Use `sumFromData` logic for total amount
+      total_amount: totalAmount,
     }));
+
     console.log("------bid material :", bidMaterialsAttributes);
 
-    const freightChargeRaw = String(
-      freightData.find((item) => item.label === "Freight Charge")?.value || "0"
-    );
+    // Utility function to safely fetch and process values from freightData
+    const getFreightDataValue = (label, key) => {
+      const item = freightData.find((entry) => entry.label === label);
+      if (item?.value?.[key]) {
+        return String(item.value[key]); // Ensure the value is converted to a string
+      }
+      return ""; // Return empty string if value is not found
+    };
 
-    // Ensure freightChargeRaw is a string before replacing ₹ and commas
-    console.log("Type of freightChargeRaw:", typeof freightChargeRaw);
-
-    // Remove ₹ and commas, then parse it to a float (if not a valid number, default to 0)
+    // Fetch and parse Freight Charge and GST on Freight
+    const freightChargeRaw = getFreightDataValue("Freight Charge", "firstBid");
     const freightCharge21 =
-      parseFloat(freightChargeRaw.replace(/₹|,/g, "")) || 0;
-    console.log("21 fr:", typeof freightCharge21);
+      freightChargeRaw && freightChargeRaw.replace
+        ? parseFloat(freightChargeRaw.replace(/₹|,/g, "")) || 0
+        : 0; // Safeguard for invalid data
 
-    const gstOnFreight =
-      freightData.find((item) => item.label === "GST on Freight")?.value || "0";
-
-    // Check if gstOnFreight is a string before calling replace and parse
+    const gstOnFreightRaw = getFreightDataValue("GST on Freight", "firstBid");
     const gstOnFreightt =
-      typeof gstOnFreight === "string"
-        ? parseFloat(gstOnFreight.replace(/₹|,/g, "")) || 0
-        : 0; // Default to 0 if it's not a string
+      gstOnFreightRaw && gstOnFreightRaw.replace
+        ? parseFloat(gstOnFreightRaw.replace(/₹|,/g, "")) || 0
+        : 0;
 
-    console.log(gstOnFreightt);
     const realisedFreightChargeAmount = parseFloat(
       freightCharge21 + (freightCharge21 * gstOnFreightt) / 100
     );
 
+    // Fetch other fields
     const warrantyClause =
-      freightData.find((item) => item.label === "Warranty Clause *")?.value ||
-      "1-year warranty";
-
+      getFreightDataValue("Warranty Clause *", "firstBid") || "1-year warranty";
     const paymentTerms =
-      freightData.find((item) => item.label === "Payment Terms *")?.value ||
-      "Net 30";
-
+      getFreightDataValue("Payment Terms *", "firstBid") || "Net 30";
     const loadingUnloadingClause =
-      freightData.find((item) => item.label === "Loading / Unloading *")
-        ?.value ||
+      getFreightDataValue("Loading / Unloading *", "firstBid") ||
       "Loading at supplier's location, unloading at buyer's location";
 
+    // Construct the payload
     const payload = {
       revised_bid: {
         event_vendor_id: vendorId,
@@ -686,7 +755,8 @@ export default function VendorDetails() {
         revised_bid_materials_attributes: bidMaterialsAttributes,
       },
     };
-    console.log("Prepared Payload: revised,,", payload);
+
+    console.log("Prepared Payload: revised,", payload);
     return payload;
   };
 
@@ -852,44 +922,451 @@ export default function VendorDetails() {
     navigate("/vendor-list"); // Redirect to /vendor-list page
   };
 
+  // const handleDecline = async () => {
+  //   const payload = { status: "rejected" };
+  //   const response = await fetch(
+  //     `https://vendors.lockated.com/rfq/events/${eventId}/bids/${bidIds}/counter_bids/${counterId}/update_status?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`,
+  //     {
+  //       method: "POST",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //       body: JSON.stringify(payload),
+  //     }
+  //   );
+  //   if (response.ok) {
+  //     console.log("Counter offer declined");
+  //     setData(previousData); //
+  //     setCounterData(0);
+  //   } else {
+  //     console.error("Failed to decline counter offer");
+  //   }
+  // };
+
   const handleDecline = async () => {
     const payload = { status: "rejected" };
-    const response = await fetch(
-      `https://vendors.lockated.com/rfq/events/${eventId}/bids/${bidIds}/counter_bids/${counterId}/update_status?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
+    try {
+      const response = await fetch(
+        `https://vendors.lockated.com/rfq/events/${eventId}/bids/${bidIds}/counter_bids/${counterId}/update_status?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        }
+      );
+
+      if (response.ok) {
+        console.log("Counter offer declined");
+
+        // Retrieve the first bid data again (to restore it)
+        const bidResponse = await axios.get(
+          `https://vendors.lockated.com/rfq/events/${eventId}/bids?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&q[event_vendor_pms_supplier_id_in]=${vendorId}`
+        );
+        const bids = bidResponse.data.bids;
+
+        if (bids.length > 0) {
+          const firstBid = bids[0]; // Ensure you're getting the first bid only
+
+          // Process Freight Data using only firstBid data (not counter bid)
+          const processFreightData = (bid) => {
+            // No counterBid data here. Only using the firstBid's data
+            return [
+              {
+                label: "Freight Charge",
+                value: {
+                  firstBid: bid.freight_charge_amount || "",
+                },
+              },
+              {
+                label: "GST on Freight",
+                value: {
+                  firstBid: bid.gst_on_freight || "",
+                },
+              },
+              {
+                label: "Realised Freight",
+                value: {
+                  firstBid: bid.realised_freight_charge_amount || "",
+                },
+              },
+              {
+                label: "Warranty Clause *",
+                value: {
+                  firstBid: bid.warranty_clause || "",
+                },
+              },
+              {
+                label: "Payment Terms *",
+                value: {
+                  firstBid: bid.payment_terms || "",
+                },
+              },
+              {
+                label: "Loading / Unloading *",
+                value: {
+                  firstBid: bid.loading_unloading_clause || "",
+                },
+              },
+            ];
+          };
+
+          // Get the first bid's freight data
+          const freightData = processFreightData(firstBid); // Only process first bid data
+          setFreightData(freightData); // Update state with first bid data
+        }
+
+        setCounterData(0);
+      } else {
+        console.error("Failed to decline counter offer");
       }
-    );
-    if (response.ok) {
-      console.log("Counter offer declined");
-      setCounterData(0);
-    } else {
-      console.error("Failed to decline counter offer");
+    } catch (error) {
+      console.error("Error declining counter offer:", error);
     }
   };
 
+  // const handleAccept = async () => {
+  //   const payload = { status: "accepted" };
+
+  //   // Log the data being sent to the API
+  //   console.log("Payload being sent:", payload);
+
+  //   try {
+  //     const response = await fetch(
+  //       `https://vendors.lockated.com/rfq/events/${eventId}/bids/${bidIds}/counter_bids/${counterId}/update_status?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`,
+  //       {
+  //         method: "POST",
+  //         headers: {
+  //           "Content-Type": "application/json",
+  //         },
+  //         body: JSON.stringify(payload),
+  //       }
+  //     );
+
+  //     console.log("Response from API:", response);
+
+  //     if (response.ok) {
+  //       console.log("Counter offer aceepted");
+
+  //       const bidResponse = await axios.get(
+  //         `https://vendors.lockated.com/rfq/events/${eventId}/bids?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&q[event_vendor_pms_supplier_id_in]=${vendorId}`
+  //       );
+  //       const bids = bidResponse.data.bids;
+
+  //       if (bids.length > 0) {
+  //         const firstBid = bids[0]; // Ensure you're getting the first bid only
+
+  //         // Process Freight Data using only firstBid data (not counter bid)
+  //         const processFreightData = (bid) => {
+  //           // No counterBid data here. Only using the firstBid's data
+  //           return [
+  //             {
+  //               label: "Freight Charge",
+  //               value: {
+  //                 firstBid: bid.freight_charge_amount || "",
+  //               },
+  //             },
+  //             {
+  //               label: "GST on Freight",
+  //               value: {
+  //                 firstBid: bid.gst_on_freight || "",
+  //               },
+  //             },
+  //             {
+  //               label: "Realised Freight",
+  //               value: {
+  //                 firstBid: bid.realised_freight_charge_amount || "",
+  //               },
+  //             },
+  //             {
+  //               label: "Warranty Clause *",
+  //               value: {
+  //                 firstBid: bid.warranty_clause || "",
+  //               },
+  //             },
+  //             {
+  //               label: "Payment Terms *",
+  //               value: {
+  //                 firstBid: bid.payment_terms || "",
+  //               },
+  //             },
+  //             {
+  //               label: "Loading / Unloading *",
+  //               value: {
+  //                 firstBid: bid.loading_unloading_clause || "",
+  //               },
+  //             },
+  //           ];
+  //         };
+
+  //         // Get the first bid's freight data
+  //         const freightData = processFreightData(firstBid); // Only process first bid data
+  //         setFreightData(freightData); // Update state with first bid data
+  //       }
+
+  //       setCounterData(0); // Reset counter data
+
+  //       // const responseData = await response.json();
+  //       // console.log("Counter offer accepted. Response data:", responseData);
+
+  //       // // Assuming responseData contains the updated data
+  //       // const newUpdatedData = responseData.updatedData || updatedData; // Adjust this based on your API response structure
+
+  //       // setData(newUpdatedData); // Show updated data
+  //     } else {
+  //       const errorData = await response.json();
+  //       console.error(
+  //         "Failed to accept counter offer. Error response:",
+  //         errorData
+  //       );
+  //     }
+  //   } catch (error) {
+  //     console.error("Error during API call:", error);
+  //   }
+  // };
+
+  // const handleAccept = async () => {
+  //   const payload = { status: "accepted" };
+
+  //   // Log the data being sent to the API
+  //   console.log("Payload being sent:", payload);
+
+  //   try {
+  //     const response = await fetch(
+  //       `https://vendors.lockated.com/rfq/events/${eventId}/bids/${bidIds}/counter_bids/${counterId}/update_status?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`,
+  //       {
+  //         method: "POST",
+  //         headers: {
+  //           "Content-Type": "application/json",
+  //         },
+  //         body: JSON.stringify(payload),
+  //       }
+  //     );
+
+  //     console.log("Response from API:", response);
+
+  //     if (response.ok) {
+  //       const responseData = await response.json();
+  //       console.log("Counter offer accepted. Response data:", responseData);
+
+  //       // Assuming responseData contains the updated data
+  //       const bidResponse = await axios.get(
+  //         `https://vendors.lockated.com/rfq/events/${eventId}/bids?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&q[event_vendor_pms_supplier_id_in]=${vendorId}`
+  //       );
+
+  //       const bids = bidResponse.data.bids;
+
+  //       if (bids.length > 0) {
+  //         const firstBid = bids[0]; // Ensure you're getting the first bid only
+
+  //         // Process Counter Bid Data (just like you processed firstBid data in handleDecline)
+  //         const processCounterBidData = (bid) => {
+  //           const counterBid = bid.counter_bids?.[0]; // Ensure counter bid exists
+
+  //           if (!counterBid) {
+  //             return [];
+  //           }
+
+  //           // Process the counter bid data
+  //           return [
+  //             {
+  //               label: "Freight Charge",
+  //               value: {
+  //                 counterBid: counterBid.freight_charge_amount || "",
+  //               },
+  //             },
+  //             {
+  //               label: "GST on Freight",
+  //               value: {
+  //                 counterBid: counterBid.gst_on_freight || "",
+  //               },
+  //             },
+  //             {
+  //               label: "Realised Freight",
+  //               value: {
+  //                 counterBid: counterBid.realised_freight_charge_amount || "",
+  //               },
+  //             },
+  //             {
+  //               label: "Warranty Clause *",
+  //               value: {
+  //                 counterBid: counterBid.warranty_clause || "",
+  //               },
+  //             },
+  //             {
+  //               label: "Payment Terms *",
+  //               value: {
+  //                 counterBid: counterBid.payment_terms || "",
+  //               },
+  //             },
+  //             {
+  //               label: "Loading / Unloading *",
+  //               value: {
+  //                 counterBid: counterBid.loading_unloading_clause || "",
+  //               },
+  //             },
+  //           ];
+  //         };
+
+  //         // Get the counter bid data
+  //         const counterBidData = processCounterBidData(firstBid); // Process counter bid data
+  //         setFreightData(counterBidData); // Update state with counter bid data
+
+  //         // Map counter bid materials (like how you mapped materials in `handleDecline`)
+  //         // const counterBidMaterials = firstBid.bid_materials
+  //         //   .map((material) => {
+  //         //     const counterMaterial = material.counter_bid_materials?.[0];
+  //         //     return counterMaterial
+  //         //       ? {
+  //         //           bidId: counterMaterial.counter_bid_id,
+  //         //           eventMaterialId: counterMaterial.event_material_id,
+  //         //           descriptionOfItem: counterMaterial.material_name,
+  //         //           varient: material.material_type,
+  //         //           quantity: counterMaterial.quantity_available,
+  //         //           quantityAvail: material.quantity_available,
+  //         //           price: counterMaterial.price,
+  //         //           discount: counterMaterial.discount,
+  //         //           realisedDiscount: counterMaterial.realised_discount,
+  //         //           gst: counterMaterial.gst,
+  //         //           realisedGst: counterMaterial.realised_gst,
+  //         //           total: counterMaterial.total_amount,
+  //         //           location: material.event_material.location,
+  //         //           vendorRemark: counterMaterial.vendor_remark,
+  //         //           landedAmount: counterMaterial.landed_amount,
+  //         //         }
+  //         //       : null;
+  //         //   })
+  //         //   .filter(Boolean); // Remove null entries if counter materials are missing
+
+  //         // setUpdatedData(counterBidMaterials); // Store the counter bid materials
+
+  //         // // Set updated data for the table
+  //         // setData(counterBidMaterials.length > 0 ? counterBidMaterials : []);
+
+  //         // console.log("Counter Bid Materials:", counterBidMaterials);
+  //       }
+
+  //       setCounterData(0); // Reset counter data if needed
+  //     } else {
+  //       const errorData = await response.json();
+  //       console.error(
+  //         "Failed to accept counter offer. Error response:",
+  //         errorData
+  //       );
+  //     }
+  //   } catch (error) {
+  //     console.error("Error during API call:", error);
+  //   }
+  // };
+
   const handleAccept = async () => {
     const payload = { status: "accepted" };
-    const response = await fetch(
-      `https://vendors.lockated.com/rfq/events/${eventId}/bids/${bidIds}/counter_bids/${counterId}/update_status?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      }
-    );
 
-    if (response.ok) {
-      console.log("Counter offer accepted");
-      setCounterData(0);
-    } else {
-      console.error("Failed to accept counter offer");
+    console.log("Payload being sent:", payload);
+
+    try {
+      // API call to update status
+      const response = await fetch(
+        `https://vendors.lockated.com/rfq/events/${eventId}/bids/${bidIds}/counter_bids/${counterId}/update_status?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        }
+      );
+
+      console.log("Response from API:", response);
+
+      if (response.ok) {
+        console.log("Counter offer accepted");
+
+        // Fetch bids
+        const bidResponse = await axios.get(
+          `https://vendors.lockated.com/rfq/events/${eventId}/bids?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&q[event_vendor_pms_supplier_id_in]=${vendorId}`
+        );
+
+        const bids = bidResponse.data.bids;
+        console.log("Bids array:", bids);
+
+        if (bids.length > 0) {
+          const firstBid = bids[0];
+          console.log("First bid data:", firstBid);
+
+          // Process Freight Data (Optional)
+          const processFreightData = (bid) => [
+            {
+              label: "Freight Charge",
+              value: { firstBid: bid.freight_charge_amount || "" },
+            },
+            {
+              label: "GST on Freight",
+              value: { firstBid: bid.gst_on_freight || "" },
+            },
+            {
+              label: "Realised Freight",
+              value: { firstBid: bid.realised_freight_charge_amount || "" },
+            },
+            {
+              label: "Warranty Clause *",
+              value: { firstBid: bid.warranty_clause || "" },
+            },
+            {
+              label: "Payment Terms *",
+              value: { firstBid: bid.payment_terms || "" },
+            },
+            {
+              label: "Loading / Unloading *",
+              value: { firstBid: bid.loading_unloading_clause || "" },
+            },
+          ];
+
+          const freightData = processFreightData(firstBid);
+          setFreightData(freightData);
+
+          // Map bid_materials to previousData format
+          const previousData = firstBid.bid_materials.map((material) => ({
+            bidId: material.bid_id,
+            eventMaterialId: material.event_material_id,
+            descriptionOfItem: material.material_name,
+            varient: material.material_type,
+            quantity: material.event_material.quantity,
+            quantityAvail: material.quantity_available,
+            price: material.price,
+            discount: material.discount,
+            realisedDiscount: material.realised_discount,
+            gst: material.gst,
+            realisedGst: material.realised_gst,
+            total: material.total_amount,
+            location: material.event_material.location,
+            vendorRemark: material.vendor_remark,
+            landedAmount: material.landed_amount,
+          }));
+
+          console.log("Previous data:", previousData);
+          setPreviousData(previousData);
+
+          // Assuming updatedData comes from the response or API
+          const responseData = await response.json();
+          const updatedData = responseData.updatedData || [];
+          console.log("Updated data:", updatedData);
+
+          // Set data based on the presence of updatedData
+          setData(updatedData.length > 0 ? updatedData : previousData);
+        } else {
+          console.error("No bids found in API response.");
+        }
+
+        setCounterData(0); // Reset counter data
+      } else {
+        const errorData = await response.json();
+        console.error(
+          "Failed to accept counter offer. Error response:",
+          errorData
+        );
+      }
+    } catch (error) {
+      console.error("Error during API call:", error);
     }
   };
 
@@ -1658,23 +2135,152 @@ export default function VendorDetails() {
                                 style={otherColumnsStyle}
                               />
                             ),
-                            quantityAvail: (cell, rowIndex) => (
-                              <input
-                                className="form-control"
-                                type="number"
-                                min="0"
-                                value={cell}
-                                onChange={(e) =>
-                                  handleInputChange(
-                                    e.target.value,
-                                    rowIndex,
-                                    "quantityAvail"
-                                  )
-                                }
-                                placeholder="Enter Quantity Available"
-                                style={otherColumnsStyle}
-                              />
-                            ),
+
+                            // quantityAvail: (cell, rowIndex) => {
+                            //   const previousQuantity =
+                            //     previousData[rowIndex]?.quantity || cell; // Access previous quantity
+                            //   const updatedQuantity =
+                            //     updatedData[rowIndex]?.quantity ||
+                            //     previousQuantity; // Access updated quantity
+
+                            //   return counterData ? (
+                            //     // When counter data exists, show both previous and updated quantities
+                            //     <div
+                            //       style={{
+                            //         display: "flex",
+                            //         alignItems: "center",
+                            //       }}
+                            //     >
+                            //       <span
+                            //         style={{
+                            //           textDecoration: "line-through",
+                            //           marginRight: "5px",
+                            //         }}
+                            //       >
+                            //         {previousQuantity}
+                            //       </span>
+                            //       <span style={{ marginRight: "5px" }}>➡️</span>
+                            //       <span>{updatedQuantity}</span>
+                            //     </div>
+                            //   ) : (
+                            //     // If no counter data, show input field with previous quantity
+                            //     <input
+                            //       className="form-control"
+                            //       type="number"
+                            //       value={previousQuantity}
+                            //       onChange={(e) =>
+                            //         handleInputChange(
+                            //           e.target.value,
+                            //           rowIndex,
+                            //           "quantityAvail"
+                            //         )
+                            //       }
+                            //       style={otherColumnsStyle}
+                            //     />
+                            //   );
+                            // },
+
+                            // price: (cell, rowIndex) => {
+                            //   const previousPrice =
+                            //     previousData[rowIndex]?.price || cell;
+                            //   const updatedPrice =
+                            //     updatedData[rowIndex]?.price || previousPrice;
+
+                            //   // Check if counterData exists and previous and updated values are different
+                            //   const showArrow =
+                            //     counterData && previousPrice !== updatedPrice;
+
+                            //   return showArrow ? (
+                            //     <div
+                            //       style={{
+                            //         display: "flex",
+                            //         alignItems: "center",
+                            //       }}
+                            //     >
+                            //       <span
+                            //         style={{
+                            //           textDecoration: "line-through",
+                            //           marginRight: "5px",
+                            //         }}
+                            //       >
+                            //         {previousPrice}
+                            //       </span>
+                            //       <span style={{ marginRight: "5px" }}>➡️</span>
+                            //       <span>{updatedPrice}</span>
+                            //     </div>
+                            //   ) : counterData ? (
+                            //     // If counterData exists but values are the same, show just the updated value
+                            //     <span>{updatedPrice}</span>
+                            //   ) : (
+                            //     // If no counterData, allow editing
+                            //     <input
+                            //       className="form-control"
+                            //       type="number"
+                            //       value={previousPrice}
+                            //       onChange={(e) =>
+                            //         handleInputChange(
+                            //           e.target.value,
+                            //           rowIndex,
+                            //           "price"
+                            //         )
+                            //       }
+                            //       style={otherColumnsStyle}
+                            //     />
+                            //   );
+                            // },
+
+                            price: (cell, rowIndex) => {
+                              const previousPrice =
+                                previousData[rowIndex]?.price || cell; // Fallback to `cell` if `previousData` is undefined
+                              const updatedPrice =
+                                updatedData[rowIndex]?.price || previousPrice; // Use `updatedPrice` if available
+
+                              const showArrow =
+                                counterData && previousPrice !== updatedPrice; // Show arrow if `counterData` exists and prices differ
+
+                              return showArrow ? (
+                                <div
+                                  className="form-control"
+                                  style={{
+                                    display: "flex",
+                                    alignItems: "left",
+                                  }}
+                                >
+                                  {/* Strikethrough previous price */}
+                                  <span
+                                    style={{
+                                      textDecoration: "line-through",
+                                      marginRight: "10px",
+                                    }}
+                                  >
+                                    {previousPrice}
+                                  </span>
+                                  {/* Arrow to indicate change */}
+                                  {/* <span style={{ marginRight: "15px" }}></span> */}
+                                  {/* Updated price */}
+                                  <span> →{updatedPrice}</span>
+                                </div>
+                              ) : counterData ? (
+                                // Show updated price if `counterData` exists but no change in value
+                                <span>{updatedPrice}</span>
+                              ) : (
+                                // If no `counterData`, provide an editable input
+                                <input
+                                  className="form-control"
+                                  type="number"
+                                  value={previousPrice}
+                                  onChange={(e) =>
+                                    handleInputChange(
+                                      e.target.value,
+                                      rowIndex,
+                                      "price"
+                                    )
+                                  }
+                                  style={otherColumnsStyle}
+                                />
+                              );
+                            },
+
                             rate: (cell, rowIndex) => (
                               <input
                                 className="form-control"
@@ -1692,85 +2298,536 @@ export default function VendorDetails() {
                               />
                             ),
 
-                            discount: (cell, rowIndex) => (
-                              <input
-                                className="form-control"
-                                type="number"
-                                value={cell}
-                                onChange={(e) =>
-                                  handleInputChange(
-                                    e.target.value,
-                                    rowIndex,
-                                    "discount"
-                                  )
-                                }
-                                placeholder="Enter Discount in %"
-                                style={otherColumnsStyle}
-                                required // Ensure the field is required in the HTML
-                              />
-                            ),
+                            // discount: (cell, rowIndex) => (
+                            //   <input
+                            //     className="form-control"
+                            //     type="number"
+                            //     value={cell}
+                            //     onChange={(e) =>
+                            //       handleInputChange(
+                            //         e.target.value,
+                            //         rowIndex,
+                            //         "discount"
+                            //       )
+                            //     }
+                            //     placeholder="Enter Discount in %"
+                            //     style={otherColumnsStyle}
+                            //     required // Ensure the field is required in the HTML
+                            //   />
+                            // ),
 
-                            realisedDiscount: (cell, rowIndex) => (
-                              <input
-                                className="form-control"
-                                type="number"
-                                value={cell}
-                                // onChange={(e) =>
-                                //   handleInputChange(
-                                //     e.target.value,
-                                //     rowIndex,
-                                //     "realisedDiscount"
-                                //   )
-                                // }
-                                // placeholder="Enter Discount (%)"
-                                style={otherColumnsStyle}
-                                disabled
-                              />
-                            ),
+                            // discount: (cell, rowIndex) => {
+                            //   // Get the previous discount from the `previousData` state or fallback to current cell value
+                            //   const previousDiscount =
+                            //     previousData[rowIndex]?.discount || cell;
 
-                            gst: (cell, rowIndex) => (
-                              <input
-                                className="form-control"
-                                type="number"
-                                value={cell}
-                                onChange={(e) =>
-                                  handleInputChange(
-                                    e.target.value,
-                                    rowIndex,
-                                    "gst"
-                                  )
-                                }
-                                placeholder="Enter GST (%)"
-                                style={otherColumnsStyle}
-                                required // Ensure the field is required in the HTML
-                              />
-                            ),
-                            realisedGst: (cell, rowIndex) => (
-                              <input
-                                className="form-control"
-                                type="number"
-                                value={cell}
-                                // placeholder="Enter Realised GST"
-                                style={otherColumnsStyle}
-                                disabled
-                              />
-                            ),
-                            landedAmount: (cell, rowIndex) => (
-                              <input
-                                className="form-control"
-                                type="number"
-                                value={cell}
-                                onChange={(e) =>
-                                  handleInputChange(
-                                    e.target.value,
-                                    rowIndex,
-                                    "landedAmount"
-                                  )
-                                }
-                                placeholder="Enter Landed Amount"
-                                style={otherColumnsStyle}
-                              />
-                            ),
+                            //   // Get the updated discount from `updatedData` state
+                            //   const updatedDiscount =
+                            //     updatedData[rowIndex]?.discount ||
+                            //     previousDiscount;
+
+                            //   // Check if counterData exists, if yes, show both previous and updated values
+                            //   return counterData ? (
+                            //     <div
+                            //       style={{
+                            //         display: "flex",
+                            //         alignItems: "center",
+                            //       }}
+                            //     >
+                            //       <span
+                            //         style={{
+                            //           textDecoration: "line-through",
+                            //           marginRight: "5px",
+                            //         }}
+                            //       >
+                            //         {previousDiscount}
+                            //       </span>
+                            //       <span style={{ marginRight: "5px" }}>➡️</span>
+                            //       <span>{updatedDiscount}</span>
+                            //     </div>
+                            //   ) : (
+                            //     // If no counterData, show input field with previous discount value
+                            //     <input
+                            //       className="form-control"
+                            //       type="number"
+                            //       value={previousDiscount}
+                            //       onChange={(e) =>
+                            //         handleInputChange(
+                            //           e.target.value,
+                            //           rowIndex,
+                            //           "discount"
+                            //         )
+                            //       }
+                            //       style={otherColumnsStyle}
+                            //     />
+                            //   );
+                            // },
+
+                            // realisedDiscount: (cell, rowIndex) => (
+                            //   <input
+                            //     className="form-control"
+                            //     type="number"
+                            //     value={cell}
+                            //     // onChange={(e) =>
+                            //     //   handleInputChange(
+                            //     //     e.target.value,
+                            //     //     rowIndex,
+                            //     //     "realisedDiscount"
+                            //     //   )
+                            //     // }
+                            //     // placeholder="Enter Discount (%)"
+                            //     style={otherColumnsStyle}
+                            //     disabled
+                            //   />
+                            // ),
+
+                            // gst: (cell, rowIndex) => {
+                            //   const previousGst =
+                            //     previousData[rowIndex]?.gst || cell;
+                            //   const updatedGst =
+                            //     updatedData[rowIndex]?.gst || previousGst;
+                            //   return counterData ? (
+                            //     <div
+                            //       style={{
+                            //         display: "flex",
+                            //         alignItems: "center",
+                            //       }}
+                            //     >
+                            //       <span
+                            //         style={{
+                            //           textDecoration: "line-through",
+                            //           marginRight: "5px",
+                            //         }}
+                            //       >
+                            //         {previousGst}
+                            //       </span>
+                            //       <span style={{ marginRight: "5px" }}>➡️</span>
+                            //       <span>{updatedGst}</span>
+                            //     </div>
+                            //   ) : (
+                            //     <input
+                            //       className="form-control"
+                            //       type="number"
+                            //       value={previousGst}
+                            //       onChange={(e) =>
+                            //         handleInputChange(
+                            //           e.target.value,
+                            //           rowIndex,
+                            //           "gst"
+                            //         )
+                            //       }
+                            //       style={otherColumnsStyle}
+                            //     />
+                            //   );
+                            // },
+
+                            // realisedGst: (cell, rowIndex) => (
+                            //   <input
+                            //     className="form-control"
+                            //     type="number"
+                            //     value={cell}
+                            //     // placeholder="Enter Realised GST"
+                            //     style={otherColumnsStyle}
+                            //     disabled
+                            //   />
+                            // ),
+                            // landedAmount: (cell, rowIndex) => (
+                            //   <input
+                            //     className="form-control"
+                            //     type="number"
+                            //     value={cell}
+                            //     onChange={(e) =>
+                            //       handleInputChange(
+                            //         e.target.value,
+                            //         rowIndex,
+                            //         "landedAmount"
+                            //       )
+                            //     }
+                            //     placeholder="Enter Landed Amount"
+                            //     style={otherColumnsStyle}
+                            //   />
+                            // ),
+
+                            // landedAmount: (cell, rowIndex) => {
+                            //   // Get the previous landed amount from `previousData` or fallback to current cell value
+                            //   const previousLandedAmount =
+                            //     previousData[rowIndex]?.landedAmount || cell;
+
+                            //   // Get the updated landed amount from `updatedData`
+                            //   const updatedLandedAmount =
+                            //     updatedData[rowIndex]?.landedAmount ||
+                            //     previousLandedAmount;
+
+                            //   // Check if counterData exists, if yes, show both previous and updated values
+                            //   return counterData ? (
+                            //     <div
+                            //       style={{
+                            //         display: "flex",
+                            //         alignItems: "center",
+                            //       }}
+                            //     >
+                            //       <span
+                            //         style={{
+                            //           textDecoration: "line-through",
+                            //           marginRight: "5px",
+                            //         }}
+                            //       >
+                            //         {previousLandedAmount}
+                            //       </span>
+                            //       <span style={{ marginRight: "5px" }}>➡️</span>
+                            //       <span>{updatedLandedAmount}</span>
+                            //     </div>
+                            //   ) : (
+                            //     // If no counterData, show input field with previous landed amount value
+                            //     <input
+                            //       className="form-control"
+                            //       type="number"
+                            //       value={cell}
+                            //       onChange={(e) =>
+                            //         handleInputChange(
+                            //           e.target.value,
+                            //           rowIndex,
+                            //           "landedAmount"
+                            //         )
+                            //       }
+                            //       style={otherColumnsStyle}
+                            //     />
+                            //   );
+                            // },
+
+                            discount: (cell, rowIndex) => {
+                              const previousDiscount =
+                                previousData[rowIndex]?.discount || cell;
+                              const updatedDiscount =
+                                updatedData[rowIndex]?.discount ||
+                                previousDiscount;
+                              const showArrow =
+                                counterData &&
+                                previousDiscount !== updatedDiscount;
+
+                              return showArrow ? (
+                                <div
+                                  className="form-control"
+                                  style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                  }}
+                                >
+                                  <span
+                                    style={{
+                                      textDecoration: "line-through",
+                                      marginRight: "5px",
+                                    }}
+                                  >
+                                    {previousDiscount}
+                                  </span>
+
+                                  <span>→{updatedDiscount}</span>
+                                </div>
+                              ) : counterData ? (
+                                <span>{updatedDiscount}</span>
+                              ) : (
+                                <input
+                                  className="form-control"
+                                  type="number"
+                                  value={previousDiscount}
+                                  onChange={(e) =>
+                                    handleInputChange(
+                                      e.target.value,
+                                      rowIndex,
+                                      "discount"
+                                    )
+                                  }
+                                  style={otherColumnsStyle}
+                                />
+                              );
+                            },
+
+                            gst: (cell, rowIndex) => {
+                              const previousGst =
+                                previousData[rowIndex]?.gst || cell;
+                              const updatedGst =
+                                updatedData[rowIndex]?.gst || previousGst;
+                              const showArrow =
+                                counterData && previousGst !== updatedGst;
+
+                              return showArrow ? (
+                                <div
+                                  className="form-control"
+                                  style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                  }}
+                                >
+                                  <span
+                                    style={{
+                                      textDecoration: "line-through",
+                                      marginRight: "5px",
+                                    }}
+                                  >
+                                    {previousGst}
+                                  </span>
+                                  <span style={{ marginRight: "5px" }}>→</span>
+                                  <span>{updatedGst}</span>
+                                </div>
+                              ) : counterData ? (
+                                <span>{updatedGst}</span>
+                              ) : (
+                                <input
+                                  className="form-control"
+                                  type="number"
+                                  value={previousGst}
+                                  onChange={(e) =>
+                                    handleInputChange(
+                                      e.target.value,
+                                      rowIndex,
+                                      "gst"
+                                    )
+                                  }
+                                  style={otherColumnsStyle}
+                                />
+                              );
+                            },
+
+                            quantityAvail: (cell, rowIndex) => {
+                              const previousQuantity =
+                                previousData[rowIndex]?.quantityAvail || cell;
+                              const updatedQuantity =
+                                updatedData[rowIndex]?.quantityAvail ||
+                                previousQuantity;
+                              const showArrow =
+                                counterData &&
+                                previousQuantity !== updatedQuantity;
+
+                              return showArrow ? (
+                                <div
+                                  className="form-control"
+                                  style={{
+                                    display: "flex",
+                                    alignItems: "left",
+                                  }}
+                                >
+                                  <span
+                                    style={{
+                                      textDecoration: "line-through",
+                                      marginRight: "5px",
+                                    }}
+                                  >
+                                    {previousQuantity}
+                                  </span>
+                                  <span style={{ marginRight: "5px" }}>→</span>
+                                  <span>{updatedQuantity}</span>
+                                </div>
+                              ) : counterData ? (
+                                <span>{updatedQuantity}</span>
+                              ) : (
+                                <input
+                                  className="form-control"
+                                  type="number"
+                                  value={previousQuantity}
+                                  onChange={(e) =>
+                                    handleInputChange(
+                                      e.target.value,
+                                      rowIndex,
+                                      "quantityAvail"
+                                    )
+                                  }
+                                  style={otherColumnsStyle}
+                                />
+                              );
+                            },
+
+                            landedAmount: (cell, rowIndex) => {
+                              const previousLandedAmount =
+                                previousData[rowIndex]?.landedAmount || cell;
+                              const updatedLandedAmount =
+                                updatedData[rowIndex]?.landedAmount ||
+                                previousLandedAmount;
+                              const showArrow =
+                                counterData &&
+                                previousLandedAmount !== updatedLandedAmount;
+
+                              return showArrow ? (
+                                <div
+                                  className="form-control"
+                                  style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                  }}
+                                >
+                                  <span
+                                    style={{
+                                      textDecoration: "line-through",
+                                      marginRight: "5px",
+                                    }}
+                                  >
+                                    {previousLandedAmount}
+                                  </span>
+                                  <span style={{ marginRight: "5px" }}>→</span>
+                                  <span>{updatedLandedAmount}</span>
+                                </div>
+                              ) : counterData ? (
+                                <span>{updatedLandedAmount}</span>
+                              ) : (
+                                <input
+                                  className="form-control"
+                                  type="number"
+                                  value={previousLandedAmount}
+                                  onChange={(e) =>
+                                    handleInputChange(
+                                      e.target.value,
+                                      rowIndex,
+                                      "landedAmount"
+                                    )
+                                  }
+                                  style={otherColumnsStyle}
+                                />
+                              );
+                            },
+
+                            realisedDiscount: (cell, rowIndex) => {
+                              const previousRealisedDiscount =
+                                previousData[rowIndex]?.realisedDiscount ||
+                                cell;
+                              const updatedRealisedDiscount =
+                                updatedData[rowIndex]?.realisedDiscount ||
+                                previousRealisedDiscount;
+                              const showArrow =
+                                counterData &&
+                                previousRealisedDiscount !==
+                                  updatedRealisedDiscount;
+
+                              return showArrow ? (
+                                <div
+                                  className="form-control"
+                                  style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                  }}
+                                >
+                                  <span
+                                    style={{
+                                      textDecoration: "line-through",
+                                      marginRight: "5px",
+                                    }}
+                                  >
+                                    {previousRealisedDiscount}
+                                  </span>
+                                  <span style={{ marginRight: "10px" }}>→</span>
+                                  <span>{updatedRealisedDiscount}</span>
+                                </div>
+                              ) : counterData ? (
+                                <span>{updatedRealisedDiscount}</span>
+                              ) : (
+                                <input
+                                  className="form-control"
+                                  type="number"
+                                  value={previousRealisedDiscount}
+                                  onChange={(e) =>
+                                    handleInputChange(
+                                      e.target.value,
+                                      rowIndex,
+                                      "realisedDiscount"
+                                    )
+                                  }
+                                  style={otherColumnsStyle}
+                                />
+                              );
+                            },
+
+                            realisedGst: (cell, rowIndex) => {
+                              const previousRealisedGst =
+                                previousData[rowIndex]?.realisedGst || cell;
+                              const updatedRealisedGst =
+                                updatedData[rowIndex]?.realisedGst ||
+                                previousRealisedGst;
+                              const showArrow =
+                                counterData &&
+                                previousRealisedGst !== updatedRealisedGst;
+
+                              return showArrow ? (
+                                <div
+                                  className="form-control"
+                                  style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                  }}
+                                >
+                                  <span
+                                    style={{
+                                      textDecoration: "line-through",
+                                      marginRight: "5px",
+                                    }}
+                                  >
+                                    {previousRealisedGst}
+                                  </span>
+                                  <span style={{ marginRight: "5px" }}>→</span>
+                                  <span>{updatedRealisedGst}</span>
+                                </div>
+                              ) : counterData ? (
+                                <span>{updatedRealisedGst}</span>
+                              ) : (
+                                <input
+                                  className="form-control"
+                                  type="number"
+                                  value={previousRealisedGst}
+                                  onChange={(e) =>
+                                    handleInputChange(
+                                      e.target.value,
+                                      rowIndex,
+                                      "realisedGst"
+                                    )
+                                  }
+                                  style={otherColumnsStyle}
+                                />
+                              );
+                            },
+
+                            total: (cell, rowIndex) => {
+                              const previousTotal =
+                                previousData[rowIndex]?.total || cell;
+                              const updatedTotal =
+                                updatedData[rowIndex]?.total || previousTotal;
+                              const showArrow =
+                                counterData && previousTotal !== updatedTotal;
+
+                              return showArrow ? (
+                                <div
+                                  className="form-control"
+                                  style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                  }}
+                                >
+                                  <span
+                                    style={{
+                                      textDecoration: "line-through",
+                                      marginRight: "5px",
+                                    }}
+                                  >
+                                    {previousTotal}
+                                  </span>
+                                  <span style={{ marginRight: "5px" }}>→</span>
+                                  <span>{updatedTotal}</span>
+                                </div>
+                              ) : counterData ? (
+                                <span>{updatedTotal}</span>
+                              ) : (
+                                <input
+                                  className="form-control"
+                                  type="number"
+                                  value={previousTotal}
+                                  onChange={(e) =>
+                                    handleInputChange(
+                                      e.target.value,
+                                      rowIndex,
+                                      "total"
+                                    )
+                                  }
+                                  style={otherColumnsStyle}
+                                />
+                              );
+                            },
 
                             vendorRemark: (cell, rowIndex) => (
                               <textarea
@@ -1787,41 +2844,59 @@ export default function VendorDetails() {
                                 style={otherColumnsStyle}
                               />
                             ),
-                            total: (cell, rowIndex) => (
-                              <input
-                                className="form-control"
-                                type="number"
-                                value={cell}
-                                // onChange={(e) =>
-                                //   handleInputChange(
-                                //     e.target.value,
-                                //     rowIndex,
-                                //     "total"
-                                //   )
-                                // }
-                                placeholder="Enter Total"
-                                style={otherColumnsStyle}
-                                readOnly
-                              />
-                            ),
+                            // total: (cell, rowIndex) => (
+                            //   <input
+                            //     className="form-control"
+                            //     type="number"
+                            //     value={cell}
+                            //     // onChange={(e) =>
+                            //     //   handleInputChange(
+                            //     //     e.target.value,
+                            //     //     rowIndex,
+                            //     //     "total"
+                            //     //   )
+                            //     // }
+                            //     placeholder="Enter Total"
+                            //     style={otherColumnsStyle}
+                            //     readOnly
+                            //   />
+                            // ),
 
-                            price: (cell, rowIndex) => (
-                              <input
-                                className="form-control"
-                                type="number"
-                                value={cell}
-                                onChange={(e) =>
-                                  handleInputChange(
-                                    e.target.value,
-                                    rowIndex,
-                                    "price"
-                                  )
-                                }
-                                placeholder="Enter price "
-                                style={otherColumnsStyle}
-                                required // Ensure the field is required in the HTML
-                              />
-                            ),
+                            // price: (cell, rowIndex) => {
+                            //   const previousPrice =
+                            //     previousData[rowIndex]?.price || cell;
+                            //   const updatedPrice =
+                            //     updatedData[rowIndex]?.price || previousPrice;
+
+                            //   return counterData ? (
+                            //     <div>
+                            //       <span
+                            //         style={{
+                            //           textDecoration: "line-through",
+                            //           marginRight: "5px",
+                            //         }}
+                            //       >
+                            //         {previousPrice}
+                            //       </span>
+                            //       <span style={{ marginRight: "5px" }}>➡️</span>
+                            //       <span>{updatedPrice}</span>
+                            //     </div>
+                            //   ) : (
+                            //     <input
+                            //       className="form-control"
+                            //       type="number"
+                            //       value={previousPrice}
+                            //       onChange={(e) =>
+                            //         handleInputChange(
+                            //           e.target.value,
+                            //           rowIndex,
+                            //           "price"
+                            //         )
+                            //       }
+                            //       style={otherColumnsStyle}
+                            //     />
+                            //   );
+                            // },
 
                             bestAmount: (cell, rowIndex) => {
                               const quantity =
@@ -1874,7 +2949,7 @@ export default function VendorDetails() {
                         />
                       </div>
                       <div className=" d-flex justify-content-end">
-                        <ShortTable
+                        <ShortDataTable
                           data={freightData}
                           editable={true} // Flag to enable input fields
                           // onValueChange={(updatedData) =>
