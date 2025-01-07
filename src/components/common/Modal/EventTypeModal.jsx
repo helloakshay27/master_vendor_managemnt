@@ -656,26 +656,26 @@ const EventTypeModal = ({
                   </div>
                   <div
                     className={`pro-radio-tabs__tab ${
-                      awardType === "multiple_vendor"
+                      awardType === "multiple_vendors"
                         ? "pro-radio-tabs__tab__selected"
                         : ""
                     }`}
                     role="radio"
-                    aria-checked={awardType === "multiple_vendor"}
-                    onClick={() => handleAwardTypeChange("multiple_vendor")}
+                    aria-checked={awardType === "multiple_vendors"}
+                    onClick={() => handleAwardTypeChange("multiple_vendors")}
                     tabIndex={0}
                   >
                     <div className="pro-radio-tabs__check-icon">
                       <label
                         className={`ant-radio-wrapper ${
-                          awardType === "multiple_vendor"
+                          awardType === "multiple_vendors"
                             ? "ant-radio-wrapper-checked"
                             : ""
                         }`}
                       >
                         <span
                           className={`ant-radio ${
-                            awardType === "multiple_vendor"
+                            awardType === "multiple_vendors"
                               ? "ant-radio-checked"
                               : ""
                           }`}
@@ -683,10 +683,10 @@ const EventTypeModal = ({
                           <input
                             type="radio"
                             className="ant-radio-input"
-                            value="multiple_vendor"
-                            checked={awardType === "multiple_vendor"}
+                            value="multiple_vendors"
+                            checked={awardType === "multiple_vendors"}
                             onChange={() =>
-                              handleAwardTypeChange("multiple_vendor")
+                              handleAwardTypeChange("multiple_vendors")
                             }
                             tabIndex={-1}
                           />
@@ -925,7 +925,7 @@ const EventTypeModal = ({
             </div>
             {dynamicExtension[3] && (
               <input
-                type="date"
+                type="datetime-local"
                 placeholder="Select Date"
                 className="form-control"
                 value={dynamicExtensionConfigurations.delivery_date}

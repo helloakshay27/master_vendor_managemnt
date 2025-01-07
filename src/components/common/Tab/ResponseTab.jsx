@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useState, useEffect } from "react";
 import FullClipIcon from "../Icon/FullClipIcon";
 import FullScreenIcon from "../Icon/FullScreenIcon";
@@ -8,19 +9,23 @@ import ResponseVendor from "../ResponseVendor";
 import { FullScreen, useFullScreenHandle } from "react-full-screen";
 import BulkCounterOfferModal from "../Modal/BulkCounterOfferModal";
 import axios from "axios";
-import { event } from "jquery";
 import SelectBox from "../../base/Select/SelectBox";
+import { useParams } from "react-router-dom";
 
-export default function ResponseTab({ data }) {
+export default function ResponseTab({ }) {
   const [isVendor, setIsVendor] = useState(false);
   const [counterModal, setCounterModal] = useState(false);
   const [BidCounterData, setBidCounterData] = useState(null);
+  const [response, setResponse] = useState([]);
   const [responseTableData, setResponseTableData] = useState([]);
   const [bidId, setBidId] = useState(null);
-  const [eventId, setEventId] = useState(data?.vendors?.[0]?.bids?.[0]?.event_id || null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const handle = useFullScreenHandle();
+
+  const { id } = useParams();
+  console.log("eventId :----",id);
+  
   
 
   const handleCounterModalShow = () => {
@@ -74,14 +79,39 @@ export default function ResponseTab({ data }) {
   // };
 
   useEffect(() => {
+      const fetchRemarks = async () => {
+        try {
+          const response = await fetch(
+            `https://vendors.lockated.com/rfq/events/${id}/event_responses?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&page=1`
+          );
+  
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+  
+          const data = await response.json();
+          setResponse(data);
+        } catch (err) {
+          setError(err.message);
+        } finally {
+          setLoading(false);
+        }
+      };
+  
+      fetchRemarks();
+    }, [id]);
+
+    console.log("IDS",id,bidId);
+    
+
+  useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       setError(null);
       try {
         const response = await axios.get(
-          `https://vendors.lockated.com/rfq/events/49/bids/${bidId}?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`
+          `https://vendors.lockated.com/rfq/events/${id}/bids/${bidId}?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`
         );
-
         setBidCounterData(response.data);
       } catch (err) {
         setError(err.message);
@@ -91,10 +121,9 @@ export default function ResponseTab({ data }) {
     };
 
     fetchData();
-  }, [eventId, bidId]);
-  console.log("data :----",data);
+  }, [id, bidId]);
   
-  const eventVendors = Array.isArray(data?.vendors) ? data.vendors : [];
+  const eventVendors = Array.isArray(response?.vendors) ? response.vendors : [];
 
   const formatDate = (dateString) => {
     if (!dateString) return "_";
@@ -251,7 +280,6 @@ export default function ResponseTab({ data }) {
                                   onClick={() => {
                                     if (vendor.bids && vendor.bids.length > 0 && vendor.bids[0].bid_materials && vendor.bids[0].bid_materials.length > 0) {
                                       handleCounterModalShow();
-                                      setEventId(vendor.bids[0].event_id);
                                       setBidId(vendor.bids[0].bid_materials[0].bid_id);
                                     }
                                   }}
@@ -284,19 +312,13 @@ export default function ResponseTab({ data }) {
                 </div>
                 {eventVendors.map((vendor, ind) => {
                   if (vendor.bids.length > 1) {
-                    vendor.bids = [vendor.bids[vendor.bids.length - 1]];                    
+                    vendor.bids = [vendor.bids[0]];                    
                   }
+                  const bidMaterialNames = vendor.bids.flatMap((bid) => bid.bid_material_names[ind] ? [bid.bid_material_names[ind]] : []).join(", ");
                   return (
                     <Accordion
                       key={ind}
-                      title={vendor.bids.map((bid) => bid.bid_materials.map((material, idx) => {
-                            return (
-                              <div key={idx}>
-                                {material.material_name}
-                              </div>
-                            );                         
-                        }
-                      ))}
+                      title={bidMaterialNames || "_"}
                       isDefault={true}
                       tableColumn={[
                         {

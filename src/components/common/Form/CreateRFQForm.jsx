@@ -19,6 +19,7 @@ export default function CreateRFQForm({ data, setData }) {
         ); 
         if (response.data && Array.isArray(response.data.materials)) {
           setMaterials(response.data.materials);           
+          // console.log("Materials fetched successfully:", response.data.materials);
         } else {
           console.error("Unexpected response structure:", response.data);
         }
@@ -29,7 +30,8 @@ export default function CreateRFQForm({ data, setData }) {
 
     fetchMaterials();
   }, []);
-
+  console.log("setData :----",data, materials);
+  
   const handleUnitChange = (selected, rowIndex) => {
     const updatedData = [...data];
     updatedData[rowIndex].unit = selected;
@@ -57,7 +59,7 @@ export default function CreateRFQForm({ data, setData }) {
       unit: [],
       type: materials[0].type,
       location: [],
-      rate: 10,
+      rate: 0,
       amount: 0,
       inventory_id: "",
     };
@@ -83,26 +85,27 @@ export default function CreateRFQForm({ data, setData }) {
       label: material.name,
     }));
 
-  const handleDescriptionOfItemChange = (selected, rowIndex) => {
-    const updatedData = [...data];
-
-    // Find the selected material
-    const selectedMaterial = materials.find(
-      (material) => material.name === selected
-    );
-
-    // Update descriptionOfItem
-    updatedData[rowIndex].descriptionOfItem = selected;
-
-    // Check if selectedMaterial exists and has a valid UOM
-    if (selectedMaterial && selectedMaterial.uom) {
-      updatedData[rowIndex].unit = selectedMaterial.uom.uom_short_name; // Update UOM short name
-    } else {
-      updatedData[rowIndex].unit = ""; // Set empty if no UOM found
-    }
-    updatedData[rowIndex].type = selectedMaterial?.type || "N/A";
-    setData(updatedData);
-  };
+    const handleDescriptionOfItemChange = (selected, rowIndex) => {
+      const updatedData = [...data];
+  
+      // Find the selected material
+      const selectedMaterial = materials.find(
+        (material) => material.name === selected
+      );
+  
+      // Update descriptionOfItem
+      updatedData[rowIndex].descriptionOfItem = selected;
+  
+      // Check if selectedMaterial exists and has a valid UOM
+      if (selectedMaterial && selectedMaterial.uom) {
+        updatedData[rowIndex].unit = selectedMaterial.uom.uom_short_name; // Update UOM short name
+      } else {
+        updatedData[rowIndex].unit = ""; // Set empty if no UOM found
+      }
+      updatedData[rowIndex].type = selectedMaterial?.type || "N/A";
+      updatedData[rowIndex].inventory_id = selectedMaterial?.id || "";
+      setData(updatedData);
+    };
 
   return (
     <div className="row ">

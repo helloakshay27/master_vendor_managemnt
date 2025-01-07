@@ -174,7 +174,7 @@ export default function Table({
                 </td>
               )}
               {columns.map((col, cellIndex) => {
-                const cell = row[col.key];
+                const cell = col.key === "srNo" ? rowIndex + 1 : row[col.key];
                 const cellContent = customRender[col.key]
                   ? customRender[col.key](cell, rowIndex, row)
                   : cell;

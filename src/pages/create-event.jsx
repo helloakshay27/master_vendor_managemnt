@@ -32,6 +32,7 @@ export default function CreateEvent() {
       triggered_time_extension_on_last: "",
       extend_event_time_by: "",
       time_extension_on_change_in: "",
+      delivery_date: "",
     });
 
   const [materialFormData, setMaterialFormData] = useState([
@@ -57,6 +58,9 @@ export default function CreateEvent() {
   const [eventNo, setEventNo] = useState("");
   const [eventName, seteventName] = useState("");
   const [textareas, setTextareas] = useState([{ id: Date.now(), value: "" }]);
+  const [documentRows, setDocumentRows] = useState([
+    { srNo: 1, upload: <input type="file" /> },
+  ]);
 
   // @ts-ignore
   const [createdOn] = useState(new Date().toISOString().split("T")[0]);
@@ -156,6 +160,7 @@ export default function CreateEvent() {
   const handleAwardTypeChange = (e) => {
     setAwardType(e);
   };
+
 
   const handleDynamicExtensionChange = (id, isChecked) => {
     setDynamicExtension((prevState) => ({
@@ -296,6 +301,19 @@ export default function CreateEvent() {
     );
   };
 
+  const handleAddDocumentRow = () => {
+    setDocumentRows([
+      ...documentRows,
+      { srNo: documentRows.length + 1, upload: <input type="file" /> },
+    ]);
+  };
+
+  const handleRemoveDocumentRow = (index) => {
+    if (documentRows.length > 1) {
+      setDocumentRows(documentRows.filter((_, i) => i !== index));
+    }
+  };
+
   // @ts-ignore
   const handleSubmit = async () => {
     if (
@@ -344,6 +362,7 @@ export default function CreateEvent() {
           extend_time_min: 10,
           time_extension_change:
             dynamicExtensionConfigurations.time_extension_on_change_in,
+            delivery_date: dynamicExtensionConfigurations.delivery_date,
         },
         event_materials_attributes: materialFormData,
         event_vendors_attributes: selectedVendors.map((vendor) => {
@@ -377,7 +396,6 @@ export default function CreateEvent() {
           body: JSON.stringify(payload),
         }
       );
-
       if (response.ok) {
         alert("Event created successfully!");
         navigate("/event-list?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414");
@@ -401,6 +419,7 @@ export default function CreateEvent() {
 
   useEffect(() => {
     setFilteredTableData(tableData);
+    console.log("Table data", tableData);
   }, [tableData]);
 
   const handleSearchChange = (e) => {
@@ -427,7 +446,11 @@ export default function CreateEvent() {
         <button
           type="button"
           className="ant-btn styles_headerCtaLink__2kCN6 ant-btn-link"
-          onClick={() => navigate("/event-list?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414")}
+          onClick={() =>
+            navigate(
+              "/event-list?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414"
+            )
+          }
         >
           <svg
             width="1em"
@@ -447,7 +470,17 @@ export default function CreateEvent() {
           </svg>
         </button>
         <div className="head-material text-center">
-          <h4>Create RFQ &amp; Auction</h4>
+          <h4 className="d-inline-block">Create RFQ &amp; Auction</h4>
+          <button
+            className="purple-btn2 ms-3"
+            onClick={handleAddDocumentRow}
+            style={{ float: "right" }}
+          >
+            <span className="material-symbols-outlined align-text-top me-2">
+              add
+            </span>
+            <span>Add</span>
+          </button>
         </div>
 
         <div className="row align-items-end justify-items-end mx-2 mb-5">
@@ -536,6 +569,7 @@ export default function CreateEvent() {
                   <th>Vendor Name</th>
                   <th>Mob No.</th>
                   <th>Status</th>
+                  <th>Action</th>
                 </tr>
               </thead>
 
@@ -544,21 +578,33 @@ export default function CreateEvent() {
                   selectedVendors
                     .filter(
                       (vendor, index, self) =>
-                        index === self.findIndex((v) => v.id === vendor.id) 
+                        index === self.findIndex((v) => v.id === vendor.id)
                     )
                     .map((vendor, index) => (
                       <tr key={vendor.id}>
                         <td>{index + 1}</td>
                         <td>{vendor.name}</td>
                         <td>{vendor.phone}</td>
-                        <td>Invited</td> 
+                        <td>Invited</td>
+                        <td>
+                          <button
+                            className="btn btn-danger"
+                            onClick={() =>
+                              setSelectedVendors((prev) =>
+                                prev.filter((v) => v.id !== vendor.id)
+                              )
+                            }
+                          >
+                            Remove
+                          </button>
+                        </td>
                       </tr>
                     ))
                 ) : (
                   <tr>
                     <td
                       // @ts-ignore
-                      colSpan="4"
+                      colSpan="5"
                       className="text-center"
                     >
                       No vendors selected
@@ -571,10 +617,56 @@ export default function CreateEvent() {
         </div>
 
         <div>
-          <h5 className="mt-3">
-            Terms And Condition{" "}
-            <span style={{ color: "red", fontSize: "16px" }}>*</span>
-          </h5>
+          <div className="d-flex justify-content-between align-items-end mx-1 mt-5">
+            <h5 className="mt-3">
+              Document Attachments{" "}
+              <span style={{ color: "red", fontSize: "16px" }}>*</span>
+            </h5>
+            <button className="purple-btn2 mt-3" onClick={handleAddDocumentRow}>
+              <span className="material-symbols-outlined align-text-top me-2">
+                add
+              </span>
+              <span>Add</span>
+            </button>
+          </div>
+
+          <Table
+            columns={[
+              { label: "Sr No", key: "srNo" },
+              { label: "Upload File", key: "upload" },
+              { label: "Action", key: "action" },
+            ]}
+            onRowSelect={undefined}
+            resetSelectedRows={undefined}
+            onResetComplete={undefined}
+            data={documentRows.map((row, index) => ({
+              ...row,
+              action: (
+                <button
+                  className="btn btn-danger"
+                  onClick={() => handleRemoveDocumentRow(index)}
+                  disabled={index === 0}
+                >
+                  Remove
+                </button>
+              ),
+            }))}
+          />
+        </div>
+
+        <div>
+          <div className="d-flex justify-content-between align-items-end mx-1 mt-5">
+            <h5 className="mt-3">
+              Terms And Condition{" "}
+              <span style={{ color: "red", fontSize: "16px" }}>*</span>
+            </h5>
+            <button className="purple-btn2 mt-3" onClick={handleAddTextarea}>
+              <span className="material-symbols-outlined align-text-top me-2">
+                add
+              </span>
+              <span>Add</span>
+            </button>
+          </div>
           {textareas.map((textarea, index) => (
             <div
               key={index}
@@ -599,12 +691,6 @@ export default function CreateEvent() {
               </button>
             </div>
           ))}
-          <button className="purple-btn2 mt-3" onClick={handleAddTextarea}>
-            <span className="material-symbols-outlined align-text-top me-2">
-              add
-            </span>
-            <span>Add</span>
-          </button>
         </div>
 
         <div className="row mt-4 mt-3">
@@ -1210,8 +1296,7 @@ export default function CreateEvent() {
             },
           ]}
           trafficType={isTrafficSelected}
-          handleTrafficChange={handleTrafficChange}
-        />
+          handleTrafficChange={handleTrafficChange}         />
         {/* make the above component on common modal folder and call it here */}
 
         <div className="row mt-2 justify-content-end mt-4">
@@ -1227,7 +1312,9 @@ export default function CreateEvent() {
             <button
               className="purple-btn1 w-100"
               onClick={() => {
-                navigate("/event-list?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414/event-list");
+                navigate(
+                  "/event-list?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414/event-list"
+                );
               }}
             >
               Cancel

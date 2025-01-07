@@ -172,29 +172,6 @@ export default function ErpRfqDetailPriceTrends4h() {
     const fetchRemarks = async () => {
       try {
         const response = await fetch(
-          `https://vendors.lockated.com/rfq/events/${id}/event_responses?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&page=1`
-        );
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        setResponse(data);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchRemarks();
-  }, [id]);
-
-  useEffect(() => {
-    const fetchRemarks = async () => {
-      try {
-        const response = await fetch(
           `https://vendors.lockated.com/rfq/events/${id}?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`
         );
 
@@ -397,7 +374,7 @@ export default function ErpRfqDetailPriceTrends4h() {
                 renderModal={renderModal}
               />
               <div className="tab-content mt-3 main-scroll-div">
-                <ResponseTab data={response} />
+                <ResponseTab />
                 <OverviewTab
                   overviewData={overviewData}
                   participantsOpen={participantsOpen}
