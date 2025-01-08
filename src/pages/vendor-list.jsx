@@ -831,16 +831,16 @@ export default function VendorListPage() {
                               <td>{event.event_title || "N/A"}</td>
                               <td>{event.event_no || "N/A"}</td>
                               <td>
-                                {event.event_schedule.start_time ? (
-                                  <FormatDate timestamp={event.event_schedule.start_time} />
+                                {event.event_schedule?.start_time ? (
+                                  <FormatDate timestamp={event.event_schedule?.start_time} />
                                 ) : (
                                   "N/A"
                                 )}
                               </td>
 
                               <td>
-                                {event.event_schedule.end_time ? (
-                                  <FormatDate timestamp={event.event_schedule.end_time} />
+                                {event.event_schedule?.end_time ? (
+                                  <FormatDate timestamp={event.event_schedule?.end_time} />
                                 ) : (
                                   "N/A"
                                 )}
