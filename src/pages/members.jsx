@@ -30,6 +30,10 @@ function Members() {
                 <Link to="/vendor-list?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414">vendor_list</Link>
               </li>
 
+              <li>
+                <Link to="/work-list">work list</Link>
+              </li>
+
               {/* <li>
                 <Link to="/user-list">user_list</Link>
               </li>

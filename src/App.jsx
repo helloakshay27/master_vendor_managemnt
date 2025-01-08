@@ -21,6 +21,7 @@ import VendorDetails from "./pages/vendor-details";
 import AuthData from "./confi/authData";
 import EventListPage from "./pages/admin_list";
 import VendorListPage from "./pages/vendor-list";
+import WorkListPage from "./pages/work-order";
 
 function App() {
   return (
@@ -54,6 +55,9 @@ function App() {
 
           <Route path="/user-list/:eventId" element={<VendorDetails/>} />
           <Route path="/vendor-list" element={<VendorListPage />} />
+          <Route path="/work-list" element={<WorkListPage/>} />
+
+
           <Route path="/user-overview/:eventId" element={<UserOverview />} />
 
           <Route path="/create-event" element={<CreateEvent />} />
