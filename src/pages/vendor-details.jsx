@@ -241,6 +241,31 @@ export default function VendorDetails() {
   const [previousData, setPreviousData] = useState([]); // Holds the data from bid_materials
   const [updatedData, setUpdatedData] = useState([]); // Holds th
 
+  // Set the initial bid index to 0 (first bid in the array)
+  // const [currentIndex, setCurrentIndex] = useState(0);
+
+  // // Array of bid values
+  // const bids = [1555, 2, 3, 4787, 5, 66666, 7, 8, 9, 10, 11, 12];
+
+  // // Function to move to the next bid
+  // const increment = () => {
+  //   if (currentIndex + 1 < bids.length) {
+  //     setCurrentIndex(currentIndex + 1);
+  //   }
+  // };
+
+  // // Function to move to the previous bid
+  // const decrement = () => {
+  //   if (currentIndex - 1 >= 0) {
+  //     setCurrentIndex(currentIndex - 1);
+  //   }
+  // };
+
+  // // Get the current, previous, and next bids
+  // const previousBid = currentIndex > 1 ? currentIndex - 1 : "No bid";
+  // const currentBid = currentIndex;
+  // const nextBid = currentIndex < bids.length - 1 ? currentIndex + 1 : "No bid";
+
   const fetchEventData = async () => {
     try {
       // Step 1: Fetch the initial API to get `revised_bid`
@@ -1787,25 +1812,54 @@ export default function VendorDetails() {
 
                               return showArrow ? (
                                 <div
-                                  className="form-control"
+                                  // className="form-control"
                                   style={{
                                     display: "flex",
-                                    alignItems: "left",
+                                    alignItems: "center",
                                   }}
                                 >
-                                  {/* Strikethrough previous price */}
                                   <span
                                     style={{
                                       textDecoration: "line-through",
-                                      marginRight: "10px",
+                                      marginRight: "5px",
+                                      color: "gray",
                                     }}
                                   >
-                                    {previousPrice}
+                                    ₹{previousPrice}
                                   </span>
-                                  {/* Arrow to indicate change */}
-                                  {/* <span style={{ marginRight: "15px" }}></span> */}
-                                  {/* Updated price */}
-                                  <span> →{updatedPrice}</span>
+                                  <span className="me-2">
+                                    {" "}
+                                    <svg
+                                      className="me-2"
+                                      viewBox="64 64 896 896"
+                                      focusable="false"
+                                      class=""
+                                      data-icon="arrow-right"
+                                      width="1em"
+                                      height="1em"
+                                      fill="currentColor"
+                                      aria-hidden="true"
+                                    >
+                                      <path d="M869 487.8L491.2 159.9c-2.9-2.5-6.6-3.9-10.5-3.9h-88.5c-7.4 0-10.8 9.2-5.2 14l350.2 304H152c-4.4 0-8 3.6-8 8v60c0 4.4 3.6 8 8 8h585.1L386.9 854c-5.6 4.9-2.2 14 5.2 14h91.5c1.9 0 3.8-.7 5.2-2L869 536.2a32.07 32.07 0 0 0 0-48.4z"></path>
+                                    </svg>
+                                  </span>
+                                  <span
+                                    style={{
+                                      backgroundColor: "#fcc17e", // Yellow background
+                                      padding: "4px 10px", // Add padding to resemble a badge
+                                      borderRadius: "5px",
+                                      marginEnd: "",
+                                      // color:"#7c2d12",
+                                      lineHeight: "1",
+
+                                      // Rounded edges for the badge
+                                      // Make text bold
+                                    }}
+                                  >
+                                    ₹{updatedPrice}
+                                  </span>
+
+                                  {/* <span>→{updatedDiscount}</span> */}
                                 </div>
                               ) : counterData ? (
                                 // Show updated price if `counterData` exists but no change in value
@@ -1857,7 +1911,7 @@ export default function VendorDetails() {
 
                               return showArrow ? (
                                 <div
-                                  className="form-control"
+                                  // className="form-control"
                                   style={{
                                     display: "flex",
                                     alignItems: "center",
@@ -1867,12 +1921,45 @@ export default function VendorDetails() {
                                     style={{
                                       textDecoration: "line-through",
                                       marginRight: "5px",
+                                      color: "gray",
                                     }}
                                   >
-                                    {previousDiscount}
+                                    {previousDiscount}%
                                   </span>
 
-                                  <span>→{updatedDiscount}</span>
+                                  <span className="me-2">
+                                    {" "}
+                                    <svg
+                                      className="me-2"
+                                      viewBox="64 64 896 896"
+                                      focusable="false"
+                                      class=""
+                                      data-icon="arrow-right"
+                                      width="1em"
+                                      height="1em"
+                                      fill="currentColor"
+                                      aria-hidden="true"
+                                    >
+                                      <path d="M869 487.8L491.2 159.9c-2.9-2.5-6.6-3.9-10.5-3.9h-88.5c-7.4 0-10.8 9.2-5.2 14l350.2 304H152c-4.4 0-8 3.6-8 8v60c0 4.4 3.6 8 8 8h585.1L386.9 854c-5.6 4.9-2.2 14 5.2 14h91.5c1.9 0 3.8-.7 5.2-2L869 536.2a32.07 32.07 0 0 0 0-48.4z"></path>
+                                    </svg>
+                                  </span>
+                                  <span
+                                    style={{
+                                      backgroundColor: "#fcc17e", // Yellow background
+                                      padding: "4px 10px", // Add padding to resemble a badge
+                                      borderRadius: "5px",
+                                      marginEnd: "",
+                                      // color:"#7c2d12",
+                                      lineHeight: "1",
+
+                                      // Rounded edges for the badge
+                                      // Make text bold
+                                    }}
+                                  >
+                                    {updatedDiscount}%
+                                  </span>
+
+                                  {/* <span>→{updatedDiscount}</span> */}
                                 </div>
                               ) : counterData ? (
                                 <span>{updatedDiscount}</span>
@@ -1903,7 +1990,7 @@ export default function VendorDetails() {
 
                               return showArrow ? (
                                 <div
-                                  className="form-control"
+                                  // className="form-control"
                                   style={{
                                     display: "flex",
                                     alignItems: "center",
@@ -1913,12 +2000,45 @@ export default function VendorDetails() {
                                     style={{
                                       textDecoration: "line-through",
                                       marginRight: "5px",
+                                      color: "gray",
                                     }}
                                   >
-                                    {previousGst}
+                                    {previousGst}%
                                   </span>
-                                  <span style={{ marginRight: "5px" }}>→</span>
-                                  <span>{updatedGst}</span>
+                                  {/* <span style={{ marginRight: "5px" }}>→</span>
+                                  <span>{updatedGst}</span> */}
+
+                                  <span className="me-2">
+                                    {" "}
+                                    <svg
+                                      className="me-2"
+                                      viewBox="64 64 896 896"
+                                      focusable="false"
+                                      class=""
+                                      data-icon="arrow-right"
+                                      width="1em"
+                                      height="1em"
+                                      fill="currentColor"
+                                      aria-hidden="true"
+                                    >
+                                      <path d="M869 487.8L491.2 159.9c-2.9-2.5-6.6-3.9-10.5-3.9h-88.5c-7.4 0-10.8 9.2-5.2 14l350.2 304H152c-4.4 0-8 3.6-8 8v60c0 4.4 3.6 8 8 8h585.1L386.9 854c-5.6 4.9-2.2 14 5.2 14h91.5c1.9 0 3.8-.7 5.2-2L869 536.2a32.07 32.07 0 0 0 0-48.4z"></path>
+                                    </svg>
+                                  </span>
+                                  <span
+                                    style={{
+                                      backgroundColor: "#fcc17e", // Yellow background
+                                      padding: "4px 10px", // Add padding to resemble a badge
+                                      borderRadius: "5px",
+                                      marginEnd: "",
+                                      // color:"#7c2d12",
+                                      lineHeight: "1",
+
+                                      // Rounded edges for the badge
+                                      // Make text bold
+                                    }}
+                                  >
+                                    {updatedGst}%
+                                  </span>
                                 </div>
                               ) : counterData ? (
                                 <span>{updatedGst}</span>
@@ -1951,22 +2071,55 @@ export default function VendorDetails() {
 
                               return showArrow ? (
                                 <div
-                                  className="form-control"
+                                  // className="form-control"
                                   style={{
                                     display: "flex",
-                                    alignItems: "left",
+                                    alignItems: "center",
                                   }}
                                 >
                                   <span
                                     style={{
                                       textDecoration: "line-through",
                                       marginRight: "5px",
+                                      color: "gray",
                                     }}
                                   >
                                     {previousQuantity}
                                   </span>
-                                  <span style={{ marginRight: "5px" }}>→</span>
-                                  <span>{updatedQuantity}</span>
+                                  {/* <span style={{ marginRight: "5px" }}>→</span>
+                                  <span>{updatedGst}</span> */}
+
+                                  <span className="me-2">
+                                    {" "}
+                                    <svg
+                                      className="me-2"
+                                      viewBox="64 64 896 896"
+                                      focusable="false"
+                                      class=""
+                                      data-icon="arrow-right"
+                                      width="1em"
+                                      height="1em"
+                                      fill="currentColor"
+                                      aria-hidden="true"
+                                    >
+                                      <path d="M869 487.8L491.2 159.9c-2.9-2.5-6.6-3.9-10.5-3.9h-88.5c-7.4 0-10.8 9.2-5.2 14l350.2 304H152c-4.4 0-8 3.6-8 8v60c0 4.4 3.6 8 8 8h585.1L386.9 854c-5.6 4.9-2.2 14 5.2 14h91.5c1.9 0 3.8-.7 5.2-2L869 536.2a32.07 32.07 0 0 0 0-48.4z"></path>
+                                    </svg>
+                                  </span>
+                                  <span
+                                    style={{
+                                      backgroundColor: "#fcc17e", // Yellow background
+                                      padding: "4px 10px", // Add padding to resemble a badge
+                                      borderRadius: "5px",
+                                      marginEnd: "",
+                                      // color:"#7c2d12",
+                                      lineHeight: "1",
+
+                                      // Rounded edges for the badge
+                                      // Make text bold
+                                    }}
+                                  >
+                                    {updatedQuantity}
+                                  </span>
                                 </div>
                               ) : counterData ? (
                                 <span>{updatedQuantity}</span>
@@ -2049,7 +2202,7 @@ export default function VendorDetails() {
 
                               return showArrow ? (
                                 <div
-                                  className="form-control"
+                                  // className="form-control"
                                   style={{
                                     display: "flex",
                                     alignItems: "center",
@@ -2059,12 +2212,42 @@ export default function VendorDetails() {
                                     style={{
                                       textDecoration: "line-through",
                                       marginRight: "5px",
+                                      color: "gray",
                                     }}
                                   >
-                                    {previousRealisedDiscount}
+                                    ₹{previousRealisedDiscount}
                                   </span>
-                                  <span style={{ marginRight: "10px" }}>→</span>
-                                  <span>{updatedRealisedDiscount}</span>
+                                  <span className="me-2">
+                                    {" "}
+                                    <svg
+                                      className="me-2"
+                                      viewBox="64 64 896 896"
+                                      focusable="false"
+                                      class=""
+                                      data-icon="arrow-right"
+                                      width="1em"
+                                      height="1em"
+                                      fill="currentColor"
+                                      aria-hidden="true"
+                                    >
+                                      <path d="M869 487.8L491.2 159.9c-2.9-2.5-6.6-3.9-10.5-3.9h-88.5c-7.4 0-10.8 9.2-5.2 14l350.2 304H152c-4.4 0-8 3.6-8 8v60c0 4.4 3.6 8 8 8h585.1L386.9 854c-5.6 4.9-2.2 14 5.2 14h91.5c1.9 0 3.8-.7 5.2-2L869 536.2a32.07 32.07 0 0 0 0-48.4z"></path>
+                                    </svg>
+                                  </span>
+                                  <span
+                                    style={{
+                                      backgroundColor: "#fcc17e", // Yellow background
+                                      padding: "4px 10px", // Add padding to resemble a badge
+                                      borderRadius: "5px",
+                                      marginEnd: "",
+                                      // color:"#7c2d12",
+                                      lineHeight: "1",
+
+                                      // Rounded edges for the badge
+                                      // Make text bold
+                                    }}
+                                  >
+                                    ₹{updatedRealisedDiscount}
+                                  </span>
                                 </div>
                               ) : counterData ? (
                                 <span>{updatedRealisedDiscount}</span>
@@ -2097,7 +2280,7 @@ export default function VendorDetails() {
 
                               return showArrow ? (
                                 <div
-                                  className="form-control"
+                                  // className="form-control"
                                   style={{
                                     display: "flex",
                                     alignItems: "center",
@@ -2107,12 +2290,42 @@ export default function VendorDetails() {
                                     style={{
                                       textDecoration: "line-through",
                                       marginRight: "5px",
+                                      color: "gray",
                                     }}
                                   >
-                                    {previousRealisedGst}
+                                    ₹{previousRealisedGst}
                                   </span>
-                                  <span style={{ marginRight: "5px" }}>→</span>
-                                  <span>{updatedRealisedGst}</span>
+                                  <span className="me-2">
+                                    {" "}
+                                    <svg
+                                      className="me-2"
+                                      viewBox="64 64 896 896"
+                                      focusable="false"
+                                      class=""
+                                      data-icon="arrow-right"
+                                      width="1em"
+                                      height="1em"
+                                      fill="currentColor"
+                                      aria-hidden="true"
+                                    >
+                                      <path d="M869 487.8L491.2 159.9c-2.9-2.5-6.6-3.9-10.5-3.9h-88.5c-7.4 0-10.8 9.2-5.2 14l350.2 304H152c-4.4 0-8 3.6-8 8v60c0 4.4 3.6 8 8 8h585.1L386.9 854c-5.6 4.9-2.2 14 5.2 14h91.5c1.9 0 3.8-.7 5.2-2L869 536.2a32.07 32.07 0 0 0 0-48.4z"></path>
+                                    </svg>
+                                  </span>
+                                  <span
+                                    style={{
+                                      backgroundColor: "#fcc17e", // Yellow background
+                                      padding: "4px 10px", // Add padding to resemble a badge
+                                      borderRadius: "5px",
+                                      marginEnd: "",
+                                      // color:"#7c2d12",
+                                      lineHeight: "1",
+
+                                      // Rounded edges for the badge
+                                      // Make text bold
+                                    }}
+                                  >
+                                    ₹{updatedRealisedGst}
+                                  </span>
                                 </div>
                               ) : counterData ? (
                                 <span>{updatedRealisedGst}</span>
@@ -2143,22 +2356,53 @@ export default function VendorDetails() {
 
                               return showArrow ? (
                                 <div
-                                  className="form-control"
+                                  // className="form-control"
                                   style={{
                                     display: "flex",
                                     alignItems: "center",
+                                    maxWidth: "120%",
                                   }}
                                 >
                                   <span
                                     style={{
                                       textDecoration: "line-through",
                                       marginRight: "5px",
+                                      color: "gray",
                                     }}
                                   >
-                                    {previousTotal}
+                                    ₹{previousTotal}
                                   </span>
-                                  <span style={{ marginRight: "5px" }}>→</span>
-                                  <span>{updatedTotal}</span>
+                                  <span className="me-2">
+                                    {" "}
+                                    <svg
+                                      className="me-2"
+                                      viewBox="64 64 896 896"
+                                      focusable="false"
+                                      class=""
+                                      data-icon="arrow-right"
+                                      width="1em"
+                                      height="1em"
+                                      fill="currentColor"
+                                      aria-hidden="true"
+                                    >
+                                      <path d="M869 487.8L491.2 159.9c-2.9-2.5-6.6-3.9-10.5-3.9h-88.5c-7.4 0-10.8 9.2-5.2 14l350.2 304H152c-4.4 0-8 3.6-8 8v60c0 4.4 3.6 8 8 8h585.1L386.9 854c-5.6 4.9-2.2 14 5.2 14h91.5c1.9 0 3.8-.7 5.2-2L869 536.2a32.07 32.07 0 0 0 0-48.4z"></path>
+                                    </svg>
+                                  </span>
+                                  <span
+                                    style={{
+                                      backgroundColor: "#fcc17e", // Yellow background
+                                      padding: "4px 10px", // Add padding to resemble a badge
+                                      borderRadius: "5px",
+
+                                      // color:"#7c2d12",
+                                      lineHeight: "1",
+
+                                      // Rounded edges for the badge
+                                      // Make text bold
+                                    }}
+                                  >
+                                    ₹{updatedTotal}
+                                  </span>
                                 </div>
                               ) : counterData ? (
                                 <span>{updatedTotal}</span>
@@ -2274,6 +2518,66 @@ export default function VendorDetails() {
                   />
 
                   <div style={{ marginTop: "20px" }}>
+                    {/* bid button */}
+
+                    {/* <div className="d-flex justify-content-center align-items-center">
+                      <div className="d-flex align-items-center">
+                        {/* Decrement button (Previous bid) */}
+                    {/* <button
+                          className="me-2"
+                          onClick={decrement}
+                          style={{
+                            border: "none",
+                            background: "none",
+                            cursor: "pointer",
+                          }}
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            width="24"
+                            height="24"
+                          >
+                            <path
+                              d="M18 4l-12 8l12 8"
+                              fill="rgb(222, 112, 8)"
+                            />
+                          </svg>
+                        </button> */}
+
+                    {/* Bid Information */}
+                    {/* <span className="border p-2 ps-3 pe-3 me-2">
+                          {previousBid !== null ? previousBid : ""}
+                        </span>
+                        <span className="border p-2 ps-3 pe-3 me-2">
+                          {" "}
+                          {currentBid}
+                        </span>
+                        <span className="border p-2 ps-3 pe-3 me-2">
+                          {nextBid !== null ? nextBid : ""}
+                        </span> */}
+
+                    {/* Increment button (Next bid) */}
+                    {/* <button
+                          onClick={increment}
+                          style={{
+                            border: "none",
+                            background: "none",
+                            cursor: "pointer",
+                          }}
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            width="24"
+                            height="24"
+                          >
+                            <path d="M6 4l12 8l-12 8" fill="rgb(222, 112, 8)" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div> */}
+
                     {/* Heading and Subtext */}
                     <div className="mb-3">
                       <h5 className="head-material mb-1 fw-bold">
