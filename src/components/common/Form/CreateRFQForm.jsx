@@ -30,7 +30,6 @@ export default function CreateRFQForm({ data, setData }) {
 
     fetchMaterials();
   }, []);
-  console.log("setData :----",data, materials);
   
   const handleUnitChange = (selected, rowIndex) => {
     const updatedData = [...data];

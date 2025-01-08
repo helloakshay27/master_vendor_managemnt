@@ -22,6 +22,8 @@ export default function Table({
   handleCheckboxChange = (index, newSelectAll) => {}, // Provide a default function
   resetSelectedRows,
   onResetComplete,
+  currentPage = 1,
+  pageSize = 10,
   ...rest
 }) {
   const [selectAll, setSelectAll] = useState(false);
@@ -174,7 +176,7 @@ export default function Table({
                 </td>
               )}
               {columns.map((col, cellIndex) => {
-                const cell = col.key === "srNo" ? rowIndex + 1 : row[col.key];
+                const cell = col.key === "srNo" ? (currentPage - 1) * pageSize + rowIndex + 1 : row[col.key];
                 const cellContent = customRender[col.key]
                   ? customRender[col.key](cell, rowIndex, row)
                   : cell;

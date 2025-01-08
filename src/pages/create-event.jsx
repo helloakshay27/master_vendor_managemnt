@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import {
   CreateRFQForm,
@@ -17,6 +17,7 @@ import Header from "../components/Header";
 import PopupBox from "../components/base/Popup/Popup";
 
 export default function CreateEvent() {
+  const fileInputRef = useRef(null);
   const [eventTypeModal, setEventTypeModal] = useState(false);
   const [inviteModal, setInviteModal] = useState(false);
   const [publishEventModal, setPublishEventModal] = useState(false);
@@ -58,9 +59,8 @@ export default function CreateEvent() {
   const [eventNo, setEventNo] = useState("");
   const [eventName, seteventName] = useState("");
   const [textareas, setTextareas] = useState([{ id: Date.now(), value: "" }]);
-  const [documentRows, setDocumentRows] = useState([
-    { srNo: 1, upload: <input type="file" /> },
-  ]);
+  const documentRowsRef = useRef([{ srNo: 1, upload: null }]);
+  const [documentRows, setDocumentRows] = useState([{ srNo: 1, upload: null }]);
 
   // @ts-ignore
   const [createdOn] = useState(new Date().toISOString().split("T")[0]);
@@ -161,7 +161,6 @@ export default function CreateEvent() {
     setAwardType(e);
   };
 
-
   const handleDynamicExtensionChange = (id, isChecked) => {
     setDynamicExtension((prevState) => ({
       // @ts-ignore
@@ -192,7 +191,7 @@ export default function CreateEvent() {
   const [tableData, setTableData] = useState([]); // State to hold dynamic data
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1); // Default total pages
-  const pageSize = 10; // Number of items per page
+  const pageSize = 100; // Number of items per page
   const pageRange = 6; // Number of pages to display in the pagination
 
   // @ts-ignore
@@ -302,24 +301,52 @@ export default function CreateEvent() {
   };
 
   const handleAddDocumentRow = () => {
-    setDocumentRows([
-      ...documentRows,
-      { srNo: documentRows.length + 1, upload: <input type="file" /> },
-    ]);
+    const newRow = { srNo: documentRows.length + 1, upload: null };
+    documentRowsRef.current.push(newRow);
+    setDocumentRows([...documentRowsRef.current]);
   };
 
   const handleRemoveDocumentRow = (index) => {
     if (documentRows.length > 1) {
-      setDocumentRows(documentRows.filter((_, i) => i !== index));
+      documentRowsRef.current = documentRowsRef.current.filter(
+        (_, i) => i !== index
+      );
+      setDocumentRows([...documentRowsRef.current]);
     }
   };
 
-  // @ts-ignore
-  const handleSubmit = async () => {
+  const handleFileChange = (index, file) => {
+    documentRowsRef.current[index].upload = file;
+    setDocumentRows([...documentRowsRef.current]);
+    console.log(
+      "Attachments:",
+      documentRowsRef.current.map((row) => row.upload)
+    );
+  };
+
+  const appendFormData = (formData, data, parentKey = "") => {
+    if (data && typeof data === "object" && !(data instanceof File)) {
+      Object.keys(data).forEach((key) => {
+        appendFormData(
+          formData,
+          data[key],
+          parentKey ? `${parentKey}[${key}]` : key
+        );
+      });
+    } else {
+      formData.append(parentKey, data);
+    }
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+
     if (
       !eventName ||
       !createdOn ||
-      !scheduleData ||
+      !scheduleData.start_time ||
+      !scheduleData.end_time_duration ||
+      !scheduleData.evaluation_time ||
       selectedVendors.length === 0
     ) {
       alert("Please fill all the required fields.");
@@ -330,60 +357,71 @@ export default function CreateEvent() {
       (textarea, index) => `${index + 1}. ${textarea.value}`
     );
 
-    const payload = {
-      event: {
-        event_title: eventName,
-        created_on: createdOn,
-        status: 1,
-        created_by_id: 2,
-        event_schedule_attributes: {
-          // @ts-ignore
-          start_time: scheduleData.start_time,
-          // @ts-ignore
-          end_time: scheduleData.end_time_duration,
-          // @ts-ignore
-          evaluation_time: scheduleData.evaluation_time,
-          event_type_id: 1,
-        },
-        event_type_detail_attributes: {
-          event_type: eventType,
-          award_scheme: awardType,
-          event_configuration: selectedStrategy,
-          dynamic_time_extension: dynamicExtension[1],
-          time_extension_type:
-            dynamicExtensionConfigurations.time_extension_type,
-          triggered_time_extension_on_last:
-            dynamicExtensionConfigurations.triggered_time_extension_on_last,
-          extend_event_time_by: Number(
-            dynamicExtensionConfigurations.extend_event_time_by
-          ),
-          enable_english_auction: true,
-          extension_time_min: 5,
-          extend_time_min: 10,
-          time_extension_change:
-            dynamicExtensionConfigurations.time_extension_on_change_in,
-            delivery_date: dynamicExtensionConfigurations.delivery_date,
-        },
-        event_materials_attributes: materialFormData,
-        event_vendors_attributes: selectedVendors.map((vendor) => {
-          return {
-            status: 1,
-            pms_supplier_id: vendor.id,
-          };
-        }),
-        status_logs_attributes: [
-          {
-            status: 1,
-            created_by_id: 2,
-            remarks: "Initial status",
-            comments: "No comments",
-          },
-        ],
-        terms_and_conditions: termsAndConditions,
+    const eventData = {
+      event_title: eventName,
+      created_on: createdOn,
+      status: 1,
+      created_by_id: 2,
+      event_schedule_attributes: {
+        start_time: scheduleData.start_time,
+        end_time: scheduleData.end_time_duration,
+        evaluation_time: scheduleData.evaluation_time,
+        event_type_id: 1,
       },
+      event_type_detail_attributes: {
+        event_type: eventType,
+        award_scheme: awardType,
+        event_configuration: selectedStrategy,
+        dynamic_time_extension: dynamicExtension[1],
+        time_extension_type: dynamicExtensionConfigurations.time_extension_type,
+        triggered_time_extension_on_last: dynamicExtensionConfigurations.triggered_time_extension_on_last,
+        extend_event_time_by: Number(dynamicExtensionConfigurations.extend_event_time_by),
+        enable_english_auction: true,
+        extension_time_min: 5,
+        extend_time_min: 10,
+        time_extension_change: dynamicExtensionConfigurations.time_extension_on_change_in,
+        delivery_date: dynamicExtensionConfigurations.delivery_date,
+      },
+      event_materials_attributes: materialFormData.map((material) => ({
+        descriptionOfItem: material.descriptionOfItem,
+        inventory_id: material.inventory_id,
+        quantity: material.quantity,
+        unit: material.unit,
+        location: material.location,
+        rate: material.rate,
+        amount: material.amount,
+      })),
+      event_vendors_attributes: selectedVendors.map((vendor) => ({
+        status: 1,
+        pms_supplier_id: vendor.id,
+      })),
+      status_logs_attributes: [
+        {
+          status: 1,
+          created_by_id: 2,
+          remarks: "Initial status",
+          comments: "No comments",
+        },
+      ],
+      terms_and_conditions: termsAndConditions,
     };
 
-    console.log("Payload", payload);
+    // const formData = new FormData();
+    // formData.append("event", JSON.stringify(eventData));
+
+    // documentRowsRef.current.forEach((row) => {
+    //   if (row.upload) {
+    //     formData.append("event[attachments][]", row.upload);
+    //   }
+    // });
+
+    // // Debugging logs
+    // for (let pair of formData.entries()) {
+    //   console.log(pair[0] + ': ' + pair[1]);
+    // }
+
+    // console.log("formData",JSON.stringify(formData));
+    
 
     try {
       const response = await fetch(
@@ -393,15 +431,14 @@ export default function CreateEvent() {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(payload),
+          body: JSON.stringify(eventData),
         }
       );
       if (response.ok) {
         alert("Event created successfully!");
         navigate("/event-list?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414");
       } else {
-        const errorData = await response.json();
-        console.error("Error response data:", errorData);
+        console.error("Error response data:", response.data);
         throw new Error("Failed to create event.");
       }
     } catch (error) {
@@ -419,14 +456,13 @@ export default function CreateEvent() {
 
   useEffect(() => {
     setFilteredTableData(tableData);
-    console.log("Table data", tableData);
   }, [tableData]);
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
     if (e.target.value === "") {
       // @ts-ignore
-      fetchData(1, searchTerm, selectedCity); // Fetch all data when search input is cleared
+      fetchData(1, searchTerm, selectedCity);
     }
   };
 
@@ -641,6 +677,15 @@ export default function CreateEvent() {
             onResetComplete={undefined}
             data={documentRows.map((row, index) => ({
               ...row,
+              upload: (
+                <input
+                  type="file"
+                  onChange={(e) => handleFileChange(index, e.target.files[0])}
+                  ref={fileInputRef}
+                  multiple
+                  accept=".xlsx,.csv,.pdf,.docx" 
+                />
+              ),
               action: (
                 <button
                   className="btn btn-danger"
@@ -897,13 +942,18 @@ export default function CreateEvent() {
                   <Table
                     columns={participantsTabColumns}
                     showCheckbox={true}
-                    data={filteredTableData}
+                    data={filteredTableData.map((vendor, index) => ({
+                      ...vendor,
+                      srNo: (currentPage - 1) * pageSize + index + 1,
+                    }))}
                     handleCheckboxChange={handleCheckboxChange}
                     isRowSelected={isVendorSelected}
                     resetSelectedRows={resetSelectedRows}
                     onResetComplete={() => setResetSelectedRows(false)}
                     onRowSelect={undefined}
                     cellClass="text-start"
+                    currentPage={currentPage}
+                    pageSize={pageSize}
                   />
                 ) : (
                   <p>No vendors found</p>
@@ -1296,7 +1346,8 @@ export default function CreateEvent() {
             },
           ]}
           trafficType={isTrafficSelected}
-          handleTrafficChange={handleTrafficChange}         />
+          handleTrafficChange={handleTrafficChange}
+        />
         {/* make the above component on common modal folder and call it here */}
 
         <div className="row mt-2 justify-content-end mt-4">
