@@ -14,6 +14,7 @@ export default function VendorDetails() {
 
   //   { label: "Freight Charge", value: "" },
   //   { label: "GST on Freight", value: "" },
+
   //   { label: "Realised Freight", value: "" },
   //   { label: "Warranty Clause *", value: "" },
   //   { label: "Payment Terms *", value: "" },
@@ -21,13 +22,11 @@ export default function VendorDetails() {
   // ]);
 
   // Set the initial bid index to 0 (first bid in the array)
- const [currentIndex, setCurrentIndex] = useState(0);
- const [bids, setBids] = useState([]); // State to store the bids
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [bids, setBids] = useState([]); // State to store the bids
 
-    // Array of bid values
-    // const bids = [1555, 2, 3, 4787, 5, 66666, 7, 8, 9,10,11,12];
-
-
+  // Array of bid values
+  // const bids = [1555, 2, 3, 4787, 5, 66666, 7, 8, 9,10,11,12];
 
   // Function to move to the next bid
   const increment = () => {
@@ -43,9 +42,50 @@ export default function VendorDetails() {
     }
   };
 
+  const getOrdinalInText = (n) => {
+    const ordinals = [
+      "First",
+      "Second",
+      "Third",
+      "Fourth",
+      "Fifth",
+      "Sixth",
+      "Seventh",
+      "Eighth",
+      "Ninth",
+      "Tenth",
+      "Eleventh",
+      "Twelfth",
+      "Thirteenth",
+      "Fourteenth",
+      "Fifteenth",
+      "Sixteenth",
+      "Seventeenth",
+      "Eighteenth",
+      "Nineteenth",
+      "Twentieth",
+      "Twenty-first",
+      "Twenty-second",
+      "Twenty-third",
+      "Twenty-fourth",
+      "Twenty-fifth",
+      "Twenty-sixth",
+      "Twenty-seventh",
+      "Twenty-eighth",
+      "Twenty-ninth",
+      "Thirtieth",
+      "Thirty-first",
+      "Thirty-second",
+      "Thirty-third",
+      "Thirty-fourth",
+    ];
+
+    return ordinals[n - 1] || `${n}th`; // Fallback to numeric suffix if greater than array length
+  };
+
   // Get the current, previous, and next bids
   // const previousBid = currentIndex > 0 ? currentIndex  : "No bid";
-  const currentBid = ` Current bid ${currentIndex+1}`;
+  const currentBid = ` Current bid ${currentIndex + 1}`;
   // const nextBid = currentIndex < bids.length - 1 ? currentIndex+2:"No bid";
 
   const [freightData, setFreightData] = useState([
@@ -125,35 +165,61 @@ export default function VendorDetails() {
     setData(updatedData);
   };
 
+  // const calculateFreightTotal = () => {
+  //   const getFreightValue = (label) => {
+  //     // Find the row by label
+  //     const row = freightData.find((row) => row.label === label);
+
+  //     // Check if the row exists and has valid `firstBid` or `counterBid` values
+  //     if (row && row.value) {
+  //       const { firstBid, counterBid } = row.value;
+
+  //       // Use `counterBid` if available; otherwise, fallback to `firstBid`
+  //       const valueToParse = counterBid || firstBid;
+
+  //       if (typeof valueToParse === "string") {
+  //         // Remove ₹ and commas, and convert to a float
+  //         return parseFloat(valueToParse.replace(/₹|,/g, "")) || 0;
+  //       }
+  //     }
+
+  //     // If the row or value is missing, return 0
+  //     return 0;
+  //   };
+
+  //   const freightCharge = getFreightValue("Freight Charge");
+  //   const realisedFreight = getFreightValue("Realised Freight");
+
+  //   console.log("Freight Charge:", freightCharge);
+  //   console.log("Realised Freight:", realisedFreight);
+
+  //   // Adjust this return value based on your calculation logic
+  //   return realisedFreight || freightCharge;
+  // };
+
   const calculateFreightTotal = () => {
     const getFreightValue = (label) => {
-      // Find the row by label
       const row = freightData.find((row) => row.label === label);
 
-      // Check if the row exists and has valid `firstBid` or `counterBid` values
       if (row && row.value) {
         const { firstBid, counterBid } = row.value;
 
-        // Use `counterBid` if available; otherwise, fallback to `firstBid`
+        // Determine the value to parse (prioritize `counterBid` over `firstBid`)
         const valueToParse = counterBid || firstBid;
 
+        // Ensure `valueToParse` is a string before replacing
         if (typeof valueToParse === "string") {
-          // Remove ₹ and commas, and convert to a float
           return parseFloat(valueToParse.replace(/₹|,/g, "")) || 0;
         }
       }
 
-      // If the row or value is missing, return 0
+      // Return 0 if the row or value is invalid
       return 0;
     };
 
     const freightCharge = getFreightValue("Freight Charge");
     const realisedFreight = getFreightValue("Realised Freight");
 
-    console.log("Freight Charge:", freightCharge);
-    console.log("Realised Freight:", realisedFreight);
-
-    // Adjust this return value based on your calculation logic
     return realisedFreight || freightCharge;
   };
 
@@ -175,20 +241,59 @@ export default function VendorDetails() {
       .toFixed(2); // Keep two decimal places
   };
 
+  // const calculateSumTotal = () => {
+  //   // Use `calculateDataSumTotal` to get sum from `data`
+  //   const sumFromData = parseFloat(calculateDataSumTotal()) || 0;
+
+  //   // Calculate the Freight Total
+  //   const freightTotal = calculateFreightTotal() || 0;
+
+  //   // Add the Freight Total to the Sum and round to two decimal places
+  //   const finalTotal = Math.round((sumFromData + freightTotal) * 100) / 100;
+  //   console.log("finalllllll totalllll", finalTotal);
+  //   // Ensures two decimal places and returns a number
+
+  //   return grossTotal || finalTotal;
+  // };
+
+  // const calculateSumTotal = () => {
+  //   const sumFromData = parseFloat(calculateDataSumTotal()) || 0;
+  //   const freightTotal = calculateFreightTotal() || 0;
+
+  //   if (freightTotal === 0) {
+  //     return Math.round(sumFromData * 100) / 100; // Just the data sum when freight is 0
+  //   }
+
+  //   return Math.round((sumFromData + freightTotal) * 100) / 100;
+  // };
+
   const calculateSumTotal = () => {
-    // Use `calculateDataSumTotal` to get sum from `data`
+    // Calculate the sum from the data
     const sumFromData = parseFloat(calculateDataSumTotal()) || 0;
 
-    // Calculate the Freight Total
+    // Calculate the freight total
     const freightTotal = calculateFreightTotal() || 0;
 
-    // Add the Freight Total to the Sum and round to two decimal places
-    const finalTotal = Math.round((sumFromData + freightTotal) * 100) / 100;
-    console.log("finalllllll totalllll", finalTotal);
-    // Ensures two decimal places and returns a number
+    // If freightData is empty (no valid freight total), only show the sum from data
+    if (freightTotal === 0) {
+      return Math.round(sumFromData * 100) / 100;
+    }
 
-    return finalTotal;
+    // Otherwise, include both freight and data sum in the total
+    return Math.round((sumFromData + freightTotal) * 100) / 100;
   };
+
+  const handleFreightDataChange = (updatedData) => {
+    setFreightData(updatedData);
+    const updatedGrossTotal = calculateSumTotal();
+    setGrossTotal(updatedGrossTotal); // Update grossTotal dynamically
+  };
+
+  // const handleDataSumChange = () => {
+  //   // Recalculate and update the grossTotal when data sum changes
+  //   const updatedGrossTotal = calculateSumTotal();
+  //   setGrossTotal(updatedGrossTotal);
+  // };
 
   const tableContainerStyle = {
     overflowX: "auto", // Enable horizontal scrolling
@@ -215,6 +320,9 @@ export default function VendorDetails() {
   const [loading, setLoading] = useState(true);
   const [isBidCreated, setIsBidCreated] = useState(false); // Track bid creation status
   const [bidIds, setBidIds] = useState([]);
+  const [grossTotal, setGrossTotal] = useState(0);
+
+  console.log("grossssssssss total", grossTotal);
 
   const validateMandatoryFields = () => {
     const mandatoryFields = [
@@ -344,15 +452,20 @@ export default function VendorDetails() {
           `https://vendors.lockated.com/rfq/events/${eventId}/bids?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&q[event_vendor_pms_supplier_id_in]=${vendorId}`
         );
 
-        setCounterData(bidResponse.data?.bids[currentIndex]?.counter_bids.length);
-        setCounterId(bidResponse.data?.bids[currentIndex]?.counter_bids[currentIndex]?.id);
+        setCounterData(
+          bidResponse.data?.bids[currentIndex]?.counter_bids.length
+        );
+        setCounterId(
+          bidResponse.data?.bids[currentIndex]?.counter_bids[currentIndex]?.id
+        );
         setBidIds(bidResponse.data.bids[currentIndex].id);
 
         const bids = bidResponse.data.bids;
-     setBids(bids)
+        setBids(bids);
 
-     console.log("bids",bids)
-       
+        setGrossTotal(bidResponse.data.bids[currentIndex].gross_total);
+
+        console.log("bids", bids);
 
         // Process only the first element of the bids array
         if (bids.length > 0) {
@@ -436,7 +549,8 @@ export default function VendorDetails() {
           // Map updated data (counter_bid_materials)
           const updatedData = firstBid.bid_materials
             .map((material) => {
-              const counterMaterial = material.counter_bid_materials?.[currentIndex];
+              const counterMaterial =
+                material.counter_bid_materials?.[currentIndex];
               return counterMaterial
                 ? {
                     bidId: counterMaterial.counter_bid_id,
@@ -483,7 +597,7 @@ export default function VendorDetails() {
 
   useEffect(() => {
     fetchEventData();
-  }, [eventId,currentIndex]);
+  }, [eventId, currentIndex]);
 
   // Get the freight charge value as a string (if available, otherwise default to "0")
   const freightChargeRaw = String(
@@ -898,54 +1012,71 @@ export default function VendorDetails() {
         const bids = bidResponse.data.bids;
 
         if (bids.length > 0) {
-          const firstBid = bids[currentIndex]; // Ensure you're getting the first bid only
+          const firstBid = bids[currentIndex];
+          console.log("First bid data:", firstBid);
 
-          // Process Freight Data using only firstBid data (not counter bid)
-          const processFreightData = (bid) => {
-            // No counterBid data here. Only using the firstBid's data
-            return [
-              {
-                label: "Freight Charge",
-                value: {
-                  firstBid: bid.freight_charge_amount || "",
-                },
-              },
-              {
-                label: "GST on Freight",
-                value: {
-                  firstBid: bid.gst_on_freight || "",
-                },
-              },
-              {
-                label: "Realised Freight",
-                value: {
-                  firstBid: bid.realised_freight_charge_amount || "",
-                },
-              },
-              {
-                label: "Warranty Clause *",
-                value: {
-                  firstBid: bid.warranty_clause || "",
-                },
-              },
-              {
-                label: "Payment Terms *",
-                value: {
-                  firstBid: bid.payment_terms || "",
-                },
-              },
-              {
-                label: "Loading / Unloading *",
-                value: {
-                  firstBid: bid.loading_unloading_clause || "",
-                },
-              },
-            ];
-          };
+          // Process Freight Data (Optional)
+          const processFreightData = (bid) => [
+            {
+              label: "Freight Charge",
+              value: { firstBid: bid.freight_charge_amount || "" },
+            },
+            {
+              label: "GST on Freight",
+              value: { firstBid: bid.gst_on_freight || "" },
+            },
+            {
+              label: "Realised Freight",
+              value: { firstBid: bid.realised_freight_charge_amount || "" },
+            },
+            {
+              label: "Warranty Clause *",
+              value: { firstBid: bid.warranty_clause || "" },
+            },
+            {
+              label: "Payment Terms *",
+              value: { firstBid: bid.payment_terms || "" },
+            },
+            {
+              label: "Loading / Unloading *",
+              value: { firstBid: bid.loading_unloading_clause || "" },
+            },
+          ];
 
-          // Get the first bid's freight data
-          const freightData = processFreightData(firstBid); // Only process first bid data
-          setFreightData(freightData); // Update state with first bid data
+          const freightData = processFreightData(firstBid);
+          setFreightData(freightData);
+
+          // Map bid_materials to previousData format
+          const previousData = firstBid.bid_materials.map((material) => ({
+            bidId: material.bid_id,
+            eventMaterialId: material.event_material_id,
+            descriptionOfItem: material.material_name,
+            varient: material.material_type,
+            quantity: material.event_material.quantity,
+            quantityAvail: material.quantity_available,
+            price: material.price,
+            discount: material.discount,
+            realisedDiscount: material.realised_discount,
+            gst: material.gst,
+            realisedGst: material.realised_gst,
+            total: material.total_amount,
+            location: material.event_material.location,
+            vendorRemark: material.vendor_remark,
+            landedAmount: material.landed_amount,
+          }));
+
+          console.log("Previous data:", previousData);
+          setPreviousData(previousData);
+
+          // Assuming updatedData comes from the response or API
+          const responseData = await response.json();
+          const updatedData = responseData.updatedData || [];
+          console.log("Updated data:", updatedData);
+
+          // Set data based on the presence of updatedData
+          setData(updatedData.length > 0 ? updatedData : previousData);
+        } else {
+          console.error("No bids found in API response.");
         }
 
         setCounterData(0);
@@ -2529,9 +2660,10 @@ export default function VendorDetails() {
                           //   setFreightData(updatedData)
                           // } // Callback for changes
 
-                          onValueChange={(updatedData) => {
-                            setFreightData(updatedData);
-                          }}
+                          // onValueChange={(updatedData) => {
+                          //   setFreightData(updatedData);
+                          // }}
+                          onValueChange={handleFreightDataChange}
                         />
                       </div>
 
@@ -2540,7 +2672,12 @@ export default function VendorDetails() {
                         {/* <span style={{ fontSize: "16px" }}>
                           Sum Total : ₹{calculateSumTotal()}
                         </span> */}
-                        <h4>Sum Total : ₹{calculateSumTotal()}</h4>
+                        <h4>
+                          {/* Sum Total : ₹{calculateSumTotal()} */}
+                          {/* Sum Total : ₹
+                          {revisedBid ? grossTotal : calculateSumTotal()} */}
+                          Sum Total: ₹{grossTotal}
+                        </h4>
                       </div>
                     </div>
                   </div>
@@ -2549,111 +2686,117 @@ export default function VendorDetails() {
                     style={{ borderTop: "2px solid #ccc", margin: "20px 0" }}
                   />
 
-                  <div style={{ marginTop: "20px" }}>
+                  <div style={{ marginTop: "10px" }}>
                     {/* bid button */}
-                    {revisedBid &&(
-                            <div className="d-flex justify-content-center align-items-center">
-                            <div className="d-flex align-items-center">
-                              {/* Decrement button (Previous bid) */}
+                    {revisedBid && (
+                      <div className="d-flex justify-content-center align-items-center">
+                        <div className="d-flex align-items-center">
+                          {/* Decrement button (Previous bid) */}
                           <button
-                                className="me-2"
-                                onClick={decrement|| fetchEventData()}
-                                style={{
-                                  border: "none",
-                                  background: "none",
-                                  cursor: "pointer",
-                                }}
-                              >
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  viewBox="0 0 24 24"
-                                  width="24"
-                                  height="24"
-                                >
-                                  <path
-                                    d="M18 4l-12 8l12 8"
-                                    fill="rgb(222, 112, 8)"
-                                  />
-                                </svg>
-                              </button> 
-      
-                          {/* Bid Information */}
-                           {/* <span className="border p-2 ps-3 pe-3 me-2">
-                                {previousBid !== null ? previousBid : ""}
-                              </span> */}
-                              <span className="border p-2 ps-3 pe-3 me-2">
-                                {" "}
-                                {currentBid}
-                              </span>
-                              {/* <span className="border p-2 ps-3 pe-3 me-2">
-                                {nextBid !== null ? nextBid : ""}
-                              </span>  */}
-      
-                          {/* Increment button (Next bid) */}
-                         <button
-                                onClick={increment|| fetchEventData()}
-                                style={{
-                                  border: "none",
-                                  background: "none",
-                                  cursor: "pointer",
-                                }}
-                              >
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  viewBox="0 0 24 24"
-                                  width="24"
-                                  height="24"
-                                >
-                                  <path d="M6 4l12 8l-12 8" fill="rgb(222, 112, 8)" />
-                                </svg>
-                              </button>
-                            </div>
+                            className="me-2 mb-3"
+                            onClick={decrement}
+                            style={{
+                              border: "none",
+                              background: "none",
+                              cursor: "pointer",
+                            }}
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 24 24"
+                              width="24"
+                              height="24"
+                            >
+                              <path
+                                d="M18 4l-12 8l12 8"
+                                fill="rgb(222, 112, 8)"
+                              />
+                            </svg>
+                          </button>
+
+                          {/* Scrollable buttons container with limited width */}
+                          <div
+                            className="scrollmenu"
+                            style={{
+                              backgroundColor: "white",
+                              overflowX: "auto",
+                              whiteSpace: "nowrap",
+                              paddingBottom: "10px", // Space for scrollbar
+                              width: "250px", // Limit the width (adjust this value as needed)
+                              margin: "0 auto", // Center the container horizontally
+                            }}
+                          >
+                            {bids.length > 0 &&
+                              bids.map((_, index) => {
+                                // For the first button, show "Current Bid"
+                                const buttonName =
+                                  index === 0
+                                    ? "Current Bid"
+                                    : index === bids.length - 1
+                                    ? "Initial Bid" // The last button shows "Initial Bid"
+                                    : `${getOrdinalInText(
+                                        bids.length - index
+                                      )} Bid`; // Use the ordinal word for other buttons
+
+                                return (
+                                  <a
+                                    key={index}
+                                    href={`#bid-${index + 1}`}
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      setCurrentIndex(index); // Update current index on click
+                                    }}
+                                    style={{
+                                      display: "inline-block",
+                                      color: "white",
+                                      textAlign: "center",
+                                      padding: "10px",
+                                      textDecoration: "none",
+                                      backgroundColor:
+                                        index === currentIndex
+                                          ? "#DE7008"
+                                          : "gray", // Active button color
+                                      borderRadius: "4px",
+                                      marginRight: "10px",
+                                      transition: "background-color 0.3s ease",
+                                    }}
+                                    className={
+                                      index === currentIndex ? "active" : ""
+                                    }
+                                  >
+                                    {buttonName}
+                                  </a>
+                                );
+                              })}
                           </div>
+
+                          {/* Increment button (Next bid) */}
+                          <button
+                            className="mb-3"
+                            onClick={increment}
+                            style={{
+                              border: "none",
+                              background: "none",
+                              cursor: "pointer",
+                            }}
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 24 24"
+                              width="24"
+                              height="24"
+                            >
+                              <path
+                                d="M6 4l12 8l-12 8"
+                                fill="rgb(222, 112, 8)"
+                              />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
                     )}
 
                     {/* Heading and Subtext */}
-                    <div className="mb-3">
-                      <h5 className="head-material mb-1 fw-bold">
-                        Additional Information
-                      </h5>
-                      <p
-                        className="head-material  text-muted "
-                        style={{ fontSize: "14px", marginBottom: "10px" }}
-                      >
-                        Enter the additional information required for placing
-                        the bid
-                      </p>
-                    </div>
-
-                    {/* Select Company for this Bidding */}
-                    <div
-                      className="mb-3 d-flex align-items-center pt-3 "
-                      style={{ gap: "200px" }}
-                    >
-                      {/* Label */}
-                      <label
-                        className=" head-material "
-                        style={{
-                          minWidth: "250px",
-                          marginRight: "10px",
-                          marginBottom: "0",
-                          fontSize: "14px", // Align label vertically
-                        }}
-                      >
-                        Select company for this bidding
-                      </label>
-                      {/* Select Dropdown */}
-                      <select
-                        className="form-control fw-bold"
-                        style={{
-                          maxWidth: "300px",
-                          flex: "1",
-                          // paddingLeftLeft: "155px",
-                        }}
-                      >
-                        <option>HAVEN INFOLINE PRIVATE LIMITED</option>
-                      </select>
-                    </div>
 
                     <hr
                       style={{ borderTop: "2px solid #ccc", margin: "20px 0" }}
