@@ -20,6 +20,34 @@ export default function VendorDetails() {
   //   { label: "Loading / Unloading *", value: "" },
   // ]);
 
+  // Set the initial bid index to 0 (first bid in the array)
+ const [currentIndex, setCurrentIndex] = useState(0);
+ const [bids, setBids] = useState([]); // State to store the bids
+
+    // Array of bid values
+    // const bids = [1555, 2, 3, 4787, 5, 66666, 7, 8, 9,10,11,12];
+
+
+
+  // Function to move to the next bid
+  const increment = () => {
+    if (currentIndex + 1 < bids.length) {
+      setCurrentIndex(currentIndex + 1);
+    }
+  };
+
+  // Function to move to the previous bid
+  const decrement = () => {
+    if (currentIndex - 1 >= 0) {
+      setCurrentIndex(currentIndex - 1);
+    }
+  };
+
+  // Get the current, previous, and next bids
+  // const previousBid = currentIndex > 0 ? currentIndex  : "No bid";
+  const currentBid = ` Current bid ${currentIndex+1}`;
+  // const nextBid = currentIndex < bids.length - 1 ? currentIndex+2:"No bid";
+
   const [freightData, setFreightData] = useState([
     { label: "Freight Charge", value: { firstBid: "", counterBid: "" } },
     { label: "GST on Freight", value: { firstBid: "", counterBid: "" } },
@@ -316,18 +344,22 @@ export default function VendorDetails() {
           `https://vendors.lockated.com/rfq/events/${eventId}/bids?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&q[event_vendor_pms_supplier_id_in]=${vendorId}`
         );
 
-        setCounterData(bidResponse.data?.bids[0]?.counter_bids.length);
-        setCounterId(bidResponse.data?.bids[0]?.counter_bids[0]?.id);
-        setBidIds(bidResponse.data.bids[0].id);
+        setCounterData(bidResponse.data?.bids[currentIndex]?.counter_bids.length);
+        setCounterId(bidResponse.data?.bids[currentIndex]?.counter_bids[currentIndex]?.id);
+        setBidIds(bidResponse.data.bids[currentIndex].id);
 
         const bids = bidResponse.data.bids;
+     setBids(bids)
+
+     console.log("bids",bids)
+       
 
         // Process only the first element of the bids array
         if (bids.length > 0) {
           // const firstBid = bids[0];
 
           const processFreightData = (bid) => {
-            const counterBid = bid.counter_bids?.[0]; // Check if counter bid exists
+            const counterBid = bid.counter_bids?.[currentIndex]; // Check if counter bid exists
 
             // Process data with both first bid and counter bid
             return [
@@ -377,7 +409,7 @@ export default function VendorDetails() {
           };
 
           // Example usage
-          const firstBid = bids[0];
+          const firstBid = bids[currentIndex];
           const freightData = processFreightData(firstBid);
           console.log("Processed Freight Data: ", freightData);
           setFreightData(freightData);
@@ -404,7 +436,7 @@ export default function VendorDetails() {
           // Map updated data (counter_bid_materials)
           const updatedData = firstBid.bid_materials
             .map((material) => {
-              const counterMaterial = material.counter_bid_materials?.[0];
+              const counterMaterial = material.counter_bid_materials?.[currentIndex];
               return counterMaterial
                 ? {
                     bidId: counterMaterial.counter_bid_id,
@@ -451,7 +483,7 @@ export default function VendorDetails() {
 
   useEffect(() => {
     fetchEventData();
-  }, [eventId]);
+  }, [eventId,currentIndex]);
 
   // Get the freight charge value as a string (if available, otherwise default to "0")
   const freightChargeRaw = String(
@@ -866,7 +898,7 @@ export default function VendorDetails() {
         const bids = bidResponse.data.bids;
 
         if (bids.length > 0) {
-          const firstBid = bids[0]; // Ensure you're getting the first bid only
+          const firstBid = bids[currentIndex]; // Ensure you're getting the first bid only
 
           // Process Freight Data using only firstBid data (not counter bid)
           const processFreightData = (bid) => {
@@ -955,7 +987,7 @@ export default function VendorDetails() {
         console.log("Bids array:", bids);
 
         if (bids.length > 0) {
-          const firstBid = bids[0];
+          const firstBid = bids[currentIndex];
           console.log("First bid data:", firstBid);
 
           // Process Freight Data (Optional)
@@ -2519,64 +2551,65 @@ export default function VendorDetails() {
 
                   <div style={{ marginTop: "20px" }}>
                     {/* bid button */}
-
-                    {/* <div className="d-flex justify-content-center align-items-center">
-                      <div className="d-flex align-items-center">
-                        {/* Decrement button (Previous bid) */}
-                    {/* <button
-                          className="me-2"
-                          onClick={decrement}
-                          style={{
-                            border: "none",
-                            background: "none",
-                            cursor: "pointer",
-                          }}
-                        >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 24 24"
-                            width="24"
-                            height="24"
-                          >
-                            <path
-                              d="M18 4l-12 8l12 8"
-                              fill="rgb(222, 112, 8)"
-                            />
-                          </svg>
-                        </button> */}
-
-                    {/* Bid Information */}
-                    {/* <span className="border p-2 ps-3 pe-3 me-2">
-                          {previousBid !== null ? previousBid : ""}
-                        </span>
-                        <span className="border p-2 ps-3 pe-3 me-2">
-                          {" "}
-                          {currentBid}
-                        </span>
-                        <span className="border p-2 ps-3 pe-3 me-2">
-                          {nextBid !== null ? nextBid : ""}
-                        </span> */}
-
-                    {/* Increment button (Next bid) */}
-                    {/* <button
-                          onClick={increment}
-                          style={{
-                            border: "none",
-                            background: "none",
-                            cursor: "pointer",
-                          }}
-                        >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 24 24"
-                            width="24"
-                            height="24"
-                          >
-                            <path d="M6 4l12 8l-12 8" fill="rgb(222, 112, 8)" />
-                          </svg>
-                        </button>
-                      </div>
-                    </div> */}
+                    {revisedBid &&(
+                            <div className="d-flex justify-content-center align-items-center">
+                            <div className="d-flex align-items-center">
+                              {/* Decrement button (Previous bid) */}
+                          <button
+                                className="me-2"
+                                onClick={decrement|| fetchEventData()}
+                                style={{
+                                  border: "none",
+                                  background: "none",
+                                  cursor: "pointer",
+                                }}
+                              >
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  viewBox="0 0 24 24"
+                                  width="24"
+                                  height="24"
+                                >
+                                  <path
+                                    d="M18 4l-12 8l12 8"
+                                    fill="rgb(222, 112, 8)"
+                                  />
+                                </svg>
+                              </button> 
+      
+                          {/* Bid Information */}
+                           {/* <span className="border p-2 ps-3 pe-3 me-2">
+                                {previousBid !== null ? previousBid : ""}
+                              </span> */}
+                              <span className="border p-2 ps-3 pe-3 me-2">
+                                {" "}
+                                {currentBid}
+                              </span>
+                              {/* <span className="border p-2 ps-3 pe-3 me-2">
+                                {nextBid !== null ? nextBid : ""}
+                              </span>  */}
+      
+                          {/* Increment button (Next bid) */}
+                         <button
+                                onClick={increment|| fetchEventData()}
+                                style={{
+                                  border: "none",
+                                  background: "none",
+                                  cursor: "pointer",
+                                }}
+                              >
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  viewBox="0 0 24 24"
+                                  width="24"
+                                  height="24"
+                                >
+                                  <path d="M6 4l12 8l-12 8" fill="rgb(222, 112, 8)" />
+                                </svg>
+                              </button>
+                            </div>
+                          </div>
+                    )}
 
                     {/* Heading and Subtext */}
                     <div className="mb-3">
