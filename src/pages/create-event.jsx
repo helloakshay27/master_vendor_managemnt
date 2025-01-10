@@ -365,7 +365,7 @@ export default function CreateEvent() {
     const eventData = {
       event_title: eventName,
       created_on: createdOn,
-      status: 1,
+      status: "pending",
       created_by_id: 2,
       event_schedule_attributes: {
         start_time: scheduleData.start_time,
@@ -379,16 +379,12 @@ export default function CreateEvent() {
         event_configuration: selectedStrategy,
         dynamic_time_extension: dynamicExtension[1],
         time_extension_type: dynamicExtensionConfigurations.time_extension_type,
-        triggered_time_extension_on_last:
-          dynamicExtensionConfigurations.triggered_time_extension_on_last,
-        extend_event_time_by: Number(
-          dynamicExtensionConfigurations.extend_event_time_by
-        ),
+        triggered_time_extension_on_last: dynamicExtensionConfigurations.triggered_time_extension_on_last,
+        extend_event_time_by: Number(dynamicExtensionConfigurations.extend_event_time_by),
         enable_english_auction: true,
         extension_time_min: 5,
         extend_time_min: 10,
-        time_extension_change:
-          dynamicExtensionConfigurations.time_extension_on_change_in,
+        time_extension_change: dynamicExtensionConfigurations.time_extension_on_change_in,
         delivery_date: dynamicExtensionConfigurations.delivery_date,
       },
       event_materials_attributes: materialFormData.map((material) => ({
@@ -406,7 +402,7 @@ export default function CreateEvent() {
       })),
       status_logs_attributes: [
         {
-          status: 1,
+          status: "pending",
           created_by_id: 2,
           remarks: "Initial status",
           comments: "No comments",
@@ -415,35 +411,37 @@ export default function CreateEvent() {
       terms_and_conditions: termsAndConditions,
     };
 
-    const formData = new FormData();
-    formData.append("event", JSON.stringify(eventData));
+    // const formData = new FormData();
+    // formData.append("event", JSON.stringify(eventData));
 
-    documentRowsRef.current.forEach((row) => {
-      if (row.upload) {
-        formData.append("event[attachments][]", row.upload);
-      }
-    });
+    // documentRowsRef.current.forEach((row) => {
+    //   if (row.upload) {
+    //     formData.append("event[attachments][]", row.upload);
+    //   }
+    // });
 
-    // Debugging logs
-    for (let pair of formData.entries()) {
-      console.log(pair[0] + ": " + pair[1]);
-    }
+    // // Debugging logs
+    // for (let pair of formData.entries()) {
+    //   console.log(pair[0] + ': ' + pair[1]);
+    // }
+
+    // console.log("formData",JSON.stringify(formData));
+    console.log("eventData", JSON.stringify(eventData));
 
     try {
-      const response = await axios.post(
+      const response = await fetch(
         "https://vendors.lockated.com/rfq/events?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414",
-        formData,
         {
+          method: "POST",
           headers: {
-            "Content-Type": "multipart/form-data",
+            "Content-Type": "application/json",
           },
+          body: JSON.stringify(eventData),
         }
       );
-      if (response.status === 200) {
+      if (response.ok) {
         alert("Event created successfully!");
-        navigate(
-          "/event-list?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414"
-        );
+        navigate("/event-list?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414");
       } else {
         console.error("Error response data:", response.data);
         throw new Error("Failed to create event.");
