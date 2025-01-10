@@ -15,6 +15,8 @@ export default function CreateRFQForm({ data, setData }) {
       sectionId: Date.now(),
     },
   ]);
+  const [sectionOptions, setSectionOptions] = useState([]);
+  const [subSectionOptions, setSubSectionOptions] = useState([]);
 
   useEffect(() => {
     const fetchMaterials = async () => {
@@ -32,7 +34,49 @@ export default function CreateRFQForm({ data, setData }) {
       }
     };
 
+    const fetchSections = async () => {
+      try {
+        const response = await axios.get(
+          "https://vendors.lockated.com/pms/sections/section_list?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414"
+        );
+        if (response.data && Array.isArray(response.data.section_list)) {
+          setSectionOptions(
+            response.data.section_list.map((section) => ({
+              label: section.name,
+              value: section.value,
+            }))
+          );
+        } else {
+          console.error("Unexpected response structure:", response.data);
+        }
+      } catch (error) {
+        console.error("Error fetching sections:", error);
+      }
+    };
+
+    const fetchSubSections = async () => {
+      try {
+        const response = await axios.get(
+          "https://vendors.lockated.com/pms/sections/sub_section_list?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414"
+        );
+        if (response.data && Array.isArray(response.data.section_list)) {
+          setSubSectionOptions(
+            response.data.section_list.map((subSection) => ({
+              label: subSection.name,
+              value: subSection.value,
+            }))
+          );
+        } else {
+          console.error("Unexpected response structure:", response.data);
+        }
+      } catch (error) {
+        console.error("Error fetching sub-sections:", error);
+      }
+    };
+
     fetchMaterials();
+    fetchSections();
+    fetchSubSections();
   }, []);
 
   const handleUnitChange = (selected, rowIndex, sectionIndex) => {
@@ -143,34 +187,26 @@ export default function CreateRFQForm({ data, setData }) {
               Select Materials{" "}
               <span style={{ color: "red", fontSize: "16px" }}>*</span>
             </h4>
-            <button
-              className="purple-btn2"
-              onClick={handleAddSection}
-            >
-              <span className="material-symbols-outlined align-text-top">
-                add{" "}
-              </span>
-              <span>Add Section</span>
-            </button>
+            
           </div>
           {sections.map((section, sectionIndex) => (
-            <div key={section.sectionId} className="mb-4">
+            <div key={section.sectionId} className="card p-4 mb-4">
               <div className="d-flex justify-content-between">
                 <div className="d-flex gap-3">
                   <SelectBox
                     label={"Select Section"}
-                    options={[{ label: "Select Section", value: "Select Section" }]}
+                    options={sectionOptions}
                     defaultValue={"Select Section"}
                     onChange={undefined}
                   />
                   <SelectBox
                     label={"Select Sub Section"}
-                    options={[{ label: "Select Sub Section", value: "Select Sub Section" }]}
+                    options={subSectionOptions}
                     defaultValue={"Select Sub Section"}
                     onChange={undefined}
                   />
                 </div>
-                <div className="d-flex gap-3">
+                <div className="d-flex gap-3 py-3">
                   <button
                     className="purple-btn2"
                     onClick={() => handleAddRow(sectionIndex)}
@@ -182,10 +218,10 @@ export default function CreateRFQForm({ data, setData }) {
                   </button>
                   {sectionIndex > 0 && (
                     <button
-                      className="btn btn-danger"
+                      className="purple-btn2"
                       onClick={() => handleRemoveSection(sectionIndex)}
                     >
-                      Remove Section
+                    Remove Section
                     </button>
                   )}
                 </div>
@@ -287,6 +323,15 @@ export default function CreateRFQForm({ data, setData }) {
               />
             </div>
           ))}
+          <button
+              className="purple-btn2"
+              onClick={handleAddSection}
+            >
+              <span className="material-symbols-outlined align-text-top">
+                add{" "}
+              </span>
+              <span>Add Section</span>
+            </button>
         </div>
       </div>
     </div>
