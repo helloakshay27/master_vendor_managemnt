@@ -34,6 +34,14 @@ function Members() {
                 <Link to="/work-list">work list</Link>
               </li>
 
+              <li>
+                <Link to="/material-list">Material List</Link>
+              </li>
+
+              <li>
+                <Link to="/service-list">Service List</Link>
+              </li>
+
               {/* <li>
                 <Link to="/user-list">user_list</Link>
               </li>

@@ -22,6 +22,11 @@ import AuthData from "./confi/authData";
 import EventListPage from "./pages/admin_list";
 import VendorListPage from "./pages/vendor-list";
 import WorkListPage from "./pages/work-order";
+import MaterialPRListPage from "./pages/material_pr";
+import ServicePRListPage from "./pages/service_pr";
+import MaterialPRDetails from "./pages/MaterialPRDetails";
+import MaterialDetails from "./pages/MaterialDetails";
+import ServiceDetails from "./pages/ServiceDetails";
 
 function App() {
   return (
@@ -56,6 +61,14 @@ function App() {
           <Route path="/user-list/:eventId" element={<VendorDetails/>} />
           <Route path="/vendor-list" element={<VendorListPage />} />
           <Route path="/work-list" element={<WorkListPage/>} />
+          <Route path="/material-list" element={<MaterialPRListPage />} />
+          <Route path="/service-list" element={<ServicePRListPage />} />
+          <Route path="/material-pr-details/1" element={<MaterialPRDetails />} />
+          <Route path="/material-details/1" element={<MaterialDetails />} />
+          <Route path="/service-details/1" element={<ServiceDetails />} />
+          
+          
+          
 
 
           <Route path="/user-overview/:eventId" element={<UserOverview />} />
