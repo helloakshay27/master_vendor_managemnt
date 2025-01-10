@@ -61,67 +61,7 @@ export default function MaterialDetails() {
 
             <div className="material-boxes mt-3">
               <div className="container-fluid">
-                <div className="row separteinto5 justify-content-left">
-                  <div className="col-md-2 text-center">
-                    <div
-                      className="content-box"
-                      style={{
-                        cursor: "pointer",
-                        border: "1px solid #ccc",
-                        backgroundColor: "#fff",
-                        color: "black",
-                      }}
-                    >
-                      <h4 className="content-box-title">All Materials</h4>
-                      <p className="content-box-sub ">0</p>
-                    </div>
-                  </div>
-
-                  <div className="col-md-2 text-center">
-                    <div
-                      className="content-box"
-                      style={{
-                        cursor: "pointer",
-                        border: "1px solid #ccc",
-                        backgroundColor: "#fff",
-                        color: "black",
-                      }}
-                    >
-                      <h4 className="content-box-title">Approved</h4>
-                      <p className="content-box-sub">0</p>
-                    </div>
-                  </div>
-
-                  <div className="col-md-2 text-center">
-                    <div
-                      className="content-box"
-                      style={{
-                        cursor: "pointer",
-                        border: "1px solid #ccc",
-                        backgroundColor: "#fff",
-                        color: "black",
-                      }}
-                    >
-                      <h4 className="content-box-title">Pending</h4>
-                      <p className="content-box-sub">0</p>
-                    </div>
-                  </div>
-
-                  <div className="col-md-2 text-center">
-                    <div
-                      className="content-box"
-                      style={{
-                        cursor: "pointer",
-                        border: "1px solid #ccc",
-                        backgroundColor: "#fff",
-                        color: "black",
-                      }}
-                    >
-                      <h4 className="content-box-title">Rejected</h4>
-                      <p className="content-box-sub">0</p>
-                    </div>
-                  </div>
-                </div>
+                
 
                 {/* <div className="d-flex mt-3 align-items-end px-3">
                   <div className="col-md-6 position-relative">
