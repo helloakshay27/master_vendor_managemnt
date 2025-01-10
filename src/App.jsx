@@ -26,11 +26,11 @@ import ServicePRListPage from "./pages/service_pr";
 import MaterialPRDetails from "./pages/MaterialPRDetails";
 import MaterialDetails from "./pages/MaterialDetails";
 import ServiceDetails from "./pages/ServiceDetails";
-import PoPage from "./pages/po";
 import PoDetail from "./pages/PoDetail";
 import WoPage from "./pages/Wo";
 import Wodetails from "./pages/Wodetails";
 import POdeta from "./pages/POdetails";
+import PoPage from "./pages/Po";
 
 function App() {
   return (
