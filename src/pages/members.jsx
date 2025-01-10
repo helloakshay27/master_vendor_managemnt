@@ -43,7 +43,7 @@ function Members() {
               </li>
 
               <li>
-                <Link to="/Po">Po list</Link>
+                <Link to="/Po">Po lists</Link>
               </li>
               <li>
                 <Link to="/Wo">Wo list</Link>
