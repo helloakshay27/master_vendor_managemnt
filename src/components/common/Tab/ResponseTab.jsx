@@ -9,10 +9,10 @@ import ResponseVendor from "../ResponseVendor";
 import { FullScreen, useFullScreenHandle } from "react-full-screen";
 import BulkCounterOfferModal from "../Modal/BulkCounterOfferModal";
 import axios from "axios";
-import SelectBox from "../../base/Select/SelectBox";
 import { useParams } from "react-router-dom";
+import { da } from "date-fns/locale";
 
-export default function ResponseTab({ }) {
+export default function ResponseTab({}) {
   const [isVendor, setIsVendor] = useState(false);
   const [counterModal, setCounterModal] = useState(false);
   const [BidCounterData, setBidCounterData] = useState(null);
@@ -22,11 +22,10 @@ export default function ResponseTab({ }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const handle = useFullScreenHandle();
+  const [activeIndexes, setActiveIndexes] = useState({});
+  const [eventVendors, setEventVendors] = useState([]);
 
   const { id } = useParams();
-  console.log("eventId :----",id);
-  
-  
 
   const handleCounterModalShow = () => {
     setCounterModal(true);
@@ -44,65 +43,132 @@ export default function ResponseTab({ }) {
     }
   };
 
-  // const handleSelectChange = async (vendorId, e) => {
-  //   const revisionNumber = e;
-  //   console.log("revisionNumber :---------", e);
-    
-  //   if (revisionNumber === "currentBid") return;
+  const fetchRevisionData = async (
+    vendorId,
+    revisionNumber,
+    isCurrent = false
+  ) => {
+    setLoading(true);
+    setError(null);
+    try {
+      let data;
+      if (isCurrent) {
+        console.log("Fetching current bid data...");
+        const response = await fetch(
+          `https://vendors.lockated.com/rfq/events/${id}/event_responses?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&page=1`
+        );
 
-  //   setLoading(true);
-  //   setError(null);
-  //   try {
-  //     const response = await axios.get(
-  //       `https://vendors.lockated.com/rfq/events/${eventId}/bids/bids_by_revision?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&revision_number=${revisionNumber}`
-  //     );
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.error("Error response data:", errorData);
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
 
-  //     // const updatedVendors = eventVendors.map((vendor) => {
-  //     //   if (vendor.id === vendorId) {
-  //     //     return {
-  //     //       ...vendor,
-  //     //       bids: response.data,
-  //     //     };
-  //     //   }
-  //     //   return vendor;
-  //     // });
-  //     // console.log("updatedVendors :-----",updatedVendors);
-      
-  //     setResponseTableData(response.data);
-  //     console.log("responseTableData :-----",responseTableData);
-      
-  //   } catch (err) {
-  //     setError(err.message);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
+        const responseData = await response.json();
+        console.log("Fetched responseData:", responseData);
+
+        let data = Array.isArray(responseData.vendors)
+          ? responseData.vendors.find((vendor) => vendor.id === vendorId)
+          : null;
+
+        if (!data) {
+          throw new Error("Vendor not found or invalid response format");
+        }
+
+        setEventVendors((prev) =>
+          prev.map((vendor) =>
+            vendor.id === vendorId ? { ...vendor, ...data } : vendor
+          )
+        );
+        console.log("Updated vendor data:", data);
+
+      } else {
+        // Use revision data
+        const response = await axios.get(
+          `https://vendors.lockated.com/rfq/events/${id}/bids/bids_by_revision?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&revision_number=${revisionNumber}&q[event_vendor_id_in]=${vendorId}`
+        );
+        data = response.data;
+        const updatedEventVendors = eventVendors.map((vendor) => {
+          if (vendor.id === vendorId) {
+            return {
+              ...vendor,
+              bids: [
+                {
+                  ...data,
+                  bid_materials: data.bid_materials || [],
+                },
+              ],
+            };
+          }
+          return vendor;
+        });
+        setEventVendors(updatedEventVendors);
+      }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCarouselChange = async (vendorId, selectedIndex) => {
+    setActiveIndexes((prevIndexes) => ({
+      ...prevIndexes,
+      [vendorId]: selectedIndex,
+    }));
+
+    if (selectedIndex === 0) {
+      // Fetch current bid data
+      await fetchRevisionData(vendorId, null, true);
+    } else {
+      // Fetch revision data for the selected revision
+      const revisionNumber = selectedIndex - 1;
+      await fetchRevisionData(vendorId, revisionNumber);
+    }
+  };
+
+  const handlePrev = async (vendorId) => {
+    setActiveIndexes((prevIndexes) => {
+      const currentIndex =
+        prevIndexes[vendorId] !== undefined ? prevIndexes[vendorId] : 0;
+      const newIndex = currentIndex === 0 ? 2 : currentIndex - 1;
+      handleCarouselChange(vendorId, newIndex);
+      return { ...prevIndexes, [vendorId]: newIndex };
+    });
+  };
+
+  const handleNext = async (vendorId) => {
+    setActiveIndexes((prevIndexes) => {
+      const currentIndex =
+        prevIndexes[vendorId] !== undefined ? prevIndexes[vendorId] : 0;
+      const newIndex = currentIndex === 2 ? 0 : currentIndex + 1;
+      handleCarouselChange(vendorId, newIndex);
+      return { ...prevIndexes, [vendorId]: newIndex };
+    });
+  };
 
   useEffect(() => {
-      const fetchRemarks = async () => {
-        try {
-          const response = await fetch(
-            `https://vendors.lockated.com/rfq/events/${id}/event_responses?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&page=1`
-          );
-  
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-  
-          const data = await response.json();
-          setResponse(data);
-        } catch (err) {
-          setError(err.message);
-        } finally {
-          setLoading(false);
-        }
-      };
-  
-      fetchRemarks();
-    }, [id]);
+    const fetchRemarks = async () => {
+      try {
+        const response = await fetch(
+          `https://vendors.lockated.com/rfq/events/${id}/event_responses?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&page=1`
+        );
 
-    console.log("IDS",id,bidId);
-    
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        setResponse(data);
+        setEventVendors(Array.isArray(data?.vendors) ? data.vendors : []);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRemarks();
+  }, [id]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -120,10 +186,10 @@ export default function ResponseTab({ }) {
       }
     };
 
-    fetchData();
+    if (bidId) {
+      fetchData();
+    }
   }, [id, bidId]);
-  
-  const eventVendors = Array.isArray(response?.vendors) ? response.vendors : [];
 
   const formatDate = (dateString) => {
     if (!dateString) return "_";
@@ -250,7 +316,8 @@ export default function ResponseTab({ }) {
                     <tbody>
                       <tr>
                         <td style={{ width: "200px" }}></td>
-                        {eventVendors.map((vendor, index) => {
+                        {eventVendors?.map((vendor, index) => {
+                          const activeIndex = activeIndexes[vendor.id] || 0;
                           return (
                             <td key={vendor.id} style={{ width: "200px" }}>
                               <div
@@ -260,27 +327,41 @@ export default function ResponseTab({ }) {
                                 <div className="">
                                   {vendor.organization_name}
                                   <p>
-                                    {vendor.bids.map((item) =>
+                                    {vendor?.bids?.map((item) =>
                                       formatDate(item.created_at)
                                     )}
                                   </p>
                                 </div>
-                                {/* <SelectBox
-                                  label={""}
-                                  options={[
-                                    { label: "Current Bid", value: "currentBid" },
-                                    { label: "Initial Bid", value: "0" },
-                                    { label: "1st Revision", value: "1" },
-                                  ]}
-                                  defaultValue={""}
-                                  onChange={(e) => handleSelectChange(vendor.id, e)}
-                                /> */}
+                                <div className="d-flex justify-content-center align-items-center w-100 my-2">
+                                  <button
+                                    className="purple-btn1 px-2"
+                                    onClick={() => handlePrev(vendor.id)}
+                                  >
+                                    &lt;
+                                  </button>
+                                  <div className="carousel-item-content mx-3">
+                                    {activeIndex === 0 && "Current Bid"}
+                                    {activeIndex === 1 && "Initial Bid"}
+                                    {activeIndex === 2 && "1st Revision"}
+                                  </div>
+                                  <button
+                                    className="purple-btn1 px-2"
+                                    onClick={() => handleNext(vendor.id)}
+                                  >
+                                    &gt;
+                                  </button>
+                                </div>
                                 <button
-                                  className="purple-btn2 d-block"
+                                  className="purple-btn2 d-block mt-2"
                                   onClick={() => {
-                                    if (vendor.bids && vendor.bids.length > 0 && vendor.bids[0].bid_materials && vendor.bids[0].bid_materials.length > 0) {
+                                    if (
+                                      vendor?.bids?.length > 0 &&
+                                      vendor?.bids[0]?.bid_materials?.length > 0
+                                    ) {
                                       handleCounterModalShow();
-                                      setBidId(vendor.bids[0].bid_materials[0].bid_id);
+                                      setBidId(
+                                        vendor.bids[0].bid_materials[0].bid_id
+                                      );
                                     }
                                   }}
                                 >
@@ -298,10 +379,10 @@ export default function ResponseTab({ }) {
                         >
                           Gross Total
                         </td>
-                        {eventVendors.map((vendor) => {
+                        {eventVendors?.map((vendor) => {
                           return (
                             <td>
-                              {vendor.bids.map((item) => item.gross_total) ||
+                              {vendor?.bids?.map((item) => item.gross_total) ||
                                 "_"}
                             </td>
                           );
@@ -310,15 +391,18 @@ export default function ResponseTab({ }) {
                     </tbody>
                   </table>
                 </div>
-                {eventVendors.map((vendor, ind) => {
-                  if (vendor.bids.length > 1) {
-                    vendor.bids = [vendor.bids[0]];                    
+                {eventVendors?.map((vendor, ind) => {
+                  if (vendor?.bids?.length > 1) {
+                    vendor.bids = [vendor.bids[0]];
                   }
-                  const bidMaterialNames = vendor.bids.flatMap((bid) => bid.bid_material_names[ind] ? [bid.bid_material_names[ind]] : []).join(", ");
+                  const bidMaterialNames = vendor?.bids?.[0]
+                    ?.bid_material_names?.[ind]
+                    ? [vendor.bids[0].bid_material_names[ind]]
+                    : [];
                   return (
                     <Accordion
                       key={ind}
-                      title={bidMaterialNames || "_"}
+                      title={bidMaterialNames.join(", ") || "_"}
                       isDefault={true}
                       tableColumn={[
                         {
@@ -350,10 +434,10 @@ export default function ResponseTab({ }) {
                           quantityAvailable: material.quantity_available || "_",
                           price: material.price || "_",
                           discount: material.discount || "_",
-                          realisedDiscount: material.discount || "_",
+                          realisedDiscount: material.realised_discount || "_",
                           gst: material.gst || "_",
                           realisedGST: material.realised_gst || "_",
-                          landedAmount: material.total_amount || "_",
+                          landedAmount: material.landed_amount || "_",
                           participantAttachment: "_",
                           totalAmount: material.total_amount || "_",
                         }))
@@ -382,12 +466,13 @@ export default function ResponseTab({ }) {
                     },
                     { label: "Gross Total", key: "grossTotal" },
                   ]}
-                  tableData={eventVendors.flatMap((vendor) =>
-                    vendor.bids.flatMap((bid) => [
+                  tableData={eventVendors?.flatMap((vendor) =>
+                    vendor?.bids?.flatMap((bid) => [
                       {
                         freightChrg: bid.freight_charge_amount || "_",
                         freightGst: bid.gst_on_freight || "_",
-                        freightRealised: bid.realised_freight_charge_amount || "_",
+                        freightRealised:
+                          bid.realised_freight_charge_amount || "_",
                         warranty: bid.warranty_clause || "_",
                         payment: bid.payment_terms || "_",
                         loading: bid.loading_unloading_clause || "_",

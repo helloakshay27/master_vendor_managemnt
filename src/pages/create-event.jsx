@@ -27,6 +27,8 @@ export default function CreateEvent() {
   const [awardType, setAwardType] = useState(false);
   const [dynamicExtension, setDynamicExtension] = useState(false);
   const [resetSelectedRows, setResetSelectedRows] = useState(false);
+  const [suggestions, setSuggestions] = useState([]);
+  const [isSuggestionsVisible, setIsSuggestionsVisible] = useState(false);
   const [dynamicExtensionConfigurations, setDynamicExtensionConfigurations] =
     useState({
       time_extension_type: "",
@@ -199,11 +201,14 @@ export default function CreateEvent() {
   const [loading, setLoading] = useState(true);
 
   const fetchData = async (page = 1, searchTerm = "", selectedCity = "") => {
+    if(searchTerm == ""){
+
+    }
     setLoading(true);
     try {
       const response = await axios.get(
         `https://vendors.lockated.com/rfq/events/vendor_list?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&page=${page}&q[first_name_or_last_name_or_email_or_mobile_or_nature_of_business_name_cont]=${searchTerm}`
-      );
+      );     
 
       const vendors = Array.isArray(response.data.vendors)
         ? response.data.vendors
@@ -374,12 +379,16 @@ export default function CreateEvent() {
         event_configuration: selectedStrategy,
         dynamic_time_extension: dynamicExtension[1],
         time_extension_type: dynamicExtensionConfigurations.time_extension_type,
-        triggered_time_extension_on_last: dynamicExtensionConfigurations.triggered_time_extension_on_last,
-        extend_event_time_by: Number(dynamicExtensionConfigurations.extend_event_time_by),
+        triggered_time_extension_on_last:
+          dynamicExtensionConfigurations.triggered_time_extension_on_last,
+        extend_event_time_by: Number(
+          dynamicExtensionConfigurations.extend_event_time_by
+        ),
         enable_english_auction: true,
         extension_time_min: 5,
         extend_time_min: 10,
-        time_extension_change: dynamicExtensionConfigurations.time_extension_on_change_in,
+        time_extension_change:
+          dynamicExtensionConfigurations.time_extension_on_change_in,
         delivery_date: dynamicExtensionConfigurations.delivery_date,
       },
       event_materials_attributes: materialFormData.map((material) => ({
@@ -406,37 +415,35 @@ export default function CreateEvent() {
       terms_and_conditions: termsAndConditions,
     };
 
-    // const formData = new FormData();
-    // formData.append("event", JSON.stringify(eventData));
+    const formData = new FormData();
+    formData.append("event", JSON.stringify(eventData));
 
-    // documentRowsRef.current.forEach((row) => {
-    //   if (row.upload) {
-    //     formData.append("event[attachments][]", row.upload);
-    //   }
-    // });
+    documentRowsRef.current.forEach((row) => {
+      if (row.upload) {
+        formData.append("event[attachments][]", row.upload);
+      }
+    });
 
-    // // Debugging logs
-    // for (let pair of formData.entries()) {
-    //   console.log(pair[0] + ': ' + pair[1]);
-    // }
-
-    // console.log("formData",JSON.stringify(formData));
-    
+    // Debugging logs
+    for (let pair of formData.entries()) {
+      console.log(pair[0] + ": " + pair[1]);
+    }
 
     try {
-      const response = await fetch(
+      const response = await axios.post(
         "https://vendors.lockated.com/rfq/events?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414",
+        formData,
         {
-          method: "POST",
           headers: {
-            "Content-Type": "application/json",
+            "Content-Type": "multipart/form-data",
           },
-          body: JSON.stringify(eventData),
         }
       );
-      if (response.ok) {
+      if (response.status === 200) {
         alert("Event created successfully!");
-        navigate("/event-list?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414");
+        navigate(
+          "/event-list?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414"
+        );
       } else {
         console.error("Error response data:", response.data);
         throw new Error("Failed to create event.");
@@ -456,14 +463,29 @@ export default function CreateEvent() {
 
   useEffect(() => {
     setFilteredTableData(tableData);
+    
   }, [tableData]);
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
+    
     if (e.target.value === "") {
-      // @ts-ignore
-      fetchData(1, searchTerm, selectedCity);
+      setSuggestions([]);
+      setIsSuggestionsVisible(false);
+    } else {
+      const filteredSuggestions = tableData.filter((vendor) =>
+        vendor.name?.toLowerCase().includes(e.target.value.toLowerCase())
+      );
+      setSuggestions(filteredSuggestions);
+      setIsSuggestionsVisible(true);
     }
+    console.log("Search term:", e.target.value, filteredSuggestions);
+  };
+
+  const handleSuggestionClick = (suggestion) => {
+    setSearchTerm(suggestion.name);
+    setIsSuggestionsVisible(false);
+    fetchData(1, suggestion.name, selectedCity);
   };
 
   const handleSearchClick = () => {
@@ -683,7 +705,7 @@ export default function CreateEvent() {
                   onChange={(e) => handleFileChange(index, e.target.files[0])}
                   ref={fileInputRef}
                   multiple
-                  accept=".xlsx,.csv,.pdf,.docx" 
+                  accept=".xlsx,.csv,.pdf,.docx"
                 />
               ),
               action: (
@@ -843,7 +865,7 @@ export default function CreateEvent() {
           children={
             <>
               <div className="d-flex justify-content-between align-items-center">
-                <div className="input-group w-50">
+                <div className="input-group w-50 position-relative">
                   <input
                     type="search"
                     id="searchInput"
@@ -851,6 +873,8 @@ export default function CreateEvent() {
                     placeholder="Search Vendors"
                     value={searchTerm}
                     onChange={handleSearchChange}
+                    onFocus={() => setIsSuggestionsVisible(true)}
+                    onBlur={() => setTimeout(() => setIsSuggestionsVisible(false), 200)}
                   />
                   <div className="input-group-append">
                     <button
@@ -861,15 +885,28 @@ export default function CreateEvent() {
                       <SearchIcon />
                     </button>
                   </div>
+                  {isSuggestionsVisible && suggestions.length > 0 && (
+                    <ul className="suggestions-list position-absolute bg-white border rounded w-100" style={{ zIndex: 1000, top: '100%' }}>
+                      {suggestions.map((suggestion) => (
+                        <li
+                          key={suggestion.id}
+                          onClick={() => handleSuggestionClick(suggestion)}
+                          className="p-2 cursor-pointer"
+                        >
+                          {suggestion.name}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
                 <div className="d-flex">
-                  {/* <button
-                      className="purple-btn2 viewBy-main-child2P mb-0"
-                      onClick={handleInviteModalShow}
-                    >
-                      <i className="bi bi-person-plus"></i>
-                      <span className="ms-2">Invite</span>
-                    </button> */}
+                  <button
+                    className="purple-btn2 viewBy-main-child2P mb-0"
+                    onClick={handleInviteModalShow}
+                  >
+                    <i className="bi bi-person-plus"></i>
+                    <span className="ms-2">Invite</span>
+                  </button>
                   {/* <button
                       className="purple-btn2 viewBy-main-child2P mb-0"
                       onClick={() => setShowPopup(true)}
