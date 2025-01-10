@@ -42,6 +42,12 @@ function Members() {
                 <Link to="/service-list">Service List</Link>
               </li>
 
+              <li>
+                <Link to="/Po">Po list</Link>
+              </li>
+              <li>
+                <Link to="/Wo">Wo list</Link>
+              </li>
               {/* <li>
                 <Link to="/user-list">user_list</Link>
               </li>
