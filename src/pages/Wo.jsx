@@ -152,7 +152,7 @@ export default function WoPage() {
 
                     <div className="col-md-6">
                       <div className="row justify-content-end">
-                        <div className="col-md-5">
+                        {/* <div className="col-md-5">
                           <div className="row justify-content-end px-3">
                             <div className="col-md-3">
                               <button
@@ -164,7 +164,7 @@ export default function WoPage() {
                               </button>
                             </div>
                           </div>
-                        </div>
+                        </div> */}
                         {/* <div className="col-md-4">
                         <button
                           className="purple-btn2"
