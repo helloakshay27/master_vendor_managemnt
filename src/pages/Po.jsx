@@ -274,13 +274,11 @@ export default function PoPage() {
                           <td>0</td>
                           <td>0</td>
                           <td>
-                            <td>
                               <Link to="/PO-details/1" className="text-dark">
                                 <span className="material-symbols-outlined">
                                   visibility
                                 </span>
                               </Link>
-                            </td>
                           </td>
                         </tr>
                         <tr>
