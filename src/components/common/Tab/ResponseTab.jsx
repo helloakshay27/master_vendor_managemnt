@@ -160,6 +160,8 @@ export default function ResponseTab() {
         const data = await response.json();
         setResponse(data);
         setEventVendors(Array.isArray(data?.vendors) ? data.vendors : []);
+        console.log("data:--------",data);
+        
       } catch (err) {
         setError(err.message);
       } finally {
@@ -396,8 +398,8 @@ export default function ResponseTab() {
                     vendor.bids = [vendor.bids[0]];
                   }
                   const bidMaterialNames = vendor?.bids?.[0]
-                    ?.bid_material_names?.[ind]
-                    ? [vendor.bids[0].bid_material_names[ind]]
+                    ?.material_title_strings?.[ind]
+                    ? [vendor.bids[0].material_title_strings[ind]]
                     : [];
                   return (
                     <Accordion
