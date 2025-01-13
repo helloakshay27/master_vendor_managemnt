@@ -19,6 +19,7 @@ import PopupBox from "../components/base/Popup/Popup";
 export default function CreateEvent() {
   const fileInputRef = useRef(null);
   const [eventTypeModal, setEventTypeModal] = useState(false);
+  const [isService, setIsService] = useState(false);
   const [inviteModal, setInviteModal] = useState(false);
   const [publishEventModal, setPublishEventModal] = useState(false);
   const [eventScheduleModal, setEventScheduleModal] = useState(false);
@@ -183,8 +184,19 @@ export default function CreateEvent() {
 
   const handleEventConfigurationSubmit = () => {
     handleEventTypeModalClose();
+    let eventTypeText = "";
     // @ts-ignore
-    const eventTypeText = eventType === "rfq" ? "RFQ" : "Auction";
+    if (eventType === "rfq") {
+      eventTypeText = "RFQ";
+      setIsService(false);
+    // @ts-ignore
+    } else if (eventType === "auction") {
+      eventTypeText = "Auction";
+      setIsService(false);
+    } else {
+      eventTypeText = "Contracts";
+      setIsService(true);
+    }
     setEventTypeText(eventTypeText);
   };
 
@@ -559,6 +571,7 @@ export default function CreateEvent() {
             <CreateRFQForm
               data={materialFormData}
               setData={setMaterialFormData}
+              isService={isService}
             />
             <div className="d-flex justify-content-between align-items-end mx-1 mt-5">
               <h5 className=" ">

@@ -7,7 +7,7 @@ import { useEffect } from "react";
 import axios from "axios";
 import { type } from "jquery";
 
-export default function CreateRFQForm({ data, setData }) {
+export default function CreateRFQForm({ data, setData, isService }) {
   const [materials, setMaterials] = useState([]);
   const [sections, setSections] = useState([
     {
@@ -217,7 +217,7 @@ export default function CreateRFQForm({ data, setData }) {
     <div className="row px-3">
       <div className="card p-0">
         <div className="card-header3">
-          <h3 className="card-title">Select Materials </h3>
+          <h3 className="card-title">{`Select ${isService ? 'Services' : 'Materials'}`} </h3>
         </div>
         <div className="px-3 py-3">
           {sections.map((section, sectionIndex) => (
