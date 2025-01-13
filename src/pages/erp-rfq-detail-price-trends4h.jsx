@@ -46,7 +46,7 @@ export default function ErpRfqDetailPriceTrends4h() {
   const [loading, setLoading] = useState(true);
   const [analyticsData, setAnalyticsData] = useState([]);
 
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -108,13 +108,13 @@ export default function ErpRfqDetailPriceTrends4h() {
           </>
         );
       // @ts-ignore
-      case "Shared":
-        return (
-          <NotificationInfoModal
-            show={showModal}
-            handleClose={handleCloseModal}
-          />
-        );
+      // case "Shared":
+      //   return (
+      //     <NotificationInfoModal
+      //       show={showModal}
+      //       handleClose={handleCloseModal}
+      //     />
+      //   );
       // @ts-ignore
       case "Extend":
         return (
@@ -142,10 +142,10 @@ export default function ErpRfqDetailPriceTrends4h() {
           <RejectedBidsModal show={showModal} handleClose={handleCloseModal} />
         );
       // @ts-ignore
-      case "Order":
-        return (
-          <ActivityModal show={showModal} handleClose={handleCloseModal} />
-        );
+      // case "Order":
+      //   return (
+      //     <ActivityModal show={showModal} handleClose={handleCloseModal} />
+      //   );
       // @ts-ignore
       case "Evaluation":
         return (
@@ -259,7 +259,7 @@ export default function ErpRfqDetailPriceTrends4h() {
 
     fetchRemarks();
   }, [id]);
-  
+
   useEffect(() => {
     const fetchParticipants = async () => {
       try {
@@ -268,7 +268,6 @@ export default function ErpRfqDetailPriceTrends4h() {
         );
 
         console.log(response);
-        
 
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -296,7 +295,11 @@ export default function ErpRfqDetailPriceTrends4h() {
                 <button
                   type="button"
                   className="ant-btn styles_headerCtaLink__2kCN6 ant-btn-link"
-                  onClick={() => navigate("/event-list?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414")}
+                  onClick={() =>
+                    navigate(
+                      "/event-list?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414"
+                    )
+                  }
                 >
                   <svg
                     width="1em"
@@ -405,4 +408,3 @@ export default function ErpRfqDetailPriceTrends4h() {
     </>
   );
 }
-

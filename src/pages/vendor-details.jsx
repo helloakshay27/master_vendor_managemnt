@@ -74,10 +74,6 @@ export default function VendorDetails() {
       "Twenty-eighth",
       "Twenty-ninth",
       "Thirtieth",
-      "Thirty-first",
-      "Thirty-second",
-      "Thirty-third",
-      "Thirty-fourth",
     ];
 
     return ordinals[n - 1] || `${n}th`; // Fallback to numeric suffix if greater than array length
@@ -163,39 +159,14 @@ export default function VendorDetails() {
     updatedData[rowIndex].total = finalTotal.toFixed(2); // After GST
 
     setData(updatedData);
+
+    const updatedGrossTotal = calculateSumTotal();
+    setGrossTotal(updatedGrossTotal);
+    // setData(updatedData, () => {
+    //   const updatedGrossTotal = calculateSumTotal();
+    //   setGrossTotal(updatedGrossTotal);
+    // });
   };
-
-  // const calculateFreightTotal = () => {
-  //   const getFreightValue = (label) => {
-  //     // Find the row by label
-  //     const row = freightData.find((row) => row.label === label);
-
-  //     // Check if the row exists and has valid `firstBid` or `counterBid` values
-  //     if (row && row.value) {
-  //       const { firstBid, counterBid } = row.value;
-
-  //       // Use `counterBid` if available; otherwise, fallback to `firstBid`
-  //       const valueToParse = counterBid || firstBid;
-
-  //       if (typeof valueToParse === "string") {
-  //         // Remove ₹ and commas, and convert to a float
-  //         return parseFloat(valueToParse.replace(/₹|,/g, "")) || 0;
-  //       }
-  //     }
-
-  //     // If the row or value is missing, return 0
-  //     return 0;
-  //   };
-
-  //   const freightCharge = getFreightValue("Freight Charge");
-  //   const realisedFreight = getFreightValue("Realised Freight");
-
-  //   console.log("Freight Charge:", freightCharge);
-  //   console.log("Realised Freight:", realisedFreight);
-
-  //   // Adjust this return value based on your calculation logic
-  //   return realisedFreight || freightCharge;
-  // };
 
   const calculateFreightTotal = () => {
     const getFreightValue = (label) => {
@@ -204,96 +175,52 @@ export default function VendorDetails() {
       if (row && row.value) {
         const { firstBid, counterBid } = row.value;
 
-        // Determine the value to parse (prioritize `counterBid` over `firstBid`)
         const valueToParse = counterBid || firstBid;
 
-        // Ensure `valueToParse` is a string before replacing
         if (typeof valueToParse === "string") {
           return parseFloat(valueToParse.replace(/₹|,/g, "")) || 0;
         }
       }
 
-      // Return 0 if the row or value is invalid
-      return 0;
+      return 0; // Return 0 if no valid value is found
     };
 
     const freightCharge = getFreightValue("Freight Charge");
     const realisedFreight = getFreightValue("Realised Freight");
 
+    // Use realisedFreight if available, otherwise use freightCharge
     return realisedFreight || freightCharge;
   };
 
   console.log("hjedhde", calculateFreightTotal());
 
   const calculateDataSumTotal = () => {
-    // Calculate the sum of totals from 'data' (excluding Freight)
-    // if (!data) {
-    //   return 0;
-    // }
     if (!Array.isArray(data)) {
       return 0;
     }
-    return data
-      .reduce((sum, row) => {
-        const total = parseFloat(row.total) || 0; // Ensure total is a number
-        return sum + total;
-      }, 0)
-      .toFixed(2); // Keep two decimal places
+    const sum = data.reduce((sum, row) => {
+      const total = parseFloat(row.total) || 0;
+      return sum + total;
+    }, 0);
+
+    return parseFloat(sum.toFixed(2)); // Ensure two decimal places
   };
-
-  // const calculateSumTotal = () => {
-  //   // Use `calculateDataSumTotal` to get sum from `data`
-  //   const sumFromData = parseFloat(calculateDataSumTotal()) || 0;
-
-  //   // Calculate the Freight Total
-  //   const freightTotal = calculateFreightTotal() || 0;
-
-  //   // Add the Freight Total to the Sum and round to two decimal places
-  //   const finalTotal = Math.round((sumFromData + freightTotal) * 100) / 100;
-  //   console.log("finalllllll totalllll", finalTotal);
-  //   // Ensures two decimal places and returns a number
-
-  //   return grossTotal || finalTotal;
-  // };
-
-  // const calculateSumTotal = () => {
-  //   const sumFromData = parseFloat(calculateDataSumTotal()) || 0;
-  //   const freightTotal = calculateFreightTotal() || 0;
-
-  //   if (freightTotal === 0) {
-  //     return Math.round(sumFromData * 100) / 100; // Just the data sum when freight is 0
-  //   }
-
-  //   return Math.round((sumFromData + freightTotal) * 100) / 100;
-  // };
 
   const calculateSumTotal = () => {
-    // Calculate the sum from the data
-    const sumFromData = parseFloat(calculateDataSumTotal()) || 0;
+    const dataSum = parseFloat(calculateDataSumTotal()) || 0; // Total from data
+    const freightTotal = parseFloat(calculateFreightTotal()) || 0; // Total from freight data
 
-    // Calculate the freight total
-    const freightTotal = calculateFreightTotal() || 0;
-
-    // If freightData is empty (no valid freight total), only show the sum from data
-    if (freightTotal === 0) {
-      return Math.round(sumFromData * 100) / 100;
-    }
-
-    // Otherwise, include both freight and data sum in the total
-    return Math.round((sumFromData + freightTotal) * 100) / 100;
+    // Combine and return the sum
+    return Math.round((dataSum + freightTotal) * 100) / 100;
   };
 
-  const handleFreightDataChange = (updatedData) => {
-    setFreightData(updatedData);
+  const handleFreightDataChange = (updatedFreightData) => {
+    setFreightData(updatedFreightData);
+
+    // Recalculate gross total
     const updatedGrossTotal = calculateSumTotal();
-    setGrossTotal(updatedGrossTotal); // Update grossTotal dynamically
+    setGrossTotal(updatedGrossTotal);
   };
-
-  // const handleDataSumChange = () => {
-  //   // Recalculate and update the grossTotal when data sum changes
-  //   const updatedGrossTotal = calculateSumTotal();
-  //   setGrossTotal(updatedGrossTotal);
-  // };
 
   const tableContainerStyle = {
     overflowX: "auto", // Enable horizontal scrolling
@@ -676,7 +603,7 @@ export default function VendorDetails() {
         freight_charge_amount: freightCharge21,
         gst_on_freight: gstOnFreightt,
         realised_freight_charge_amount: realisedFreightChargeAmount,
-        gross_total: calculateSumTotal(),
+        gross_total: grossTotal,
         warranty_clause: warrantyClause,
         payment_terms: paymentTerms,
         loading_unloading_clause: loadingUnloadingClause,
@@ -805,7 +732,11 @@ export default function VendorDetails() {
       getFreightDataValue("Loading / Unloading *", "firstBid") ||
       "Loading at supplier's location, unloading at buyer's location";
 
+    const updatedGrossTotal = calculateSumTotal();
+    setGrossTotal(updatedGrossTotal); // Ensure state is updated
+
     // Construct the payload
+
     const payload = {
       revised_bid: {
         event_vendor_id: vendorId,
@@ -814,7 +745,7 @@ export default function VendorDetails() {
         freight_charge_amount: freightCharge21,
         gst_on_freight: gstOnFreightt,
         realised_freight_charge_amount: realisedFreightChargeAmount,
-        gross_total: calculateSumTotal(),
+        gross_total: updatedGrossTotal, //,
         warranty_clause: warrantyClause,
         payment_terms: paymentTerms,
         loading_unloading_clause: loadingUnloadingClause,
@@ -2675,7 +2606,7 @@ export default function VendorDetails() {
                         <h4>
                           {/* Sum Total : ₹{calculateSumTotal()} */}
                           {/* Sum Total : ₹
-                          {revisedBid ? grossTotal : calculateSumTotal()} */}
+                           {revisedBid ? grossTotal : calculateSumTotal()}  */}
                           Sum Total: ₹{grossTotal}
                         </h4>
                       </div>
@@ -2748,16 +2679,20 @@ export default function VendorDetails() {
                                     }}
                                     style={{
                                       display: "inline-block",
-                                      color: "white",
+                                      color:
+                                        index === currentIndex
+                                          ? "white"
+                                          : "#DE7008",
                                       textAlign: "center",
                                       padding: "10px",
                                       textDecoration: "none",
                                       backgroundColor:
                                         index === currentIndex
                                           ? "#DE7008"
-                                          : "gray", // Active button color
+                                          : "white", // Active button color
                                       borderRadius: "4px",
                                       marginRight: "10px",
+                                      border: `1px solid #DE7008`,
                                       transition: "background-color 0.3s ease",
                                     }}
                                     className={

@@ -37,7 +37,7 @@ export const evaluationOptions = [
   { label: "30 Minutes", value: "30 Minutes" },
   { label: "60 Minutes", value: "60 Minutes" },
   { label: "Custom", value: "Custom" },
-  { label: "Fixed Time", value: "Fixed Time" },
+  // { label: "Fixed Time", value: "Fixed Time" },
 ];
 
 export const chartOptions = {
