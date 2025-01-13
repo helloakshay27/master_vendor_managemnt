@@ -116,8 +116,8 @@ export default function CreateRFQForm({ data, setData, isService }) {
       rate: 0,
       amount: 0,
       inventory_id: "",
-      sub_section_id: "",
-      section_id: "",
+      sub_section_id: sections[sectionIndex].sectionData[0]?.sub_section_id || "",
+      section_id: sections[sectionIndex].sectionData[0]?.section_id || "",
     };
     const updatedSections = [...sections];
     updatedSections[sectionIndex].sectionData = [
