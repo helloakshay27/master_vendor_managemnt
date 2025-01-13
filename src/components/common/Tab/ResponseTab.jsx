@@ -12,7 +12,7 @@ import axios from "axios";
 import { useParams } from "react-router-dom";
 import { da } from "date-fns/locale";
 
-export default function ResponseTab({}) {
+export default function ResponseTab() {
   const [isVendor, setIsVendor] = useState(false);
   const [counterModal, setCounterModal] = useState(false);
   const [BidCounterData, setBidCounterData] = useState(null);

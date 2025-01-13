@@ -157,7 +157,9 @@ const EventTypeModal = ({
       <div className="ant-drawer-body setting-modal">
         <div className="ant-row ant-form-item">
           <div className="ant-col ant-form-item-label">
-            <label title="Event Type">Event Type <span style={{ color: 'red' }}>*</span></label>
+            <label title="Event Type">
+              Event Type <span style={{ color: "red" }}>*</span>
+            </label>
           </div>
           <div className="ant-col ant-form-item-control-wrapper">
             <div
@@ -199,6 +201,45 @@ const EventTypeModal = ({
                 <p className="pro-text pro-body pro-text--normal">RFQ</p>
               </div>
 
+              {/* Contracts Tab */}
+              <div
+                className={`pro-radio-tabs__tab ${
+                  eventType === "contracts"
+                    ? "pro-radio-tabs__tab__selected"
+                    : ""
+                }`}
+                role="radio"
+                aria-checked={eventType === "contracts"}
+                tabIndex={0}
+                onClick={() => handleEventTypeChange("contracts")}
+              >
+                <div className="pro-radio-tabs__check-icon">
+                  <label
+                    className={`ant-radio-wrapper ${
+                      eventType === "contracts"
+                        ? "ant-radio-wrapper-checked"
+                        : ""
+                    }`}
+                  >
+                    <span
+                      className={`ant-radio ${
+                        eventType === "contracts" ? "ant-radio-checked" : ""
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        className="ant-radio-input"
+                        value="contracts"
+                        checked={eventType === "contracts"}
+                        onChange={() => handleEventTypeChange("contracts")}
+                      />
+                      <div className="ant-radio-inner"></div>
+                    </span>
+                  </label>
+                </div>
+                <p className="pro-text pro-body pro-text--normal">Contracts</p>
+              </div>
+
               <div
                 className={`pro-radio-tabs__tab ${
                   eventType === "auction" ? "pro-radio-tabs__tab__selected" : ""
@@ -234,41 +275,7 @@ const EventTypeModal = ({
                 </div>
                 <p className="pro-text pro-body pro-text--normal">Auction</p>
               </div>
-              {/* Contracts Tab */}
-<div
-  className={`pro-radio-tabs__tab ${
-    eventType === "contracts" ? "pro-radio-tabs__tab__selected" : ""
-  }`}
-  role="radio"
-  aria-checked={eventType === "rfq"}
-  tabIndex={0}
-  onClick={() => handleEventTypeChange("rfq")}
->
-  <div className="pro-radio-tabs__check-icon">
-    <label
-      className={`ant-radio-wrapper ${
-        eventType === "rfq" ? "ant-radio-wrapper-checked" : ""
-      }`}
-    >
-      <span
-        className={`ant-radio ${
-          eventType === "contracts" ? "ant-radio-checked" : ""
-        }`}
-      >
-        <input
-          type="radio"
-          className="ant-radio-input"
-          value="contracts"
-          checked={eventType === "contracts"}
-          onChange={() => handleEventTypeChange("contracts")}
-        />
-        <div className="ant-radio-inner"></div>
-      </span>
-    </label>
-  </div>
-  <p className="pro-text pro-body pro-text--normal">Contracts</p>
-</div>
-
+              
             </div>
           </div>
         </div>
@@ -279,7 +286,9 @@ const EventTypeModal = ({
           >
             <div
               className={`pro-radio-tabs__tab ${
-                selectedStrategy === "rank_based" ? "pro-radio-tabs__tab__selected" : ""
+                selectedStrategy === "rank_based"
+                  ? "pro-radio-tabs__tab__selected"
+                  : ""
               }`}
               tabIndex={0}
               role="radio"
@@ -290,7 +299,9 @@ const EventTypeModal = ({
                 <label className="ant-radio-wrapper">
                   <span
                     className={`ant-radio ${
-                      selectedStrategy === "rank_based" ? "ant-radio-checked" : ""
+                      selectedStrategy === "rank_based"
+                        ? "ant-radio-checked"
+                        : ""
                     }`}
                   >
                     <input
@@ -317,7 +328,9 @@ const EventTypeModal = ({
             </div>
             <div
               className={`pro-radio-tabs__tab ${
-                selectedStrategy === "price_based" ? "pro-radio-tabs__tab__selected" : ""
+                selectedStrategy === "price_based"
+                  ? "pro-radio-tabs__tab__selected"
+                  : ""
               }`}
               tabIndex={0}
               role="radio"
@@ -328,7 +341,9 @@ const EventTypeModal = ({
                 <label className="ant-radio-wrapper">
                   <span
                     className={`ant-radio ${
-                      selectedStrategy === "price_based" ? "ant-radio-checked" : ""
+                      selectedStrategy === "price_based"
+                        ? "ant-radio-checked"
+                        : ""
                     }`}
                   >
                     <input
@@ -400,7 +415,9 @@ const EventTypeModal = ({
 
             <div
               className={`pro-radio-tabs__tab ${
-                selectedStrategy === "traffic_light" ? "pro-radio-tabs__tab__selected" : ""
+                selectedStrategy === "traffic_light"
+                  ? "pro-radio-tabs__tab__selected"
+                  : ""
               }`}
               tabIndex={0}
               role="radio"
@@ -411,7 +428,9 @@ const EventTypeModal = ({
                 <label className="ant-radio-wrapper">
                   <span
                     className={`ant-radio ${
-                      selectedStrategy === "traffic_light" ? "ant-radio-checked" : ""
+                      selectedStrategy === "traffic_light"
+                        ? "ant-radio-checked"
+                        : ""
                     }`}
                   >
                     <input
@@ -598,7 +617,8 @@ const EventTypeModal = ({
 
         <div className="ant-col ant-form-item-label">
           <label title="How will you award the event?">
-            How will you award the event? <span style={{ color: 'red' }}>*</span>
+            How will you award the event?{" "}
+            <span style={{ color: "red" }}>*</span>
           </label>
         </div>
 
@@ -735,7 +755,8 @@ const EventTypeModal = ({
               <>
                 <label htmlFor="Datepicker">
                   Extend closing time in last 1 min in case of rank / price
-                  changes in top selected bids. <span style={{ color: 'red' }}>*</span>
+                  changes in top selected bids.{" "}
+                  <span style={{ color: "red" }}>*</span>
                 </label>
                 <div className="d-flex align-items-center gap-2">
                   <div
@@ -838,7 +859,10 @@ const EventTypeModal = ({
                   style={{ gridTemplateColumns: "6fr 6fr" }}
                 >
                   <div className="trigger-time">
-                    <label>Trigger time extension on last <span style={{ color: 'red' }}>*</span></label>
+                    <label>
+                      Trigger time extension on last{" "}
+                      <span style={{ color: "red" }}>*</span>
+                    </label>
                     <input
                       type="number"
                       placeholder="Min(s)"
@@ -856,7 +880,9 @@ const EventTypeModal = ({
                     />
                   </div>
                   <div className="extend-time">
-                    <label>Extend time by <span style={{ color: 'red' }}>*</span></label>
+                    <label>
+                      Extend time by <span style={{ color: "red" }}>*</span>
+                    </label>
                     <input
                       type="number"
                       placeholder="Min(s)"
@@ -874,9 +900,12 @@ const EventTypeModal = ({
                     />
                   </div>
                   <div className="time-extention">
-                    <label>Time extension on change in: <span style={{ color: 'red' }}>*</span></label>
+                    <label>
+                      Time extension on change in:{" "}
+                      <span style={{ color: "red" }}>*</span>
+                    </label>
                     <SelectBox
-                    label={""}
+                      label={""}
                       options={bidsType}
                       defaultValue={"Select Top bids"}
                       onChange={(value) => {

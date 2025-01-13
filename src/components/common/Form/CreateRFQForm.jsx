@@ -94,9 +94,9 @@ export default function CreateRFQForm({ data, setData }) {
   const handleRemoveRow = (rowIndex, sectionIndex) => {
     if (rowIndex > 0) {
       const updatedSections = [...sections];
-      updatedSections[sectionIndex].sectionData = updatedSections[sectionIndex].sectionData.filter(
-        (_, index) => index !== rowIndex
-      );
+      updatedSections[sectionIndex].sectionData = updatedSections[
+        sectionIndex
+      ].sectionData.filter((_, index) => index !== rowIndex);
       setSections(updatedSections);
     }
   };
@@ -122,8 +122,11 @@ export default function CreateRFQForm({ data, setData }) {
 
   const handleInputChange = (value, rowIndex, key, sectionIndex) => {
     const updatedSections = [...sections];
-    if (updatedSections[sectionIndex].sectionData[rowIndex]["inventory_id"] === "") {
-      updatedSections[sectionIndex].sectionData[rowIndex]["inventory_id"] = materials[rowIndex]?.id || "";
+    if (
+      updatedSections[sectionIndex].sectionData[rowIndex]["inventory_id"] === ""
+    ) {
+      updatedSections[sectionIndex].sectionData[rowIndex]["inventory_id"] =
+        materials[rowIndex]?.id || "";
     }
     updatedSections[sectionIndex].sectionData[rowIndex][key] = value;
     setSections(updatedSections);
@@ -135,15 +138,19 @@ export default function CreateRFQForm({ data, setData }) {
       (material) => material.name === selected
     );
 
-    updatedSections[sectionIndex].sectionData[rowIndex].descriptionOfItem = selected;
+    updatedSections[sectionIndex].sectionData[rowIndex].descriptionOfItem =
+      selected;
 
     if (selectedMaterial && selectedMaterial.uom) {
-      updatedSections[sectionIndex].sectionData[rowIndex].unit = selectedMaterial.uom.uom_short_name;
+      updatedSections[sectionIndex].sectionData[rowIndex].unit =
+        selectedMaterial.uom.uom_short_name;
     } else {
       updatedSections[sectionIndex].sectionData[rowIndex].unit = "";
     }
-    updatedSections[sectionIndex].sectionData[rowIndex].type = selectedMaterial?.type || "N/A";
-    updatedSections[sectionIndex].sectionData[rowIndex].inventory_id = selectedMaterial?.id || "";
+    updatedSections[sectionIndex].sectionData[rowIndex].type =
+      selectedMaterial?.type || "N/A";
+    updatedSections[sectionIndex].sectionData[rowIndex].inventory_id =
+      selectedMaterial?.id || "";
     setSections(updatedSections);
   };
 
@@ -168,7 +175,9 @@ export default function CreateRFQForm({ data, setData }) {
 
   const handleRemoveSection = (sectionIndex) => {
     if (sectionIndex > 0) {
-      const updatedSections = sections.filter((_, index) => index !== sectionIndex);
+      const updatedSections = sections.filter(
+        (_, index) => index !== sectionIndex
+      );
       setSections(updatedSections);
     }
   };
@@ -179,34 +188,34 @@ export default function CreateRFQForm({ data, setData }) {
   }));
 
   return (
-    <div className="row ">
-      <div className="card-body">
-        <div className="mx-3">
-          <div className="head-material d-flex justify-content-between">
-            <h4>
-              Select Materials{" "}
-              <span style={{ color: "red", fontSize: "16px" }}>*</span>
-            </h4>
-            
-          </div>
+    <div className="row px-3">
+      <div className="card p-0">
+        <div className="card-header3">
+          <h3 className="card-title">Select Materials </h3>
+        </div>
+        <div className="px-3 py-3">
           {sections.map((section, sectionIndex) => (
             <div key={section.sectionId} className="card p-4 mb-4">
-              <div className="d-flex justify-content-between">
-                <div className="d-flex gap-3">
-                  <SelectBox
-                    label={"Select Section"}
-                    options={sectionOptions}
-                    defaultValue={"Select Section"}
-                    onChange={undefined}
-                  />
-                  <SelectBox
-                    label={"Select Sub Section"}
-                    options={subSectionOptions}
-                    defaultValue={"Select Sub Section"}
-                    onChange={undefined}
-                  />
+              <div className="row">
+                <div className="col-md-8 col-sm-12 d-flex gap-3">
+                  <div className="flex-grow-1">
+                    <SelectBox
+                      label={"Select Section"}
+                      options={sectionOptions}
+                      defaultValue={"Select Section"}
+                      onChange={(selected) => selected.target}
+                    />
+                  </div>
+                  <div className="flex-grow-1">
+                    <SelectBox
+                      label={"Select Sub Section"}
+                      options={subSectionOptions}
+                      defaultValue={"Select Sub Section"}
+                      onChange={(selected) => selected.target}
+                    />
+                  </div>
                 </div>
-                <div className="d-flex gap-3 py-3">
+                <div className="col-md-4 col-sm-12 d-flex gap-3 py-3 justify-content-end">
                   <button
                     className="purple-btn2"
                     onClick={() => handleAddRow(sectionIndex)}
@@ -221,7 +230,7 @@ export default function CreateRFQForm({ data, setData }) {
                       className="purple-btn2"
                       onClick={() => handleRemoveSection(sectionIndex)}
                     >
-                    Remove Section
+                      Remove Section
                     </button>
                   )}
                 </div>
@@ -247,7 +256,11 @@ export default function CreateRFQForm({ data, setData }) {
                       options={materialOptions}
                       defaultValue={cell}
                       onChange={(selected) =>
-                        handleDescriptionOfItemChange(selected, rowIndex, sectionIndex)
+                        handleDescriptionOfItemChange(
+                          selected,
+                          rowIndex,
+                          sectionIndex
+                        )
                       }
                     />
                   ),
@@ -259,16 +272,19 @@ export default function CreateRFQForm({ data, setData }) {
                       readOnly
                     />
                   ),
-                  type: (cell, rowIndex) => (
-                    <p>{cell}</p>
-                  ),
+                  type: (cell, rowIndex) => <p>{cell}</p>,
                   location: (cell, rowIndex) => (
                     <input
                       type="text"
                       className="form-control"
                       value={cell}
                       onChange={(e) =>
-                        handleInputChange(e.target.value, rowIndex, "location", sectionIndex)
+                        handleInputChange(
+                          e.target.value,
+                          rowIndex,
+                          "location",
+                          sectionIndex
+                        )
                       }
                     />
                   ),
@@ -278,7 +294,12 @@ export default function CreateRFQForm({ data, setData }) {
                       type="number"
                       value={cell}
                       onChange={(e) =>
-                        handleInputChange(e.target.value, rowIndex, "quantity", sectionIndex)
+                        handleInputChange(
+                          e.target.value,
+                          rowIndex,
+                          "quantity",
+                          sectionIndex
+                        )
                       }
                       placeholder="Enter Quantity"
                     />
@@ -289,7 +310,12 @@ export default function CreateRFQForm({ data, setData }) {
                       type="number"
                       value={cell}
                       onChange={(e) =>
-                        handleInputChange(e.target.value, rowIndex, "rate", sectionIndex)
+                        handleInputChange(
+                          e.target.value,
+                          rowIndex,
+                          "rate",
+                          sectionIndex
+                        )
                       }
                       placeholder="Enter Rate"
                     />
@@ -300,7 +326,12 @@ export default function CreateRFQForm({ data, setData }) {
                       type="number"
                       value={""}
                       onChange={(e) =>
-                        handleInputChange(e.target.value, rowIndex, "amount", sectionIndex)
+                        handleInputChange(
+                          e.target.value,
+                          rowIndex,
+                          "amount",
+                          sectionIndex
+                        )
                       }
                       placeholder="Enter Amount"
                       disabled
@@ -323,15 +354,12 @@ export default function CreateRFQForm({ data, setData }) {
               />
             </div>
           ))}
-          <button
-              className="purple-btn2"
-              onClick={handleAddSection}
-            >
-              <span className="material-symbols-outlined align-text-top">
-                add{" "}
-              </span>
-              <span>Add Section</span>
-            </button>
+          <button className="purple-btn2" onClick={handleAddSection}>
+            <span className="material-symbols-outlined align-text-top">
+              add{" "}
+            </span>
+            <span>Add Section</span>
+          </button>
         </div>
       </div>
     </div>
