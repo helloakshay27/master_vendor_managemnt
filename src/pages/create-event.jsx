@@ -398,6 +398,8 @@ export default function CreateEvent() {
         location: material.location,
         rate: material.rate,
         amount: material.amount,
+        sub_section_id: material.sub_section_id,
+        section_id: material.section_id,
       })),
       event_vendors_attributes: selectedVendors.map((vendor) => ({
         status: 1,
@@ -414,23 +416,8 @@ export default function CreateEvent() {
       terms_and_conditions: termsAndConditions,
     };
 
-    // const formData = new FormData();
-    // formData.append("event", JSON.stringify(eventData));
-
-    // documentRowsRef.current.forEach((row) => {
-    //   if (row.upload) {
-    //     formData.append("event[attachments][]", row.upload);
-    //   }
-    // });
-
-    // // Debugging logs
-    // for (let pair of formData.entries()) {
-    //   console.log(pair[0] + ': ' + pair[1]);
-    // }
-
-    // console.log("formData",JSON.stringify(formData));
-    console.log("eventData", JSON.stringify(eventData));
-
+    console.log("Event data:", JSON.stringify(eventData));
+    
     try {
       const response = await fetch(
         "https://vendors.lockated.com/rfq/events?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414",

@@ -39,6 +39,7 @@ export default function CreateRFQForm({ data, setData }) {
         const response = await axios.get(
           "https://vendors.lockated.com/pms/sections/section_list?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414"
         );
+
         if (response.data && Array.isArray(response.data.section_list)) {
           setSectionOptions(
             response.data.section_list.map((section) => ({
@@ -79,6 +80,10 @@ export default function CreateRFQForm({ data, setData }) {
     fetchSubSections();
   }, []);
 
+  useEffect(() => {
+    setData(sections.flatMap((section) => section.sectionData));
+  }, [sections, setData]);
+
   const handleUnitChange = (selected, rowIndex, sectionIndex) => {
     const updatedSections = [...sections];
     updatedSections[sectionIndex].sectionData[rowIndex].unit = selected;
@@ -111,6 +116,8 @@ export default function CreateRFQForm({ data, setData }) {
       rate: 0,
       amount: 0,
       inventory_id: "",
+      sub_section_id: "",
+      section_id: "",
     };
     const updatedSections = [...sections];
     updatedSections[sectionIndex].sectionData = [
@@ -166,6 +173,8 @@ export default function CreateRFQForm({ data, setData }) {
           rate: 0,
           amount: 0,
           inventory_id: "",
+          sub_section_id: "",
+          section_id: "",
         },
       ],
       sectionId: Date.now(),
@@ -181,6 +190,23 @@ export default function CreateRFQForm({ data, setData }) {
       setSections(updatedSections);
     }
   };
+
+  const handleSectionChange = (selected, sectionIndex) => {
+    const updatedSections = [...sections];
+    updatedSections[sectionIndex].sectionData.forEach(row => {
+      row.section_id = selected;
+    });
+    setSections(updatedSections);
+  };
+
+  const handleSubSectionChange = (selected, sectionIndex) => {
+    const updatedSections = [...sections];
+    updatedSections[sectionIndex].sectionData.forEach(row => {
+      row.sub_section_id = selected;
+    });
+    setSections(updatedSections);
+  };
+  
 
   const materialOptions = materials.map((material) => ({
     value: material.name,
@@ -203,7 +229,7 @@ export default function CreateRFQForm({ data, setData }) {
                       label={"Select Section"}
                       options={sectionOptions}
                       defaultValue={"Select Section"}
-                      onChange={(selected) => selected.target}
+                      onChange={(selected) => handleSectionChange(selected, sectionIndex)}
                     />
                   </div>
                   <div className="flex-grow-1">
@@ -211,7 +237,7 @@ export default function CreateRFQForm({ data, setData }) {
                       label={"Select Sub Section"}
                       options={subSectionOptions}
                       defaultValue={"Select Sub Section"}
-                      onChange={(selected) => selected.target}
+                      onChange={(selected) => handleSubSectionChange(selected, sectionIndex)}
                     />
                   </div>
                 </div>
