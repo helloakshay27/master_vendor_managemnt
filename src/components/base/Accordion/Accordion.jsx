@@ -2,7 +2,12 @@ import React, { useState } from "react";
 import DropArrowIcon from "../../common/Icon/DropArrowIcon";
 import Table from "../Table/Table";
 
-export default function Accordion({ title, isDefault, tableColumn, tableData }) {
+export default function Accordion({
+  title,
+  isDefault,
+  tableColumn,
+  tableData,
+}) {
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleAccordion = () => setIsOpen(!isOpen);
@@ -32,6 +37,9 @@ export default function Accordion({ title, isDefault, tableColumn, tableData }) 
               columns={tableColumn}
               data={tableData}
               isHorizontal={true}
+              onRowSelect={undefined}
+              resetSelectedRows={undefined}
+              onResetComplete={undefined}
             />
           </div>
         </div>

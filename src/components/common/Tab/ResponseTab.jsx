@@ -11,6 +11,7 @@ import BulkCounterOfferModal from "../Modal/BulkCounterOfferModal";
 import axios from "axios";
 import { useParams } from "react-router-dom";
 import { da } from "date-fns/locale";
+import { SegregateBidMaterials } from "../../../utils/segregateBidMaterials";
 
 export default function ResponseTab() {
   const [isVendor, setIsVendor] = useState(false);
@@ -24,6 +25,11 @@ export default function ResponseTab() {
   const handle = useFullScreenHandle();
   const [activeIndexes, setActiveIndexes] = useState({});
   const [eventVendors, setEventVendors] = useState([]);
+  const [segeregatedMaterialData, setSegeregatedMaterialData] = useState([]);
+
+  useEffect(() => {
+    setSegeregatedMaterialData(SegregateBidMaterials(eventVendors));    
+  }, [eventVendors]);
 
   const { id } = useParams();
 
@@ -81,7 +87,6 @@ export default function ResponseTab() {
           )
         );
         console.log("Updated vendor data:", data);
-
       } else {
         // Use revision data
         const response = await axios.get(
@@ -160,8 +165,7 @@ export default function ResponseTab() {
         const data = await response.json();
         setResponse(data);
         setEventVendors(Array.isArray(data?.vendors) ? data.vendors : []);
-        console.log("data:--------",data);
-        
+        console.log("data:--------", data);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -329,9 +333,7 @@ export default function ResponseTab() {
                                 <div className="">
                                   {vendor.organization_name}
                                   <p>
-                                    {vendor?.bids?.map((item) =>
-                                      formatDate(item.created_at)
-                                    )}
+                                    {formatDate(vendor?.bids?.[0]?.created_at)}
                                   </p>
                                 </div>
                                 <div className="d-flex justify-content-center align-items-center w-100 my-2">
@@ -384,7 +386,7 @@ export default function ResponseTab() {
                         {eventVendors?.map((vendor) => {
                           return (
                             <td>
-                              {vendor?.bids?.map((item) => item.gross_total) ||
+                              {vendor?.bids?.[0]?.gross_total ||
                                 "_"}
                             </td>
                           );
@@ -393,18 +395,11 @@ export default function ResponseTab() {
                     </tbody>
                   </table>
                 </div>
-                {eventVendors?.map((vendor, ind) => {
-                  if (vendor?.bids?.length > 1) {
-                    vendor.bids = [vendor.bids[0]];
-                  }
-                  const bidMaterialNames = vendor?.bids?.[0]
-                    ?.material_title_strings?.[ind]
-                    ? [vendor.bids[0].material_title_strings[ind]]
-                    : [];
+                {segeregatedMaterialData?.map((materialData, ind) => {
                   return (
                     <Accordion
                       key={ind}
-                      title={bidMaterialNames.join(", ") || "_"}
+                      title={materialData.material_name || "_"}
                       isDefault={true}
                       tableColumn={[
                         {
@@ -430,8 +425,10 @@ export default function ResponseTab() {
                         },
                         { label: "Total Amount", key: "totalAmount" },
                       ]}
-                      tableData={vendor.bids?.flatMap((bid) =>
-                        bid.bid_materials.map((material) => ({
+                      tableData={materialData.bids_values?.map((material) => {
+                        // console.log("material:", material);
+                        
+                        return {
                           bestTotalAmount: material.total_amount || "_",
                           quantityAvailable: material.quantity_available || "_",
                           price: material.price || "_",
@@ -442,8 +439,8 @@ export default function ResponseTab() {
                           landedAmount: material.landed_amount || "_",
                           participantAttachment: "_",
                           totalAmount: material.total_amount || "_",
-                        }))
-                      )}
+                        };
+                      })}
                     />
                   );
                 })}
