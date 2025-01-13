@@ -6,11 +6,7 @@ const TabsList = ({ handleShowModal, renderModal }) => {
   return (
     <div className="d-flex justify-content-between align-items-center mt-3">
       {/* Tabs Section */}
-      <ul
-        className="nav nav-tabs border-0"
-        id="eventTabs"
-        role="tablist"
-      >
+      <ul className="nav nav-tabs border-0" id="eventTabs" role="tablist">
         {[
           { id: "responses", label: "Responses" },
           { id: "overview", label: "Overview" },
@@ -52,12 +48,12 @@ const TabsList = ({ handleShowModal, renderModal }) => {
           <Dropdown.Menu>
             {[
               { label: "Recreate Order", modalType: "Recreate" },
-              { label: "Shared With", modalType: "Shared" },
+              // { label: "Shared With", modalType: "Shared" },
               { label: "Extend Submission Time", modalType: "Extend" },
               { label: "Withdraw", modalType: "Withdraw" },
-              { label: "Convert to Auction", modalType: "Convert" },
+              // { label: "Convert to Auction", modalType: "Convert" },
               { label: "Rejected Bids", modalType: "Rejected" },
-              { label: "Order Activity", modalType: "Order" },
+              // { label: "Order Activity", modalType: "Order" },
               { label: "Add Evaluation Time", modalType: "Evaluation" },
               { label: "Send Bulk Counter Offer", modalType: "Counter" },
             ].map((item) => (
