@@ -466,18 +466,17 @@ export default function ResponseTab() {
                     { label: "Gross Total", key: "grossTotal" },
                   ]}
                   tableData={eventVendors?.flatMap((vendor) =>
-                    vendor?.bids?.flatMap((bid) => [
+                    vendor?.bids?.[0] ? [
                       {
-                        freightChrg: bid.freight_charge_amount || "_",
-                        freightGst: bid.gst_on_freight || "_",
-                        freightRealised:
-                          bid.realised_freight_charge_amount || "_",
-                        warranty: bid.warranty_clause || "_",
-                        payment: bid.payment_terms || "_",
-                        loading: bid.loading_unloading_clause || "_",
-                        grossTotal: bid.gross_total || "_",
+                        freightChrg: vendor.bids[0].freight_charge_amount || "_",
+                        freightGst: vendor.bids[0].gst_on_freight || "_",
+                        freightRealised: vendor.bids[0].realised_freight_charge_amount || "_",
+                        warranty: vendor.bids[0].warranty_clause || "_",
+                        payment: vendor.bids[0].payment_terms || "_",
+                        loading: vendor.bids[0].loading_unloading_clause || "_",
+                        grossTotal: vendor.bids[0].gross_total || "_",
                       },
-                    ])
+                    ] : []
                   )}
                 />
               </>

@@ -192,8 +192,7 @@ const RecreateOrderModal = ({ show, handleClose }) => {
       footerButtons={[
         {
           label: "Save",
-          onClick: handleClose,
-          onClick: handleSubmit, // Submit form data
+          onClick: handleSubmit,
           props: { className: "purple-btn2" },
         },
       ]}
