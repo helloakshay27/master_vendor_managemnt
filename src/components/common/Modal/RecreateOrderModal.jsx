@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import DynamicModalBox from "../../base/Modal/DynamicModalBox";
+import { useParams } from "react-router-dom";
 
 const RecreateOrderModal = ({ show, handleClose }) => {
   const durations = [
@@ -32,16 +33,18 @@ const RecreateOrderModal = ({ show, handleClose }) => {
   const [tableData, setTableData] = useState([]); // To store fetched data
   const [isLoading, setIsLoading] = useState(false); // For loading state
 
+  const { id } = useParams();
+
   // Fetch data from API
   useEffect(() => {
     const fetchTableData = async () => {
       try {
         setIsLoading(true);
         const response = await fetch(
-          "https://vendors.lockated.com/rfq/events/8/vendor_show?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&page=1"
+          `https://vendors.lockated.com/rfq/events/${id}/vendor_show?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&page=1`
         );
         const result = await response.json();
-        console.log(result); // Inspect the API response structure
+        console.log("API Response Structure", result); // Inspect the API response structure
         // setTableData(Array.isArray(result.data) ? result.data.eve : []); // Ensure it's always an array
 
         setTableData(result.event_materials || []);
@@ -177,7 +180,7 @@ const RecreateOrderModal = ({ show, handleClose }) => {
         </td>
         {/* <td>{material.rate}</td>
         <td>{material.amount}</td> */}
-        <td>{material.delivary_location}</td>
+        <td>{material.location}</td>
         {/* <td>{material.material_type}</td> */}
       </tr>
     ));
