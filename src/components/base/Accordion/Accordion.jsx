@@ -2,13 +2,18 @@ import React, { useState } from "react";
 import DropArrowIcon from "../../common/Icon/DropArrowIcon";
 import Table from "../Table/Table";
 
-export default function Accordion({ title, isDefault, tableColumn, tableData }) {
+export default function Accordion({
+  title,
+  isDefault,
+  tableColumn,
+  tableData,
+}) {
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleAccordion = () => setIsOpen(!isOpen);
   return (
-    <div className="accordion" id="accordionExample">
-      <div className="accordion-item py-3">
+    <div className="accordion rounded-0 border-0 mb-0" id="accordionExample">
+      <div className="accordion-item rounded-0">
         <h2 className="accordion-header">
           <button
             className="accordion-button viewBy-collapT1"
@@ -27,40 +32,15 @@ export default function Accordion({ title, isDefault, tableColumn, tableData }) 
           className={`accordion-collapse collapse ${isOpen ? "show" : ""}`}
           aria-labelledby="headingOne"
         >
-          <div className="accordion-body">
-            {/* <table className="tbl-container">
-              <tbody>
-                {tableData.map((row, rowIndex) => (
-                  <tr key={rowIndex}>
-                    {row.map((cell, cellIndex) => (
-                      <td
-                        key={cellIndex}
-                        className={cell.className}
-                        style={cell.style || {}}
-                      >
-                        {cell.content}
-                      </td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table> */}
-
+          <div className="accordion-body p-0">
             <Table
               columns={tableColumn}
               data={tableData}
               isHorizontal={true}
+              onRowSelect={undefined}
+              resetSelectedRows={undefined}
+              onResetComplete={undefined}
             />
-            {isDefault && (
-              <div className="default-val mt-4">
-                <div className="col-md-2">
-                  <p className="d-flex gap-1 align-items-center">
-                    Default: <span className="viewBy-tBody1-R">₹</span>
-                    68{" "}
-                  </p>
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </div>

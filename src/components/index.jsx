@@ -75,6 +75,7 @@ export { default as ScatterChart } from '../components/common/Chart/ScatterChart
 export { default as AnalyticsTab } from '../components/common/Tab/AnalyticsTab'    
 export { default as PriceTrendsTab } from '../components/common/Tab/PriceTrendsTab'    
 export { default as ParticipantsTab } from '../components/common/Tab/ParticipantsTab'    
+export { default as ParicipantsRemarksTab } from '../components/common/Tab/ParicipantsRemarksTab'    
 export { default as OverviewTab } from '../components/common/Tab/OverviewTab'    
 // export { default as ComparisonTab } from '../components/common/Tab/ComparisonTab'    
 export { default as ResponseTab } from '../components/common/Tab/ResponseTab'    

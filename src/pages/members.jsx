@@ -5,10 +5,7 @@ import { Link } from "react-router-dom";
 import React from "react";
 
 function Members() {
-
   return (
-
-    
     <>
       <Header />
       <div className="main-content">
@@ -21,12 +18,45 @@ function Members() {
                 <Link to="/create-event">create_event</Link>
               </li>
               <li>
-                <Link to="/event-list">event_list</Link>
+                <Link to="/event-list?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414">event_list</Link>
               </li>
               <li>
-                <Link to="/erp-rfq-detail-price-trends4h">event_details_price</Link>
+                <Link to="/erp-rfq-detail-price-trends4h">
+                  event_details_price
+                </Link>
               </li>
-            {/* <li>
+
+              <li>
+                <Link to="/vendor-list?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414">vendor_list</Link>
+              </li>
+
+              <li>
+                <Link to="/work-list">work list</Link>
+              </li>
+
+              <li>
+                <Link to="/material-list">Material List</Link>
+              </li>
+
+              <li>
+                <Link to="/service-list">Service List</Link>
+              </li>
+
+              <li>
+                <Link to="/Po">Po lists</Link>
+              </li>
+              <li>
+                <Link to="/Wo">Wo list</Link>
+              </li>
+              {/* <li>
+                <Link to="/user-list">user_list</Link>
+              </li>
+
+              <li>
+                <Link to="/user-overview">user_overview</Link>
+              </li> */}
+
+              {/* <li>
                 <Link to="good_receive_notes/:id">grn_detaisl</Link>
               </li> */}
               {/* <li>
@@ -53,9 +83,8 @@ function Members() {
               <li>
                 <Link to="/approvals-list">approvals_list</Link>
               </li> */}
-
             </ul>
-{/* 
+            {/* 
             <h1>BOQ</h1>
             <ul>
               <li>

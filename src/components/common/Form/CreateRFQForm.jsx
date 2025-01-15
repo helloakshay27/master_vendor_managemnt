@@ -5,298 +5,387 @@ import Table from "../../base/Table/Table";
 import React, { useState } from "react";
 import { useEffect } from "react";
 import axios from "axios";
+import { type } from "jquery";
 
-export default function CreateRFQForm({
-  handleEventTypeModalShow,
-  handleEventScheduleModalShow,
-  handleSettingModalShow,
-})
-
- 
-  
-
-{
-  const [data, setData] = useState([
+export default function CreateRFQForm({ data, setData, isService }) {
+  const [materials, setMaterials] = useState([]);
+  const [sections, setSections] = useState([
     {
-      descriptionOfItem: [],
-      quantity: "",
-      unit: [],
-      location: [],
-      rate: "",
-      amount: "",
+      sectionData: data,
+      sectionId: Date.now(),
     },
   ]);
-
-
-
-
-  const handleUnitChange = (selected, rowIndex) => {
-    const updatedData = [...data];
-    updatedData[rowIndex].unit = selected;
-    setData(updatedData);
-  };
-  const handleLocationChange = (selected, rowIndex) => {
-    const updatedData = [...data];
-    updatedData[rowIndex].location = selected;
-    setData(updatedData);
-  };
-
-  const handleInputChange = (value, rowIndex, key) => {
-    const updatedData = [...data];
-    updatedData[rowIndex][key] = value;
-    setData(updatedData);
-  };
-
-  // Remove row by index (except the first row)
-  const handleRemoveRow = (rowIndex) => {
-    if (rowIndex > 0) {
-      const updatedData = data.filter((_, index) => index !== rowIndex);
-      setData(updatedData);
-    }
-  };
-
-  // Add a new row
-  const handleAddRow = () => {
-    const newRow = {
-      descriptionOfItem: [],
-      quantity: "",
-      unit: [],
-      location: [],
-      rate: "",
-      amount: "",
-    };
-    setData([...data, newRow]);
-  };
-
-  const [materials, setMaterials] = useState([]);
-  const [selectedMaterial, setSelectedMaterial] = useState(null);
-   
+  const [sectionOptions, setSectionOptions] = useState([]);
+  const [subSectionOptions, setSubSectionOptions] = useState([]);
 
   useEffect(() => {
-    // Fetch material data from API
     const fetchMaterials = async () => {
       try {
-        const response = await axios.get('https://vendors.lockated.com/rfq/events/material_list?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414'); // Replace with your API endpoint
-       
-        // console.log(response ,"hhhhhhhhhhhhhhhhhh")
-
-        // setMaterials(response.data,materials);
+        const response = await axios.get(
+          "https://vendors.lockated.com/rfq/events/material_list?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414"
+        );
         if (response.data && Array.isArray(response.data.materials)) {
-          setMaterials(response.data.materials); // Set materials if it's an array
+          setMaterials(response.data.materials);
         } else {
-          console.error('Unexpected response structure:', response.data);
+          console.error("Unexpected response structure:", response.data);
         }
+      } catch (error) {
+        console.error("Error fetching materials:", error);
+      }
+    };
 
-      } 
-    
-      
-      catch (error) {
-        console.error('Error fetching materials:', error);
+    const fetchSections = async () => {
+      try {
+        const response = await axios.get(
+          "https://vendors.lockated.com/pms/sections/section_list?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414"
+        );
+
+        if (response.data && Array.isArray(response.data.section_list)) {
+          setSectionOptions(
+            response.data.section_list.map((section) => ({
+              label: section.name,
+              value: section.value,
+            }))
+          );
+        } else {
+          console.error("Unexpected response structure:", response.data);
+        }
+      } catch (error) {
+        console.error("Error fetching sections:", error);
+      }
+    };
+
+    const fetchSubSections = async () => {
+      try {
+        const response = await axios.get(
+          "https://vendors.lockated.com/pms/sections/sub_section_list?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414"
+        );
+        if (response.data && Array.isArray(response.data.section_list)) {
+          setSubSectionOptions(
+            response.data.section_list.map((subSection) => ({
+              label: subSection.name,
+              value: subSection.value,
+            }))
+          );
+        } else {
+          console.error("Unexpected response structure:", response.data);
+        }
+      } catch (error) {
+        console.error("Error fetching sub-sections:", error);
       }
     };
 
     fetchMaterials();
+    fetchSections();
+    fetchSubSections();
   }, []);
 
+  useEffect(() => {
+    setData(sections.flatMap((section) => section.sectionData));
+  }, [sections, setData]);
+
+  const handleUnitChange = (selected, rowIndex, sectionIndex) => {
+    const updatedSections = [...sections];
+    updatedSections[sectionIndex].sectionData[rowIndex].unit = selected;
+    setSections(updatedSections);
+  };
+
+  const handleLocationChange = (selected, rowIndex, sectionIndex) => {
+    const updatedSections = [...sections];
+    updatedSections[sectionIndex].sectionData[rowIndex].location = selected;
+    setSections(updatedSections);
+  };
+
+  const handleRemoveRow = (rowIndex, sectionIndex) => {
+    if (rowIndex > 0) {
+      const updatedSections = [...sections];
+      updatedSections[sectionIndex].sectionData = updatedSections[
+        sectionIndex
+      ].sectionData.filter((_, index) => index !== rowIndex);
+      setSections(updatedSections);
+    }
+  };
+
+  const handleAddRow = (sectionIndex) => {
+    const newRow = {
+      descriptionOfItem: [],
+      quantity: "",
+      unit: [],
+      type: materials[0]?.type || "",
+      location: [],
+      rate: 0,
+      amount: 0,
+      inventory_id: "",
+      sub_section_id: sections[sectionIndex].sectionData[0]?.sub_section_id || "",
+      section_id: sections[sectionIndex].sectionData[0]?.section_id || "",
+    };
+    const updatedSections = [...sections];
+    updatedSections[sectionIndex].sectionData = [
+      ...updatedSections[sectionIndex].sectionData,
+      newRow,
+    ];
+    setSections(updatedSections);
+  };
+
+  const handleInputChange = (value, rowIndex, key, sectionIndex) => {
+    const updatedSections = [...sections];
+    if (
+      updatedSections[sectionIndex].sectionData[rowIndex]["inventory_id"] === ""
+    ) {
+      updatedSections[sectionIndex].sectionData[rowIndex]["inventory_id"] =
+        materials[rowIndex]?.id || "";
+    }
+    updatedSections[sectionIndex].sectionData[rowIndex][key] = value;
+    setSections(updatedSections);
+  };
+
+  const handleDescriptionOfItemChange = (selected, rowIndex, sectionIndex) => {
+    const updatedSections = [...sections];
+    const selectedMaterial = materials.find(
+      (material) => material.name === selected
+    );
+
+    updatedSections[sectionIndex].sectionData[rowIndex].descriptionOfItem =
+      selected;
+
+    if (selectedMaterial && selectedMaterial.uom) {
+      updatedSections[sectionIndex].sectionData[rowIndex].unit =
+        selectedMaterial.uom.uom_short_name;
+    } else {
+      updatedSections[sectionIndex].sectionData[rowIndex].unit = "";
+    }
+    updatedSections[sectionIndex].sectionData[rowIndex].type =
+      selectedMaterial?.type || "N/A";
+    updatedSections[sectionIndex].sectionData[rowIndex].inventory_id =
+      selectedMaterial?.id || "";
+    setSections(updatedSections);
+  };
+
+  const handleAddSection = () => {
+    const newSection = {
+      sectionData: [
+        {
+          descriptionOfItem: [],
+          quantity: "",
+          unit: [],
+          type: materials[0]?.type || "",
+          location: [],
+          rate: 0,
+          amount: 0,
+          inventory_id: "",
+          sub_section_id: "",
+          section_id: "",
+        },
+      ],
+      sectionId: Date.now(),
+    };
+    setSections([...sections, newSection]);
+  };
+
+  const handleRemoveSection = (sectionIndex) => {
+    if (sectionIndex > 0) {
+      const updatedSections = sections.filter(
+        (_, index) => index !== sectionIndex
+      );
+      setSections(updatedSections);
+    }
+  };
+
+  const handleSectionChange = (selected, sectionIndex) => {
+    const updatedSections = [...sections];
+    updatedSections[sectionIndex].sectionData.forEach(row => {
+      row.section_id = selected;
+    });
+    setSections(updatedSections);
+  };
+
+  const handleSubSectionChange = (selected, sectionIndex) => {
+    const updatedSections = [...sections];
+    updatedSections[sectionIndex].sectionData.forEach(row => {
+      row.sub_section_id = selected;
+    });
+    setSections(updatedSections);
+  };
+  
 
   const materialOptions = materials.map((material) => ({
     value: material.name,
     label: material.name,
   }));
 
-  const handleDescriptionOfItemChange = (selected, rowIndex) => {
-    const updatedData = [...data];
-  
-    // Find the selected material
-    const selectedMaterial = materials.find(
-      (material) => material.name === selected
-    );
-  
-    // Update descriptionOfItem
-    updatedData[rowIndex].descriptionOfItem = selected;
-  
-    // Check if selectedMaterial exists and has a valid UOM
-    if (selectedMaterial && selectedMaterial.uom) {
-      updatedData[rowIndex].unit = selectedMaterial.uom.uom_short_name; // Update UOM short name
-    } else {
-      updatedData[rowIndex].unit = ""; // Set empty if no UOM found
-    }
-  
-    setData(updatedData);
-  };
-
   return (
-    <div className="row ">
-      <div className="card-body">
-        {/* <div className="row align-items-end justify-items-end mx-2 mb-5">
-          <div className="col-md-4 mt-0 mb-2">
-            <div className="form-group">
-              <label className="po-fontBold">Event Type</label>
-            </div>
-            <input
-              className="form-control "
-              onClick={handleEventTypeModalShow}
-              placeholder="Configure The Event"
-            />
-          </div>
-          <div className="col-md-4 mt-0 mb-2">
-            <div className="form-group">
-              <label className="po-fontBold">Event No.</label>
-              <input
-                className="form-control"
-                type="text"
-                placeholder="Enter Event No."
+    <div className="row px-3">
+      <div className="card p-0">
+        <div className="card-header3">
+          <h3 className="card-title">{`Select ${isService ? 'Services' : 'Materials'}`} </h3>
+        </div>
+        <div className="px-3 py-3">
+          {sections.map((section, sectionIndex) => (
+            <div key={section.sectionId} className="card p-4 mb-4">
+              <div className="row">
+                <div className="col-md-8 col-sm-12 d-flex gap-3">
+                  <div className="flex-grow-1">
+                    <SelectBox
+                      label={"Select Section"}
+                      options={sectionOptions}
+                      defaultValue={"Select Section"}
+                      onChange={(selected) => handleSectionChange(selected, sectionIndex)}
+                    />
+                  </div>
+                  <div className="flex-grow-1">
+                    <SelectBox
+                      label={"Select Sub Section"}
+                      options={subSectionOptions}
+                      defaultValue={"Select Sub Section"}
+                      onChange={(selected) => handleSubSectionChange(selected, sectionIndex)}
+                    />
+                  </div>
+                </div>
+                <div className="col-md-4 col-sm-12 d-flex gap-3 py-3 justify-content-end">
+                  <button
+                    className="purple-btn2"
+                    onClick={() => handleAddRow(sectionIndex)}
+                  >
+                    <span className="material-symbols-outlined align-text-top">
+                      add{" "}
+                    </span>
+                    <span>Add Row</span>
+                  </button>
+                  {sectionIndex > 0 && (
+                    <button
+                      className="purple-btn2"
+                      onClick={() => handleRemoveSection(sectionIndex)}
+                    >
+                      Remove Section
+                    </button>
+                  )}
+                </div>
+              </div>
+              <Table
+                columns={[
+                  { label: "Sr no.", key: "srno" },
+                  { label: "Description of Item", key: "descriptionOfItem" },
+                  { label: "Quantity", key: "quantity" },
+                  { label: "UOM", key: "unit" },
+                  { label: "Type", key: "type" },
+                  { label: "Location", key: "location" },
+                  { label: "Rate", key: "rate" },
+                  { label: "Amount", key: "amount" },
+                  { label: "Actions", key: "actions" },
+                ]}
+                data={section.sectionData}
+                customRender={{
+                  srno: (cell, rowIndex) => <p>{rowIndex + 1}</p>,
+                  descriptionOfItem: (cell, rowIndex) => (
+                    <SelectBox
+                      label={""}
+                      options={materialOptions}
+                      defaultValue={cell}
+                      onChange={(selected) =>
+                        handleDescriptionOfItemChange(
+                          selected,
+                          rowIndex,
+                          sectionIndex
+                        )
+                      }
+                    />
+                  ),
+                  unit: (cell, rowIndex) => (
+                    <input
+                      className="form-control"
+                      type="text"
+                      value={cell}
+                      readOnly
+                    />
+                  ),
+                  type: (cell, rowIndex) => <p>{cell}</p>,
+                  location: (cell, rowIndex) => (
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={cell}
+                      onChange={(e) =>
+                        handleInputChange(
+                          e.target.value,
+                          rowIndex,
+                          "location",
+                          sectionIndex
+                        )
+                      }
+                    />
+                  ),
+                  quantity: (cell, rowIndex) => (
+                    <input
+                      className="form-control"
+                      type="number"
+                      value={cell}
+                      onChange={(e) =>
+                        handleInputChange(
+                          e.target.value,
+                          rowIndex,
+                          "quantity",
+                          sectionIndex
+                        )
+                      }
+                      placeholder="Enter Quantity"
+                    />
+                  ),
+                  rate: (cell, rowIndex) => (
+                    <input
+                      className="form-control"
+                      type="number"
+                      value={cell}
+                      onChange={(e) =>
+                        handleInputChange(
+                          e.target.value,
+                          rowIndex,
+                          "rate",
+                          sectionIndex
+                        )
+                      }
+                      placeholder="Enter Rate"
+                    />
+                  ),
+                  amount: (cell, rowIndex) => (
+                    <input
+                      className="form-control"
+                      type="number"
+                      value={""}
+                      onChange={(e) =>
+                        handleInputChange(
+                          e.target.value,
+                          rowIndex,
+                          "amount",
+                          sectionIndex
+                        )
+                      }
+                      placeholder="Enter Amount"
+                      disabled
+                    />
+                  ),
+                  actions: (_, rowIndex) => (
+                    <button
+                      className="btn btn-danger"
+                      onClick={() => handleRemoveRow(rowIndex, sectionIndex)}
+                      disabled={rowIndex === 0}
+                    >
+                      Remove
+                    </button>
+                  ),
+                }}
+                onRowSelect={undefined}
+                handleCheckboxChange={undefined}
+                resetSelectedRows={undefined}
+                onResetComplete={undefined}
               />
             </div>
-          </div>
-          <div className="col-md-4 mt-0 mb-2">
-            <div className="form-group">
-              <label className="po-fontBold">Created On</label>
-              <input className="form-control" type="date" />
-            </div>
-          </div>
-          {/* <div className="col-md-4 mt-2">
-            <div className="form-group">
-              <label className="po-fontBold">Material Type</label>
-              <input
-                className="form-control"
-                type="text"
-                placeholder="Enter Material Type"
-              />
-            </div>
-          </div> */}
-          {/* <div className="col-md-4 mt-2">
-            <div className="form-group">
-              <label className="po-fontBold">Event Schedule</label>
-            </div>
-            <input
-              className="form-control "
-              onClick={handleEventScheduleModalShow}
-              placeholder="From [dd-mm-yy hh:mm] To [dd-mm-yy hh:mm] ([DD] Days
-                                                          [HH] Hrs [MM] Mins)"
-            />
-          </div>
-        </div>   */} 
-        <div className="mx-3">
-          <div className="head-material d-flex justify-content-between">
-            <h4>Select Materials</h4>
-            <button
-              className="purple-btn2"
-              data-bs-toggle="modal"
-              data-bs-target="#venderModal"
-              onClick={handleAddRow}
-            >
-              <span className="material-symbols-outlined align-text-top me-2">
-                add{" "}
-              </span>
-              <span>Add</span>
-            </button>
-          </div>
-         <Table  
-            columns={[ 
-              { label: "Description of Item", key: "descriptionOfItem" },
-              { label: "Quantity", key: "quantity" },
-              { label: "UOM", key: "unit" },
-              { label: "Location", key: "location" },
-              { label: "Rate", key: "rate" },
-              { label: "Amount", key: "amount" },
-              { label: "Actions", key: "actions" },
-            ]}
-            data={data}
-            customRender={{
-              descriptionOfItem: (cell, rowIndex) => (
-                <SelectBox
-                  label={""}
-                  // options={product}
-                  options={materialOptions}
-
-                  defaultValue={cell}
-                  onChange={(selected) =>
-                    handleDescriptionOfItemChange(selected, rowIndex)
-                  }
-                />
-                // <MultiSelector
-                //   options={product}
-                //   value={cell}
-                //   onChange={(selected) =>
-                //     handleDescriptionOfItemChange(selected, rowIndex)
-                //   }
-                //   placeholder="Select Items"
-                // />
-              ),
-              unit: (cell, rowIndex) => (
-
-                <input
-                className="form-control"
-                type="text"
-                value={cell}
-                readOnly
-              />
-                // <SelectBox
-                //   isDisableFirstOption={true}
-                //   label={""}
-                //   options={unitMeasure}
-                //   defaultValue={cell}
-                //   onChange={(selected) => handleUnitChange(selected, rowIndex)}
-                // />
-              ),
-              location: (cell, rowIndex) => (
-                <SelectBox
-                  label={""}
-                  defaultValue={cell}
-                  onChange={(selected) =>
-                    handleLocationChange(selected, rowIndex)
-                  }
-                  options={mumbaiLocations}
-                  isDisableFirstOption={true}
-                />
-              ),
-              quantity: (cell, rowIndex) => (
-                <input
-                  className="form-control"
-                  type="number"
-                  value={cell}
-                  onChange={(e) =>
-                    handleInputChange(e.target.value, rowIndex, "quantity")
-                  }
-                  placeholder="Enter Quantity"
-                />
-              ),
-              rate: (cell, rowIndex) => (
-                <input
-                  className="form-control"
-                  type="number"
-                  value={cell}
-                  onChange={(e) =>
-                    handleInputChange(e.target.value, rowIndex, "rate")
-                  }
-                  placeholder="Enter Rate"
-                  disabled 
-                />
-              ),
-              amount: (cell, rowIndex) => (
-                <input
-                  className="form-control"
-                  type="number"
-                  value={cell}
-                  onChange={(e) =>
-                    handleInputChange(e.target.value, rowIndex, "amount")
-                  }
-                  placeholder="Enter Amount"
-                  disabled 
-                />
-              ),
-              actions: (_, rowIndex) => (
-                <button
-                  className="btn btn-danger"
-                  onClick={() => handleRemoveRow(rowIndex)}
-                  disabled={rowIndex === 0} // Disable the button for the first row
-                >
-                  Remove
-                </button>
-              ),
-            }}
-          />
+          ))}
+          <button className="purple-btn2" onClick={handleAddSection}>
+            <span className="material-symbols-outlined align-text-top">
+              add{" "}
+            </span>
+            <span>Add Section</span>
+          </button>
         </div>
       </div>
     </div>

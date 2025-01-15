@@ -37,7 +37,7 @@ export const evaluationOptions = [
   { label: "30 Minutes", value: "30 Minutes" },
   { label: "60 Minutes", value: "60 Minutes" },
   { label: "Custom", value: "Custom" },
-  { label: "Fixed Time", value: "Fixed Time" },
+  // { label: "Fixed Time", value: "Fixed Time" },
 ];
 
 export const chartOptions = {
@@ -191,112 +191,74 @@ export const auditLogData = [
 ];
 
 export const participantsTabColumns = [
+  { label: "Sr No", key: "srNo" }, 
   { label: "Name", key: "name" },
-  { label: "Bids Closed", key: "bidsClosed" },
-  { label: "Email", key: "email" },
   { label: "Phone", key: "phone" },
-  { label: "City", key: "city" },
-  { label: "Tags", key: "tags" },
+  { label: "Email", key: "email" },
 ];
 
 export const participantsTabData = [
   {
     name: "AXIS ELECTRICAL COMPONENTS INDIA PRIVATE LIMITED",
-    bidsClosed: "View Price Cap",
-    email: "contact@axis-electrical.com",
     phone: "9876543210",
-    city: "Mumbai",
-    tags: "Electrical Components",
+    email: "contact@axis-electrical.com",
   },
   {
     name: "AJAY ELECTRICALS",
-    bidsClosed: "",
-    email: "ajay@ajayelectricals.com",
     phone: "9876543211",
-    city: "Delhi",
-    tags: "Electricals",
+    email: "ajay@ajayelectricals.com",
   },
   {
     name: "Ampere Electrical Services",
-    bidsClosed: "View Price Cap",
-    email: "info@ampere-electrical.com",
     phone: "9876543212",
-    city: "Bangalore",
-    tags: "Services",
+    email: "info@ampere-electrical.com",
   },
   {
     name: "A.R. ENTERPRISE",
-    bidsClosed: "",
-    email: "sales@arenterprise.com",
     phone: "9876543213",
-    city: "Chennai",
-    tags: "Enterprise",
+    email: "sales@arenterprise.com",
   },
   {
     name: "BRAHMARI POWERTECH PRIVATE LIMITED",
-    bidsClosed: "",
-    email: "support@brahmaripowertech.com",
     phone: "9876543214",
-    city: "Hyderabad",
-    tags: "Powertech",
+    email: "support@brahmaripowertech.com",
   },
   {
     name: "CAPE ELECTRIC PRIVATE LIMITED",
-    bidsClosed: "View Price Cap",
-    email: "info@capeelectric.com",
     phone: "9876543215",
-    city: "Pune",
-    tags: "Private Limited",
+    email: "info@capeelectric.com",
   },
   {
     name: "ELECTRICAL SOLUTIONS",
-    bidsClosed: "",
-    email: "contact@electricalsolutions.com",
     phone: "9876543216",
-    city: "Ahmedabad",
-    tags: "Solutions",
+    email: "contact@electricalsolutions.com",
   },
   {
     name: "IQRA ENTERPRISES",
-    bidsClosed: "",
-    email: "info@iqraenterprises.com",
     phone: "9876543217",
-    city: "Kolkata",
-    tags: "Enterprise",
+    email: "info@iqraenterprises.com",
   },
   {
     name: "MAC ELECTRICALS",
-    bidsClosed: "",
-    email: "contact@macelectricals.com",
     phone: "9876543218",
-    city: "Mumbai",
-    tags: "Electricals",
+    email: "contact@macelectricals.com",
   },
   {
     name: "Moksh Infra",
-    bidsClosed: "",
-    email: "sales@mokshinfra.com",
     phone: "9876543219",
-    city: "Surat",
-    tags: "Infra",
+    email: "sales@mokshinfra.com",
   },
 ];
 
 export const eventProjectColumns = [
-  { label: "Sr.No.", key: "srno" },
-  { label: "Company", key: "company" },
-  { label: "Project", key: "project" },
-  { label: "Sub-Project", key: "subProject" },
-  { label: "MOR No.", key: "morNo" },
-  { label: "Approved Date", key: "approvedDate" },
-  { label: "Priority", key: "priority" },
-  { label: "Sub-Type", key: "subType" },
-  { label: "Assigned to", key: "assignedTo" },
-  { label: "Lead Time", key: "leadTime" },
-  { label: "Ageing", key: "ageing" },
-  { label: "Material", key: "material" },
-  { label: "UOM", key: "uom" },
-  { label: "Pending Qty", key: "pendingQty" },
+  { label: "Sr.No.", key: "srNo" },
+  { label: "Event Title", key: "event_title" },
+  { label: "Event No", key: "event_no" },
+  { label: "Created At", key: "created_at" },
+  { label: "Created By", key: "created_by" },
+
+  { label: "Event Type", key: "event_type" },
+  { label: "Event Configuration", key: "event_configuration" },
   { label: "Status", key: "status" },
 ];
 
@@ -562,6 +524,23 @@ export const freightData = [
   { label: "Warranty Clause", value: "mtc" },
   { label: "Payment Terms", value: "advance" },
   { label: "Loading / Unloading", value: "under buyer" },
+];
+export  const productTableColumns = [
+  { label: "S no.*", key: "Sno" },
+  { label: "Material*", key: "product" },
+  { label: "Quantity Requested*", key: "quantityRequested" },
+  { label: "Quantity Available", key: "quantityAvailable" },
+  { label: "Price*", key: "price" },
+  { label: "Delivery location*", key: "deliveryLocation" },
+  { label: "Creator Attachment", key: "creatorAttachment" },
+  { label: "Discount", key: "discount" },
+  { label: "Realised Discount*", key: "realisedDiscount" },
+  { label: "GST*", key: "gst" },
+  { label: "Realised GST", key: "realisedGst" },
+  { label: "Participant Attachment", key: "participantAttachment" },
+  { label: "Vendor Remark*", key: "vendorRemark" },
+  { label: "Landed Amount*", key: "landedAmount" },
+  { label: "Total Amount*", key: "totalAmount" },
 ];
 
 export const biddingData = [
@@ -833,8 +812,6 @@ export const eventHistoryData = [
       },
       {
         name: "Pratik Bhosale",
-        description: "[IN/XYZA02/Trial/200] Flooring - Cityscape Projects Ltd",
-        deliveryLocation: "Cityscape Projects Ltd (Tower-C)",
         status: "RFQ",
         productsCount: "300 Sqft",
         bids: "5 bids",
