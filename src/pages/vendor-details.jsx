@@ -29,6 +29,7 @@ export default function VendorDetails() {
   // const bids = [1555, 2, 3, 4787, 5, 66666, 7, 8, 9,10,11,12];
 
   // Function to move to the next bid
+
   const increment = () => {
     if (currentIndex + 1 < bids.length) {
       setCurrentIndex(currentIndex + 1);
@@ -762,6 +763,15 @@ export default function VendorDetails() {
     console.log("Revising the existing bid...");
 
     // Example: API call to revise the bid
+
+    const userConfirmed = window.confirm(
+      "Are you sure you want to revise this bid?"
+    );
+
+    if (!userConfirmed) {
+      console.log("Bid revision canceled by user.");
+      return; // Exit if the user selects "No"
+    }
 
     try {
       // Send POST request
@@ -2619,6 +2629,7 @@ export default function VendorDetails() {
 
                   <div style={{ marginTop: "10px" }}>
                     {/* bid button */}
+
                     {revisedBid && (
                       <div className="d-flex justify-content-center align-items-center">
                         <div className="d-flex align-items-center">
@@ -2645,7 +2656,7 @@ export default function VendorDetails() {
                             </svg>
                           </button>
 
-                          {/* Scrollable buttons container with limited width */}
+                          {/* Scrollable buttons container with dynamic width */}
                           <div
                             className="scrollmenu"
                             style={{
@@ -2653,7 +2664,10 @@ export default function VendorDetails() {
                               overflowX: "auto",
                               whiteSpace: "nowrap",
                               paddingBottom: "10px", // Space for scrollbar
-                              width: "250px", // Limit the width (adjust this value as needed)
+                              width:
+                                bids.length <= 2
+                                  ? `${bids.length * 120}px`
+                                  : "350px", // Dynamic width for 1 or 2 bids
                               margin: "0 auto", // Center the container horizontally
                             }}
                           >

@@ -23,6 +23,7 @@ import {
 } from "../components";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
+import BulkCounterOfferModalTwo from "../components/common/Modal/BulkCounterOfferModalTwo";
 
 export default function ErpRfqDetailPriceTrends4h() {
   const { id } = useParams(); // Get the id from the URL params
@@ -62,6 +63,28 @@ export default function ErpRfqDetailPriceTrends4h() {
     const secs = seconds % 60;
     return `${hrs}H:${mins}M:${secs}s`;
   };
+
+  const [counterOfferData, setCounterOfferData] = useState(null);
+
+  useEffect(() => {
+    const fetchCounterOfferData = async () => {
+      try {
+        const response = await fetch(
+          `https://vendors.lockated.com/rfq/events/${id}/event_materials?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&page=1&q[event_vendor_id_cont]=7398`
+        );
+        const data = await response.json();
+        if (data) {
+          setCounterOfferData(data); // Set the fetched data
+        }
+
+        console.log("dataaaaaaaaaaa", data);
+      } catch (error) {
+        console.error("Failed to fetch counter offer data", error);
+      }
+    };
+
+    fetchCounterOfferData();
+  }, []); // Run the effect once when the component is mounted
 
   const participantsAccordion = () => {
     setParticipantsOpen(!participantsOpen);
@@ -157,10 +180,10 @@ export default function ErpRfqDetailPriceTrends4h() {
       // @ts-ignore
       case "Counter":
         return (
-          <BulkCounterOfferModal
+          <BulkCounterOfferModalTwo
             show={showModal}
             handleClose={handleCloseModal}
-            bidCounterData={undefined}
+            bidCounterData={counterOfferData}
           />
         );
       default:
