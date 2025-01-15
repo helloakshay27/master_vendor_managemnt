@@ -25,6 +25,11 @@ function Members() {
                   event_details_price
                 </Link>
               </li>
+              <li>
+                <Link to="/contract-invitation">
+                  contract_invitation
+                </Link>
+              </li>
 
               <li>
                 <Link to="/vendor-list?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414">vendor_list</Link>

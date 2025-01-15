@@ -31,6 +31,7 @@ import WoPage from "./pages/Wo";
 import Wodetails from "./pages/Wodetails";
 import POdeta from "./pages/POdetails";
 import PoPage from "./pages/Po";
+import ContractInvitation from "./pages/contract-invitation";
 
 function App() {
   return (
@@ -58,6 +59,7 @@ function App() {
           <Route path="/create-rfq" element={<CreateRfq />} />
           {/* <Route path="/event-list" element={<ErpRfqA />} /> */}
           <Route path="/event-list" element={<EventListPage />} />
+          <Route path="/contract-invitation" element={<ContractInvitation />} />
 
           {/* <Route path="/event-list" element={<EventList />} /> */}
 

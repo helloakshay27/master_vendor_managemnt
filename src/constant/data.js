@@ -196,6 +196,87 @@ export const participantsTabColumns = [
   { label: "Phone", key: "phone" },
   { label: "Email", key: "email" },
 ];
+export const contractColumns = [
+  { label: "Sr No", key: "srNo" }, 
+  { label: "Vendor Name", key: "vendorName" },
+  { label: "Event Name", key: "eventName" },
+  { label: "Event No", key: "eventNo" }, 
+  { label: "Status", key: "status" },
+];
+
+export const contractData = [
+  {
+    srNo: 1,
+    vendorName: "AXIS ELECTRICAL COMPONENTS INDIA PRIVATE LIMITED",
+    eventName: "Electrical Supplies Procurement",
+    eventNo: "EVT001",
+    status: "Completed",
+  },
+  {
+    srNo: 2,
+    vendorName: "AJAY ELECTRICALS",
+    eventName: "Power Distribution Network Setup",
+    eventNo: "EVT002",
+    status: "Pending",
+  },
+  {
+    srNo: 3,
+    vendorName: "Ampere Electrical Services",
+    eventName: "Transformer Maintenance",
+    eventNo: "EVT003",
+    status: "In Progress",
+  },
+  {
+    srNo: 4,
+    vendorName: "A.R. ENTERPRISE",
+    eventName: "Substation Installation",
+    eventNo: "EVT004",
+    status: "Completed",
+  },
+  {
+    srNo: 5,
+    vendorName: "BRAHMARI POWERTECH PRIVATE LIMITED",
+    eventName: "Electrical Wiring Project",
+    eventNo: "EVT005",
+    status: "Pending",
+  },
+  {
+    srNo: 6,
+    vendorName: "CAPE ELECTRIC PRIVATE LIMITED",
+    eventName: "Lighting Solutions Deployment",
+    eventNo: "EVT006",
+    status: "In Progress",
+  },
+  {
+    srNo: 7,
+    vendorName: "ELECTRICAL SOLUTIONS",
+    eventName: "Panel Board Assembly",
+    eventNo: "EVT007",
+    status: "Completed",
+  },
+  {
+    srNo: 8,
+    vendorName: "IQRA ENTERPRISES",
+    eventName: "Cable Network Upgrade",
+    eventNo: "EVT008",
+    status: "In Progress",
+  },
+  {
+    srNo: 9,
+    vendorName: "MAC ELECTRICALS",
+    eventName: "Generator Installation",
+    eventNo: "EVT009",
+    status: "Pending",
+  },
+  {
+    srNo: 10,
+    vendorName: "Moksh Infra",
+    eventName: "Power Backup Solutions",
+    eventNo: "EVT010",
+    status: "Completed",
+  },
+];
+
 
 export const participantsTabData = [
   {
