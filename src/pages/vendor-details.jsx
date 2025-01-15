@@ -369,7 +369,7 @@ export default function VendorDetails() {
             amount: item.amount,
             totalAmt: "", // Placeholder for calculated total amount
             attachment: null, // Placeholder for attachment
-            varient: materialType, // Use extracted material_type
+            varient: item.material_type, // Use extracted material_type
           };
         });
 
@@ -541,22 +541,104 @@ export default function VendorDetails() {
   // Log the parsed value
   console.log("Parsed freight charge:", freightCharge21);
 
-  const preparePayload = () => {
-    const totalAmount = parseFloat(calculateDataSumTotal());
+  // const preparePayload = () => {
+  //   const totalAmount = parseFloat(calculateDataSumTotal());
 
-    const bidMaterialsAttributes = data.map((row) => ({
-      event_material_id: row.eventMaterialId,
-      quantity_available: row.quantityAvail || 0,
-      price: Number(row.price || 0),
-      discount: Number(row.discount || 0),
-      bid_material_id: row.id,
-      vendor_remark: row.vendorRemark || "",
-      gst: row.gst || 0,
-      realised_discount: row.realisedDiscount || 0,
-      realised_gst: row.realisedGst || 0,
-      landed_amount: row.landedAmount || 0,
-      total_amount: totalAmount,
-    }));
+  //   const bidMaterialsAttributes = data.map((row) => ({
+  //     event_material_id: row.eventMaterialId,
+  //     quantity_available: row.quantityAvail || 0,
+  //     price: Number(row.price || 0),
+  //     discount: Number(row.discount || 0),
+  //     bid_material_id: row.id,
+  //     vendor_remark: row.vendorRemark || "",
+  //     gst: row.gst || 0,
+  //     realised_discount: row.realisedDiscount || 0,
+  //     realised_gst: row.realisedGst || 0,
+  //     landed_amount: row.landedAmount || 0,
+  //     total_amount: totalAmount,
+  //   }));
+
+  //   console.log("------bid material :", bidMaterialsAttributes);
+
+  //   // Utility function to safely fetch and process values from freightData
+  //   const getFreightDataValue = (label, key) => {
+  //     const item = freightData.find((entry) => entry.label === label);
+  //     if (item?.value?.[key]) {
+  //       return String(item.value[key]); // Ensure the value is converted to a string
+  //     }
+  //     return ""; // Return empty string if value is not found
+  //   };
+
+  //   // Fetch and parse Freight Charge and GST on Freight
+  //   const freightChargeRaw = getFreightDataValue("Freight Charge", "firstBid");
+  //   const freightCharge21 =
+  //     freightChargeRaw && freightChargeRaw.replace
+  //       ? parseFloat(freightChargeRaw.replace(/₹|,/g, "")) || 0
+  //       : 0; // Safeguard for invalid data
+
+  //   const gstOnFreightRaw = getFreightDataValue("GST on Freight", "firstBid");
+  //   const gstOnFreightt =
+  //     gstOnFreightRaw && gstOnFreightRaw.replace
+  //       ? parseFloat(gstOnFreightRaw.replace(/₹|,/g, "")) || 0
+  //       : 0;
+
+  //   const realisedFreightChargeAmount = parseFloat(
+  //     freightCharge21 + (freightCharge21 * gstOnFreightt) / 100
+  //   );
+
+  //   // Fetch other fields
+  //   const warrantyClause =
+  //     getFreightDataValue("Warranty Clause *", "firstBid") || "1-year warranty";
+  //   const paymentTerms =
+  //     getFreightDataValue("Payment Terms *", "firstBid") || "Net 30";
+  //   const loadingUnloadingClause =
+  //     getFreightDataValue("Loading / Unloading *", "firstBid") ||
+  //     "Loading at supplier's location, unloading at buyer's location";
+
+  //   // Construct the payload
+  //   const payload = {
+  //     bid: {
+  //       event_vendor_id: vendorId,
+  //       price: 2000.0,
+  //       discount: 10.0,
+  //       freight_charge_amount: freightCharge21,
+  //       gst_on_freight: gstOnFreightt,
+  //       realised_freight_charge_amount: realisedFreightChargeAmount,
+  //       gross_total: grossTotal,
+  //       warranty_clause: warrantyClause,
+  //       payment_terms: paymentTerms,
+  //       loading_unloading_clause: loadingUnloadingClause,
+  //       bid_materials_attributes: bidMaterialsAttributes,
+  //     },
+  //   };
+
+  //   console.log("Prepared Payload:", payload);
+  //   return payload;
+  // };
+
+  const preparePayload = () => {
+    // Calculate the total for each row individually
+    const bidMaterialsAttributes = data.map((row) => {
+      const rowTotal = parseFloat(row.price || 0) * (row.quantityAvail || 0); // Calculate row-specific total
+      const gstAmount = rowTotal * (parseFloat(row.gst || 0) / 100); // GST for the row
+      const discountAmount = rowTotal * (parseFloat(row.discount || 0) / 100); // Discount for the row
+      const landedAmount = rowTotal + gstAmount - discountAmount; // Final landed amount for the row
+      const finalTotal = landedAmount + gstAmount;
+
+      return {
+        event_material_id: row.eventMaterialId,
+        quantity_available: row.quantityAvail || 0,
+        price: Number(row.price || 0),
+        discount: Number(row.discount || 0),
+        bid_material_id: row.id,
+        vendor_remark: row.vendorRemark || "",
+        gst: row.gst || 0,
+        realised_discount: discountAmount,
+        realised_gst: gstAmount,
+        landed_amount: landedAmount,
+        total_amount: finalTotal, // Row-specific total amount
+      };
+    });
 
     console.log("------bid material :", bidMaterialsAttributes);
 
@@ -679,22 +761,108 @@ export default function VendorDetails() {
     fetchTerms();
   }, []);
 
-  const preparePayload2 = () => {
-    const totalAmount = parseFloat(calculateDataSumTotal());
+  // const preparePayload2 = () => {
+  //   const totalAmount = parseFloat(calculateDataSumTotal());
 
-    const bidMaterialsAttributes = data.map((row) => ({
-      event_material_id: row.eventMaterialId,
-      quantity_available: row.quantityAvail || 0,
-      price: Number(row.price || 0),
-      discount: Number(row.discount || 0),
-      bid_material_id: row.id,
-      vendor_remark: row.vendorRemark || "",
-      gst: row.gst || 0,
-      realised_discount: row.realisedDiscount || 0,
-      realised_gst: row.realisedGst || 0,
-      landed_amount: row.landedAmount || 0,
-      total_amount: totalAmount,
-    }));
+  //   const bidMaterialsAttributes = data.map((row) => ({
+  //     event_material_id: row.eventMaterialId,
+  //     quantity_available: row.quantityAvail || 0,
+  //     price: Number(row.price || 0),
+  //     discount: Number(row.discount || 0),
+  //     bid_material_id: row.id,
+  //     vendor_remark: row.vendorRemark || "",
+  //     gst: row.gst || 0,
+  //     realised_discount: row.realisedDiscount || 0,
+  //     realised_gst: row.realisedGst || 0,
+  //     landed_amount: row.landedAmount || 0,
+  //     total_amount: totalAmount,
+  //   }));
+
+  //   console.log("------bid material :", bidMaterialsAttributes);
+
+  //   // Utility function to safely fetch and process values from freightData
+  //   const getFreightDataValue = (label, key) => {
+  //     const item = freightData.find((entry) => entry.label === label);
+  //     if (item?.value?.[key]) {
+  //       return String(item.value[key]); // Ensure the value is converted to a string
+  //     }
+  //     return ""; // Return empty string if value is not found
+  //   };
+
+  //   // Fetch and parse Freight Charge and GST on Freight
+  //   const freightChargeRaw = getFreightDataValue("Freight Charge", "firstBid");
+  //   const freightCharge21 =
+  //     freightChargeRaw && freightChargeRaw.replace
+  //       ? parseFloat(freightChargeRaw.replace(/₹|,/g, "")) || 0
+  //       : 0; // Safeguard for invalid data
+
+  //   const gstOnFreightRaw = getFreightDataValue("GST on Freight", "firstBid");
+  //   const gstOnFreightt =
+  //     gstOnFreightRaw && gstOnFreightRaw.replace
+  //       ? parseFloat(gstOnFreightRaw.replace(/₹|,/g, "")) || 0
+  //       : 0;
+
+  //   const realisedFreightChargeAmount = parseFloat(
+  //     freightCharge21 + (freightCharge21 * gstOnFreightt) / 100
+  //   );
+
+  //   // Fetch other fields
+  //   const warrantyClause =
+  //     getFreightDataValue("Warranty Clause *", "firstBid") || "1-year warranty";
+  //   const paymentTerms =
+  //     getFreightDataValue("Payment Terms *", "firstBid") || "Net 30";
+  //   const loadingUnloadingClause =
+  //     getFreightDataValue("Loading / Unloading *", "firstBid") ||
+  //     "Loading at supplier's location, unloading at buyer's location";
+
+  //   const updatedGrossTotal = calculateSumTotal();
+  //   setGrossTotal(updatedGrossTotal); // Ensure state is updated
+
+  //   // Construct the payload
+
+  //   const payload = {
+  //     revised_bid: {
+  //       event_vendor_id: vendorId,
+  //       price: 500.0,
+  //       discount: 10.0,
+  //       freight_charge_amount: freightCharge21,
+  //       gst_on_freight: gstOnFreightt,
+  //       realised_freight_charge_amount: realisedFreightChargeAmount,
+  //       gross_total: updatedGrossTotal, //,
+  //       warranty_clause: warrantyClause,
+  //       payment_terms: paymentTerms,
+  //       loading_unloading_clause: loadingUnloadingClause,
+  //       revised_bid_materials_attributes: bidMaterialsAttributes,
+  //     },
+  //   };
+
+  //   console.log("Prepared Payload: revised,", payload);
+  //   return payload;
+  // };
+
+  const preparePayload2 = () => {
+    const bidMaterialsAttributes = data.map((row) => {
+      // Calculate row-specific totals
+      const rowTotal = parseFloat(row.price || 0) * (row.quantityAvail || 0); // Row total based on price and quantity
+      const gstAmount = rowTotal * (parseFloat(row.gst || 0) / 100); // GST for the row
+      const discountAmount = rowTotal * (parseFloat(row.discount || 0) / 100); // Discount for the row
+      const landedAmount = rowTotal + gstAmount - discountAmount; // Final landed amount for the row
+      const finalTotal = landedAmount + gstAmount;
+
+      return {
+        event_material_id: row.eventMaterialId,
+        quantity_available: row.quantityAvail || 0,
+        price: Number(row.price || 0),
+        discount: Number(row.discount || 0),
+        bid_material_id: row.id,
+        vendor_remark: row.vendorRemark || "",
+        gst: row.gst || 0,
+        realised_discount: discountAmount, // Realised discount for the row
+        realised_gst: gstAmount, // Realised GST for the row
+        landed_amount: landedAmount, // Landed amount for the row
+        total_amount: finalTotal, // Row-specific total amount
+      };
+    });
 
     console.log("------bid material :", bidMaterialsAttributes);
 
@@ -733,11 +901,11 @@ export default function VendorDetails() {
       getFreightDataValue("Loading / Unloading *", "firstBid") ||
       "Loading at supplier's location, unloading at buyer's location";
 
+    // Calculate and update the gross total
     const updatedGrossTotal = calculateSumTotal();
     setGrossTotal(updatedGrossTotal); // Ensure state is updated
 
     // Construct the payload
-
     const payload = {
       revised_bid: {
         event_vendor_id: vendorId,
@@ -746,7 +914,7 @@ export default function VendorDetails() {
         freight_charge_amount: freightCharge21,
         gst_on_freight: gstOnFreightt,
         realised_freight_charge_amount: realisedFreightChargeAmount,
-        gross_total: updatedGrossTotal, //,
+        gross_total: updatedGrossTotal, // Updated gross total
         warranty_clause: warrantyClause,
         payment_terms: paymentTerms,
         loading_unloading_clause: loadingUnloadingClause,
