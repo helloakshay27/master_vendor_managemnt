@@ -1094,7 +1094,9 @@ export default function VendorDetails() {
   // Function to handle button click and navigate
   const handleNavigate = () => {
     // console.log("vendor list ");
-    navigate("/vendor-list"); // Redirect to /vendor-list page
+    navigate(
+      "/vendor-list?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414"
+    ); // Redirect to /vendor-list page
   };
 
   const handleDecline = async () => {
@@ -1335,7 +1337,7 @@ export default function VendorDetails() {
                 ></path>
               </svg>
             </button>
-            <span>
+            <span className="ms-2">
               [{data1?.event_no}] {data1?.event_title}
             </span>
           </div>
