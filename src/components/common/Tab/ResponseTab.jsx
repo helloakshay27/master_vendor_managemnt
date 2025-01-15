@@ -11,7 +11,7 @@ import BulkCounterOfferModal from "../Modal/BulkCounterOfferModal";
 import axios from "axios";
 import { useParams } from "react-router-dom";
 import { da } from "date-fns/locale";
-import { SegregateBidMaterials } from "../../../utils/segregateBidMaterials";
+import { SegregatedBidMaterials } from "../../../utils/SegregatedBidMaterials";
 
 export default function ResponseTab() {
   const [isVendor, setIsVendor] = useState(false);
@@ -28,7 +28,7 @@ export default function ResponseTab() {
   const [segeregatedMaterialData, setSegeregatedMaterialData] = useState([]);
 
   useEffect(() => {
-    setSegeregatedMaterialData(SegregateBidMaterials(eventVendors));    
+    setSegeregatedMaterialData(SegregatedBidMaterials(eventVendors));    
   }, [eventVendors]);
 
   const { id } = useParams();
