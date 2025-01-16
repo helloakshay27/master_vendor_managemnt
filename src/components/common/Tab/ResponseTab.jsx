@@ -1,5 +1,5 @@
 // @ts-nocheck
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import FullClipIcon from "../Icon/FullClipIcon";
 import FullScreenIcon from "../Icon/FullScreenIcon";
 import ShowIcon from "../Icon/ShowIcon";
@@ -26,6 +26,7 @@ export default function ResponseTab() {
   const [activeIndexes, setActiveIndexes] = useState({});
   const [eventVendors, setEventVendors] = useState([]);
   const [segeregatedMaterialData, setSegeregatedMaterialData] = useState([]);
+  const tableRef = useRef(null);
 
   useEffect(() => {
     setSegeregatedMaterialData(SegregatedBidMaterials(eventVendors));    
@@ -212,6 +213,14 @@ export default function ResponseTab() {
     return date.toLocaleString("en-US", options);
   };
 
+  const calculateRemainingWidth = (vendorCount) => {
+    if (!tableRef.current) return 0;
+    const tableWidth = tableRef.current.offsetWidth;
+    const occupiedWidth = vendorCount * 80; // Width of vendor cells
+    const remainingWidth = tableWidth - occupiedWidth;
+    return remainingWidth > 0 ? remainingWidth : 0; // Return remaining width if positive, else 0
+  };
+
   return (
     <div
       className="tab-pane fade show active"
@@ -316,16 +325,28 @@ export default function ResponseTab() {
               <>
                 <div style={{ overflowX: "auto" }}>
                   <table
-                    className="tbl-container w-100 mb-0"
-                    style={{ boxShadow: "none" }}
+                    ref={tableRef}
+                    className="bid-tbl w-100 mb-0"
+                    style={{
+                      boxShadow: "none",
+                      tableLayout: "fixed",
+                      width: "100%",
+                    }}
                   >
+                    <colgroup>
+                      <col style={{ width: "200px" }} />
+                      {eventVendors.map((_, index) => (
+                        <col key={index} style={{ width: "250px" }} />
+                      ))}
+                      <col style={{ width: "auto" }} />
+                    </colgroup>
                     <tbody>
                       <tr>
-                        <td style={{ width: "200px" }}></td>
+                        <td style={{ width: "200px", background: "repeating-linear-gradient(135deg, #f3f3f3, #f3f3f3 10px, #e0e0e0 10px, #e0e0e0 11px)" }}></td>
                         {eventVendors?.map((vendor, index) => {
                           const activeIndex = activeIndexes[vendor.id] || 0;
                           return (
-                            <td key={vendor.id} style={{ width: "200px" }}>
+                            <td key={vendor.id}>
                               <div
                                 className="d-flex flex-column align-items-center justify-content-between"
                                 style={{ height: "150px" }}
@@ -375,26 +396,23 @@ export default function ResponseTab() {
                             </td>
                           );
                         })}
+                        <td style={{ width: "auto" }}></td>
                       </tr>
                       <tr>
-                        <td
-                          className="viewBy-tBody1-p"
-                          style={{ width: "200px" }}
-                        >
-                          Gross Total
-                        </td>
+                        <td className="viewBy-tBody1-p" style={{ minidth: "200px" }}>Gross Total</td>
                         {eventVendors?.map((vendor) => {
                           return (
-                            <td>
-                              {vendor?.bids?.[0]?.gross_total ||
-                                "_"}
+                            <td key={`gross-${vendor.id}`}>
+                              {vendor?.bids?.[0]?.gross_total || "_"}
                             </td>
                           );
                         })}
+                        <td style={{ width: "auto" }}></td>
                       </tr>
                     </tbody>
                   </table>
                 </div>
+
                 {segeregatedMaterialData?.map((materialData, ind) => {
                   return (
                     <Accordion
@@ -427,7 +445,7 @@ export default function ResponseTab() {
                       ]}
                       tableData={materialData.bids_values?.map((material) => {
                         // console.log("material:", material);
-                        
+
                         return {
                           bestTotalAmount: material.total_amount || "_",
                           quantityAvailable: material.quantity_available || "_",
@@ -466,17 +484,23 @@ export default function ResponseTab() {
                     { label: "Gross Total", key: "grossTotal" },
                   ]}
                   tableData={eventVendors?.flatMap((vendor) =>
-                    vendor?.bids?.[0] ? [
-                      {
-                        freightChrg: vendor.bids[0].freight_charge_amount || "_",
-                        freightGst: vendor.bids[0].gst_on_freight || "_",
-                        freightRealised: vendor.bids[0].realised_freight_charge_amount || "_",
-                        warranty: vendor.bids[0].warranty_clause || "_",
-                        payment: vendor.bids[0].payment_terms || "_",
-                        loading: vendor.bids[0].loading_unloading_clause || "_",
-                        grossTotal: vendor.bids[0].gross_total || "_",
-                      },
-                    ] : []
+                    vendor?.bids?.[0]
+                      ? [
+                          {
+                            freightChrg:
+                              vendor.bids[0].freight_charge_amount || "_",
+                            freightGst: vendor.bids[0].gst_on_freight || "_",
+                            freightRealised:
+                              vendor.bids[0].realised_freight_charge_amount ||
+                              "_",
+                            warranty: vendor.bids[0].warranty_clause || "_",
+                            payment: vendor.bids[0].payment_terms || "_",
+                            loading:
+                              vendor.bids[0].loading_unloading_clause || "_",
+                            grossTotal: vendor.bids[0].gross_total || "_",
+                          },
+                        ]
+                      : []
                   )}
                 />
               </>

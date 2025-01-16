@@ -97,14 +97,22 @@ export default function Table({
     return (
       <div className="bid-tbl mb-0" {...rest} style={{ overflowX: "auto" }}>
         <table className="w-100">
-          <thead>
+          <colgroup>
+            <col style={{ width: "200px" }} />
+            {data.map((_, index) => (
+              <col key={index} style={{ width: "250px" }} />
+            ))}
+            <col style={{ width: "auto" }} />
+          </colgroup>
+          {/* <thead>
             <tr style={{ backgroundColor: "#d3d3d3" }}>
-              <th style={{ width: "200px", display:'none' }} />
+              <th style={{ width: "200px" }} />
               {data.map((_, index) => (
-                <th key={index} className="main2-th" style={{ width: "200px", display:'none' }}></th>
+                <th key={index} className="main2-th" style={{ width: "250px" }}></th>
               ))}
+              <th style={{ width: "auto" }}></th>
             </tr>
-          </thead>
+          </thead> */}
           <tbody>
             {transposedData.map((row, rowIndex) => (
               <tr key={rowIndex}>
@@ -115,7 +123,7 @@ export default function Table({
                   {row.header}
                 </td>
                 {row.values.map((value, valueIndex) => (
-                  <td key={valueIndex} style={{ width: "200px", textAlign: "left" }}>
+                  <td key={valueIndex} style={{ width: "250px", textAlign: "left" }}>
                     {customRender[columns[rowIndex]?.key]
                       ? customRender[columns[rowIndex]?.key](
                           value,
@@ -125,6 +133,7 @@ export default function Table({
                       : value}
                   </td>
                 ))}
+                <td style={{ width: "auto" }}></td>
               </tr>
             ))}
           </tbody>

@@ -87,6 +87,8 @@ export default function OverviewTab({
   const endTime = overviewData?.event_schedule?.end_time_duration;
 
   // const OrderEndTime = new Date(endTime);
+  console.log("overviewData :----",overviewData);
+  
 
   const orderConfig = [
     {
@@ -120,6 +122,10 @@ export default function OverviewTab({
     ,
     {
       label: "Evaluation Time",
+      value: overviewData?.event_schedule?.evaluation_time || "_",
+    },
+    {
+      label: "Delivery Time",
       value: overviewData?.event_schedule?.evaluation_time || "_",
     },
   ];
