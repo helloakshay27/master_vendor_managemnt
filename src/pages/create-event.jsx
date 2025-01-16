@@ -190,7 +190,7 @@ export default function CreateEvent() {
     if (eventType === "rfq") {
       eventTypeText = "RFQ";
       setIsService(false);
-    // @ts-ignore
+      // @ts-ignore
     } else if (eventType === "auction") {
       eventTypeText = "Auction";
       setIsService(false);
@@ -708,10 +708,11 @@ export default function CreateEvent() {
                 }))}
               />
             </div>
+
             <div>
               <div className="d-flex justify-content-between align-items-end mx-1 mt-5">
                 <h5 className="mt-3">
-                  Terms And Condition{" "}
+                  Terms & Conditions{" "}
                   <span style={{ color: "red", fontSize: "16px" }}>*</span>
                 </h5>
                 <button
@@ -725,28 +726,52 @@ export default function CreateEvent() {
                 </button>
               </div>
               {textareas.map((textarea, index) => (
-                <div
-                  key={index}
-                  className="d-flex justify-content-between align-items-center mt-4"
-                >
-                  <div className="d-flex w-100">
-                    <span className="me-2">{index + 1}.</span>{" "}
-                    {/* Serial number */}
-                    <textarea
-                      className="form-control w-75"
-                      value={textarea.value}
-                      onChange={(e) =>
-                        handleTextareaChange(textarea.id, e.target.value)
-                      }
-                    />
-                  </div>
-                  <button
-                    className="btn btn-danger ms-2"
-                    onClick={() => handleRemoveTextarea(textarea.id)}
-                    disabled={index === 0}
-                  >
-                    Remove
-                  </button>
+                <div key={index}>
+                  <Table
+                    columns={[
+                      {
+                        label: "Condition Category",
+                        key: "Condition Category",
+                      },
+                      {
+                        label: "Condition",
+                        key: "Condition",
+                      },
+                      {
+                        label: "Action",
+                        key: "Action",
+                      },
+                    ]}
+                    data={[
+                      {
+                        "Condition Category": (
+                          <SelectBox
+                            label=""
+                            options={[{ label: "one", value: "one" }]}
+                            onChange={(e) => e.target}
+                            defaultValue={"one"}
+                          />
+                        ),
+                        Condition: (
+                          <textarea
+                            className="form-control"
+                            value={textarea.value}
+                            onChange={(e) =>
+                              handleTextareaChange(textarea.id, e.target.value)
+                            }
+                          />
+                        ),
+                        Action: (
+                          <button
+                            className="btn btn-danger"
+                            onClick={() => handleRemoveTextarea(textarea.id)}
+                          >
+                            Remove
+                          </button>
+                        ),
+                      },
+                    ]}
+                  />
                 </div>
               ))}
             </div>

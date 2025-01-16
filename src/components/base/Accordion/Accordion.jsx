@@ -17,7 +17,7 @@ export default function Accordion({
         <h2 className="accordion-header">
           <button
             className="accordion-button viewBy-collapT1"
-            style={{ position: "relative", width: "100%", background:'#000' }}
+            style={{ position: "relative", width: "100%", background:'#000', fontSize:'8px' }}
             type="button"
             onClick={toggleAccordion}
             aria-expanded={isOpen}
