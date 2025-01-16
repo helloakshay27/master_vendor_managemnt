@@ -906,7 +906,7 @@ input[type="checkbox"] {
 }
 
 .tbl-container thead th {
-  background-color: white !important;
+  background-color: var(--red) !important;
   border: 1px solid white;
   color: var(--body-bg-color);
   font-family: "Open Sans", sans-serif;
