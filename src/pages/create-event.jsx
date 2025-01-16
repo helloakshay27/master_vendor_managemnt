@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import {
@@ -428,20 +429,26 @@ export default function CreateEvent() {
       terms_and_conditions: termsAndConditions,
     };
 
-    console.log("Event data:", JSON.stringify(eventData));
-    
+    const formData = new FormData();
+    formData.append("event", JSON.stringify(eventData));
+
+    documentRows.forEach((row, index) => {
+      if (row.upload) {
+        formData.append(`event[attachments][]`, row.upload, row.upload.name);
+      }
+    });
+
     try {
-      const response = await fetch(
+      const response = await axios.post(
         "https://vendors.lockated.com/rfq/events?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414",
+        formData,
         {
-          method: "POST",
           headers: {
-            "Content-Type": "application/json",
+            "Content-Type": "multipart/form-data",
           },
-          body: JSON.stringify(eventData),
         }
       );
-      if (response.ok) {
+      if (response.status === 200) {
         alert("Event created successfully!");
         navigate(
           "/event-list?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414"
@@ -821,33 +828,6 @@ export default function CreateEvent() {
               </div>
             </div>
           </div>
-          {/* make the below component on common modal folder and call it here */}
-          <DynamicModalBox
-            size="md"
-            title="Publish Event"
-            footerButtons={[
-              {
-                label: "Edit Schedule",
-                onClick: () => {
-                  handlePublishEventModalClose();
-                  handleEventScheduleModalShow();
-                },
-                props: {
-                  className: "purple-btn1",
-                },
-              },
-              {
-                label: "Save Changes",
-                onClick: handlePublishEventModalClose,
-                props: {
-                  className: "purple-btn2",
-                },
-              },
-            ]}
-            show={publishEventModal}
-            onHide={handlePublishEventModalClose}
-            children={<></>}
-          />
           {/* // vendor model with vendor data */}
           <DynamicModalBox
             size="xl"
