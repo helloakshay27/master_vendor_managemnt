@@ -32,6 +32,7 @@ import Wodetails from "./pages/Wodetails";
 import POdeta from "./pages/POdetails";
 import PoPage from "./pages/Po";
 import ContractInvitation from "./pages/contract-invitation";
+import SectionTab from "./pages/section-tab";
 
 function App() {
   return (
@@ -60,6 +61,7 @@ function App() {
           {/* <Route path="/event-list" element={<ErpRfqA />} /> */}
           <Route path="/event-list" element={<EventListPage />} />
           <Route path="/contract-invitation" element={<ContractInvitation />} />
+          <Route path="/section-tab" element={<SectionTab />} />
 
           {/* <Route path="/event-list" element={<EventList />} /> */}
 

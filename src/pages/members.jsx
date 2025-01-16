@@ -30,7 +30,11 @@ function Members() {
                   contract_invitation
                 </Link>
               </li>
-
+              <li>
+                <Link to="/section-tab">
+                  section_tab
+                </Link>
+              </li>
               <li>
                 <Link to="/vendor-list?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414">vendor_list</Link>
               </li>

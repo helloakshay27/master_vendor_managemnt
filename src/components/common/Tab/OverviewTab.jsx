@@ -87,8 +87,6 @@ export default function OverviewTab({
   const endTime = overviewData?.event_schedule?.end_time_duration;
 
   // const OrderEndTime = new Date(endTime);
-  console.log("overviewData :----",overviewData);
-  
 
   const orderConfig = [
     {
