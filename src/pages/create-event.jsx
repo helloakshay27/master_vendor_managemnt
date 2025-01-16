@@ -500,6 +500,28 @@ export default function CreateEvent() {
     fetchData(1, searchTerm, selectedCity);
   };
 
+  const [termsOptions, setTermsOptions] = useState([]);
+
+  // Fetch terms and conditions from the API
+  const fetchTermsAndConditions = async () => {
+    try {
+      const response = await axios.get(
+        "https://vendors.lockated.com/rfq/events/terms_and_conditions?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&page=1"
+      );
+      const termsList = response.data.list.map((term) => ({
+        label: term.condition_category,
+        value: term.id,
+      }));
+      setTermsOptions(termsList);
+    } catch (error) {
+      console.error("Error fetching terms and conditions:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchTermsAndConditions();
+  }, []);
+
   return (
     <>
       <div className="website-content overflowY-auto">
@@ -725,55 +747,48 @@ export default function CreateEvent() {
                   <span>Add</span>
                 </button>
               </div>
-              {textareas.map((textarea, index) => (
-                <div key={index}>
-                  <Table
-                    columns={[
-                      {
-                        label: "Condition Category",
-                        key: "Condition Category",
-                      },
-                      {
-                        label: "Condition",
-                        key: "Condition",
-                      },
-                      {
-                        label: "Action",
-                        key: "Action",
-                      },
-                    ]}
-                    data={[
-                      {
-                        "Condition Category": (
-                          <SelectBox
-                            label=""
-                            options={[{ label: "one", value: "one" }]}
-                            onChange={(e) => e.target}
-                            defaultValue={"one"}
-                          />
-                        ),
-                        Condition: (
-                          <textarea
-                            className="form-control"
-                            value={textarea.value}
-                            onChange={(e) =>
-                              handleTextareaChange(textarea.id, e.target.value)
-                            }
-                          />
-                        ),
-                        Action: (
-                          <button
-                            className="btn btn-danger"
-                            onClick={() => handleRemoveTextarea(textarea.id)}
-                          >
-                            Remove
-                          </button>
-                        ),
-                      },
-                    ]}
-                  />
-                </div>
-              ))}
+
+              <table className="tbl-container w-100">
+                <thead>
+                  <tr>
+                    <th>Condition Category</th>
+                    <th>Condition</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {textareas.map((textarea,idx) => (
+                    <tr key={idx}>
+                      <td>
+                        <SelectBox
+                          label=""
+                          options={termsOptions}
+                          onChange={(e) => e.target}
+                          defaultValue={termsOptions[0]?.value}
+                        />
+                      </td>
+                      <td>
+                        <textarea
+                          className="form-control"
+                          value={textarea.value}
+                          onChange={(e) =>
+                            handleTextareaChange(textarea.id, e.target.value)
+                          }
+                        />
+                      </td>
+                      <td>
+                        <button
+                          className="btn btn-danger"
+                          onClick={() => handleRemoveTextarea(textarea.id)}
+                          disabled={idx === 0}
+                        >
+                          Remove
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
             <div className="row mt-4 mt-3">
               {/* <h5>Audit Log</h5>
