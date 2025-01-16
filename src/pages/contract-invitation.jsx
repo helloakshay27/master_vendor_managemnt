@@ -38,7 +38,6 @@ export default function ContractInvitation() {
           <h5 className="mt-3 ms-3">RFQ &amp; Auction Events</h5>
           <div style={{ width: "15%" }}></div>
         </div>
-
         <div className="material-boxes mt-3">
           <div className="container-fluid">
             <div className="row separteinto5 justify-content-left">
