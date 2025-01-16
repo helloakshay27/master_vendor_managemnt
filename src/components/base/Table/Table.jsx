@@ -95,8 +95,15 @@ export default function Table({
   if (isHorizontal) {
     const transposedData = transposeData(data, columns);
     return (
-      <div className="bid-tbl mb-0" {...rest} style={{ overflowX: "auto" }}>
-        <table className="w-100">
+      <div className="mb-0" {...rest} style={{ overflowX: "auto" }}>
+        <table
+          className="bid-tbl w-100"
+          style={{
+            boxShadow: "none",
+            tableLayout: "fixed",
+            width: "100%",
+          }}
+        >
           <colgroup>
             <col style={{ width: "200px" }} />
             {data.map((_, index) => (
@@ -104,26 +111,28 @@ export default function Table({
             ))}
             <col style={{ width: "auto" }} />
           </colgroup>
-          {/* <thead>
-            <tr style={{ backgroundColor: "#d3d3d3" }}>
-              <th style={{ width: "200px" }} />
-              {data.map((_, index) => (
-                <th key={index} className="main2-th" style={{ width: "250px" }}></th>
-              ))}
-              <th style={{ width: "auto" }}></th>
-            </tr>
-          </thead> */}
           <tbody>
             {transposedData.map((row, rowIndex) => (
               <tr key={rowIndex}>
                 <td
                   className="main2-th"
-                  style={{ fontWeight: "bold", textAlign: "left", width: "200px" }}
+                  style={{
+                    fontWeight: "bold",
+                    textAlign: "left",
+                    width: "200px",
+                  }}
                 >
                   {row.header}
                 </td>
                 {row.values.map((value, valueIndex) => (
-                  <td key={valueIndex} style={{ width: "250px", textAlign: "left" }}>
+                  <td
+                    key={valueIndex}
+                    style={{
+                      width: "250px",
+                      textAlign: "left",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
                     {customRender[columns[rowIndex]?.key]
                       ? customRender[columns[rowIndex]?.key](
                           value,
@@ -163,7 +172,11 @@ export default function Table({
               </th>
             )}
             {columns.map((col, index) => (
-              <th key={index} className="main2-th" style={{ whiteSpace: "nowrap" }}>
+              <th
+                key={index}
+                className="main2-th"
+                style={{ whiteSpace: "nowrap" }}
+              >
                 {col.label}
               </th>
             ))}
@@ -185,7 +198,10 @@ export default function Table({
                 </td>
               )}
               {columns.map((col, cellIndex) => {
-                const cell = col.key === "srNo" ? (currentPage - 1) * pageSize + rowIndex + 1 : row[col.key];
+                const cell =
+                  col.key === "srNo"
+                    ? (currentPage - 1) * pageSize + rowIndex + 1
+                    : row[col.key];
                 const cellContent = customRender[col.key]
                   ? customRender[col.key](cell, rowIndex, row)
                   : cell;

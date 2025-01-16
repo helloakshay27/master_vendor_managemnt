@@ -382,9 +382,8 @@ a {
 }
 
 .accordion-button:not(.collapsed) {
-  color: #e95420 !important;
-  background-color: white !important;
-}
+  color: #1e1e1e !important;
+  background: linear-gradient(to bottom, white, #f3f3f3) !important;}
 
 .accordion-button:not(.collapsed) .form-check-input {
   background-color: #01c875 !important;
@@ -907,7 +906,7 @@ input[type="checkbox"] {
 }
 
 .tbl-container thead th {
-  background-color: var(--red) !important;
+  background-color: white !important;
   border: 1px solid white;
   color: var(--body-bg-color);
   font-family: "Open Sans", sans-serif;
@@ -934,7 +933,7 @@ input[type="checkbox"] {
 }
 
 .bid-tbl thead th {
-  background-color: #dee2e6 !important;
+  /* background-color: #dee2e6 !important; */
   color: var(--body-bg-color);
   font-family: "Open Sans", sans-serif;
   font-weight: 600;
@@ -5485,13 +5484,8 @@ iframe .website-content {
   background-color: #f9f9f9;
 }
 
-.accordion-button span {
-  color: #e95420;
-}
-
 .accordion-body {
   padding: 16px;
-  background-color: #fdfdfd;
   border-top: 1px solid #e0e0e0;
 }
 

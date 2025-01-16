@@ -17,7 +17,7 @@ export default function Accordion({
         <h2 className="accordion-header">
           <button
             className="accordion-button viewBy-collapT1"
-            style={{ position: "relative", width: "100%" }}
+            style={{ position: "relative", width: "100%", background:'#000' }}
             type="button"
             onClick={toggleAccordion}
             aria-expanded={isOpen}
@@ -25,7 +25,7 @@ export default function Accordion({
             <span className="pe-3">
               <DropArrowIcon isOpen={isOpen} />
             </span>{" "}
-            <span style={{ color: isOpen ? "#e95420" : "" }}>{title}</span>
+            <span>{title}</span>
           </button>
         </h2>
         <div

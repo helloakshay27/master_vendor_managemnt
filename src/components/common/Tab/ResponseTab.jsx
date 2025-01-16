@@ -346,7 +346,7 @@ export default function ResponseTab() {
                         {eventVendors?.map((vendor, index) => {
                           const activeIndex = activeIndexes[vendor.id] || 0;
                           return (
-                            <td key={vendor.id}>
+                            <td key={vendor.id} style={{ background:'#f3f3f3' }}>
                               <div
                                 className="d-flex flex-column align-items-center justify-content-between"
                                 style={{ height: "150px" }}
@@ -357,27 +357,29 @@ export default function ResponseTab() {
                                     {formatDate(vendor?.bids?.[0]?.created_at)}
                                   </p>
                                 </div>
-                                <div className="d-flex justify-content-center align-items-center w-100 my-2">
+                                <div className="d-flex justify-content-between align-items-center w-100 my-2">
                                   <button
-                                    className="purple-btn1 px-2"
+                                    className="px-2 border-0"
+                                    style={{fontSize:'1.5rem'}}
                                     onClick={() => handlePrev(vendor.id)}
                                   >
                                     &lt;
                                   </button>
-                                  <div className="carousel-item-content mx-3">
+                                  <div className="carousel-item-content mx-4">
                                     {activeIndex === 0 && "Current Bid"}
                                     {activeIndex === 1 && "Initial Bid"}
                                     {activeIndex === 2 && "1st Revision"}
                                   </div>
                                   <button
-                                    className="purple-btn1 px-2"
+                                    className="px-2 border-0"
+                                    style={{fontSize:'1.5rem'}}
                                     onClick={() => handleNext(vendor.id)}
                                   >
                                     &gt;
                                   </button>
                                 </div>
                                 <button
-                                  className="purple-btn2 d-block mt-2"
+                                  className="purple-btn1 d-block mt-2"
                                   onClick={() => {
                                     if (
                                       vendor?.bids?.length > 0 &&
@@ -396,7 +398,7 @@ export default function ResponseTab() {
                             </td>
                           );
                         })}
-                        <td style={{ width: "auto" }}></td>
+                        <td style={{ width: "auto", background:'#f3f3f3' }}></td>
                       </tr>
                       <tr>
                         <td className="viewBy-tBody1-p" style={{ minidth: "200px" }}>Gross Total</td>
