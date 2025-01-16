@@ -841,13 +841,36 @@ export default function VendorDetails() {
   // };
 
   const preparePayload2 = () => {
+    // const bidMaterialsAttributes = data.map((row) => {
+    //   // Calculate row-specific totals
+    //   const rowTotal = parseFloat(row.price || 0) * (row.quantityAvail || 0); // Row total based on price and quantity
+    //   const gstAmount = rowTotal * (parseFloat(row.gst || 0) / 100); // GST for the row
+    //   const discountAmount = rowTotal * (parseFloat(row.discount || 0) / 100); // Discount for the row
+    //   const landedAmount = rowTotal + gstAmount - discountAmount; // Final landed amount for the row
+    //   const finalTotal = landedAmount + gstAmount;
+
+    //   return {
+    //     event_material_id: row.eventMaterialId,
+    //     quantity_available: row.quantityAvail || 0,
+    //     price: Number(row.price || 0),
+    //     discount: Number(row.discount || 0),
+    //     bid_material_id: row.id,
+    //     vendor_remark: row.vendorRemark || "",
+    //     gst: row.gst || 0,
+    //     realised_discount: discountAmount, // Realised discount for the row
+    //     realised_gst: gstAmount, // Realised GST for the row
+    //     landed_amount: landedAmount, // Landed amount for the row
+    //     total_amount: finalTotal, // Row-specific total amount
+    //   };
+    // });
+
     const bidMaterialsAttributes = data.map((row) => {
       // Calculate row-specific totals
       const rowTotal = parseFloat(row.price || 0) * (row.quantityAvail || 0); // Row total based on price and quantity
-      const gstAmount = rowTotal * (parseFloat(row.gst || 0) / 100); // GST for the row
       const discountAmount = rowTotal * (parseFloat(row.discount || 0) / 100); // Discount for the row
-      const landedAmount = rowTotal + gstAmount - discountAmount; // Final landed amount for the row
-      const finalTotal = landedAmount + gstAmount;
+      const landedAmount = rowTotal - discountAmount; // Discounted total, before GST
+      const gstAmount = landedAmount * (parseFloat(row.gst || 0) / 100); // GST applied on landed amount
+      const finalTotal = landedAmount + gstAmount; // Landed amount + GST
 
       return {
         event_material_id: row.eventMaterialId,
@@ -857,10 +880,10 @@ export default function VendorDetails() {
         bid_material_id: row.id,
         vendor_remark: row.vendorRemark || "",
         gst: row.gst || 0,
-        realised_discount: discountAmount, // Realised discount for the row
-        realised_gst: gstAmount, // Realised GST for the row
-        landed_amount: landedAmount, // Landed amount for the row
-        total_amount: finalTotal, // Row-specific total amount
+        realised_discount: discountAmount.toFixed(2), // Realised discount for the row
+        realised_gst: gstAmount.toFixed(2), // Realised GST for the row
+        landed_amount: landedAmount.toFixed(2), // Landed amount for the row
+        total_amount: finalTotal.toFixed(2), // Row-specific total amount
       };
     });
 
