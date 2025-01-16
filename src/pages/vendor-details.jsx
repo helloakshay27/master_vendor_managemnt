@@ -633,10 +633,10 @@ export default function VendorDetails() {
         bid_material_id: row.id,
         vendor_remark: row.vendorRemark || "",
         gst: row.gst || 0,
-        realised_discount: discountAmount,
-        realised_gst: gstAmount,
-        landed_amount: landedAmount,
-        total_amount: finalTotal, // Row-specific total amount
+        realised_discount: discountAmount.toFixed(2), // Realised discount for the row
+        realised_gst: gstAmount.toFixed(2), // Realised GST for the row
+        landed_amount: landedAmount.toFixed(2), // Landed amount for the row
+        total_amount: finalTotal.toFixed(2), // Row-specific total amount
       };
     });
 
