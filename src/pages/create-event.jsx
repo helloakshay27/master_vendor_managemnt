@@ -1,6 +1,6 @@
 // @ts-nocheck
 import React, { useState, useEffect, useRef } from "react";
-import axios from "axios";
+
 import {
   CreateRFQForm,
   DynamicModalBox,
@@ -218,13 +218,12 @@ export default function CreateEvent() {
     }
     setLoading(true);
     try {
-      const response = await axios.get(
+      const response = await fetch(
         `https://vendors.lockated.com/rfq/events/vendor_list?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&page=${page}&q[first_name_or_last_name_or_email_or_mobile_or_nature_of_business_name_cont]=${searchTerm}`
       );
+      const data = await response.json();
 
-      const vendors = Array.isArray(response.data.vendors)
-        ? response.data.vendors
-        : [];
+      const vendors = Array.isArray(data.vendors) ? data.vendors : [];
 
       const formattedData = vendors.map((vendor) => ({
         id: vendor.id,
@@ -237,7 +236,7 @@ export default function CreateEvent() {
 
       setTableData(formattedData);
       setCurrentPage(page);
-      setTotalPages(response.data?.pagination?.total_pages || 1); // Assume the API returns total pages
+      setTotalPages(data?.pagination?.total_pages || 1); // Assume the API returns total pages
     } catch (error) {
       console.error("Error fetching data:", error);
     } finally {
@@ -317,6 +316,44 @@ export default function CreateEvent() {
     );
   };
 
+  const handleConditionChange = (id, selectedOption) => {
+    console.log(
+      "selectedOption:",
+      selectedOption,
+      "typeof:",
+      typeof selectedOption
+    );
+  
+    console.log(
+      "termsOptions:",
+      termsOptions,
+      "selectedOption:",
+      selectedOption,
+      "id:",
+      id
+    );
+  
+    // Directly compare selectedOption with option.value
+    const selectedCondition = termsOptions.find(
+      (option) => String(option.value) === String(selectedOption) // No .value here
+    );
+  
+    console.log("selectedCondition:", selectedCondition);
+  
+    if (selectedCondition) {
+      // Update the textareas with the condition's text
+      setTextareas(
+        textareas.map((textarea) =>
+          textarea.id === id
+            ? { ...textarea, value: selectedCondition.condition }
+            : textarea
+        )
+      );
+      console.log("Updated textareas:", textareas);
+    }
+  };
+  
+
   const handleAddDocumentRow = () => {
     const newRow = { srNo: documentRows.length + 1, upload: null };
     documentRowsRef.current.push(newRow);
@@ -333,12 +370,17 @@ export default function CreateEvent() {
   };
 
   const handleFileChange = (index, file) => {
-    documentRowsRef.current[index].upload = file;
-    setDocumentRows([...documentRowsRef.current]);
-    console.log(
-      "Attachments:",
-      documentRowsRef.current.map((row) => row.upload)
-    );
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64String = reader.result.split(",")[1];
+      documentRowsRef.current[index].upload = {
+        filename: file.name,
+        content: base64String,
+        content_type: file.type,
+      };
+      setDocumentRows([...documentRowsRef.current]);
+    };
+    reader.readAsDataURL(file);
   };
 
   const appendFormData = (formData, data, parentKey = "") => {
@@ -369,10 +411,6 @@ export default function CreateEvent() {
       alert("Please fill all the required fields.");
       return;
     }
-
-    const termsAndConditions = textareas.map(
-      (textarea, index) => `${index + 1}. ${textarea.value}`
-    );
 
     const eventData = {
       event_title: eventName,
@@ -426,35 +464,36 @@ export default function CreateEvent() {
           comments: "No comments",
         },
       ],
-      terms_and_conditions: termsAndConditions,
+      resource_term_conditions_attributes: textareas.map((textarea) => ({
+        term_condition_id: 1,
+        condition_type: "general",
+        condition: textarea.value,
+      })),
+      attachments: documentRows.map((row) => row.upload),
     };
 
-    const formData = new FormData();
-    formData.append("event", JSON.stringify(eventData));
-
-    documentRows.forEach((row, index) => {
-      if (row.upload) {
-        formData.append(`event[attachments][]`, row.upload, row.upload.name);
-      }
-    });
+    console.log("Payload:", eventData);
 
     try {
-      const response = await axios.post(
+      const response = await fetch(
         "https://vendors.lockated.com/rfq/events?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414",
-        formData,
         {
+          method: "POST",
           headers: {
-            "Content-Type": "multipart/form-data",
+            "Content-Type": "application/json",
           },
+          body: JSON.stringify(eventData),
         }
       );
-      if (response.status === 200) {
+
+      if (response.ok) {
         alert("Event created successfully!");
         navigate(
           "/event-list?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414"
         );
       } else {
-        console.error("Error response data:", response.data);
+        const errorData = await response.json();
+        console.error("Error response data:", errorData);
         throw new Error("Failed to create event.");
       }
     } catch (error) {
@@ -505,14 +544,17 @@ export default function CreateEvent() {
   // Fetch terms and conditions from the API
   const fetchTermsAndConditions = async () => {
     try {
-      const response = await axios.get(
+      const response = await fetch(
         "https://vendors.lockated.com/rfq/events/terms_and_conditions?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&page=1"
       );
-      const termsList = response.data.list.map((term) => ({
+      const data = await response.json();
+      const termsList = data.list.map((term) => ({
         label: term.condition_category,
         value: term.id,
+        condition: term.condition, // Include condition text here
       }));
       setTermsOptions(termsList);
+      console.log("Terms and conditions:", termsList);
     } catch (error) {
       console.error("Error fetching terms and conditions:", error);
     }
@@ -757,23 +799,27 @@ export default function CreateEvent() {
                   </tr>
                 </thead>
                 <tbody>
-                  {textareas.map((textarea,idx) => (
+                  {textareas.map((textarea, idx) => (
                     <tr key={idx}>
                       <td>
                         <SelectBox
-                          label=""
-                          options={termsOptions}
-                          onChange={(e) => e.target}
-                          defaultValue={termsOptions[0]?.value}
+                          options={termsOptions.map((option) => ({
+                            label: option.label,
+                            value: option.value,
+                          }))}
+                          onChange={(option) =>
+                            handleConditionChange(textarea.id, option)
+                          }
+                          defaultValue={termsOptions.find(
+                            (option) => option.condition === textarea.value
+                          )}
                         />
                       </td>
                       <td>
                         <textarea
                           className="form-control"
                           value={textarea.value}
-                          onChange={(e) =>
-                            handleTextareaChange(textarea.id, e.target.value)
-                          }
+                          readOnly
                         />
                       </td>
                       <td>
