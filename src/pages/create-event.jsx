@@ -323,7 +323,7 @@ export default function CreateEvent() {
       "typeof:",
       typeof selectedOption
     );
-  
+
     console.log(
       "termsOptions:",
       termsOptions,
@@ -332,14 +332,14 @@ export default function CreateEvent() {
       "id:",
       id
     );
-  
+
     // Directly compare selectedOption with option.value
     const selectedCondition = termsOptions.find(
       (option) => String(option.value) === String(selectedOption) // No .value here
     );
-  
+
     console.log("selectedCondition:", selectedCondition);
-  
+
     if (selectedCondition) {
       // Update the textareas with the condition's text
       setTextareas(
@@ -352,7 +352,6 @@ export default function CreateEvent() {
       console.log("Updated textareas:", textareas);
     }
   };
-  
 
   const handleAddDocumentRow = () => {
     const newRow = { srNo: documentRows.length + 1, upload: null };
@@ -413,63 +412,66 @@ export default function CreateEvent() {
     }
 
     const eventData = {
-      event_title: eventName,
-      created_on: createdOn,
-      status: "pending",
-      created_by_id: 2,
-      event_schedule_attributes: {
-        start_time: scheduleData.start_time,
-        end_time: scheduleData.end_time_duration,
-        evaluation_time: scheduleData.evaluation_time,
-        event_type_id: 1,
-      },
-      event_type_detail_attributes: {
-        event_type: eventType,
-        award_scheme: awardType,
-        event_configuration: selectedStrategy,
-        dynamic_time_extension: dynamicExtension[1],
-        time_extension_type: dynamicExtensionConfigurations.time_extension_type,
-        triggered_time_extension_on_last:
-          dynamicExtensionConfigurations.triggered_time_extension_on_last,
-        extend_event_time_by: Number(
-          dynamicExtensionConfigurations.extend_event_time_by
-        ),
-        enable_english_auction: true,
-        extension_time_min: 5,
-        extend_time_min: 10,
-        time_extension_change:
-          dynamicExtensionConfigurations.time_extension_on_change_in,
-        delivery_date: dynamicExtensionConfigurations.delivery_date,
-      },
-      event_materials_attributes: materialFormData.map((material) => ({
-        descriptionOfItem: material.descriptionOfItem,
-        inventory_id: material.inventory_id,
-        quantity: material.quantity,
-        unit: material.unit,
-        location: material.location,
-        rate: material.rate,
-        amount: material.amount,
-        sub_section_id: material.sub_section_id,
-        section_id: material.section_id,
-      })),
-      event_vendors_attributes: selectedVendors.map((vendor) => ({
-        status: 1,
-        pms_supplier_id: vendor.id,
-      })),
-      status_logs_attributes: [
-        {
-          status: "pending",
-          created_by_id: 2,
-          remarks: "Initial status",
-          comments: "No comments",
+      event: {
+        event_title: eventName,
+        created_on: createdOn,
+        status: "pending",
+        created_by_id: 2,
+        event_schedule_attributes: {
+          start_time: scheduleData.start_time,
+          end_time: scheduleData.end_time_duration,
+          evaluation_time: scheduleData.evaluation_time,
+          event_type_id: 1,
         },
-      ],
-      resource_term_conditions_attributes: textareas.map((textarea) => ({
-        term_condition_id: 1,
-        condition_type: "general",
-        condition: textarea.value,
-      })),
-      attachments: documentRows.map((row) => row.upload),
+        event_type_detail_attributes: {
+          event_type: eventType,
+          award_scheme: awardType,
+          event_configuration: selectedStrategy,
+          dynamic_time_extension: dynamicExtension[1],
+          time_extension_type:
+            dynamicExtensionConfigurations.time_extension_type,
+          triggered_time_extension_on_last:
+            dynamicExtensionConfigurations.triggered_time_extension_on_last,
+          extend_event_time_by: Number(
+            dynamicExtensionConfigurations.extend_event_time_by
+          ),
+          enable_english_auction: true,
+          extension_time_min: 5,
+          extend_time_min: 10,
+          time_extension_change:
+            dynamicExtensionConfigurations.time_extension_on_change_in,
+          delivery_date: dynamicExtensionConfigurations.delivery_date,
+        },
+        event_materials_attributes: materialFormData.map((material) => ({
+          descriptionOfItem: material.descriptionOfItem,
+          inventory_id: material.inventory_id,
+          quantity: material.quantity,
+          unit: material.unit,
+          location: material.location,
+          rate: material.rate,
+          amount: material.amount,
+          sub_section_id: material.sub_section_id,
+          section_id: material.section_id,
+        })),
+        event_vendors_attributes: selectedVendors.map((vendor) => ({
+          status: 1,
+          pms_supplier_id: vendor.id,
+        })),
+        status_logs_attributes: [
+          {
+            status: "pending",
+            created_by_id: 2,
+            remarks: "Initial status",
+            comments: "No comments",
+          },
+        ],
+        resource_term_conditions_attributes: textareas.map((textarea) => ({
+          term_condition_id: 1,
+          condition_type: "general",
+          condition: textarea.value,
+        })),
+        attachments: documentRows.map((row) => row.upload),
+      },
     };
 
     console.log("Payload:", eventData);
@@ -485,7 +487,6 @@ export default function CreateEvent() {
           body: JSON.stringify(eventData),
         }
       );
-
       if (response.ok) {
         alert("Event created successfully!");
         navigate(
@@ -638,6 +639,21 @@ export default function CreateEvent() {
                   readOnly
                 />
               </div>
+              <div className="col-md-4 col-sm-6 mt-2">
+                <div className="form-group">
+                  <label className="po-fontBold">
+                    Event Description <span style={{ color: "red" }}>*</span>
+                  </label>
+                </div>
+                <input
+                  type="textarea"
+                  className="form-control"
+                  onClick={() => {}}
+                  placeholder="Enter Event Description"
+                  // value={eventScheduleText} // Display the selected event schedule
+                  // readOnly
+                />
+              </div>
             </div>
             <CreateRFQForm
               data={materialFormData}
@@ -757,7 +773,7 @@ export default function CreateEvent() {
                       }
                       ref={fileInputRef}
                       multiple
-                      accept=".xlsx,.csv,.pdf,.docx"
+                      accept=".xlsx,.csv,.pdf,.docx,.doc,.xls,.txt,png,jpg,jpeg,zip,rar,jfif,svg,mp4,mp3,avi,flv,wmv"
                     />
                   ),
                   action: (
