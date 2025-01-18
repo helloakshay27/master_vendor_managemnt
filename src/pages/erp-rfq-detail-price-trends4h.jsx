@@ -402,6 +402,7 @@ export default function ErpRfqDetailPriceTrends4h() {
               <div className="tab-content mt-3 main-scroll-div">
                 <ResponseTab />
                 <OverviewTab
+                materialData={counterOfferData}
                   overviewData={overviewData}
                   participantsOpen={participantsOpen}
                   participantsData={participantsTabData}

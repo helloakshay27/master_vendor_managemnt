@@ -1,10 +1,5 @@
 import React from "react";
-import {
-  EnvelopeIcon,
-  ParticipantsIcon,
-  ShowIcon,
-  Table,
-} from "../..";
+import { EnvelopeIcon, ParticipantsIcon, ShowIcon, Table } from "../..";
 
 export default function OverviewTab({
   handleParticipants,
@@ -24,6 +19,7 @@ export default function OverviewTab({
   handleTerms,
   handleOrderConf,
   handleOrderDetails,
+  materialData,
 }) {
   const participants = [
     {
@@ -97,10 +93,6 @@ export default function OverviewTab({
       label: "Order Mode",
       value: overviewData?.event_type_detail?.award_scheme || "_",
     },
-    // {
-    //   label: "Closing Mode",
-    //   value: "_",
-    // },
     {
       label: "Started at",
       value:
@@ -123,32 +115,32 @@ export default function OverviewTab({
       value: overviewData?.event_schedule?.evaluation_time || "_",
     },
     {
-      label: "Delivery Time",
-      value: overviewData?.event_schedule?.evaluation_time || "_",
+      label: "Delivery by",
+      value: new Date(overviewData?.delivery_date).toLocaleString() || "_",
     },
   ];
 
-  const overviewDatas = overviewData?.event_materials?.map((item) => ({
-    product: item.inventory_name || "_",
-    best_total_amount: item.amount || "_",
-    product_variant: "_",
-    quantity_requested: item.quantity || "_",
-    delivery_location: item.location || "_",
-    creator_attachment: "_",
-    additional_info: "_",
-    quantity_available: item.quantity_available || "_",
-    price: item.price || "_",
-    discount: item.discount || "_",
-    realised_discount: "_",
-    gst: "_",
-    realised_gst: "_",
+  console.log("overviewData:-----", overviewData);
+
+  const overviewDatas = materialData?.event_materials?.map((item) => ({
+    inventoryName: item.inventory_name || "_",
+    quantity: item.quantity || "_",
+    uom: item.uom || "_",
+    materialType: item.material_type || "_",
+    location: item.location || "_",
+    rate: item.rate || "_",
+    amount: item.rate * item.quantity || "_",
+    sectionName: item.section_name || "_",
+    subSectionName: item.sub_section_name || "_",
   }));
 
   const formatValue = (value) => {
     if (typeof value === "string") {
       return value
         .split("_")
-        .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .map(
+          (word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+        )
         .join(" ");
     }
     return value;
@@ -336,19 +328,15 @@ export default function OverviewTab({
               <div className="card card-body p-4 rounded-3">
                 <Table
                   columns={[
-                    { label: "Product", key: "product" },
-                    { label: "Best Total Amount", key: "best_total_amount" },
-                    { label: "Product Variant", key: "product_variant" },
-                    { label: "Quantity Requested", key: "quatity_requested" },
-                    { label: "Delivery Location", key: "delivery_location" },
-                    { label: "Creator Attachment", key: "creator_attachment" },
-                    { label: "Additional Info", key: "additional_info" },
-                    { label: "Quantity Available", key: "quantity_available" },
-                    { label: "Price", key: "price" },
-                    { label: "Discount", key: "discount" },
-                    { label: "Realised Discount", key: "realised_discount" },
-                    { label: "GST", key: "gst" },
-                    { label: "Realised GST", key: "realised_gst" },
+                    { label: "Inventory Name", key: "inventoryName" },
+                    { label: "Quantity", key: "quantity" },
+                    { label: "UOM", key: "uom" },
+                    { label: "Material Type", key: "materialType" },
+                    { label: "Location", key: "location" },
+                    { label: "Rate", key: "rate" },
+                    { label: "Amount", key: "amount" },
+                    { label: "Section Name", key: "sectionName" },
+                    { label: "Sub Section Name", key: "subSectionName" },
                   ]}
                   data={overviewDatas}
                 />
@@ -380,9 +368,14 @@ export default function OverviewTab({
           {termsOpen && (
             <div id="terms-conditions" className="mx-5">
               <div className="card card-body p-4">
-                {overviewData.terms_and_conditions.map((item, index) => (
-                  <p key={index}>{`${item.condition}`}</p>
-                ))}
+                {overviewData?.resource_term_conditions.map((item, index) => {
+                  return (
+                    <>
+                      <p key={index}>{`${index + 1}. ${item.term_condition.condition}`}</p>
+                      <p>{item.condition}</p>
+                    </>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -420,7 +413,8 @@ export default function OverviewTab({
                         key={item.id}
                       >
                         <p>{item.label}</p>
-                        <p id={item.id}>{formatValue(item.value)}</p> {/* Format the value */}
+                        <p id={item.id}>{formatValue(item.value)}</p>{" "}
+                        {/* Format the value */}
                       </div>
                     ))}
                   </div>
