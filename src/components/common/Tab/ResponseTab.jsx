@@ -13,7 +13,7 @@ import { useParams } from "react-router-dom";
 import { da } from "date-fns/locale";
 import { SegregatedBidMaterials } from "../../../utils/SegregatedBidMaterials";
 
-export default function ResponseTab() {
+export default function ResponseTab({ isCounterOffer }) {
   const [isVendor, setIsVendor] = useState(false);
   const [counterModal, setCounterModal] = useState(false);
   const [BidCounterData, setBidCounterData] = useState(null);
@@ -29,7 +29,7 @@ export default function ResponseTab() {
   const tableRef = useRef(null);
 
   useEffect(() => {
-    setSegeregatedMaterialData(SegregatedBidMaterials(eventVendors));    
+    setSegeregatedMaterialData(SegregatedBidMaterials(eventVendors));
   }, [eventVendors]);
 
   const { id } = useParams();
@@ -342,11 +342,22 @@ export default function ResponseTab() {
                     </colgroup>
                     <tbody>
                       <tr>
-                        <td style={{ width: "200px", background: "repeating-linear-gradient(135deg, #f3f3f3, #f3f3f3 10px, #e0e0e0 10px, #e0e0e0 11px)" }}></td>
+                        <td
+                          style={{
+                            width: "200px",
+                            background:
+                              "repeating-linear-gradient(135deg, #f3f3f3, #f3f3f3 10px, #e0e0e0 10px, #e0e0e0 11px)",
+                          }}
+                        ></td>
                         {eventVendors?.map((vendor, index) => {
                           const activeIndex = activeIndexes[vendor.id] || 0;
+                          console.log("isCounterOffer :---",isCounterOffer);
+                          
                           return (
-                            <td key={vendor.id} style={{ background:'#f3f3f3' }}>
+                            <td
+                              key={vendor.id}
+                              style={{ background: "#f3f3f3" }}
+                            >
                               <div
                                 className="d-flex flex-column align-items-center justify-content-between"
                                 style={{ height: "150px" }}
@@ -360,7 +371,7 @@ export default function ResponseTab() {
                                 <div className="d-flex justify-content-between align-items-center w-100 my-2">
                                   <button
                                     className="px-2 border-0"
-                                    style={{fontSize:'1.5rem'}}
+                                    style={{ fontSize: "1.5rem" }}
                                     onClick={() => handlePrev(vendor.id)}
                                   >
                                     &lt;
@@ -372,14 +383,14 @@ export default function ResponseTab() {
                                   </div>
                                   <button
                                     className="px-2 border-0"
-                                    style={{fontSize:'1.5rem'}}
+                                    style={{ fontSize: "1.5rem" }}
                                     onClick={() => handleNext(vendor.id)}
                                   >
                                     &gt;
                                   </button>
                                 </div>
                                 <button
-                                  className="purple-btn1 d-block mt-2"
+                                  className={`purple-btn1 d-block mt-2 ${isCounterOffer ? 'disabled-btn' : ''}`}
                                   onClick={() => {
                                     if (
                                       vendor?.bids?.length > 0 &&
@@ -391,6 +402,7 @@ export default function ResponseTab() {
                                       );
                                     }
                                   }}
+                                  disabled={isCounterOffer}
                                 >
                                   Counter
                                 </button>
@@ -398,10 +410,17 @@ export default function ResponseTab() {
                             </td>
                           );
                         })}
-                        <td style={{ width: "auto", background:'#f3f3f3' }}></td>
+                        <td
+                          style={{ width: "auto", background: "#f3f3f3" }}
+                        ></td>
                       </tr>
                       <tr>
-                        <td className="viewBy-tBody1-p" style={{ minidth: "200px" }}>Gross Total</td>
+                        <td
+                          className="viewBy-tBody1-p"
+                          style={{ minidth: "200px" }}
+                        >
+                          Gross Total
+                        </td>
                         {eventVendors?.map((vendor) => {
                           return (
                             <td key={`gross-${vendor.id}`}>

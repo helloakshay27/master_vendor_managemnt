@@ -45,8 +45,7 @@ export default function ErpRfqDetailPriceTrends4h() {
   const [overviewData, setOverviewData] = useState([]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [analyticsData, setAnalyticsData] = useState([]);
-
+  const [isCounter, setIsCounter] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -204,6 +203,12 @@ export default function ErpRfqDetailPriceTrends4h() {
 
         const data = await response.json();
         setOverviewData(data);
+        if (data.state == "live") {
+          setIsCounter(true);
+        } else {
+          setIsCounter(false);
+        }
+        // console.log("Data      overviewData", data);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -400,9 +405,9 @@ export default function ErpRfqDetailPriceTrends4h() {
                 renderModal={renderModal}
               />
               <div className="tab-content mt-3 main-scroll-div">
-                <ResponseTab />
+                <ResponseTab isCounterOffer={isCounter} />
                 <OverviewTab
-                materialData={counterOfferData}
+                  materialData={counterOfferData}
                   overviewData={overviewData}
                   participantsOpen={participantsOpen}
                   participantsData={participantsTabData}
