@@ -619,12 +619,17 @@ export default function VendorDetails() {
   const preparePayload = () => {
     // Calculate the total for each row individually
     const bidMaterialsAttributes = data.map((row) => {
-      const rowTotal = parseFloat(row.price || 0) * (row.quantityAvail || 0); // Calculate row-specific total
-      const gstAmount = rowTotal * (parseFloat(row.gst || 0) / 100); // GST for the row
-      const discountAmount = rowTotal * (parseFloat(row.discount || 0) / 100); // Discount for the row
-      const landedAmount = rowTotal + gstAmount - discountAmount; // Final landed amount for the row
-      const finalTotal = landedAmount + gstAmount;
+      // const rowTotal = parseFloat(row.price || 0) * (row.quantityAvail || 0); // Calculate row-specific total
+      // const gstAmount = rowTotal * (parseFloat(row.gst || 0) / 100); // GST for the row
+      // const discountAmount = rowTotal * (parseFloat(row.discount || 0) / 100); // Discount for the row
+      // const landedAmount = rowTotal + gstAmount - discountAmount; // Final landed amount for the row
+      // const finalTotal = landedAmount + gstAmount;
 
+      const rowTotal = parseFloat(row.price || 0) * (row.quantityAvail || 0); // Row total based on price and quantity
+      const discountAmount = rowTotal * (parseFloat(row.discount || 0) / 100); // Discount for the row
+      const landedAmount = rowTotal - discountAmount; // Discounted total, before GST
+      const gstAmount = landedAmount * (parseFloat(row.gst || 0) / 100); // GST applied on landed amount
+      const finalTotal = landedAmount + gstAmount; // Landed amount + GST
       return {
         event_material_id: row.eventMaterialId,
         quantity_available: row.quantityAvail || 0,
@@ -742,24 +747,6 @@ export default function VendorDetails() {
   };
 
   // terms and condition
-
-  const [terms, setTerms] = useState([]); // To store terms and conditions
-
-  // Fetch data from the API
-  useEffect(() => {
-    const fetchTerms = async () => {
-      try {
-        const response = await axios.get(
-          `https://vendors.lockated.com/rfq/events/${eventId}?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`
-        );
-        setTerms(response.data.terms_and_conditions || []);
-      } catch (error) {
-        console.error("Error fetching terms and conditions:", error);
-      }
-    };
-
-    fetchTerms();
-  }, []);
 
   // const preparePayload2 = () => {
   //   const totalAmount = parseFloat(calculateDataSumTotal());
@@ -999,6 +986,34 @@ export default function VendorDetails() {
       setLoading(false);
     }
   };
+
+  const [terms, setTerms] = useState([]); // To store terms and conditions
+
+  // Fetch data from the API
+  useEffect(() => {
+    const fetchTerms = async () => {
+      try {
+        const response = await axios.get(
+          `https://vendors.lockated.com/rfq/events/${eventId}?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`
+        );
+        console.log("API Response terms and condition:", response.data); //
+        // setTerms(response.data.terms_and_conditions || []);
+
+        const extractedTerms = response.data.resource_term_conditions.map(
+          (item) => ({
+            id: item.term_condition.id,
+            condition: item.term_condition.condition,
+          })
+        );
+
+        setTerms(extractedTerms || []); // Set the mapped terms
+      } catch (error) {
+        console.error("Error fetching terms and conditions:", error);
+      }
+    };
+
+    fetchTerms();
+  }, []);
 
   //user overview
 
@@ -3010,8 +3025,24 @@ export default function VendorDetails() {
                       // onClick={handleSubmit}
 
                       onClick={revisedBid ? handleReviseBid : handleSubmit} // Conditional onClick
-                      disabled={loading}
-                      className="purple-btn2 m-0"
+                      // disabled={loading}
+                      disabled={loading || counterData > 0} // Disable if loading or counterData exists
+                      style={{
+                        backgroundColor:
+                          loading || counterData > 0 ? "#ccc" : "#DE7008", // Gray for disabled, purple for enabled
+                        color: loading || counterData > 0 ? "#666" : "#fff", // Muted text for disabled, white for enabled
+                        border:
+                          loading || counterData > 0
+                            ? "1px solid #aaa"
+                            : "1px solid #DE7008", // Adjust border color
+                        cursor:
+                          loading || counterData > 0
+                            ? "not-allowed"
+                            : "pointer", // Not-allowed cursor for disabled
+                        padding: "10px 20px", // Add padding for consistent button appearance
+                        borderRadius: "5px", // Add rounded corners
+                      }}
+                      className="m-0"
                     >
                       {revisedBid ? "Revise Bid" : "Create Bid"}
                     </button>
