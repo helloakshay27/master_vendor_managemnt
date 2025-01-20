@@ -65,6 +65,7 @@ export default function CreateEvent() {
   const [textareas, setTextareas] = useState([{ id: Date.now(), value: "" }]);
   const documentRowsRef = useRef([{ srNo: 1, upload: null }]);
   const [documentRows, setDocumentRows] = useState([{ srNo: 1, upload: null }]);
+  const [eventDescription, setEventDescription] = useState("");
 
   // @ts-ignore
   const [createdOn] = useState(new Date().toISOString().split("T")[0]);
@@ -195,7 +196,7 @@ export default function CreateEvent() {
       eventTypeText = "Auction";
       setIsService(false);
     } else {
-      eventTypeText = "Contracts";
+      eventTypeText = "Contract";
       setIsService(true);
     }
     setEventTypeText(eventTypeText);
@@ -233,8 +234,11 @@ export default function CreateEvent() {
         city: vendor.city_id || "N/A",
         tags: vendor.tags || "N/A",
       }));
+      console.log("Formatted data:", formattedData.length, formattedData); 
+      
 
       setTableData(formattedData);
+
       setCurrentPage(page);
       setTotalPages(data?.pagination?.total_pages || 1); // Assume the API returns total pages
     } catch (error) {
@@ -317,31 +321,14 @@ export default function CreateEvent() {
   };
 
   const handleConditionChange = (id, selectedOption) => {
-    console.log(
-      "selectedOption:",
-      selectedOption,
-      "typeof:",
-      typeof selectedOption
-    );
 
-    console.log(
-      "termsOptions:",
-      termsOptions,
-      "selectedOption:",
-      selectedOption,
-      "id:",
-      id
-    );
-
-    // Directly compare selectedOption with option.value
     const selectedCondition = termsOptions.find(
-      (option) => String(option.value) === String(selectedOption) // No .value here
+      (option) => String(option.value) === String(selectedOption)
     );
 
     console.log("selectedCondition:", selectedCondition);
 
     if (selectedCondition) {
-      // Update the textareas with the condition's text
       setTextareas(
         textareas.map((textarea) =>
           textarea.id === id
@@ -417,6 +404,7 @@ export default function CreateEvent() {
         created_on: createdOn,
         status: "pending",
         created_by_id: 2,
+        event_description: eventDescription,
         event_schedule_attributes: {
           start_time: scheduleData.start_time,
           end_time: scheduleData.end_time_duration,
@@ -524,7 +512,10 @@ export default function CreateEvent() {
       const filteredSuggestions = tableData.filter((vendor) =>
         vendor.name?.toLowerCase().includes(e.target.value.toLowerCase())
       );
+      console.log("Filtered suggestions:", filteredSuggestions.length ,filteredSuggestions);
       setSuggestions(filteredSuggestions);
+      console.log("Suggestions:", suggestions.length, suggestions);
+      
       setIsSuggestionsVisible(true);
     }
     console.log("Search term:", e.target.value, filteredSuggestions);
@@ -645,13 +636,11 @@ export default function CreateEvent() {
                     Event Description <span style={{ color: "red" }}>*</span>
                   </label>
                 </div>
-                <input
-                  type="textarea"
+                <textarea
                   className="form-control"
-                  onClick={() => {}}
                   placeholder="Enter Event Description"
-                  // value={eventScheduleText} // Display the selected event schedule
-                  // readOnly
+                  value={eventDescription}
+                  onChange={(e) => setEventDescription(e.target.value)}
                 />
               </div>
             </div>

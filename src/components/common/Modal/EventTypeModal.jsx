@@ -201,43 +201,43 @@ const EventTypeModal = ({
                 <p className="pro-text pro-body pro-text--normal">RFQ</p>
               </div>
 
-              {/* Contracts Tab */}
+              {/* contract Tab */}
               <div
                 className={`pro-radio-tabs__tab ${
-                  eventType === "contracts"
+                  eventType === "contract"
                     ? "pro-radio-tabs__tab__selected"
                     : ""
                 }`}
                 role="radio"
-                aria-checked={eventType === "contracts"}
+                aria-checked={eventType === "contract"}
                 tabIndex={0}
-                onClick={() => handleEventTypeChange("contracts")}
+                onClick={() => handleEventTypeChange("contract")}
               >
                 <div className="pro-radio-tabs__check-icon">
                   <label
                     className={`ant-radio-wrapper ${
-                      eventType === "contracts"
+                      eventType === "contract"
                         ? "ant-radio-wrapper-checked"
                         : ""
                     }`}
                   >
                     <span
                       className={`ant-radio ${
-                        eventType === "contracts" ? "ant-radio-checked" : ""
+                        eventType === "contract" ? "ant-radio-checked" : ""
                       }`}
                     >
                       <input
                         type="radio"
                         className="ant-radio-input"
-                        value="contracts"
-                        checked={eventType === "contracts"}
-                        onChange={() => handleEventTypeChange("contracts")}
+                        value="contract"
+                        checked={eventType === "contract"}
+                        onChange={() => handleEventTypeChange("contract")}
                       />
                       <div className="ant-radio-inner"></div>
                     </span>
                   </label>
                 </div>
-                <p className="pro-text pro-body pro-text--normal">Contracts</p>
+                <p className="pro-text pro-body pro-text--normal">Contract</p>
               </div>
 
               <div
