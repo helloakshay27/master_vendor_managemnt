@@ -366,6 +366,8 @@ export default function VendorDetails() {
             unit: item.uom,
             location: item.location,
             rate: item.rate || "", // Placeholder if rate is not available
+            section: item.section_name,
+            subSection: item.sub_section_name,
             amount: item.amount,
             totalAmt: "", // Placeholder for calculated total amount
             attachment: null, // Placeholder for attachment
@@ -1027,6 +1029,8 @@ export default function VendorDetails() {
   const [error, setError] = useState(null);
   const [date, setDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
+  const [documentAttachment, setDocumentAttachment] = useState(true);
+  const [deliveryDate, setDelivaryDate] = useState(null);
 
   console.log("Event ID:", eventId);
   useEffect(() => {
@@ -1036,7 +1040,7 @@ export default function VendorDetails() {
       try {
         // Fetch data directly without headers
         const response = await axios.get(
-          `https://vendors.lockated.com/rfq/events/${eventId}/vendor_show?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&page=1`
+          `https://vendors.lockated.com/rfq/events/${eventId}?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&page=1`
         );
 
         // Transform the API response into the required table data format
@@ -1046,6 +1050,7 @@ export default function VendorDetails() {
         const isoDate = response.data.event_schedule.start_time;
         setDate(response.data.event_schedule.start_time);
         setEndDate(response.data.event_schedule.end_time_duration);
+        setDelivaryDate(response.data.delivery_date);
         // console.log("date:", isoDate);
       } catch (err) {
         console.error(
@@ -1075,6 +1080,10 @@ export default function VendorDetails() {
 
   const handlelineItem = () => {
     setLineItems(!lineItems);
+  };
+
+  const handleDocumentAttachment = () => {
+    setDocumentAttachment(!documentAttachment);
   };
 
   const formatDate = (date) => {
@@ -1123,6 +1132,36 @@ export default function VendorDetails() {
   };
 
   const formattedEndDate = calculateEndDate(endDate);
+
+  const calculateDelivarydDate = (date) => {
+    if (!date) {
+      console.warn("Date is undefined or null.");
+      return "Invalid date";
+    }
+
+    // Ensure that the date is being parsed correctly by the Date constructor.
+    const dateObj = new Date(date);
+
+    // Check if the date object is valid.
+    if (isNaN(dateObj.getTime())) {
+      console.error("Invalid date:", date);
+      return "Invalid date";
+    }
+
+    const day = dateObj.getDate().toString().padStart(2, "0");
+    const month = (dateObj.getMonth() + 1).toString().padStart(2, "0");
+    const year = dateObj.getFullYear();
+
+    let hours = dateObj.getHours();
+    const minutes = dateObj.getMinutes().toString().padStart(2, "0");
+    const ampm = hours >= 12 ? "PM" : "AM";
+    hours = hours % 12 || 12; // Convert to 12-hour format.
+
+    // If the date string contains a time zone, it's being converted into local time correctly by the Date constructor.
+    return `${day}-${month}-${year} ${hours}:${minutes} ${ampm}`;
+  };
+  const Delivarydate = calculateDelivarydDate(deliveryDate);
+  console.log("Formatted Delivery Date:", Delivarydate);
 
   // console.log(formattedEndDate);
   // console.log("end d", endDate);
@@ -1512,39 +1551,48 @@ export default function VendorDetails() {
                                         <th className="text-start">
                                           Bidding Ends At
                                         </th>
+                                        <th className="text-start">
+                                          Delivary date
+                                        </th>
                                       </tr>
                                     </thead>
                                     <tbody>
                                       <tr>
                                         <td
                                           className="text-start"
-                                          style={{ color: "#777777" }}
+                                          // style={{ color: "#777777" }}
                                         >
                                           1
                                         </td>
                                         <td
                                           className="text-start"
-                                          style={{ color: "#777777" }}
+                                          // style={{ color: "#777777" }}
                                         >
                                           [{data1.event_no}] {data1.event_title}
                                         </td>
                                         <td
                                           className="text-start"
-                                          style={{ color: "#777777" }}
+                                          // style={{ color: "#777777" }}
                                         >
                                           {data1.status}
                                         </td>
                                         <td
                                           className="text-start"
-                                          style={{ color: "#777777" }}
+                                          // style={{ color: "#777777" }}
                                         >
                                           {formattedDate}
                                         </td>
                                         <td
                                           className="text-start"
-                                          style={{ color: "#777777" }}
+                                          // style={{ color: "#777777" }}
                                         >
                                           {formattedEndDate}
+                                        </td>
+                                        <td
+                                          className="text-start"
+                                          // style={{ color: "#777777" }}
+                                        >
+                                          {Delivarydate}
                                         </td>
                                       </tr>
                                     </tbody>
@@ -1612,6 +1660,11 @@ export default function VendorDetails() {
                                   className=" mt-3 mb-3"
                                   // style={{ fontSize: "13px", marginLeft: "0px" }}
                                 >
+                                  {/* {terms.map((term) => (
+                                    <li key={term.id} className="mb-3 mt-3">
+                                      {term.condition}
+                                    </li>
+                                  ))} */}
                                   {terms.map((term) => (
                                     <li key={term.id} className="mb-3 mt-3">
                                       {term.condition}
@@ -1695,25 +1748,25 @@ export default function VendorDetails() {
                                       <tr>
                                         <td
                                           className="text-start"
-                                          style={{ color: "#777777" }}
+                                          // style={{ color: "#777777" }}
                                         >
                                           1
                                         </td>
                                         <td
                                           className="text-start"
-                                          style={{ color: "#777777" }}
+                                          // style={{ color: "#777777" }}
                                         >
                                           {data1.created_by}
                                         </td>
                                         <td
                                           className="text-start"
-                                          style={{ color: "#777777" }}
+                                          // style={{ color: "#777777" }}
                                         >
                                           {data1.created_by_email}
                                         </td>
                                         <td
                                           className="text-start"
-                                          style={{ color: "#777777" }}
+                                          // style={{ color: "#777777" }}
                                         >
                                           {data1.crated_by_mobile}
                                         </td>
@@ -1728,7 +1781,16 @@ export default function VendorDetails() {
 
                         {/* line */}
 
-                        <div className="col-12 pb-4 pt-3">
+                        <div
+                          className="col-12 pb-4 pt-3 "
+                          style={{
+                            // borderTop: "1px solid #ccc",
+                            borderBottom: "1px solid #ccc",
+                            // padding: "20px 0", // Optional padding to add spacing between content and borders
+                            paddingTop: "20px ",
+                            paddingBottom: "20px ",
+                          }}
+                        >
                           <a
                             className="btn d-flex  justify-content-between w-100"
                             data-bs-toggle="collapse"
@@ -1769,57 +1831,6 @@ export default function VendorDetails() {
                                 Line Items
                               </span>
                             </div>
-                            {/* Right-aligned button */}
-                            {/* <div className=""> */}
-                            {/* <button
-                                className="purple-btn2"
-                                data-bs-toggle="modal"
-                                data-bs-target="#venderModal"
-                                style={{
-                                  backgroundColor: "#F0F0F0",
-                                  color: "black",
-                                  fontSize:'16px'
-                                }}
-                              >
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  width="24"
-                                  height="24"
-                                  viewBox="0 0 24 24"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  // stroke-width="1"
-                                  stroke-linecap="round"
-                                  stroke-linejoin="round"
-                                >
-                                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                                  <polyline points="7 10 12 15 17 10" />
-                                  <line x1="12" y1="15" x2="12" y2="3" />
-                                </svg>
-                                <span style={{ fontSize: '16px' }}>Download Attachment</span>
-                              </button> */}
-
-                            <div className="d-flex align-items-center align-bottom">
-                              <button className="buyEvent-mainBtn download-reportBtn">
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  width="20"
-                                  height="20"
-                                  viewBox="0 0 24 24"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  // stroke-width="1"
-                                  stroke-linecap="round"
-                                  stroke-linejoin="round"
-                                >
-                                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                                  <polyline points="7 10 12 15 17 10" />
-                                  <line x1="12" y1="15" x2="12" y2="3" />
-                                </svg>
-                                Download Attachment
-                              </button>
-                              {/* </div> */}
-                            </div>
                           </a>
                           {lineItems && (
                             <div
@@ -1835,25 +1846,21 @@ export default function VendorDetails() {
                                       <tr>
                                         <th className="text-start">Sr.No.</th>
                                         <th className="text-start">
-                                          Line Item Name
-                                        </th>
-                                        <th className="text-start">PR No</th>
-                                        <th className="text-start">Item No</th>
-                                        <th className="text-start">
-                                          Specification Needed
-                                        </th>
-                                        <th className="text-start">
-                                          Attachment
+                                          Inventory Name
                                         </th>
                                         <th className="text-start">Quantity</th>
+                                        <th className="text-start">UOM</th>
                                         <th className="text-start">
-                                          PR Creator
+                                          Material Type
+                                        </th>
+                                        <th className="text-start">Location</th>
+                                        <th className="text-start">Rate</th>
+                                        <th className="text-start">Amount</th>
+                                        <th className="text-start">
+                                          Section Name
                                         </th>
                                         <th className="text-start">
-                                          PR Creator Phone
-                                        </th>
-                                        <th className="text-start">
-                                          PR Creator Email
+                                          Sub Section Name
                                         </th>
                                       </tr>
                                     </thead>
@@ -1863,64 +1870,187 @@ export default function VendorDetails() {
                                           <tr key={data.id}>
                                             <td
                                               className="text-start"
-                                              style={{ color: "#777777" }}
+                                              // style={{ color: "#777777" }}
                                             >
                                               {index + 1}
                                             </td>
                                             <td
                                               className="text-start"
-                                              style={{ color: "#777777" }}
+                                              // style={{ color: "#777777" }}
                                             >
                                               {data.inventory_name}
                                             </td>
                                             <td
                                               className="text-start"
-                                              style={{ color: "#777777" }}
-                                            >
-                                              -
-                                            </td>
-                                            <td
-                                              className="text-start"
-                                              style={{ color: "#777777" }}
-                                            ></td>
-                                            <td
-                                              className="text-start"
-                                              style={{ color: "#777777" }}
-                                            >
-                                              NA - NA
-                                            </td>
-                                            <td
-                                              className="text-start"
-                                              style={{ color: "#777777" }}
-                                            >
-                                              -
-                                            </td>
-                                            <td
-                                              className="text-start"
-                                              style={{ color: "#777777" }}
+                                              // style={{ color: "#777777" }}
                                             >
                                               {data.quantity}
                                             </td>
                                             <td
                                               className="text-start"
-                                              style={{ color: "#777777" }}
+                                              // style={{ color: "#777777" }}
                                             >
-                                              -
+                                              {data.uom}
                                             </td>
                                             <td
                                               className="text-start"
-                                              style={{ color: "#777777" }}
+                                              // style={{ color: "#777777" }}
                                             >
-                                              -
+                                              {data.material_type}
                                             </td>
                                             <td
                                               className="text-start"
-                                              style={{ color: "#777777" }}
+                                              // style={{ color: "#777777" }}
                                             >
-                                              -
+                                              {data.location}
+                                            </td>
+                                            <td
+                                              className="text-start"
+                                              // style={{ color: "#777777" }}
+                                            >
+                                              {data.rate}
+                                            </td>
+                                            <td
+                                              className="text-start"
+                                              // style={{ color: "#777777" }}
+                                            >
+                                              {data.amount}
+                                            </td>
+                                            <td
+                                              className="text-start"
+                                              // style={{ color: "#777777" }}
+                                            >
+                                              {data.section_name}
+                                            </td>
+                                            <td
+                                              className="text-start"
+                                              // style={{ color: "#777777" }}
+                                            >
+                                              {data.sub_section_name}
                                             </td>
                                           </tr>
                                         )
+                                      )}
+                                    </tbody>
+                                  </table>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="col-12 pb-4 pt-3">
+                          <a
+                            className="btn d-flex justify-content-between w-100"
+                            data-bs-toggle="collapse"
+                            href="#document-attachment"
+                            role="button"
+                            aria-expanded={documentAttachment}
+                            aria-controls="document-attachment"
+                            onClick={handleDocumentAttachment}
+                            style={{ fontSize: "16px", fontWeight: "normal" }}
+                          >
+                            <div>
+                              <span
+                                id="document-attachment-icon"
+                                className="icon-1"
+                                style={{
+                                  marginRight: "8px",
+                                  border: "1px solid #dee2e6",
+                                  paddingTop: "10px",
+                                  paddingBottom: "10px",
+                                  paddingLeft: "8px",
+                                  paddingRight: "8px",
+                                  fontSize: "12px",
+                                }}
+                              >
+                                {documentAttachment ? (
+                                  <i className="bi bi-dash-lg"></i>
+                                ) : (
+                                  <i className="bi bi-plus-lg"></i>
+                                )}
+                              </span>
+                              <span
+                                style={{
+                                  fontSize: "16px",
+                                  fontWeight: "normal",
+                                }}
+                              >
+                                Document Attachment
+                              </span>
+                            </div>
+                          </a>
+
+                          {documentAttachment && (
+                            <div
+                              id="document-attachment"
+                              className="mt-2"
+                              style={{ paddingLeft: "24px" }}
+                            >
+                              <div className="card card-body rounded-3 p-4">
+                                {/* Document Details Table */}
+                                <div className="tbl-container mt-3">
+                                  <table className="w-100 table">
+                                    <thead>
+                                      <tr>
+                                        <th className="text-start">Sr No</th>
+                                        <th className="text-start">
+                                          File Name
+                                        </th>
+                                        <th className="text-start">
+                                          Uploaded At
+                                        </th>
+                                        <th className="text-start">Download</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      {data1?.attachments?.map(
+                                        (attachment, index) => (
+                                          <tr key={attachment.id}>
+                                            <td className="text-start">
+                                              {index + 1}
+                                            </td>
+                                            <td className="text-start">
+                                              {attachment.filename}
+                                            </td>
+                                            <td className="text-start">
+                                              {formattedDate}
+                                            </td>
+                                            {/* <td className="text-start">
+                                              {new Date(
+                                                attachment.blob_created_at
+                                              ).toLocaleString()}
+                                            </td> */}
+                                            <td className="text-start">
+                                              <a
+                                                href={`path-to-your-files/${attachment.filename}`}
+                                                download
+                                              >
+                                                <svg
+                                                  xmlns="http://www.w3.org/2000/svg"
+                                                  width="16"
+                                                  height="16"
+                                                  viewBox="0 0 16 16"
+                                                  style={{ fill: "black" }}
+                                                >
+                                                  <g fill="currentColor">
+                                                    <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z" />
+                                                    <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z" />
+                                                  </g>
+                                                </svg>
+                                              </a>
+                                            </td>
+                                          </tr>
+                                        )
+                                      ) || (
+                                        <tr>
+                                          <td
+                                            colSpan="5"
+                                            className="text-center"
+                                          >
+                                            No attachments available.
+                                          </td>
+                                        </tr>
                                       )}
                                     </tbody>
                                   </table>
@@ -2026,6 +2156,10 @@ export default function VendorDetails() {
                             { label: "Material", key: "descriptionOfItem" },
                             { label: "Material Variant", key: "varient" },
                             { label: "Quantity Requested", key: "quantity" },
+                            { label: "Section", key: "section" },
+
+                            { label: "Sub Section", key: "subSection" },
+
                             { label: "Delivery Location", key: "location" },
                             { label: "Creator Attachment", key: "attachment" },
                             {
@@ -2062,6 +2196,28 @@ export default function VendorDetails() {
                             ),
 
                             varient: (cell, rowIndex) => (
+                              <input
+                                className="form-control"
+                                type="text"
+                                value={cell}
+                                readOnly
+                                style={otherColumnsStyle}
+                                disabled
+                              />
+                            ),
+
+                            section: (cell, rowIndex) => (
+                              <input
+                                className="form-control"
+                                type="text"
+                                value={cell}
+                                readOnly
+                                style={otherColumnsStyle}
+                                disabled
+                              />
+                            ),
+
+                            subSection: (cell, rowIndex) => (
                               <input
                                 className="form-control"
                                 type="text"

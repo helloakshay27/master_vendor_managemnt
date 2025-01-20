@@ -33,6 +33,7 @@ import POdeta from "./pages/POdetails";
 import PoPage from "./pages/Po";
 import ContractInvitation from "./pages/contract-invitation";
 import SectionTab from "./pages/section-tab";
+import EoiDeatailPage from "./pages/eoi-detail";
 
 function App() {
   return (
@@ -64,6 +65,10 @@ function App() {
           <Route path="/section-tab" element={<SectionTab />} />
 
           {/* <Route path="/event-list" element={<EventList />} /> */}
+
+          <Route path="/user-list/:eventId" element={<VendorDetails />} />
+
+          <Route path="/eoi-details/:eventId" element={<EoiDeatailPage />} />
 
           <Route path="/user-list/:eventId" element={<VendorDetails />} />
           <Route path="/vendor-list" element={<VendorListPage />} />
