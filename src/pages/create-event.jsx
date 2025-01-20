@@ -762,7 +762,7 @@ export default function CreateEvent() {
                       }
                       ref={fileInputRef}
                       multiple
-                      accept=".xlsx,.csv,.pdf,.docx,.doc,.xls,.txt,png,jpg,jpeg,zip,rar,jfif,svg,mp4,mp3,avi,flv,wmv"
+                      accept=".xlsx,.csv,.pdf,.docx,.doc,.xls,.txt,.png,.jpg,.jpeg,.zip,.rar,.jfif,.svg,.mp4,.mp3,.avi,.flv,.wmv"
                     />
                   ),
                   action: (
