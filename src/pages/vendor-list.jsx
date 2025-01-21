@@ -263,6 +263,7 @@ export default function VendorListPage() {
       const mappedEoiEvents = eoiResponse.data.expression_of_interests.map(
         (eoi) => ({
           id: eoi.id,
+          event_id: eoi.event.id,
           status: eoi.status,
           event_title: eoi.event.event_title,
           event_no: eoi.event.event_no,
@@ -1046,9 +1047,13 @@ export default function VendorListPage() {
                                       !event.event_type_detail?.event_type
                                     ) {
                                       // If event_type is 'eoi' or missing, navigate to the EOI details page
-                                      navigate(`/eoi-details/${event.id}`);
+                                      navigate(
+                                        `/eoi-details/${event.event_id}?eoi_id=${event.id}`
+                                      );
                                       // If event_type_detail is null or it explicitly mentions 'eoi', navigate to the EOI details page
-                                      navigate(`/eoi-details/${event.id}`);
+                                      navigate(
+                                        `/eoi-details/${event.event_id}?eoi_id=${event.id}`
+                                      );
                                     } else {
                                       // For Live, All, History, navigate to the user list page
                                       navigate(`/user-list/${event.id}`);

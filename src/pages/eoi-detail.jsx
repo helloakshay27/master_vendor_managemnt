@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Header from "../components/Header";
 import "../styles/mor.css";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { Link } from "react-router-dom";
 import axios from "axios";
 
@@ -24,7 +24,79 @@ export default function EoiDeatailPage() {
 
   const { eventId } = useParams();
 
-  console.log("Event ID:", eventId);
+  // console.log("Event ID:", eventId);
+
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const eoiId = queryParams.get("eoi_id");
+
+  // Logging the extracted parameters
+  // console.log("Event ID:", eventId);
+  // console.log("EOI ID:", eoiId);
+
+  const [vendorId, setVendorId] = useState(() => {
+    // Retrieve the vendorId from sessionStorage or default to an empty string
+    return sessionStorage.getItem("vendorId") || "";
+  });
+
+  const handleYesClick = async () => {
+    try {
+      const token = "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414"; // Your token
+
+      // Construct the URL for the PUT API request
+      const url = `https://vendors.lockated.com/rfq/events/${eventId}/expression_of_interests/${eoiId}?token=${token}&q[vendor_id_in]=${vendorId}`;
+
+      // Define the payload to send in the request (if required by the API)
+      const payload = {
+        // Add any data the API might need, e.g. status, etc.
+        status: "approved",
+      };
+
+      // Make the PUT request using axios
+      const response = await axios.put(url, payload);
+
+      // Check the response and display a success message
+      if (response.status === 200) {
+        alert("Yes selected and request updated successfully!");
+        console.log("Response:", response.data);
+      } else {
+        alert("Failed to update the EOI status.");
+      }
+    } catch (error) {
+      console.error("Error occurred while updating EOI:", error);
+      alert("An error occurred while processing your request.");
+    }
+  };
+
+  // Define a function to handle the No button click event
+  const handleNoClick = async () => {
+    try {
+      const token = "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414"; // Your token
+
+      // Construct the URL for the PUT API request
+      const url = `https://vendors.lockated.com/rfq/events/${eventId}/expression_of_interests/${eoiId}?token=${token}&q[vendor_id_in]=${vendorId}`;
+
+      // Define the payload to send in the request (if required by the API)
+      const payload = {
+        // Add any data the API might need, e.g. status, etc.
+        status: "rejected",
+      };
+
+      // Make the PUT request using axios
+      const response = await axios.put(url, payload);
+
+      // Check the response and display a success message
+      if (response.status === 200) {
+        alert("No selected and request updated successfully!");
+        console.log("Response:", response.data);
+      } else {
+        alert("Failed to update the EOI status.");
+      }
+    } catch (error) {
+      console.error("Error occurred while updating EOI:", error);
+      alert("An error occurred while processing your request.");
+    }
+  };
 
   const navigate = useNavigate();
 
@@ -40,8 +112,8 @@ export default function EoiDeatailPage() {
 
         // Transform the API response into the required table data format
 
-        console.log("fetching events", response.data);
-        console.log("Attachments:", response.data.attachments);
+        // console.log("fetching events", response.data);
+        // console.log("Attachments:", response.data.attachments);
 
         setData1(response.data);
         // console.log("response:", response.data);
@@ -49,7 +121,7 @@ export default function EoiDeatailPage() {
         setDate(response.data.event_schedule.start_time);
         setEndDate(response.data.event_schedule.end_time_duration);
         setDelivaryDate(response.data.delivery_date);
-        console.log("delivary date", response.data.delivery_date);
+        // console.log("delivary date", response.data.delivery_date);
 
         // console.log("date:", isoDate);
       } catch (err) {
@@ -162,7 +234,7 @@ export default function EoiDeatailPage() {
   };
 
   const Delivarydate = calculateDelivarydDate(deliveryDate);
-  console.log("Formatted Delivery Date:", Delivarydate);
+  // console.log("Formatted Delivery Date:", Delivarydate);
 
   const [terms, setTerms] = useState([]); // To store terms and conditions
 
@@ -737,31 +809,6 @@ export default function EoiDeatailPage() {
                           )}
                         </div>
 
-                        {/* <div className="col-md-12 mt-5">
-                            <p
-                              className="text-end "
-                              style={{ fontSize: "15px", marginRight: "15px" }}
-                            >
-                              Are you interested?
-                            </p>
-                            <div className="d-flex justify-content-end mt-2">
-                              <button
-                                className="col-md-0 purple-btn2"
-                                onClick={() => alert("Yes selected")}
-                                style={{ fontSize: "16px" }}
-                              >
-                                Yes
-                              </button>
-                              <button
-                                className="col-md-0 purple-btn2"
-                                onClick={() => alert("No selected")}
-                                style={{ fontSize: "16px" }}
-                              >
-                                No
-                              </button>
-                            </div>
-                          </div> */}
-
                         <div className="col-12 pb-4 pt-3">
                           <a
                             className="btn d-flex justify-content-between w-100"
@@ -892,17 +939,17 @@ export default function EoiDeatailPage() {
                           <div className="d-flex justify-content-end mt-2">
                             <button
                               className="col-md-0 purple-btn2"
-                              onClick={() => alert("Yes selected")}
+                              onClick={handleYesClick}
                               style={{ fontSize: "16px" }}
                             >
                               Yes
                             </button>
                             <button
                               className="col-md-0 purple-btn2"
-                              onClick={() => alert("No selected")}
+                              onClick={handleNoClick}
                               style={{ fontSize: "16px" }}
                             >
-                              No
+                              No{" "}
                             </button>
                           </div>
                         </div>
