@@ -48,6 +48,9 @@ function Members() {
               <li>
                 <Link to="/Wo">Wo list</Link>
               </li>
+              <li>
+                <Link to="/section-re-KYC-details">Section Re KYC Details</Link>
+              </li>
               {/* <li>
                 <Link to="/user-list">user_list</Link>
               </li>
