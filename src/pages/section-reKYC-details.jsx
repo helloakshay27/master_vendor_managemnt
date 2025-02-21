@@ -1,9 +1,24 @@
-import React from "react";
+import React, { useState } from "react";
 import CollapsedCardKYC from "../components/base/Card/CollapsedCardKYC";
 import CardBodyKYC from "../components/base/Card/CardBodyKYC";
 import { SelectBox } from "../components";
 
 const SectionReKYCDetails = () => {
+  const [bankDetailsList, setBankDetailsList] = useState([{ id: Date.now() }]);
+  
+  // Function to add 
+  const addBankDetails = () => {
+    setBankDetailsList([
+      ...bankDetailsList,
+      { id: Date.now() }, 
+    ]);
+  };
+
+  // Function to delete 
+  const deleteBankDetails = (id) => {
+    setBankDetailsList(bankDetailsList.filter((item) => item.id !== id)); 
+  };
+
   return (
     <>
       <div className="website-content overflowY-auto">
@@ -313,197 +328,208 @@ const SectionReKYCDetails = () => {
             </div>
           </div>
 
-          <CollapsedCardKYC title="Bank Details">
-            <div className="row">
-              <div className="col-md-4">
-                <div className="form-group">
-                  <label>
-                    Bank Name <span>*</span>
-                  </label>
-                  <input
-                    className="form-control"
-                    type="text"
-                    name="name"
-                    placeholder="Enter Bank name"
-                  />
+          <div>
+            {bankDetailsList.map((bankDetail) => (
+              <CollapsedCardKYC
+                key={bankDetail.id}
+                title="Bank Details"
+                onDelete={() => deleteBankDetails(bankDetail.id)}  
+              >
+                <div className="row">
+                  <div className="col-md-4">
+                    <div className="form-group">
+                      <label>
+                        Bank Name <span>*</span>
+                      </label>
+                      <input
+                        className="form-control"
+                        type="text"
+                        name="name"
+                        placeholder="Enter Bank name"
+                      />
+                    </div>
+                  </div>
+                  <div className="col-md-4">
+                    <div className="form-group">
+                      <label>
+                        Address<span>*</span>
+                      </label>
+                      <input
+                        className="form-control"
+                        type="text"
+                        name="name"
+                        placeholder="Enter Address"
+                      />
+                    </div>
+                  </div>
+                  <div className="col-md-4">
+                    <div className="form-group">
+                      <label>
+                        County <span>*</span>
+                      </label>
+                      <SelectBox />
+                    </div>
+                  </div>
+                  <div className="col-md-4 mt-2">
+                    <div className="form-group">
+                      <label>
+                        State<span>*</span>
+                      </label>
+                      <SelectBox />
+                    </div>
+                  </div>
+                  <div className="col-md-4 mt-2">
+                    <div className="form-group">
+                      <label>
+                        City<span>*</span>
+                      </label>
+                      <SelectBox />
+                    </div>
+                  </div>
+                  <div className="col-md-4 mt-2">
+                    <div className="form-group">
+                      <label>
+                        Pin Code<span>*</span>
+                      </label>
+                      <input
+                        className="form-control"
+                        type="number"
+                        name="name"
+                        placeholder="Enter Pin Code"
+                      />
+                    </div>
+                  </div>
+                  <div className="col-md-4 mt-2">
+                    <div className="form-group">
+                      <label>
+                        Account Type<span>*</span>
+                      </label>
+                      <input
+                        className="form-control"
+                        type="text"
+                        name="name"
+                        placeholder="Enter Account Type"
+                      />
+                    </div>
+                  </div>
+                  <div className="col-md-4 mt-2">
+                    <div className="form-group">
+                      <label>
+                        Account Number<span>*</span>
+                      </label>
+                      <input
+                        className="form-control"
+                        type="number"
+                        name="name"
+                        placeholder="Enter Account Number"
+                      />
+                    </div>
+                  </div>
+                  <div className="col-md-4 mt-2">
+                    <div className="form-group">
+                      <label>
+                        Confirm Account Number<span>*</span>
+                      </label>
+                      <input
+                        className="form-control"
+                        type="number"
+                        name="name"
+                        placeholder="Enter Confirm Account Number"
+                      />
+                    </div>
+                  </div>
+                  <div className="col-md-4 mt-2">
+                    <div className="form-group">
+                      <label>
+                        Branch Name<span>*</span>
+                      </label>
+                      <input
+                        className="form-control"
+                        type="text"
+                        name="name"
+                        placeholder="Enter Branch Name"
+                      />
+                    </div>
+                  </div>
+                  <div className="col-md-4 mt-2">
+                    <div className="form-group">
+                      <label>
+                        MICR No.<span>*</span>
+                      </label>
+                      <input
+                        className="form-control"
+                        type="text"
+                        name="name"
+                        placeholder=" MICR No."
+                      />
+                    </div>
+                  </div>
+                  <div className="col-md-4 mt-2">
+                    <div className="form-group">
+                      <label>
+                        IFSC Code<span>*</span>
+                      </label>
+                      <input
+                        className="form-control"
+                        type="text"
+                        name="name"
+                        placeholder="Enter IFCS Code"
+                      />
+                    </div>
+                  </div>
+                  <div className="col-md-4 mt-2">
+                    <div className="form-group">
+                      <label>
+                        Beneficiary Name <span>*</span>
+                      </label>
+                      <input
+                        className="form-control"
+                        type="text"
+                        name="name"
+                        placeholder="Enter name"
+                      />
+                    </div>
+                  </div>
+                  <div className="col-md-4 mt-2">
+                    <div className="form-group">
+                      <label>
+                        Cancelled Cheque / Bank Copy<span>*</span>
+                      </label>
+                      <input
+                        id="attachment"
+                        accept=" "
+                        className="form-control"
+                        type="file"
+                        name=""
+                      />
+                    </div>
+                  </div>
+                  <div className="col-md-4 mt-2">
+                    <div className="form-group">
+                      <label>
+                        Remark<span>*</span>
+                      </label>
+                      <textarea
+                        className="form-control"
+                        id="exampleFormControlTextarea1"
+                        rows={3}
+                        defaultValue={""}
+                      />
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <div className="col-md-4">
-                <div className="form-group">
-                  <label>
-                    Address<span>*</span>
-                  </label>
-                  <input
-                    className="form-control"
-                    type="text"
-                    name="name"
-                    placeholder="Enter Address"
-                  />
-                </div>
-              </div>
-              <div className="col-md-4">
-                <div className="form-group">
-                  <label>
-                    County <span>*</span>
-                  </label>
-                  <SelectBox />
-                </div>
-              </div>
-              <div className="col-md-4 mt-2">
-                <div className="form-group">
-                  <label>
-                    State<span>*</span>
-                  </label>
-                  <SelectBox />
-                </div>
-              </div>
-              <div className="col-md-4 mt-2">
-                <div className="form-group">
-                  <label>
-                    City<span>*</span>
-                  </label>
-                  <SelectBox />
-                </div>
-              </div>
-              <div className="col-md-4 mt-2">
-                <div className="form-group">
-                  <label>
-                    Pin Code<span>*</span>
-                  </label>
-                  <input
-                    className="form-control"
-                    type="number"
-                    name="name"
-                    placeholder="Enter Pin Code"
-                  />
-                </div>
-              </div>
-              <div className="col-md-4 mt-2">
-                <div className="form-group">
-                  <label>
-                    Account Type<span>*</span>
-                  </label>
-                  <input
-                    className="form-control"
-                    type="text"
-                    name="name"
-                    placeholder="Enter Account Type"
-                  />
-                </div>
-              </div>
-              <div className="col-md-4 mt-2">
-                <div className="form-group">
-                  <label>
-                    Account Number<span>*</span>
-                  </label>
-                  <input
-                    className="form-control"
-                    type="number"
-                    name="name"
-                    placeholder="Enter Account Number"
-                  />
-                </div>
-              </div>
-              <div className="col-md-4 mt-2">
-                <div className="form-group">
-                  <label>
-                    Confirm Account Number<span>*</span>
-                  </label>
-                  <input
-                    className="form-control"
-                    type="number"
-                    name="name"
-                    placeholder="Enter Confirm Account Number"
-                  />
-                </div>
-              </div>
-              <div className="col-md-4 mt-2">
-                <div className="form-group">
-                  <label>
-                    Branch Name<span>*</span>
-                  </label>
-                  <input
-                    className="form-control"
-                    type="text"
-                    name="name"
-                    placeholder="Enter Branch Name"
-                  />
-                </div>
-              </div>
-              <div className="col-md-4 mt-2">
-                <div className="form-group">
-                  <label>
-                    MICR No.<span>*</span>
-                  </label>
-                  <input
-                    className="form-control"
-                    type="text"
-                    name="name"
-                    placeholder=" MICR No."
-                  />
-                </div>
-              </div>
-              <div className="col-md-4 mt-2">
-                <div className="form-group">
-                  <label>
-                    IFSC Code<span>*</span>
-                  </label>
-                  <input
-                    className="form-control"
-                    type="text"
-                    name="name"
-                    placeholder="Enter IFCS Code"
-                  />
-                </div>
-              </div>
-              <div className="col-md-4 mt-2">
-                <div className="form-group">
-                  <label>
-                    Beneficiary Name <span>*</span>
-                  </label>
-                  <input
-                    className="form-control"
-                    type="text"
-                    name="name"
-                    placeholder="Enter name"
-                  />
-                </div>
-              </div>
-              <div className="col-md-4 mt-2">
-                <div className="form-group">
-                  <label>
-                    Cancelled Cheque / Bank Copy<span>*</span>
-                  </label>
-                  <input
-                    id="attachment"
-                    accept=" "
-                    className="form-control"
-                    type="file"
-                    name=""
-                  />
-                </div>
-              </div>
-              <div className="col-md-4 mt-2">
-                <div className="form-group">
-                  <label>
-                    Remark<span>*</span>
-                  </label>
-                  <textarea
-                    className="form-control"
-                    id="exampleFormControlTextarea1"
-                    rows={3}
-                    defaultValue={""}
-                  />
-                </div>
-              </div>
-            </div>
-          </CollapsedCardKYC>
+              </CollapsedCardKYC>
+            ))}
 
-          <div className="row mt-2 ms-2 justify-content-start">
-            <div className="col-md-2">
-              <button className="purple-btn1">Add Bank Details</button>
+            <div className="row mt-2 ms-2 justify-content-start">
+              <div className="col-md-2">
+                <button className="purple-btn1" onClick={addBankDetails}>
+                  Add Bank Details
+                </button>
+              </div>
             </div>
           </div>
+
           <div className="card mx-3 pb-4 mt-4">
             <div className="card-header3">
               <h3 className="card-title">Banking</h3>
