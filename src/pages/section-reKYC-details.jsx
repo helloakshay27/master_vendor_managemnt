@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import CollapsedCardKYC from "../components/base/Card/CollapsedCardKYC";
 import CardBodyKYC from "../components/base/Card/CardBodyKYC";
+import CardBodyMsme from "../components/base/Card/CardBodyMsme";
+
 import { SelectBox } from "../components";
 
 const SectionReKYCDetails = () => {
@@ -532,15 +534,9 @@ const SectionReKYCDetails = () => {
 
           <div className="card mx-3 pb-4 mt-4">
             <div className="card-header3">
-              <h3 className="card-title">Banking</h3>
-            </div>
-            <CardBodyKYC />
-          </div>
-          <div className="card mx-3 pb-4 mt-4">
-            <div className="card-header3">
               <h3 className="card-title">MSME Details</h3>
             </div>
-            <CardBodyKYC />
+            <CardBodyMsme />
           </div>
           <div className="card mx-3 pb-4 mt-4">
             <div className="card-header3">
