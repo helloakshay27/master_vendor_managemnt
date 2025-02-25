@@ -16,7 +16,7 @@ const ApprovalMatrix = () => {
   const [approvalLevels, setApprovalLevels] = useState([
     { order: "", name: "", users: [] }, // Initial level remains open
   ]);
-  const [selectedKYCType, setSelectedKYCType] = useState(null);
+  const [selectedKYCType, setSelectedKYCType] = useState([]);
 
   const [users, setUsers] = useState([]);
   const kycTypes = [
@@ -111,20 +111,28 @@ const ApprovalMatrix = () => {
     setSelectedDepartment(selected);
   };
 
+  // const handleKYCTypeChange = (selected) => {
+  //   console.log("Selected KYC Type:", selected);
+
+  //   // If MultiSelector returns an array, take the first selected value
+  //   const selectedValue = Array.isArray(selected) ? selected[0] : selected;
+
+  //   setSelectedKYCType(selectedValue);
+  // };
+
   const handleKYCTypeChange = (selected) => {
-    console.log("Selected KYC Type:", selected);
-
-    // If MultiSelector returns an array, take the first selected value
-    const selectedValue = Array.isArray(selected) ? selected[0] : selected;
-
-    setSelectedKYCType(selectedValue);
+    console.log("Selected KYC Types:", selected);
+    setSelectedKYCType(selected); // Store all selected values
   };
 
   const handleCreate = async () => {
     const finalFormData = {
       company_id: selectedCompany ? selectedCompany.value : null,
       department_id: selectedDepartment ? selectedDepartment.value : null,
-      approval_type: selectedKYCType ? selectedKYCType.value : "",
+      approval_type:
+        selectedKYCType.length > 0
+          ? selectedKYCType.map((item) => item.value).join(",")
+          : "", // Ensure it correctly captures multiple selected values
     };
 
     console.log("Final Form Data Before Submit:", finalFormData);
@@ -160,6 +168,11 @@ const ApprovalMatrix = () => {
 
       console.log("API Response:", response.data);
       alert("Approval Matrix Created Successfully!");
+
+      setSelectedCompany(null);
+      setSelectedDepartment(null);
+      setSelectedKYCType([]);
+      setApprovalLevels([{ order: "", name: "", users: [] }]); // Reset to initial empty level
     } catch (error) {
       console.error("Error creating approval matrix:", error);
       alert("Failed to create approval matrix.");
