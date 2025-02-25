@@ -31,7 +31,8 @@ import WoPage from "./pages/Wo";
 import Wodetails from "./pages/Wodetails";
 import POdeta from "./pages/POdetails";
 import PoPage from "./pages/Po";
-import SectionReKYCDetails from "./pages/section-reKYC-details"
+import SectionReKYCDetails from "./pages/section-reKYC-details";
+import ApprovalMatrix from "./pages/approval-matrix";
 
 function App() {
   return (
@@ -87,7 +88,11 @@ function App() {
           {/* <Route path='/create-bid' element={<CreateBid />} /> */}
           <Route path="/create-bid/:eventId" element={<CreateBid />} />
           <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/section-re-KYC-details" element={<SectionReKYCDetails />} />
+          <Route path="/approval-matrix" element={<ApprovalMatrix />} />
+          <Route
+            path="/section-re-KYC-details"
+            element={<SectionReKYCDetails />}
+          />
         </Routes>
       </div>
     </BrowserRouter>
