@@ -43,6 +43,7 @@ export default function SelectBox({
   style = {},
   className = "",
   isDisableFirstOption = false, // New prop
+  value,
 }) {
   const customStyles = {
     control: (base) => ({
@@ -83,6 +84,7 @@ export default function SelectBox({
         isOptionDisabled={(option) => option.isDisabled} // Disabling logic
         styles={customStyles}
         menuPortalTarget={document.body} // Render dropdown outside the table
+        value={value}
       />
     </div>
   );
