@@ -973,7 +973,7 @@ const isRekycTypeEmpty = !rekycType || rekycType.length === 0;
 {  (isRekycTypeEmpty ||isBankRekyc) &&(
         <div>       
 
-        {bankDetailsList.map((bankDetail) => (
+        {bankDetailsList?.map((bankDetail) => (
           <CollapsedCardKYC
             key={bankDetail.id}
             title="Bank Details"
@@ -1210,7 +1210,7 @@ const isRekycTypeEmpty = !rekycType || rekycType.length === 0;
          
 
                   {/* Address */}
-                  <div className="col-md-4">
+                  {/* <div className="col-md-4">
                     <div className="form-group">
                       <label>
                         Address <span>*</span>
@@ -1225,10 +1225,10 @@ const isRekycTypeEmpty = !rekycType || rekycType.length === 0;
                         }
                       />
                     </div>
-                  </div>
+                  </div> */}
 
                   {/* Country */}
-                  <div className="col-md-4">
+                  {/* <div className="col-md-4">
                     <div className="form-group">
                       <label>
                         Country <span>*</span>
@@ -1244,7 +1244,7 @@ const isRekycTypeEmpty = !rekycType || rekycType.length === 0;
                         // onChange={(e) => handleCountryChange(e, bankDetail.id)}  // Pass the bankDetail.id here
                       />
                     </div>
-                  </div>
+                  </div> */}
 
           {/* rekeyc type present  */}
 
