@@ -6,6 +6,7 @@ import axios from "axios";
 
 import { SelectBox } from "../../../components";
 import { useParams } from 'react-router-dom';
+import SingleSelector from "../../../components/base/Select/SingleSelector";
 
 
 const SectionReKYCDetails = () => {
@@ -75,6 +76,7 @@ const SectionReKYCDetails = () => {
       setValidFrom(response.data?.msme_details?.valid_from);
       setValidTill(response.data?.msme_details?.valid_till);
       setRekycId(response.data?.id);
+      // setSelectedCountry(response.data?.bank_details.country)
 
       console.log("enterprise:", response.data?.msme_details?.enterprise);
 
@@ -220,6 +222,7 @@ const SectionReKYCDetails = () => {
   useEffect(() => {
     if (selectedCountry) {
       // Fetch states based on the selected country
+      console.log("selected country for states:",selectedCountry)
       axios
         .get(`https://vendors.lockated.com/pms/dropdown_states?country_id=${selectedCountry.value}&&token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`)
         .then(response => {
@@ -247,18 +250,24 @@ const SectionReKYCDetails = () => {
 
 
 
-  // const handleCountryChange = (selectedOption, bankDetailId) => {
-  //   // Update the selected country
-  //   setSelectedCountry(selectedOption); 
+  const handleCountryChange = (e,selectedOption, bankDetailId) => {
+    // Update the selected country
+    setSelectedCountry(selectedOption); 
+    console.log("selected option :", selectedOption)
   
-  //   // Update the country in the bankDetailsList
-  //   setBankDetailsList(prevDetails =>
-  //     prevDetails.map(bankDetail =>
-  //       bankDetail.id === bankDetailId
-  //         ? { ...bankDetail, country: selectedOption.label }  // Update the country
-  //         : bankDetail
-  //     )
-  //   );
+    // Update the country in the bankDetailsList
+    setBankDetailsList(prevDetails =>
+      prevDetails.map(bankDetail =>
+        bankDetail.id === bankDetailId
+          ? { ...bankDetail, country: selectedOption }  // Update the country
+          : bankDetail
+      )
+      
+    );
+    
+    }
+
+
   
   //   // Clear state and fetch new states based on the selected country
   //   setSelectedState(null);  // Clear state selection
@@ -617,7 +626,7 @@ console.log("payload:", payload)
   };
 
 
-
+console.log("selecte country:" ,selectedCountry)
 
   return (
     <>
@@ -986,26 +995,31 @@ console.log("payload:", payload)
       <div className="col-md-4">
         <div className="form-group">
           <label>Country <span>*</span></label>
-          <SelectBox
+          <SingleSelector
             options={countries}
             // value={bankDetail.country}
-            //  value={selectedCountry}
-            value={countries.find(country => country.label === bankDetail.country) || {}} // Find the selected country object or use a default empty object if not found
-            onChange={(e) => handleInputChange(e, bankDetail.id, 'country')}
+             value={selectedCountry}
+            // value={countries.find(country => country.label === bankDetail.country) || {}} // Find the selected country object or use a default empty object if not found
+            onChange={(selectedOption) => 
+              // handleCountryChange(selectedOption)
+              console.log("selected option onchange :",selectedOption)
+            }
             // onChange={(e) => handleCountryChange(e, bankDetail.id)}  // Pass the bankDetail.id here
           />
+
+          
         </div>
       </div>
 
       <div className="col-md-4">
         <div className="form-group">
           <label>State <span>*</span></label>
-          <SelectBox
+          <SingleSelector
             options={states}
             // value={bankDetail.state}
-            value={states.find(country => country.label === bankDetail.state) || {}}
-            // value={selectedState}
-            onChange={(e) => handleInputChange(e, bankDetail.id, 'state')}
+            // value={states.find(country => country.label === bankDetail.state) || {}}
+            value={selectedState}
+            onChange={(selectedOption) => handleStateChange(selectedOption)}
           />
         </div>
       </div>
