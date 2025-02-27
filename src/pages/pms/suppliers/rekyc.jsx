@@ -3,7 +3,6 @@ import CollapsedCardKYC from "../../../components/base/Card/CollapsedCardKYC";
 import CardBodyKYC from "../../../components/base/Card/CardBodyKYC";
 import CardBodyMsme from "../../../components/base/Card/CardBodyMsme";
 import axios from "axios";
-
 import { SelectBox } from "../../../components";
 import { useParams } from 'react-router-dom';
 import SingleSelector from "../../../components/base/Select/SingleSelector";
@@ -14,6 +13,27 @@ const SectionReKYCDetails = () => {
   const [supplierData, setSupplierData] = useState({});
   const [eInvoicingApplicable, setEInvoicingApplicable] = useState('');
   const [rekycId, setRekycId] = useState(null);
+  const [rekycType, setRekycType] = useState(null);
+
+  // Check if the rekycType array is null or empty
+const isRekycTypeEmpty = !rekycType || rekycType.length === 0;
+
+
+  // Check if rekycType is null, empty, or contains "MSME Rekyc"
+  const isMsmeRekyc =  rekycType && rekycType.includes("MSME Rekyc");
+
+   // Check if 'E-invoicing Rekyc' is in the rekycType array
+   const isEnvoiceRekyc = rekycType && rekycType.includes("E-invoicing Rekyc");
+
+   // Check if 'Bank Rekyc' is in the rekycType array
+   const isBankRekyc = rekycType && rekycType.includes("Bank Rekyc");
+   console.log("bank re:",isBankRekyc)
+
+  // !rekycType ||
+
+  
+  console.log(" re kyc type:", rekycType)
+
 
   // const [bankDetailsList, setBankDetailsList] = useState([{ id: Date.now() }]);
 
@@ -76,6 +96,7 @@ const SectionReKYCDetails = () => {
       setValidFrom(response.data?.msme_details?.valid_from);
       setValidTill(response.data?.msme_details?.valid_till);
       setRekycId(response.data?.id);
+      setRekycType(response.data?.rekyc_type)
       // setSelectedCountry(response.data?.bank_details.country)
 
       console.log("enterprise:", response.data?.msme_details?.enterprise);
@@ -951,549 +972,565 @@ console.log("selecte country:" ,selectedCountry)
             </div>
           </div>
 
-          <div>
+
+{  (isRekycTypeEmpty ||isBankRekyc) &&(
+        <div>       
+
+        {bankDetailsList.map((bankDetail) => (
+          <CollapsedCardKYC
+            key={bankDetail.id}
+            title="Bank Details"
+            onDelete={() => deleteBankDetails(bankDetail.id)}
+          >
+            <div className="row">
+              {/* Bank Name */}
+              <div className="col-md-4">
+                <div className="form-group">
+                  <label>Bank Name <span>*</span></label>
+                  <input
+                    className="form-control"
+                    type="text"
+                    placeholder="Enter Bank name"
+                    value={bankDetail.bank_name}
+                    onChange={(e) => handleInputChange(e, bankDetail.id, 'bank_name')}
+                  />
+                </div>
+              </div>
+        
+              {/* Address */}
+              <div className="col-md-4">
+                <div className="form-group">
+                  <label>Address <span>*</span></label>
+                  <input
+                    className="form-control"
+                    type="text"
+                    placeholder="Enter Address"
+                    value={bankDetail.address}
+                    onChange={(e) => handleInputChange(e, bankDetail.id, 'address')}
+                  />
+                </div>
+              </div>
+        
+              {/* Country */}
+              <div className="col-md-4">
+                <div className="form-group">
+                  <label>Country <span>*</span></label>
+                  <SingleSelector
+                    options={countries}
+                    // value={bankDetail.country}
+                     value={selectedCountry}
+                    // value={countries.find(country => country.label === bankDetail.country) || {}} // Find the selected country object or use a default empty object if not found
+                    onChange={(selectedOption) => 
+                      // handleCountryChange(selectedOption)
+                      console.log("selected option onchange :",selectedOption)
+                    }
+                    // onChange={(e) => handleCountryChange(e, bankDetail.id)}  // Pass the bankDetail.id here
+                  />
+        
+                  
+                </div>
+              </div>
+        
+              <div className="col-md-4">
+                <div className="form-group">
+                  <label>State <span>*</span></label>
+                  <SingleSelector
+                    options={states}
+                    // value={bankDetail.state}
+                    // value={states.find(country => country.label === bankDetail.state) || {}}
+                    value={selectedState}
+                    onChange={(selectedOption) => handleStateChange(selectedOption)}
+                  />
+                </div>
+              </div>
+        
+              {/* City */}
+              <div className="col-md-4 mt-2">
+                <div className="form-group">
+                  <label>City <span>*</span></label>
+                  <input
+                    className="form-control"
+                    type="text"
+                    placeholder="Enter City Name"
+                    value={bankDetail.city}
+                    onChange={(e) => handleInputChange(e, bankDetail.id, 'city')}
+                  />
+                </div>
+              </div>
+        
+              {/* Pin Code */}
+              <div className="col-md-4 mt-2">
+                <div className="form-group">
+                  <label>Pin Code <span>*</span></label>
+                  <input
+                    className="form-control"
+                    type="number"
+                    placeholder="Enter Pin Code"
+                    value={bankDetail.pin_code}
+                    onChange={(e) => handleInputChange(e, bankDetail.id, 'pin_code')}
+                  />
+                </div>
+              </div>
+        
+              {/* Account Type */}
+              <div className="col-md-4 mt-2">
+                <div className="form-group">
+                  <label>Account Type <span>*</span></label>
+                  <input
+                    className="form-control"
+                    type="text"
+                    placeholder="Enter Account Type"
+                    value={bankDetail.account_type}
+                    onChange={(e) => handleInputChange(e, bankDetail.id, 'account_type')}
+                  />
+                </div>
+              </div>
+        
+              {/* Account Number */}
+              <div className="col-md-4 mt-2">
+                <div className="form-group">
+                  <label>Account Number <span>*</span></label>
+                  <input
+                    className="form-control"
+                    type="number"
+                    placeholder="Enter Account Number"
+                    value={bankDetail.account_number}
+                    onChange={(e) => handleInputChange(e, bankDetail.id, 'account_number')}
+                  />
+                </div>
+              </div>
+        
+              {/* Confirm Account Number */}
+              <div className="col-md-4 mt-2">
+                <div className="form-group">
+                  <label>Confirm Account Number <span>*</span></label>
+                  <input
+                    className="form-control"
+                    type="number"
+                    placeholder="Enter Confirm Account Number"
+                    value={bankDetail.confirm_account_number}
+                    onChange={(e) => handleInputChange(e, bankDetail.id, 'confirm_account_number')}
+                  />
+                </div>
+              </div>
+        
+              {/* Branch Name */}
+              <div className="col-md-4 mt-2">
+                <div className="form-group">
+                  <label>Branch Name <span>*</span></label>
+                  <input
+                    className="form-control"
+                    type="text"
+                    placeholder="Enter Branch Name"
+                    value={bankDetail.branch_name}
+                    onChange={(e) => handleInputChange(e, bankDetail.id, 'branch_name')}
+                  />
+                </div>
+              </div>
+        
+              {/* MICR No. */}
+              <div className="col-md-4 mt-2">
+                <div className="form-group">
+                  <label>MICR No. <span>*</span></label>
+                  <input
+                    className="form-control"
+                    type="text"
+                    placeholder="Enter MICR No."
+                    value={bankDetail.micr_number}
+                    onChange={(e) => handleInputChange(e, bankDetail.id, 'micr_number')}
+                  />
+                </div>
+              </div>
+        
+              {/* IFSC Code */}
+              <div className="col-md-4 mt-2">
+                <div className="form-group">
+                  <label>IFSC Code <span>*</span></label>
+                  <input
+                    className="form-control"
+                    type="text"
+                    placeholder="Enter IFSC Code"
+                    value={bankDetail.ifsc_code}
+                    onChange={(e) => handleInputChange(e, bankDetail.id, 'ifsc_code')}
+                  />
+                </div>
+              </div>
+        
+              {/* Beneficiary Name */}
+              <div className="col-md-4 mt-2">
+                <div className="form-group">
+                  <label>Beneficiary Name <span>*</span></label>
+                  <input
+                    className="form-control"
+                    type="text"
+                    placeholder="Enter Beneficiary Name"
+                    value={bankDetail.beneficiary_name}
+                    onChange={(e) => handleInputChange(e, bankDetail.id, 'beneficiary_name')}
+                  />
+                </div>
+              </div>
+        
+              {/* Cancelled Cheque / Bank Copy */}
+              <div className="col-md-4 mt-2">
+                <div className="form-group">
+                  <label>Cancelled Cheque / Bank Copy <span>*</span></label>
+                  <input
+                    className="form-control"
+                    type="file"
+                    onChange={(e) => handleFileChangeBank(e, bankDetail.id)}
+                  />
+                </div>
+              </div>
+        
+              {/* Remark */}
+              <div className="col-md-4 mt-2">
+                <div className="form-group">
+                  <label>Remark <span>*</span></label>
+                  <textarea
+                    className="form-control"
+                    rows="3"
+                    placeholder="Enter Remark"
+                    value={bankDetail.remark}
+                    onChange={(e) => handleInputChange(e, bankDetail.id, 'remark')}
+                  />
+                </div>
+              </div>
+            </div>
+          </CollapsedCardKYC>
+        ))}
+        
+        
+                    <div className="row mt-2 ms-2 justify-content-start">
+                      <div className="col-md-2">
+                        <button className="purple-btn1" onClick={addBankDetails}>
+                          Add Bank Details
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+)}
+      
          
 
 
 
-{bankDetailsList.map((bankDetail) => (
-  <CollapsedCardKYC
-    key={bankDetail.id}
-    title="Bank Details"
-    onDelete={() => deleteBankDetails(bankDetail.id)}
-  >
+          {/* rekeyc type present  */}
+
+          { (isRekycTypeEmpty ||isMsmeRekyc) && (
+
+<div className="card mx-3 pb-4 mt-4">
+<div className="card-header3">
+  <h3 className="card-title">MSME Details</h3>
+</div>
+{/* <CardBodyMsme /> */}
+
+
+<div className="card-body mt-0">
+  <div className="row">
+    {/* MSME/Udyam Number Applicable */}
+    <div className="col-md-4 mt-2">
+      <div className="form-group">
+        <label>
+          MSME/Udyam Number Applicable <span>*</span>
+        </label>
+        <select
+          value={msmeUdyamApplicable}
+          onChange={handleMsmeUdyamChange}
+          className="form-control"
+        >
+          <option value="Yes">Yes</option>
+          <option value="No">No</option>
+        </select>
+      </div>
+    </div>
+
+    {/* MSME/Udyam Number */}
+    {msmeUdyamApplicable === "Yes" && (
+      <div className="col-md-4 mt-2">
+        <div className="form-group">
+          <label>
+            MSME/Udyam Number <span>*</span>
+          </label>
+          <input
+            className="form-control"
+            type="text"
+            name="name"
+            placeholder=""
+            value={msmeNo}
+            onChange={handleMsmeNoChange} // Add onChange handler here
+            // value={supplierData?.msme_details?.msme_no}
+          />
+        </div>
+      </div>
+    )}
+
+    {/* MSME/Udyam Valid From */}
+    {msmeUdyamApplicable === "Yes" && (
+      <div className="col-md-4 mt-2">
+        <div className="form-group">
+          <label>
+            MSME/Udyam Valid From <span>*</span>
+          </label>
+          <input
+            className="form-control"
+            type="date"
+            name="name"
+            placeholder=""
+            value={validFrom}
+            onChange={handleValidFromChange} // Add onChange handler here
+            // value={supplierData?.msme_details?.valid_from}
+          />
+        </div>
+      </div>
+    )}
+
+    {/* MSME/Udyam Valid Till */}
+    {msmeUdyamApplicable === "Yes" && (
+      <div className="col-md-4 mt-2">
+        <div className="form-group">
+          <label>
+            MSME/Udyam Valid Till <span>*</span>
+          </label>
+          <input
+            className="form-control"
+            type="date"
+            name="name"
+            placeholder=""
+            value={validTill}
+            onChange={handleValidTillChange}
+            // value={supplierData?.msme_details?.valid_till}
+          />
+        </div>
+      </div>
+    )}
+
+    {/* MSME Enterprise Type */}
+    {msmeUdyamApplicable === "Yes" && (
+      <div className="col-md-4 mt-2">
+        <div className="form-group">
+          <label>
+            MSME Enterprise Type <span>*</span>
+          </label>
+          <select 
+          // className="form-control"
+            // value={supplierData?.msme_details?.enterprise}
+
+            onChange={handleMsmeEnterpriseChange}  // Handle value change
+            className="form-control"
+            value={msmeEnterpriseType} 
+          >
+            <option value="Micro">Micro</option>
+            <option value="Small">Small</option>
+            <option value="Medium">Medium</option>
+            <option value="Not_applicable">Not Applicable</option>
+          </select>
+        </div>
+      </div>
+    )}
+    {/*  */}
+    {msmeUdyamApplicable === "Yes" && (
+      <div className="col-md-4 mt-2">
+        <div className="form-group">
+          <label>
+            Download Specimen <span>*</span>
+          </label>
+          <a
+            download="Specimen_E-Invoicing_Declaration.docx"
+            className="text-primary d-flex align-items-center"
+            href="https://vendor.panchshil.com/assets/Yes%20_%20msme.pdf"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width={24}
+              height={24}
+              fill="currentColor"
+              className="bi bi-download"
+              viewBox="0 0 16 16"
+            >
+              <path
+                d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
+                style={{ fill: "#de7008!important" }}
+              />
+              <path
+                d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
+                style={{ fill: "#de7008!important" }}
+              />
+            </svg>
+            <span className="mt-2 ms-2">
+              Specimen For E-Invoicing Declaration.pdf
+            </span>
+          </a>
+        </div>
+      </div>
+    )}
+    {/* MSME/Udyam Attachment */}
+    {msmeUdyamApplicable === "Yes" && (
+      <div className="col-md-4 mt-2">
+        <div className="form-group">
+          <label>
+            MSME/Udyam Attachment <span>*</span>
+          </label>
+          <input className="form-control" type="file" name="" onChange={handleFileChange}  />
+        </div>
+      </div>
+    )}
+  </div>
+</div>
+</div>
+          )}
+
+
+{ (isRekycTypeEmpty ||isEnvoiceRekyc) && (
+
+<div className="card mx-3 pb-4 mt-4">
+<div className="card-header3">
+  <h3 className="card-title">E-invoice</h3>
+</div>
+{/* <CardBodyKYC /> */}
+
+{/* e  invoice */}
+<div className="card-body mt-0">
+  {/* E-Invoicing Applicable */}
+  <div className="row">
+    <div className="col-md-4 mt-2">
+      <div className="form-group">
+        <label>
+          E-invoicing Applicable <span>*</span>
+        </label>
+        <select
+          // value={eInvoicingApplicable}
+          // onChange={handleEInvoicingChange}
+          // className="form-control"
+          // value={supplierData?.einvoicing}
+
+
+          onChange={handleEInvoicingChange}  // Handle value change
+  className="form-control"
+  value={eInvoicingApplicable}  
+        >
+          <option value="Yes">Yes</option>
+          <option value="No">No</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  {/* Conditional rendering for E-Invoicing - Hide Download Specimen and Upload Declaration */}
+  {eInvoicingApplicable === "No" && (
     <div className="row">
-      {/* Bank Name */}
-      <div className="col-md-4">
-        <div className="form-group">
-          <label>Bank Name <span>*</span></label>
-          <input
-            className="form-control"
-            type="text"
-            placeholder="Enter Bank name"
-            value={bankDetail.bank_name}
-            onChange={(e) => handleInputChange(e, bankDetail.id, 'bank_name')}
-          />
-        </div>
-      </div>
-
-      {/* Address */}
-      <div className="col-md-4">
-        <div className="form-group">
-          <label>Address <span>*</span></label>
-          <input
-            className="form-control"
-            type="text"
-            placeholder="Enter Address"
-            value={bankDetail.address}
-            onChange={(e) => handleInputChange(e, bankDetail.id, 'address')}
-          />
-        </div>
-      </div>
-
-      {/* Country */}
-      <div className="col-md-4">
-        <div className="form-group">
-          <label>Country <span>*</span></label>
-          <SingleSelector
-            options={countries}
-            // value={bankDetail.country}
-             value={selectedCountry}
-            // value={countries.find(country => country.label === bankDetail.country) || {}} // Find the selected country object or use a default empty object if not found
-            onChange={(selectedOption) => 
-              // handleCountryChange(selectedOption)
-              console.log("selected option onchange :",selectedOption)
-            }
-            // onChange={(e) => handleCountryChange(e, bankDetail.id)}  // Pass the bankDetail.id here
-          />
-
-          
-        </div>
-      </div>
-
-      <div className="col-md-4">
-        <div className="form-group">
-          <label>State <span>*</span></label>
-          <SingleSelector
-            options={states}
-            // value={bankDetail.state}
-            // value={states.find(country => country.label === bankDetail.state) || {}}
-            value={selectedState}
-            onChange={(selectedOption) => handleStateChange(selectedOption)}
-          />
-        </div>
-      </div>
-
-      {/* City */}
       <div className="col-md-4 mt-2">
         <div className="form-group">
-          <label>City <span>*</span></label>
-          <input
-            className="form-control"
-            type="text"
-            placeholder="Enter City Name"
-            value={bankDetail.city}
-            onChange={(e) => handleInputChange(e, bankDetail.id, 'city')}
-          />
+          <label>
+            Download Specimen <span>*</span>
+          </label>
+          <a
+            download="Specimen_E-Invoicing_Declaration.docx"
+            className="text-primary d-flex align-items-center"
+            href="/assets/Specimen_E-Invoicing_Declaration.docx"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width={24}
+              height={24}
+              fill="currentColor"
+              className="bi bi-download"
+              viewBox="0 0 16 16"
+            >
+              <path
+                d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
+                style={{ fill: "#de7008!important" }}
+              />
+              <path
+                d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
+                style={{ fill: "#de7008!important" }}
+              />
+            </svg>
+            <span className="mt-2 ms-2">
+              Specimen For E-Invoicing Declaration.pdf
+            </span>
+          </a>
         </div>
       </div>
-
-      {/* Pin Code */}
       <div className="col-md-4 mt-2">
         <div className="form-group">
-          <label>Pin Code <span>*</span></label>
+          <label>
+            Upload Declaration <span>*</span>
+          </label>
           <input
-            className="form-control"
-            type="number"
-            placeholder="Enter Pin Code"
-            value={bankDetail.pin_code}
-            onChange={(e) => handleInputChange(e, bankDetail.id, 'pin_code')}
-          />
-        </div>
-      </div>
-
-      {/* Account Type */}
-      <div className="col-md-4 mt-2">
-        <div className="form-group">
-          <label>Account Type <span>*</span></label>
-          <input
-            className="form-control"
-            type="text"
-            placeholder="Enter Account Type"
-            value={bankDetail.account_type}
-            onChange={(e) => handleInputChange(e, bankDetail.id, 'account_type')}
-          />
-        </div>
-      </div>
-
-      {/* Account Number */}
-      <div className="col-md-4 mt-2">
-        <div className="form-group">
-          <label>Account Number <span>*</span></label>
-          <input
-            className="form-control"
-            type="number"
-            placeholder="Enter Account Number"
-            value={bankDetail.account_number}
-            onChange={(e) => handleInputChange(e, bankDetail.id, 'account_number')}
-          />
-        </div>
-      </div>
-
-      {/* Confirm Account Number */}
-      <div className="col-md-4 mt-2">
-        <div className="form-group">
-          <label>Confirm Account Number <span>*</span></label>
-          <input
-            className="form-control"
-            type="number"
-            placeholder="Enter Confirm Account Number"
-            value={bankDetail.confirm_account_number}
-            onChange={(e) => handleInputChange(e, bankDetail.id, 'confirm_account_number')}
-          />
-        </div>
-      </div>
-
-      {/* Branch Name */}
-      <div className="col-md-4 mt-2">
-        <div className="form-group">
-          <label>Branch Name <span>*</span></label>
-          <input
-            className="form-control"
-            type="text"
-            placeholder="Enter Branch Name"
-            value={bankDetail.branch_name}
-            onChange={(e) => handleInputChange(e, bankDetail.id, 'branch_name')}
-          />
-        </div>
-      </div>
-
-      {/* MICR No. */}
-      <div className="col-md-4 mt-2">
-        <div className="form-group">
-          <label>MICR No. <span>*</span></label>
-          <input
-            className="form-control"
-            type="text"
-            placeholder="Enter MICR No."
-            value={bankDetail.micr_number}
-            onChange={(e) => handleInputChange(e, bankDetail.id, 'micr_number')}
-          />
-        </div>
-      </div>
-
-      {/* IFSC Code */}
-      <div className="col-md-4 mt-2">
-        <div className="form-group">
-          <label>IFSC Code <span>*</span></label>
-          <input
-            className="form-control"
-            type="text"
-            placeholder="Enter IFSC Code"
-            value={bankDetail.ifsc_code}
-            onChange={(e) => handleInputChange(e, bankDetail.id, 'ifsc_code')}
-          />
-        </div>
-      </div>
-
-      {/* Beneficiary Name */}
-      <div className="col-md-4 mt-2">
-        <div className="form-group">
-          <label>Beneficiary Name <span>*</span></label>
-          <input
-            className="form-control"
-            type="text"
-            placeholder="Enter Beneficiary Name"
-            value={bankDetail.beneficiary_name}
-            onChange={(e) => handleInputChange(e, bankDetail.id, 'beneficiary_name')}
-          />
-        </div>
-      </div>
-
-      {/* Cancelled Cheque / Bank Copy */}
-      <div className="col-md-4 mt-2">
-        <div className="form-group">
-          <label>Cancelled Cheque / Bank Copy <span>*</span></label>
-          <input
+            id="attachment"
+            accept=" "
             className="form-control"
             type="file"
-            onChange={(e) => handleFileChangeBank(e, bankDetail.id)}
-          />
-        </div>
-      </div>
-
-      {/* Remark */}
-      <div className="col-md-4 mt-2">
-        <div className="form-group">
-          <label>Remark <span>*</span></label>
-          <textarea
-            className="form-control"
-            rows="3"
-            placeholder="Enter Remark"
-            value={bankDetail.remark}
-            onChange={(e) => handleInputChange(e, bankDetail.id, 'remark')}
+            name=""
+            onChange={handleEinvoicingFileChange}
           />
         </div>
       </div>
     </div>
-  </CollapsedCardKYC>
-))}
+  )}
 
-
-            <div className="row mt-2 ms-2 justify-content-start">
-              <div className="col-md-2">
-                <button className="purple-btn1" onClick={addBankDetails}>
-                  Add Bank Details
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div className="card mx-3 pb-4 mt-4">
-            <div className="card-header3">
-              <h3 className="card-title">MSME Details</h3>
-            </div>
-            {/* <CardBodyMsme /> */}
-
-
-            <div className="card-body mt-0">
-              <div className="row">
-                {/* MSME/Udyam Number Applicable */}
-                <div className="col-md-4 mt-2">
-                  <div className="form-group">
-                    <label>
-                      MSME/Udyam Number Applicable <span>*</span>
-                    </label>
-                    <select
-                      value={msmeUdyamApplicable}
-                      onChange={handleMsmeUdyamChange}
-                      className="form-control"
-                    >
-                      <option value="Yes">Yes</option>
-                      <option value="No">No</option>
-                    </select>
-                  </div>
-                </div>
-
-                {/* MSME/Udyam Number */}
-                {msmeUdyamApplicable === "Yes" && (
-                  <div className="col-md-4 mt-2">
-                    <div className="form-group">
-                      <label>
-                        MSME/Udyam Number <span>*</span>
-                      </label>
-                      <input
-                        className="form-control"
-                        type="text"
-                        name="name"
-                        placeholder=""
-                        value={msmeNo}
-                        onChange={handleMsmeNoChange} // Add onChange handler here
-                        // value={supplierData?.msme_details?.msme_no}
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {/* MSME/Udyam Valid From */}
-                {msmeUdyamApplicable === "Yes" && (
-                  <div className="col-md-4 mt-2">
-                    <div className="form-group">
-                      <label>
-                        MSME/Udyam Valid From <span>*</span>
-                      </label>
-                      <input
-                        className="form-control"
-                        type="date"
-                        name="name"
-                        placeholder=""
-                        value={validFrom}
-                        onChange={handleValidFromChange} // Add onChange handler here
-                        // value={supplierData?.msme_details?.valid_from}
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {/* MSME/Udyam Valid Till */}
-                {msmeUdyamApplicable === "Yes" && (
-                  <div className="col-md-4 mt-2">
-                    <div className="form-group">
-                      <label>
-                        MSME/Udyam Valid Till <span>*</span>
-                      </label>
-                      <input
-                        className="form-control"
-                        type="date"
-                        name="name"
-                        placeholder=""
-                        value={validTill}
-                        onChange={handleValidTillChange}
-                        // value={supplierData?.msme_details?.valid_till}
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {/* MSME Enterprise Type */}
-                {msmeUdyamApplicable === "Yes" && (
-                  <div className="col-md-4 mt-2">
-                    <div className="form-group">
-                      <label>
-                        MSME Enterprise Type <span>*</span>
-                      </label>
-                      <select 
-                      // className="form-control"
-                        // value={supplierData?.msme_details?.enterprise}
-
-                        onChange={handleMsmeEnterpriseChange}  // Handle value change
-                        className="form-control"
-                        value={msmeEnterpriseType} 
-                      >
-                        <option value="Micro">Micro</option>
-                        <option value="Small">Small</option>
-                        <option value="Medium">Medium</option>
-                        <option value="Not_applicable">Not Applicable</option>
-                      </select>
-                    </div>
-                  </div>
-                )}
-                {/*  */}
-                {msmeUdyamApplicable === "Yes" && (
-                  <div className="col-md-4 mt-2">
-                    <div className="form-group">
-                      <label>
-                        Download Specimen <span>*</span>
-                      </label>
-                      <a
-                        download="Specimen_E-Invoicing_Declaration.docx"
-                        className="text-primary d-flex align-items-center"
-                        href="https://vendor.panchshil.com/assets/Yes%20_%20msme.pdf"
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width={24}
-                          height={24}
-                          fill="currentColor"
-                          className="bi bi-download"
-                          viewBox="0 0 16 16"
-                        >
-                          <path
-                            d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
-                            style={{ fill: "#de7008!important" }}
-                          />
-                          <path
-                            d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
-                            style={{ fill: "#de7008!important" }}
-                          />
-                        </svg>
-                        <span className="mt-2 ms-2">
-                          Specimen For E-Invoicing Declaration.pdf
-                        </span>
-                      </a>
-                    </div>
-                  </div>
-                )}
-                {/* MSME/Udyam Attachment */}
-                {msmeUdyamApplicable === "Yes" && (
-                  <div className="col-md-4 mt-2">
-                    <div className="form-group">
-                      <label>
-                        MSME/Udyam Attachment <span>*</span>
-                      </label>
-                      <input className="form-control" type="file" name="" onChange={handleFileChange}  />
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-          <div className="card mx-3 pb-4 mt-4">
-            <div className="card-header3">
-              <h3 className="card-title">E-invoice</h3>
-            </div>
-            {/* <CardBodyKYC /> */}
-
-            {/* e  invoice */}
-            <div className="card-body mt-0">
-              {/* E-Invoicing Applicable */}
-              <div className="row">
-                <div className="col-md-4 mt-2">
-                  <div className="form-group">
-                    <label>
-                      E-invoicing Applicable <span>*</span>
-                    </label>
-                    <select
-                      // value={eInvoicingApplicable}
-                      // onChange={handleEInvoicingChange}
-                      // className="form-control"
-                      // value={supplierData?.einvoicing}
-
-
-                      onChange={handleEInvoicingChange}  // Handle value change
-              className="form-control"
-              value={eInvoicingApplicable}  
-                    >
-                      <option value="Yes">Yes</option>
-                      <option value="No">No</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-
-              {/* Conditional rendering for E-Invoicing - Hide Download Specimen and Upload Declaration */}
-              {eInvoicingApplicable === "No" && (
-                <div className="row">
-                  <div className="col-md-4 mt-2">
-                    <div className="form-group">
-                      <label>
-                        Download Specimen <span>*</span>
-                      </label>
-                      <a
-                        download="Specimen_E-Invoicing_Declaration.docx"
-                        className="text-primary d-flex align-items-center"
-                        href="/assets/Specimen_E-Invoicing_Declaration.docx"
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width={24}
-                          height={24}
-                          fill="currentColor"
-                          className="bi bi-download"
-                          viewBox="0 0 16 16"
-                        >
-                          <path
-                            d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
-                            style={{ fill: "#de7008!important" }}
-                          />
-                          <path
-                            d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
-                            style={{ fill: "#de7008!important" }}
-                          />
-                        </svg>
-                        <span className="mt-2 ms-2">
-                          Specimen For E-Invoicing Declaration.pdf
-                        </span>
-                      </a>
-                    </div>
-                  </div>
-                  <div className="col-md-4 mt-2">
-                    <div className="form-group">
-                      <label>
-                        Upload Declaration <span>*</span>
-                      </label>
-                      <input
-                        id="attachment"
-                        accept=" "
-                        className="form-control"
-                        type="file"
-                        name=""
-                        onChange={handleEinvoicingFileChange}
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Conditional rendering for MSME/Udyam - Hide Download Specimen and Upload Declaration */}
-              {/* {msmeUdyamApplicable === "No" && (
-                <div className="row">
-                  <div className="col-md-4 mt-2">
-                    <div className="form-group">
-                      <label>
-                        Download Specimen <span>*</span>
-                      </label>
-                      <a
-                        download="Specimen_MSME_Udyam_Declaration.docx"
-                        className="text-primary d-flex align-items-center"
-                        href="https://vendor.panchshil.com/assets/Specimen_MSME_Udyam_Declaration.docx"
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width={24}
-                          height={24}
-                          fill="currentColor"
-                          className="bi bi-download"
-                          viewBox="0 0 16 16"
-                        >
-                          <path
-                            d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
-                            style={{ fill: "#de7008!important" }}
-                          />
-                          <path
-                            d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
-                            style={{ fill: "#de7008!important" }}
-                          />
-                        </svg>
-                        <span className="mt-2 ms-2">
-                          Specimen For MSME/Udyam Declaration.pdf
-                        </span>
-                      </a>
-                    </div>
-                  </div>
-                  <div className="col-md-4 mt-2">
-                    <div className="form-group">
-                      <label>
-                        Upload Declaration <span>*</span>
-                      </label>
-                      <input
-                        id="attachment"
-                        accept=" "
-                        className="form-control"
-                        type="file"
-                        name=""
-                        onChange={handleEinvoicingFileChange}
-                      />
-                    </div>
-                  </div>
-                </div>
-              )} */}
-            </div>
+  {/* Conditional rendering for MSME/Udyam - Hide Download Specimen and Upload Declaration */}
+  {/* {msmeUdyamApplicable === "No" && (
+    <div className="row">
+      <div className="col-md-4 mt-2">
+        <div className="form-group">
+          <label>
+            Download Specimen <span>*</span>
+          </label>
+          <a
+            download="Specimen_MSME_Udyam_Declaration.docx"
+            className="text-primary d-flex align-items-center"
+            href="https://vendor.panchshil.com/assets/Specimen_MSME_Udyam_Declaration.docx"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width={24}
+              height={24}
+              fill="currentColor"
+              className="bi bi-download"
+              viewBox="0 0 16 16"
+            >
+              <path
+                d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
+                style={{ fill: "#de7008!important" }}
+              />
+              <path
+                d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
+                style={{ fill: "#de7008!important" }}
+              />
+            </svg>
+            <span className="mt-2 ms-2">
+              Specimen For MSME/Udyam Declaration.pdf
+            </span>
+          </a>
+        </div>
+      </div>
+      <div className="col-md-4 mt-2">
+        <div className="form-group">
+          <label>
+            Upload Declaration <span>*</span>
+          </label>
+          <input
+            id="attachment"
+            accept=" "
+            className="form-control"
+            type="file"
+            name=""
+            onChange={handleEinvoicingFileChange}
+          />
+        </div>
+      </div>
+    </div>
+  )} */}
+</div>
 
 
 
 
-          </div>
+</div>
+)}
+         
+         
           <div className="row mt-4 mx-3">
             <div className="col-md-12">
               <h5 className=" ">
