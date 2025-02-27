@@ -32,6 +32,7 @@ import Wodetails from "./pages/Wodetails";
 import POdeta from "./pages/POdetails";
 import PoPage from "./pages/Po";
 import SectionReKYCDetails from "./pages/pms/suppliers/rekyc"
+import ApprovalMatrix from "./pages/approval-matrix.jsx"
 
 function App() {
   return (
@@ -88,6 +89,7 @@ function App() {
           <Route path="/create-bid/:eventId" element={<CreateBid />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/rekyc/:id" element={<SectionReKYCDetails />} />
+          <Route path="/approval-matrix" element={<ApprovalMatrix />} />
         </Routes>
       </div>
     </BrowserRouter>
