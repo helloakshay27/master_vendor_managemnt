@@ -7,7 +7,7 @@ import axios from "axios";
 import { useState, useEffect } from "react";
 import SingleSelector from "../components/base/Select/SingleSelector";
 
-const ApprovalMatrix = () => {
+const ApprovalEdit = () => {
   const [companies, setCompanies] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [selectedCompany, setSelectedCompany] = useState(null);
@@ -16,7 +16,7 @@ const ApprovalMatrix = () => {
   const [approvalLevels, setApprovalLevels] = useState([
     { order: "", name: "", users: [] }, // Initial level remains open
   ]);
-  const [selectedKYCType, setSelectedKYCType] = useState(null);
+  const [selectedKYCType, setSelectedKYCType] = useState([]);
 
   const [users, setUsers] = useState([]);
   const kycTypes = [
@@ -31,9 +31,9 @@ const ApprovalMatrix = () => {
     const fetchDropdownData = async () => {
       try {
         const [companyRes, departmentRes, userRes] = await Promise.all([
-          axios.get("https://vendors.lockated.com/pms/company_setups.json"),
-          axios.get("https://vendors.lockated.com/pms/departments.json"),
-          axios.get("https://vendors.lockated.com/users.json"),
+          axios.get("https://vendor.panchshil.com/pms/company_setups.json"),
+          axios.get("https://vendor.panchshil.com/pms/departments.json"),
+          axios.get("https://vendor.panchshil.com/users.json"),
         ]);
 
         console.log("Raw Company Data:", companyRes.data);
@@ -149,8 +149,7 @@ const ApprovalMatrix = () => {
     const payload = {
       company_id: finalFormData.company_id,
       department_id: finalFormData.department_id,
-      approval_type: "vendor_rekyc",
-      approval_function: finalFormData.approval_type,
+      approval_type: finalFormData.approval_type,
       invoice_approval_levels: approvalLevels.map((level) => ({
         name: level.name,
         order: Number(level.order),
@@ -267,7 +266,7 @@ const ApprovalMatrix = () => {
                                   {" "}
                                   KYC Type
                                 </label>
-                                <SingleSelector
+                                <MultiSelector
                                   id="module-select"
                                   options={kycTypes}
                                   value={selectedKYCType} // Store selected KYC type
@@ -392,4 +391,4 @@ const ApprovalMatrix = () => {
   );
 };
 
-export default ApprovalMatrix;
+export default ApprovalEdit;

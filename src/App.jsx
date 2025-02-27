@@ -31,8 +31,10 @@ import WoPage from "./pages/Wo";
 import Wodetails from "./pages/Wodetails";
 import POdeta from "./pages/POdetails";
 import PoPage from "./pages/Po";
-import SectionReKYCDetails from "./pages/pms/suppliers/rekyc"
-import ApprovalMatrix from "./pages/approval-matrix.jsx"
+import SectionReKYCDetails from "./pages/pms/suppliers/rekyc";
+import ApprovalMatrix from "./pages/approval-matrix.jsx";
+import ApprovalList from "./pages/approval-list.jsx";
+import ApprovalEdit from "./pages/approval-edit.jsx";
 
 function App() {
   return (
@@ -90,6 +92,8 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/rekyc/:id" element={<SectionReKYCDetails />} />
           <Route path="/approval-matrix" element={<ApprovalMatrix />} />
+          <Route path="/approval-list" element={<ApprovalList />} />
+          <Route path="/approval-edit" element={<ApprovalEdit />} />
         </Routes>
       </div>
     </BrowserRouter>

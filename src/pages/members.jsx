@@ -56,6 +56,13 @@ function Members() {
                 <Link to="/approval-matrix">Approval matrix</Link>
               </li>
               <li>
+                <Link to="/approval-list">Approval List</Link>
+              </li>
+
+              <li>
+                <Link to="/approval-edit">Approval Edit</Link>
+              </li>
+              <li>
                 <Link to="/rekyc">Section Re KYC Details</Link>
               </li>
               {/* <li>
