@@ -4,14 +4,13 @@ import CardBodyKYC from "../../../components/base/Card/CardBodyKYC";
 import CardBodyMsme from "../../../components/base/Card/CardBodyMsme";
 import axios from "axios";
 import { SelectBox } from "../../../components";
-import { useParams } from 'react-router-dom';
+import { useParams } from "react-router-dom";
 import SingleSelector from "../../../components/base/Select/SingleSelector";
 
-
 const SectionReKYCDetails = () => {
-  const { id} = useParams();
+  const { id } = useParams();
   const [supplierData, setSupplierData] = useState({});
-  const [eInvoicingApplicable, setEInvoicingApplicable] = useState('');
+  const [eInvoicingApplicable, setEInvoicingApplicable] = useState("");
   const [rekycId, setRekycId] = useState(null);
   const [rekycType, setRekycType] = useState(null);
 
@@ -37,7 +36,7 @@ const isRekycTypeEmpty = !rekycType || rekycType.length === 0;
 
   // const [bankDetailsList, setBankDetailsList] = useState([{ id: Date.now() }]);
 
-  // Function to add 
+  // Function to add
   // const addBankDetails = () => {
   //   setBankDetailsList([
   //     ...bankDetailsList,
@@ -45,7 +44,7 @@ const isRekycTypeEmpty = !rekycType || rekycType.length === 0;
   //   ]);
   // };
 
-  // Function to delete 
+  // Function to delete
   // const deleteBankDetails = (id) => {
   //   setBankDetailsList(bankDetailsList.filter((item) => item.id !== id));
   // };
@@ -60,9 +59,8 @@ const isRekycTypeEmpty = !rekycType || rekycType.length === 0;
   //   setEInvoicingApplicable(event.target.value);
   // };
 
-
-   // Handle change in select box
-   const handleEInvoicingChange = (event) => {
+  // Handle change in select box
+  const handleEInvoicingChange = (event) => {
     const newValue = event.target.value;
     setEInvoicingApplicable(newValue);
   };
@@ -72,20 +70,22 @@ const isRekycTypeEmpty = !rekycType || rekycType.length === 0;
     setMsmeUdyamApplicable(newValue);
   };
 
-   // Handle changes for MSME Enterprise Type
-   const handleMsmeEnterpriseChange = (event) => {
+  // Handle changes for MSME Enterprise Type
+  const handleMsmeEnterpriseChange = (event) => {
     const newValue = event.target.value;
     setMsmeEnterpriseType(newValue);
   };
 
-  console.log("msme type", msmeEnterpriseType)
-  // api details 
+  console.log("msme type", msmeEnterpriseType);
+  // api details
 
-   // Function to fetch supplier data
-   const fetchSupplierData = async () => {
+  // Function to fetch supplier data
+  const fetchSupplierData = async () => {
     try {
-      const response = await axios.get(`https://vendors.lockated.com/pms/suppliers/${id}/rekyc_by_sections.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`);
-      
+      const response = await axios.get(
+        `https://vendors.lockated.com/pms/suppliers/${id}/rekyc_by_sections.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`
+      );
+
       // Update the state with the response data
       setSupplierData(response.data);
       setEInvoicingApplicable(response.data?.einvoicing);
@@ -100,19 +100,16 @@ const isRekycTypeEmpty = !rekycType || rekycType.length === 0;
       // setSelectedCountry(response.data?.bank_details.country)
 
       console.log("enterprise:", response.data?.msme_details?.enterprise);
-
     } catch (error) {
-      console.error('There was an error fetching the data!', error);
+      console.error("There was an error fetching the data!", error);
     }
   };
-
 
   useEffect(() => {
     // Fetch data from the API
     console.log("fetch.........");
 
     fetchSupplierData(id);
-
 
     // axios.get('https://vendors.lockated.com//pms/suppliers/7409/rekyc_by_sections.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414')
     //   .then(response => {
@@ -133,9 +130,7 @@ const isRekycTypeEmpty = !rekycType || rekycType.length === 0;
     // store this in function
   }, [id]); // Empty dependency array ensures this runs once on mount
 
-
   console.log("supplier data:", supplierData);
-
 
   // country and state
 
@@ -143,13 +138,6 @@ const isRekycTypeEmpty = !rekycType || rekycType.length === 0;
   const [states, setStates] = useState([]); // Store states based on selected country
   const [selectedCountry, setSelectedCountry] = useState(null); // Store selected country
   const [selectedState, setSelectedState] = useState(null); // Store selected state
-
-
-
-
-
-
-
 
   // useEffect(() => {
   //   axios
@@ -170,33 +158,41 @@ const isRekycTypeEmpty = !rekycType || rekycType.length === 0;
   //     });
   // }, []);
 
-
   useEffect(() => {
     axios
-      .get('https://vendors.lockated.com/pms/dropdown_countries?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414')
-      .then(response => {
+      .get(
+        "https://vendors.lockated.com/pms/dropdown_countries?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414"
+      )
+      .then((response) => {
         if (response.data) {
           // Format country options for the SelectBox
-          const formattedCountries = response.data.countries.map(country => ({
+          const formattedCountries = response.data.countries.map((country) => ({
             value: country.value, // Correct field from your data
             label: country.name, // Correct field from your data
           }));
           setCountries(formattedCountries);
-   console.log("country:",formattedCountries)
+          console.log("country:", formattedCountries);
 
-           // Set selected country if bank data exists
-           console.log("banck detail country:",supplierData.bank_details[0]?.country)
-           if (supplierData?.bank_details) {
-            console.log("banck detail country:",supplierData.bank_details[0]?.country)
+          // Set selected country if bank data exists
+          console.log(
+            "banck detail country:",
+            supplierData.bank_details[0]?.country
+          );
+          if (supplierData?.bank_details) {
+            console.log(
+              "banck detail country:",
+              supplierData.bank_details[0]?.country
+            );
             const preSelectedCountry = formattedCountries.find(
-              country => country.label === supplierData.bank_details[0]?.country
+              (country) =>
+                country.label === supplierData.bank_details[0]?.country
             );
             setSelectedCountry(preSelectedCountry || null);
           }
         }
       })
-      .catch(error => {
-        console.error('Error fetching countries:', error);
+      .catch((error) => {
+        console.error("Error fetching countries:", error);
       });
   }, [supplierData]);
 
@@ -206,9 +202,6 @@ const isRekycTypeEmpty = !rekycType || rekycType.length === 0;
   //   // setSelectedCountry(countryId);
   //   setSelectedCountry(selectedOption)
   //   console.log("contry id:",countryId)
-
-
-
 
   // useEffect(() => {
   //   if (selectedCountry) {
@@ -238,17 +231,17 @@ const isRekycTypeEmpty = !rekycType || rekycType.length === 0;
   //   }
   // }, [selectedCountry]);
 
-  
-
   useEffect(() => {
     if (selectedCountry) {
       // Fetch states based on the selected country
-      console.log("selected country for states:",selectedCountry)
+      console.log("selected country for states:", selectedCountry);
       axios
-        .get(`https://vendors.lockated.com/pms/dropdown_states?country_id=${selectedCountry.value}&&token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`)
-        .then(response => {
+        .get(
+          `https://vendors.lockated.com/pms/dropdown_states?country_id=${selectedCountry.value}&&token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`
+        )
+        .then((response) => {
           if (response.data) {
-            const formattedStates = response.data.states.map(state => ({
+            const formattedStates = response.data.states.map((state) => ({
               value: state.id,
               label: state.name,
             }));
@@ -257,43 +250,34 @@ const isRekycTypeEmpty = !rekycType || rekycType.length === 0;
             // Set selected state if bank data exists
             if (supplierData?.bank_details) {
               const preSelectedState = formattedStates.find(
-                state => state.label === supplierData.bank_details[0]?.state
+                (state) => state.label === supplierData.bank_details[0]?.state
               );
               setSelectedState(preSelectedState || null);
             }
           }
         })
-        .catch(error => {
-          console.error('Error fetching states:', error);
+        .catch((error) => {
+          console.error("Error fetching states:", error);
         });
     }
-  }, [selectedCountry,supplierData]);
+  }, [selectedCountry, supplierData]);
 
-
-
-  const handleCountryChange = (e,selectedOption, bankDetailId) => {
-    // Update the selected country
-    setSelectedCountry(selectedOption); 
-    console.log("selected option :", selectedOption)
-  
-    // Update the country in the bankDetailsList
-    setBankDetailsList(prevDetails =>
-      prevDetails.map(bankDetail =>
-        bankDetail.id === bankDetailId
-          ? { ...bankDetail, country: selectedOption }  // Update the country
+  const handleCountryChange = (selectedOption) => {
+    setSelectedCountry(selectedOption);
+    console.log("selected option :", selectedOption);
+    setBankDetailsList((prevDetails) =>
+      prevDetails.map((bankDetail) =>
+        bankDetail.country.value === selectedOption.value
+          ? { ...bankDetail, country: selectedOption }
           : bankDetail
       )
-      
     );
-    
-    }
+  };
 
-
-  
   //   // Clear state and fetch new states based on the selected country
   //   setSelectedState(null);  // Clear state selection
   //   setStates([]);  // Clear state dropdown
-  
+
   //   // Fetch new states based on the selected country
   //   axios
   //     .get(`https://vendors.lockated.com/pms/dropdown_states?country_id=${selectedOption.value}&token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`)
@@ -318,9 +302,8 @@ const isRekycTypeEmpty = !rekycType || rekycType.length === 0;
   // };
 
   const handleStateChange = (selectedOption) => {
-    setSelectedState(selectedOption);  // Set selected state
+    setSelectedState(selectedOption); // Set selected state
   };
-
 
   // const handleCountryChange = (selectedOption) => {
   //   console.log("Selected country:", selectedOption); // Logs the full option
@@ -339,7 +322,7 @@ const isRekycTypeEmpty = !rekycType || rekycType.length === 0;
   //         }));
   //         setStates(formattedStates);
   //         console.log("states:", formattedStates)
-          
+
   //       }
   //     })
   //     .catch(error => {
@@ -368,7 +351,6 @@ const isRekycTypeEmpty = !rekycType || rekycType.length === 0;
   //   setSelectedState(selectedOption?.value);
   // };
 
-
   // banck
 
   const [bankDetailsList, setBankDetailsList] = useState([
@@ -376,7 +358,7 @@ const isRekycTypeEmpty = !rekycType || rekycType.length === 0;
     // { id: 1, bank_name: 'Bank A', address: 'Address A', country: 'USA', city: 'City A' },
     // { id: 2, bank_name: 'Bank B', address: 'Address B', country: 'Canada', city: 'City B' },
   ]);
-  
+
   // Function to handle field changes
   // const handleInputChange = (e, bankId, field) => {
   //   const { value } = e.target;
@@ -386,7 +368,6 @@ const isRekycTypeEmpty = !rekycType || rekycType.length === 0;
   //     )
   //   );
   // };
-
 
   // const handleInputChange = (e, id, field) => {
   //   const { value } = e.target;
@@ -399,95 +380,111 @@ const isRekycTypeEmpty = !rekycType || rekycType.length === 0;
 
   const handleInputChange = (e, id, field) => {
     const { value } = e.target;
-    setBankDetailsList(prevDetails =>
-      prevDetails.map(bankDetail =>
+    setBankDetailsList((prevDetails) =>
+      prevDetails.map((bankDetail) =>
         bankDetail.id === id ? { ...bankDetail, [field]: value } : bankDetail
       )
     );
   };
-  
+
   // Function to add a new bank detail
   const addBankDetails = () => {
     setBankDetailsList([
       ...bankDetailsList,
-      { id: Date.now(), bank_name: '', address: '', country: '',state:'', city: '',pin_code:'',account_type:'',account_number:'',
-        confirm_account_number:'',branch_name:'',micr_number:'',ifsc_code:'',beneficiary_name:'', remark:'' },
+      {
+        id: Date.now(),
+        bank_name: "",
+        address: "",
+        country: "",
+        state: "",
+        city: "",
+        pin_code: "",
+        account_type: "",
+        account_number: "",
+        confirm_account_number: "",
+        branch_name: "",
+        micr_number: "",
+        ifsc_code: "",
+        beneficiary_name: "",
+        remark: "",
+      },
     ]);
   };
-  
+
   // Function to delete bank details
   const deleteBankDetails = (id) => {
     setBankDetailsList(bankDetailsList.filter((item) => item.id !== id));
   };
 
-
   const handleFileChangeBank = (e, id) => {
     const file = e.target.files[0]; // Get the selected file
     if (!file) return;
-  
+
     // If you want to use base64 or file URLs, you can do something like this:
     const fileReader = new FileReader();
-    
+
     fileReader.onloadend = () => {
       // Update the `bankDetail` state with the file URL (base64 in this case)
       const fileUrl = fileReader.result;
-      
-      setBankDetailsList(prevDetails =>
-        prevDetails.map(bankDetail =>
-          bankDetail.id === id ? { 
-            ...bankDetail, 
-            attachment: fileUrl // Set the file URL in the bank detail
-          } : bankDetail
+
+      setBankDetailsList((prevDetails) =>
+        prevDetails.map((bankDetail) =>
+          bankDetail.id === id
+            ? {
+                ...bankDetail,
+                attachment: fileUrl, // Set the file URL in the bank detail
+              }
+            : bankDetail
         )
       );
     };
-  
+
     fileReader.readAsDataURL(file); // Read the file as a base64 string
   };
-  console.log("banck details :",bankDetailsList)
+  console.log("banck details :", bankDetailsList);
 
-   // Define state for form fields
+  // Define state for form fields
   //  const [msmeUdyamApplicable, setMsmeUdyamApplicable] = useState("No");
   //  const [msmeEnterpriseType, setMsmeEnterpriseType] = useState("Micro");
-   const [msmeNo, setMsmeNo] = useState("");
-   const [validFrom, setValidFrom] = useState("");
-   const [validTill, setValidTill] = useState("");
+  const [msmeNo, setMsmeNo] = useState("");
+  const [validFrom, setValidFrom] = useState("");
+  const [validTill, setValidTill] = useState("");
   //  const [attachment, setAttachment] = useState(null);
-   const [msmeAttachments, setMsmeAttachments] = useState([]);
-    // State for eInvoicing Attachments
+  const [msmeAttachments, setMsmeAttachments] = useState([]);
+  // State for eInvoicing Attachments
   const [einvoicingAttachments, setEinvoicingAttachments] = useState([]);
- 
-   // Handler for MSME/Udyam Applicable
+
+  // Handler for MSME/Udyam Applicable
   //  const handleMsmeUdyamChange = (e) => {
   //    setMsmeUdyamApplicable(e.target.value);
   //  };
- 
-   // Handler for MSME Enterprise Type
+
+  // Handler for MSME Enterprise Type
   //  const handleMsmeEnterpriseChange = (e) => {
   //    setMsmeEnterpriseType(e.target.value);
   //  };
- 
-   // Handler for MSME/Udyam Number
-   const handleMsmeNoChange = (e) => {
-     setMsmeNo(e.target.value);
-   };
- 
-   // Handler for Valid From date
-   const handleValidFromChange = (e) => {
-     setValidFrom(e.target.value);
-   };
- 
-   // Handler for Valid Till date
-   const handleValidTillChange = (e) => {
-     setValidTill(e.target.value);
-   };
- 
-   // Handler for Attachment (File Input)
+
+  // Handler for MSME/Udyam Number
+  const handleMsmeNoChange = (e) => {
+    setMsmeNo(e.target.value);
+  };
+
+  // Handler for Valid From date
+  const handleValidFromChange = (e) => {
+    setValidFrom(e.target.value);
+  };
+
+  // Handler for Valid Till date
+  const handleValidTillChange = (e) => {
+    setValidTill(e.target.value);
+  };
+
+  // Handler for Attachment (File Input)
   //  const handleFileChange = (e) => {
   //    setAttachment(e.target.files[0]);
   //  };
 
-    // Handle file input change
+  // Handle file input change
   const handleFileChange = (event) => {
     const file = event.target.files[0]; // Get the first file selected
 
@@ -518,61 +515,58 @@ const isRekycTypeEmpty = !rekycType || rekycType.length === 0;
       setEinvoicingAttachments([...einvoicingAttachments, attachment]);
     }
   };
-  
-// edit pay load
 
-const payload = {
-  authenticity_token: "[FILTERED]", // No quotes for the token value, but the key is a string
-  vendor_re_kyc: {
-    status: "details_submitted_by_vendor"
-  },
-  pms_supplier: {
-    rekyc_id: rekycId,
-    msme: msmeUdyamApplicable ||"",
-    msme_no: msmeUdyamApplicable === "No" ? "" :msmeNo|| "",
-    valid_from:msmeUdyamApplicable === "No" ? "" : validFrom ||"",
-    valid_till: msmeUdyamApplicable === "No" ? "" : validTill ||"",
-    enterprise: msmeUdyamApplicable === "No" ? "" : msmeEnterpriseType ||"",
-    msme_attachments: msmeUdyamApplicable === "No" ? [] : msmeAttachments,
-    einvoicing:  eInvoicingApplicable||"",
-    einvoicing_attachments: eInvoicingApplicable === "No" ? einvoicingAttachments: [], //added
-    bank_details_attributes: bankDetailsList
-    // {
-    //   "1740052205996": { // Note this key remains a string
-    //     _destroy: "false",
-    //     bank_name: "BAnk",
-    //     address: "aaaaaaa",
-    //     country_id: 70, // No quotes for numeric values
-    //     state_id: 87, // Same for numeric state_id
-    //     city_name: "ssssssssss",
-    //     pincode: "444444",
-    //     account_type: "34444444444444444",
-    //     account_number: "33333333333333",
-    //     confirm_account_number: "33333333333333",
-    //     branch_name: "SOME",
-    //     micr_number: "ssssssssss",
-    //     ifsc_code: "ssssssssssssssss",
-    //     benficary_name: "sssssssssssss",
-    //     remark: ""
-    //   }
-    // }
-  }
-};
+  // edit pay load
 
-console.log("payload:", payload)
+  const payload = {
+    authenticity_token: "[FILTERED]", // No quotes for the token value, but the key is a string
+    vendor_re_kyc: {
+      status: "details_submitted_by_vendor",
+    },
+    pms_supplier: {
+      rekyc_id: rekycId,
+      msme: msmeUdyamApplicable || "",
+      msme_no: msmeUdyamApplicable === "No" ? "" : msmeNo || "",
+      valid_from: msmeUdyamApplicable === "No" ? "" : validFrom || "",
+      valid_till: msmeUdyamApplicable === "No" ? "" : validTill || "",
+      enterprise: msmeUdyamApplicable === "No" ? "" : msmeEnterpriseType || "",
+      msme_attachments: msmeUdyamApplicable === "No" ? [] : msmeAttachments,
+      einvoicing: eInvoicingApplicable || "",
+      einvoicing_attachments:
+        eInvoicingApplicable === "No" ? einvoicingAttachments : [], //added
+      bank_details_attributes: bankDetailsList,
+      // {
+      //   "1740052205996": { // Note this key remains a string
+      //     _destroy: "false",
+      //     bank_name: "BAnk",
+      //     address: "aaaaaaa",
+      //     country_id: 70, // No quotes for numeric values
+      //     state_id: 87, // Same for numeric state_id
+      //     city_name: "ssssssssss",
+      //     pincode: "444444",
+      //     account_type: "34444444444444444",
+      //     account_number: "33333333333333",
+      //     confirm_account_number: "33333333333333",
+      //     branch_name: "SOME",
+      //     micr_number: "ssssssssss",
+      //     ifsc_code: "ssssssssssssssss",
+      //     benficary_name: "sssssssssssss",
+      //     remark: ""
+      //   }
+      // }
+    },
+  };
 
+  console.log("payload:", payload);
 
-
-
-// update api 
-
+  // update api
 
   // Handle the Update Button Click
   const handleUpdate = async () => {
     const payload = {
       authenticity_token: "[FILTERED]", // Add your actual token or logic to get it
       vendor_re_kyc: {
-        status: "details_submitted_by_vendor"
+        status: "details_submitted_by_vendor",
       },
       pms_supplier: {
         rekyc_id: rekycId,
@@ -580,15 +574,17 @@ console.log("payload:", payload)
         msme_no: msmeUdyamApplicable === "No" ? "" : msmeNo || "",
         valid_from: msmeUdyamApplicable === "No" ? "" : validFrom || "",
         valid_till: msmeUdyamApplicable === "No" ? "" : validTill || "",
-        enterprise: msmeUdyamApplicable === "No" ? "" : msmeEnterpriseType || "",
+        enterprise:
+          msmeUdyamApplicable === "No" ? "" : msmeEnterpriseType || "",
         msme_attachments: msmeUdyamApplicable === "No" ? [] : msmeAttachments,
         einvoicing: eInvoicingApplicable || "",
-        einvoicing_attachments: eInvoicingApplicable === "No" ? einvoicingAttachments : [],
-        bank_details_attributes: bankDetailsList
-      }
+        einvoicing_attachments:
+          eInvoicingApplicable === "No" ? einvoicingAttachments : [],
+        bank_details_attributes: bankDetailsList,
+      },
     };
 
-    console.log("payload submition",payload)
+    console.log("payload submition", payload);
     // Perform the PATCH request
     // try {
     //   const response = await fetch(`http://vendors.lockated.com/pms/suppliers/${rekycId}/update_rekyc_by_sections`, {
@@ -617,12 +613,10 @@ console.log("payload:", payload)
     //   // Handle network error if needed
     // }
 
-
-
     try {
       const response = await axios.patch(
         `https://vendors.lockated.com/pms/suppliers/${rekycId}/update_rekyc_by_sections.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`,
-        payload,
+        payload
         // {
         //   headers: {
         //     // 'Accept': 'application/json',
@@ -632,22 +626,22 @@ console.log("payload:", payload)
         //   }
         // }
       );
-    
-      console.log('Response:', response.data); // Check the response data
+
+      console.log("Response:", response.data); // Check the response data
       // await fetchSupplierData();
-      if (response.status===200) {
-            // console.log('Update successful:', data);
-            alert("Updated successfully")
-            // await fetchSupplierData();
-            // Optionally handle success (e.g., show a success message or redirect)
-          }
+      if (response.status === 200) {
+        // console.log('Update successful:', data);
+        alert("Updated successfully");
+        // await fetchSupplierData();
+        // Optionally handle success (e.g., show a success message or redirect)
+      }
     } catch (error) {
-      console.error('Error:', error.response ? error.response.data : error.message);
+      console.error(
+        "Error:",
+        error.response ? error.response.data : error.message
+      );
     }
   };
-
-
-console.log("selecte country:" ,selectedCountry)
 
   return (
     <>
@@ -667,7 +661,7 @@ console.log("selecte country:" ,selectedCountry)
                     <span className="me-3">
                       <span className="text-dark">:</span>
                     </span>
-                    {supplierData?.organization_name || ''}
+                    {supplierData?.organization_name || ""}
                   </label>
                 </div>
               </div>
@@ -680,7 +674,7 @@ console.log("selecte country:" ,selectedCountry)
                     <span className="me-3">
                       <span className="text-dark">:</span>
                     </span>
-                    {supplierData?.gstin || ''}
+                    {supplierData?.gstin || ""}
                   </label>
                 </div>
               </div>
@@ -693,7 +687,7 @@ console.log("selecte country:" ,selectedCountry)
                     <span className="me-3">
                       <span className="text-dark">:</span>
                     </span>
-                    {supplierData?.organization_details?.site || ''}
+                    {supplierData?.organization_details?.site || ""}
                   </label>
                 </div>
               </div>
@@ -706,7 +700,7 @@ console.log("selecte country:" ,selectedCountry)
                     <span className="me-3">
                       <span className="text-dark">:</span>
                     </span>
-                    {supplierData?.organization_details?.department || ''}
+                    {supplierData?.organization_details?.department || ""}
                   </label>
                 </div>
               </div>
@@ -719,7 +713,7 @@ console.log("selecte country:" ,selectedCountry)
                     <span className="me-3">
                       <span className="text-dark">:</span>
                     </span>
-                    {supplierData?.organization_details?.invited_by || ''}
+                    {supplierData?.organization_details?.invited_by || ""}
                   </label>
                 </div>
               </div>
@@ -732,7 +726,7 @@ console.log("selecte country:" ,selectedCountry)
                     <span className="me-3">
                       <span className="text-dark">:</span>
                     </span>
-                    {supplierData?.organization_details?.contact_number || ''}
+                    {supplierData?.organization_details?.contact_number || ""}
                   </label>
                 </div>
               </div>
@@ -755,7 +749,8 @@ console.log("selecte country:" ,selectedCountry)
                       <span className="me-3">
                         <span className="text-dark">:</span>
                       </span>
-                      {supplierData?.basic_information?.vendor_organization_name || ''}
+                      {supplierData?.basic_information
+                        ?.vendor_organization_name || ""}
                     </label>
                   </div>
                 </div>
@@ -768,7 +763,8 @@ console.log("selecte country:" ,selectedCountry)
                       <span className="me-3">
                         <span className="text-dark">:</span>
                       </span>
-                      {supplierData?.basic_information?.type_of_organization || ''}
+                      {supplierData?.basic_information?.type_of_organization ||
+                        ""}
                     </label>
                   </div>
                 </div>
@@ -781,7 +777,8 @@ console.log("selecte country:" ,selectedCountry)
                       <span className="me-3">
                         <span className="text-dark">:</span>
                       </span>
-                      {supplierData?.basic_information?.nature_of_business || ''}
+                      {supplierData?.basic_information?.nature_of_business ||
+                        ""}
                     </label>
                   </div>
                 </div>
@@ -794,7 +791,7 @@ console.log("selecte country:" ,selectedCountry)
                       <span className="me-3">
                         <span className="text-dark">:</span>
                       </span>
-                      {supplierData?.basic_information?.vendor_type || ''}
+                      {supplierData?.basic_information?.vendor_type || ""}
                     </label>
                   </div>
                 </div>
@@ -807,7 +804,7 @@ console.log("selecte country:" ,selectedCountry)
                       <span className="me-3">
                         <span className="text-dark">:</span>
                       </span>
-                      {supplierData?.basic_information?.type_of_industry || ''}
+                      {supplierData?.basic_information?.type_of_industry || ""}
                     </label>
                   </div>
                 </div>
@@ -820,7 +817,7 @@ console.log("selecte country:" ,selectedCountry)
                       <span className="me-3">
                         <span className="text-dark">:</span>
                       </span>
-                      {supplierData?.basic_information?.full_name || ''}
+                      {supplierData?.basic_information?.full_name || ""}
                     </label>
                   </div>
                 </div>
@@ -833,7 +830,7 @@ console.log("selecte country:" ,selectedCountry)
                       <span className="me-3">
                         <span className="text-dark">:</span>
                       </span>
-                      {supplierData?.basic_information?.email || ''}
+                      {supplierData?.basic_information?.email || ""}
                     </label>
                   </div>
                 </div>
@@ -846,7 +843,7 @@ console.log("selecte country:" ,selectedCountry)
                       <span className="me-3">
                         <span className="text-dark">:</span>
                       </span>
-                      {supplierData?.basic_information?.mobile || ''}
+                      {supplierData?.basic_information?.mobile || ""}
                     </label>
                   </div>
                 </div>
@@ -859,7 +856,7 @@ console.log("selecte country:" ,selectedCountry)
                       <span className="me-3">
                         <span className="text-dark">:</span>
                       </span>
-                      {supplierData?.basic_information?.pan_number || ''}
+                      {supplierData?.basic_information?.pan_number || ""}
                     </label>
                   </div>
                 </div>
@@ -872,13 +869,13 @@ console.log("selecte country:" ,selectedCountry)
                       <span className="me-3">
                         <span className="text-dark">:</span>
                       </span>
-                      {supplierData?.basic_information?.pan_attachments?.length > 0 ? (
-                        // Display the document name of the first attachment
-                        supplierData?.basic_information?.pan_attachments[0]?.document_name
-                      ) : (
-                        // If no attachment is present, show a default message
-                        'No Document Available'
-                      )}
+                      {supplierData?.basic_information?.pan_attachments
+                        ?.length > 0
+                        ? // Display the document name of the first attachment
+                          supplierData?.basic_information?.pan_attachments[0]
+                            ?.document_name
+                        : // If no attachment is present, show a default message
+                          "No Document Available"}
                     </label>
                   </div>
                 </div>
@@ -891,7 +888,7 @@ console.log("selecte country:" ,selectedCountry)
                       <span className="me-3">
                         <span className="text-dark">:</span>
                       </span>
-                      {supplierData?.schema_group || ''}
+                      {supplierData?.schema_group || ""}
                     </label>
                   </div>
                 </div>
@@ -904,7 +901,8 @@ console.log("selecte country:" ,selectedCountry)
                       <span className="me-3">
                         <span className="text-dark">:</span>
                       </span>
-                      {supplierData?.basic_information?.date_of_incorporation || ''}
+                      {supplierData?.basic_information?.date_of_incorporation ||
+                        ""}
                     </label>
                   </div>
                 </div>
@@ -917,7 +915,7 @@ console.log("selecte country:" ,selectedCountry)
                       <span className="me-3">
                         <span className="text-dark">:</span>
                       </span>
-                      {supplierData?.gstin_applicable || ''}
+                      {supplierData?.gstin_applicable || ""}
                     </label>
                   </div>
                 </div>
@@ -930,7 +928,7 @@ console.log("selecte country:" ,selectedCountry)
                       <span className="me-3">
                         <span className="text-dark">:</span>
                       </span>
-                      {supplierData?.gst_classification || ''}
+                      {supplierData?.gst_classification || ""}
                     </label>
                   </div>
                 </div>
@@ -943,7 +941,7 @@ console.log("selecte country:" ,selectedCountry)
                       <span className="me-3">
                         <span className="text-dark">:</span>
                       </span>
-                      {supplierData?.basic_information?.gstin || ''}
+                      {supplierData?.basic_information?.gstin || ""}
                     </label>
                   </div>
                 </div>
@@ -957,14 +955,13 @@ console.log("selecte country:" ,selectedCountry)
                         <span className="text-dark">:</span>
                       </span>
 
-                      {supplierData?.basic_information?.gstin_attachments?.length > 0 ? (
-                        // Display the document name of the first attachment
-                        supplierData?.basic_information?.gstin_attachments[0]?.document_name || 'No Document Available'
-                      ) : (
-                        // If no attachment is present, show a default message
-                        'No Document Available'
-                      )}
-
+                      {supplierData?.basic_information?.gstin_attachments
+                        ?.length > 0
+                        ? // Display the document name of the first attachment
+                          supplierData?.basic_information?.gstin_attachments[0]
+                            ?.document_name || "No Document Available"
+                        : // If no attachment is present, show a default message
+                          "No Document Available"}
                     </label>
                   </div>
                 </div>
@@ -1212,7 +1209,42 @@ console.log("selecte country:" ,selectedCountry)
       
          
 
+                  {/* Address */}
+                  <div className="col-md-4">
+                    <div className="form-group">
+                      <label>
+                        Address <span>*</span>
+                      </label>
+                      <input
+                        className="form-control"
+                        type="text"
+                        placeholder="Enter Address"
+                        value={bankDetail.address}
+                        onChange={(e) =>
+                          handleInputChange(e, bankDetail.id, "address")
+                        }
+                      />
+                    </div>
+                  </div>
 
+                  {/* Country */}
+                  <div className="col-md-4">
+                    <div className="form-group">
+                      <label>
+                        Country <span>*</span>
+                      </label>
+                      <SingleSelector
+                        options={countries}
+                        value={selectedCountry}
+                        onChange={
+                          (selectedOption) =>
+                            handleCountryChange(selectedOption)
+                          // console.log("selected option onchange :",selectedOption)
+                        }
+                        // onChange={(e) => handleCountryChange(e, bankDetail.id)}  // Pass the bankDetail.id here
+                      />
+                    </div>
+                  </div>
 
           {/* rekeyc type present  */}
 
@@ -1561,7 +1593,9 @@ console.log("selecte country:" ,selectedCountry)
         </div>
         <div className=" d-flex justify-content-center">
           <div className="col-md-2">
-            <button className="purple-btn2" onClick={handleUpdate}>Update</button>
+            <button className="purple-btn2" onClick={handleUpdate}>
+              Update
+            </button>
           </div>
         </div>
       </div>
