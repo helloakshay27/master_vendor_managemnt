@@ -40,9 +40,9 @@ const ApprovalEdit = () => {
     const fetchDropdownData = async () => {
       try {
         const [companyRes, departmentRes, userRes] = await Promise.all([
-          axios.get("https://vendor.panchshil.com/pms/company_setups.json"),
-          axios.get("https://vendor.panchshil.com/pms/departments.json"),
-          axios.get("https://vendor.panchshil.com/users.json"),
+          axios.get("https://vendors.lockated.com/pms/company_setups.json"),
+          axios.get("https://vendors.lockated.com/pms/departments.json"),
+          axios.get("https://vendors.lockated.com/users.json"),
         ]);
 
         console.log("Raw Company Data:", companyRes.data);
