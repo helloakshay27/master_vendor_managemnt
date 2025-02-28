@@ -1279,7 +1279,7 @@ const SectionReKYCDetails = () => {
                         />
 
                         {/* Validation Error Message */}
-                        {errors.country && <div className="ValidationColor">{errors.country}</div>}
+                        {formSubmitted && errors.country && <div className="ValidationColor">{errors.country}</div>}
                       </div>
                     </div>
 
@@ -1298,7 +1298,7 @@ const SectionReKYCDetails = () => {
                           value={selectedState}
                           onChange={(selectedOption) => handleStateChange(selectedOption)}
                         />
-                        {errors.state && <div className="ValidationColor">{errors.state}</div>}
+                        {formSubmitted &&errors.state && <div className="ValidationColor">{errors.state}</div>}
                       </div>
                     </div>
 
