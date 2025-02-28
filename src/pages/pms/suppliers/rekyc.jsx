@@ -299,10 +299,10 @@ const SectionReKYCDetails = () => {
           console.log("country:", formattedCountries);
 
           // Set selected country if bank data exists
-          console.log(
-            "banck detail country:",
-            supplierData.bank_details[0]?.country
-          );
+          // console.log(
+          //   "banck detail country:",
+          //   supplierData.bank_details[0]?.country
+          // );
           if (supplierData?.bank_details) {
             console.log(
               "banck detail country:",
@@ -1194,354 +1194,351 @@ const SectionReKYCDetails = () => {
 
 
           {(isRekycTypeEmpty || isBankRekyc) && (
-          <div>
+            <div>
 
-            {bankDetailsList?.map((bankDetail) => (
-              <CollapsedCardKYC
-                key={bankDetail.id}
-                title="Bank Details"
-                onDelete={() => deleteBankDetails(bankDetail.id)}
-              >
-                <div className="row">
-                  {/* Bank Name */}
-                  <div className="col-md-4">
-                    <div className="form-group">
-                      <label
-                        data-bs-toggle="tooltip"
-                        data-bs-placement="top"
-                        title={tooltipMessages.bankName}
-                      >Bank Name <span>*</span></label>
-                      <input
-                        className="form-control"
-                        type="text"
-                        placeholder="Enter Bank name"
-                        value={bankDetail.bank_name}
-                        onChange={(e) => handleInputChange(e, bankDetail.id, 'bank_name')}
-                      />
-                      {errors.bank_name && <span className="ValidationColor">{errors.bank_name}</span>}
+              {bankDetailsList?.map((bankDetail) => (
+                <CollapsedCardKYC
+                  key={bankDetail.id}
+                  title="Bank Details"
+                  onDelete={() => deleteBankDetails(bankDetail.id)}
+                >
+                  <div className="row">
+                    {/* Bank Name */}
+                    <div className="col-md-4">
+                      <div className="form-group">
+                        <label
+                          data-bs-toggle="tooltip"
+                          data-bs-placement="top"
+                          title={tooltipMessages.bankName}
+                        >Bank Name <span>*</span></label>
+                        <input
+                          className="form-control"
+                          type="text"
+                          placeholder="Enter Bank name"
+                          value={bankDetail.bank_name}
+                          onChange={(e) => handleInputChange(e, bankDetail.id, 'bank_name')}
+                        />
+                        {errors.bank_name && <span className="ValidationColor">{errors.bank_name}</span>}
 
-                      {/* {errors.bank_name && <div className="invalid-feedback">{errors.bank_name}</div>} */}
-                      {console.log(errors.bank_name)}
+                        {/* {errors.bank_name && <div className="invalid-feedback">{errors.bank_name}</div>} */}
+                        {console.log(errors.bank_name)}
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Address */}
-                  <div className="col-md-4">
-                    <div className="form-group">
-                      <label
-                        data-bs-toggle="tooltip"
-                        data-bs-placement="top"
-                        title={tooltipMessages.address}
-                      >Address <span>*</span></label>
-                      <input
-                        className="form-control"
-                        type="text"
-                        placeholder="Enter Address"
-                        value={bankDetail.address}
-                        onChange={(e) => handleInputChange(e, bankDetail.id, 'address')}
-                      />
-                      {errors.address && <div className="ValidationColor">{errors.address}</div>}
+                    {/* Address */}
+                    <div className="col-md-4">
+                      <div className="form-group">
+                        <label
+                          data-bs-toggle="tooltip"
+                          data-bs-placement="top"
+                          title={tooltipMessages.address}
+                        >Address <span>*</span></label>
+                        <input
+                          className="form-control"
+                          type="text"
+                          placeholder="Enter Address"
+                          value={bankDetail.address}
+                          onChange={(e) => handleInputChange(e, bankDetail.id, 'address')}
+                        />
+                        {errors.address && <div className="ValidationColor">{errors.address}</div>}
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Country */}
-                  <div className="col-md-4">
-                    <div className="form-group">
-                      <label
-                        data-bs-toggle="tooltip"
-                        data-bs-placement="top"
-                        title={tooltipMessages.country}
-                      >Country <span>*</span></label>
-                      <SingleSelector
-                        options={countries}
-                        // value={bankDetail.country}
-                        value={selectedCountry}
-                        // value={countries.find(country => country.label === bankDetail.country) || {}} // Find the selected country object or use a default empty object if not found
-                        onChange={(selectedOption) =>
-                          // handleCountryChange(selectedOption)
-                          console.log("selected option onchange :", selectedOption)
-                        }
-                      // onChange={(e) => handleCountryChange(e, bankDetail.id)}  // Pass the bankDetail.id here
-                      />
+                    {/* Country */}
+                    <div className="col-md-4">
+                      <div className="form-group">
+                        {/* Label with Tooltip */}
+                        <label data-bs-toggle="tooltip" data-bs-placement="top" title={tooltipMessages.country}>
+                          Country <span>*</span>
+                        </label>
 
-                      {errors.country && <div className="ValidationColor">{errors.country}</div>}
+                        {/* Country Dropdown */}
+                        <SingleSelector
+                          options={countries}
+                          value={selectedCountry} // Controlled component
+                          onChange={(selectedOption) => handleCountryChange(selectedOption)} // Properly handling onChange
+                        />
+
+                        {/* Validation Error Message */}
+                        {errors.country && <div className="ValidationColor">{errors.country}</div>}
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="col-md-4">
-                    <div className="form-group">
-                      <label
-                        data-bs-toggle="tooltip"
-                        data-bs-placement="top"
-                        title={tooltipMessages.state}
-                      >State <span>*</span></label>
-                      <SingleSelector
-                        options={states}
-                        // value={bankDetail.state}
-                        // value={states.find(country => country.label === bankDetail.state) || {}}
-                        value={selectedState}
-                        onChange={(selectedOption) => handleStateChange(selectedOption)}
-                      />
-                      {errors.state && <div className="ValidationColor">{errors.state}</div>}
+
+                    <div className="col-md-4">
+                      <div className="form-group">
+                        <label
+                          data-bs-toggle="tooltip"
+                          data-bs-placement="top"
+                          title={tooltipMessages.state}
+                        >State <span>*</span></label>
+                        <SingleSelector
+                          options={states}
+                          // value={bankDetail.state}
+                          // value={states.find(country => country.label === bankDetail.state) || {}}
+                          value={selectedState}
+                          onChange={(selectedOption) => handleStateChange(selectedOption)}
+                        />
+                        {errors.state && <div className="ValidationColor">{errors.state}</div>}
+                      </div>
                     </div>
-                  </div>
 
-                  {/* City */}
-                  <div className="col-md-4 mt-2">
-                    <div className="form-group">
-                      <label
-                        data-bs-toggle="tooltip"
-                        data-bs-placement="top"
-                        title={tooltipMessages.city}
-                      >City <span>*</span></label>
-                      <input
-                        className="form-control"
-                        type="text"
-                        placeholder="Enter City Name"
-                        value={bankDetail.city}
-                        onChange={(e) => handleInputChange(e, bankDetail.id, 'city')}
-                      />
-                      {errors.city && <div className="ValidationColor">{errors.city}</div>}
+                    {/* City */}
+                    <div className="col-md-4 mt-2">
+                      <div className="form-group">
+                        <label
+                          data-bs-toggle="tooltip"
+                          data-bs-placement="top"
+                          title={tooltipMessages.city}
+                        >City <span>*</span></label>
+                        <input
+                          className="form-control"
+                          type="text"
+                          placeholder="Enter City Name"
+                          value={bankDetail.city}
+                          onChange={(e) => handleInputChange(e, bankDetail.id, 'city')}
+                        />
+                        {errors.city && <div className="ValidationColor">{errors.city}</div>}
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Pin Code */}
-                  <div className="col-md-4 mt-2">
-                    <div className="form-group">
-                      <label
-                        data-bs-toggle="tooltip"
-                        data-bs-placement="top"
-                        title={tooltipMessages.pincode}
-                      >Pin Code <span>*</span></label>
-                      <input
-                        className="form-control"
-                        type="number"
-                        placeholder="Enter Pin Code"
-                        value={bankDetail.pin_code}
-                        onChange={(e) => handleInputChange(e, bankDetail.id, 'pin_code')}
-                      />
-                      {errors.pin_code && <div className="ValidationColor">{errors.pin_code}</div>}
+                    {/* Pin Code */}
+                    <div className="col-md-4 mt-2">
+                      <div className="form-group">
+                        <label
+                          data-bs-toggle="tooltip"
+                          data-bs-placement="top"
+                          title={tooltipMessages.pincode}
+                        >Pin Code <span>*</span></label>
+                        <input
+                          className="form-control"
+                          type="number"
+                          placeholder="Enter Pin Code"
+                          value={bankDetail.pin_code}
+                          onChange={(e) => handleInputChange(e, bankDetail.id, 'pin_code')}
+                        />
+                        {errors.pin_code && <div className="ValidationColor">{errors.pin_code}</div>}
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Account Type */}
-                  <div className="col-md-4 mt-2">
-                    <div className="form-group">
-                      <label
-                        data-bs-toggle="tooltip"
-                        data-bs-placement="top"
-                        title={tooltipMessages.accountType}
-                      >Account Type <span>*</span></label>
-                      <input
-                        className="form-control"
-                        type="text"
-                        placeholder="Enter Account Type"
-                        value={bankDetail.account_type}
-                        onChange={(e) => handleInputChange(e, bankDetail.id, 'account_type')}
-                      />
-                      {errors.account_type && <div className="ValidationColor">{errors.account_type}</div>}
+                    {/* Account Type */}
+                    <div className="col-md-4 mt-2">
+                      <div className="form-group">
+                        <label
+                          data-bs-toggle="tooltip"
+                          data-bs-placement="top"
+                          title={tooltipMessages.accountType}
+                        >Account Type <span>*</span></label>
+                        <input
+                          className="form-control"
+                          type="text"
+                          placeholder="Enter Account Type"
+                          value={bankDetail.account_type}
+                          onChange={(e) => handleInputChange(e, bankDetail.id, 'account_type')}
+                        />
+                        {errors.account_type && <div className="ValidationColor">{errors.account_type}</div>}
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Account Number */}
-                  <div className="col-md-4 mt-2">
-                    <div className="form-group">
-                      <label
-                        data-bs-toggle="tooltip"
-                        data-bs-placement="top"
-                        title={tooltipMessages.accountNumber}
-                      >Account Number <span>*</span></label>
-                      <input
-                        className="form-control"
-                        type="number"
-                        placeholder="Enter Account Number"
-                        value={bankDetail.account_number}
-                        onChange={(e) => handleInputChange(e, bankDetail.id, 'account_number')}
-                      />
+                    {/* Account Number */}
+                    <div className="col-md-4 mt-2">
+                      <div className="form-group">
+                        <label
+                          data-bs-toggle="tooltip"
+                          data-bs-placement="top"
+                          title={tooltipMessages.accountNumber}
+                        >Account Number <span>*</span></label>
+                        <input
+                          className="form-control"
+                          type="number"
+                          placeholder="Enter Account Number"
+                          value={bankDetail.account_number}
+                          onChange={(e) => handleInputChange(e, bankDetail.id, 'account_number')}
+                        />
 
-                      {errors.account_number && <div className="ValidationColor">{errors.account_number}</div>}
+                        {errors.account_number && <div className="ValidationColor">{errors.account_number}</div>}
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Confirm Account Number */}
-                  <div className="col-md-4 mt-2">
-                    <div className="form-group">
-                      <label
-                        data-bs-toggle="tooltip"
-                        data-bs-placement="top"
-                        title={tooltipMessages.confirmAccountNumber}
-                      >Confirm Account Number <span>*</span></label>
-                      <input
-                        className="form-control"
-                        type="number"
-                        placeholder="Enter Confirm Account Number"
-                        value={bankDetail.confirm_account_number}
-                        onChange={(e) => handleInputChange(e, bankDetail.id, 'confirm_account_number')}
-                      />
-                      {errors.confirm_account_number && <div className="ValidationColor">{errors.confirm_account_number}</div>}
-                      {errors.account_match && <div className="ValidationColor">{errors.account_match}</div>}
+                    {/* Confirm Account Number */}
+                    <div className="col-md-4 mt-2">
+                      <div className="form-group">
+                        <label
+                          data-bs-toggle="tooltip"
+                          data-bs-placement="top"
+                          title={tooltipMessages.confirmAccountNumber}
+                        >Confirm Account Number <span>*</span></label>
+                        <input
+                          className="form-control"
+                          type="number"
+                          placeholder="Enter Confirm Account Number"
+                          value={bankDetail.confirm_account_number}
+                          onChange={(e) => handleInputChange(e, bankDetail.id, 'confirm_account_number')}
+                        />
+                        {errors.confirm_account_number && <div className="ValidationColor">{errors.confirm_account_number}</div>}
+                        {errors.account_match && <div className="ValidationColor">{errors.account_match}</div>}
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Branch Name */}
-                  <div className="col-md-4 mt-2">
-                    <div className="form-group">
-                      <label
-                        data-bs-toggle="tooltip"
-                        data-bs-placement="top"
-                        title={tooltipMessages.branchName}
-                      >Branch Name <span>*</span></label>
-                      <input
-                        className="form-control"
-                        type="text"
-                        placeholder="Enter Branch Name"
-                        value={bankDetail.branch_name}
-                        onChange={(e) => handleInputChange(e, bankDetail.id, 'branch_name')}
-                      />
-                      {errors.branch_name && <div className="ValidationColor">{errors.branch_name}</div>}
+                    {/* Branch Name */}
+                    <div className="col-md-4 mt-2">
+                      <div className="form-group">
+                        <label
+                          data-bs-toggle="tooltip"
+                          data-bs-placement="top"
+                          title={tooltipMessages.branchName}
+                        >Branch Name <span>*</span></label>
+                        <input
+                          className="form-control"
+                          type="text"
+                          placeholder="Enter Branch Name"
+                          value={bankDetail.branch_name}
+                          onChange={(e) => handleInputChange(e, bankDetail.id, 'branch_name')}
+                        />
+                        {errors.branch_name && <div className="ValidationColor">{errors.branch_name}</div>}
+                      </div>
                     </div>
-                  </div>
 
-                  {/* MICR No. */}
-                  <div className="col-md-4 mt-2">
-                    <div className="form-group">
-                      <label
-                        data-bs-toggle="tooltip"
-                        data-bs-placement="top"
-                        title={tooltipMessages.MICR}
-                      >MICR No. <span>*</span></label>
-                      <input
-                        className="form-control"
-                        type="text"
-                        placeholder="Enter MICR No."
-                        value={bankDetail.micr_number}
-                        onChange={(e) => handleInputChange(e, bankDetail.id, 'micr_number')}
-                      />
-                      {errors.micr_number && <div className="ValidationColor">{errors.micr_number}</div>}
+                    {/* MICR No. */}
+                    <div className="col-md-4 mt-2">
+                      <div className="form-group">
+                        <label
+                          data-bs-toggle="tooltip"
+                          data-bs-placement="top"
+                          title={tooltipMessages.MICR}
+                        >MICR No. <span>*</span></label>
+                        <input
+                          className="form-control"
+                          type="text"
+                          placeholder="Enter MICR No."
+                          value={bankDetail.micr_number}
+                          onChange={(e) => handleInputChange(e, bankDetail.id, 'micr_number')}
+                        />
+                        {errors.micr_number && <div className="ValidationColor">{errors.micr_number}</div>}
+                      </div>
                     </div>
-                  </div>
 
-                  {/* IFSC Code */}
-                  <div className="col-md-4 mt-2">
-                    <div className="form-group">
-                      <label
-                        data-bs-toggle="tooltip"
-                        data-bs-placement="top"
-                        title={tooltipMessages.IFSCCode}
-                      >IFSC Code <span>*</span></label>
-                      <input
-                        className="form-control"
-                        type="text"
-                        placeholder="Enter IFSC Code"
-                        value={bankDetail.ifsc_code}
-                        onChange={(e) => handleInputChange(e, bankDetail.id, 'ifsc_code')}
-                      />
-                      {errors.ifsc_code && <div className="ValidationColor">{errors.ifsc_code}</div>}
+                    {/* IFSC Code */}
+                    <div className="col-md-4 mt-2">
+                      <div className="form-group">
+                        <label
+                          data-bs-toggle="tooltip"
+                          data-bs-placement="top"
+                          title={tooltipMessages.IFSCCode}
+                        >IFSC Code <span>*</span></label>
+                        <input
+                          className="form-control"
+                          type="text"
+                          placeholder="Enter IFSC Code"
+                          value={bankDetail.ifsc_code}
+                          onChange={(e) => handleInputChange(e, bankDetail.id, 'ifsc_code')}
+                        />
+                        {errors.ifsc_code && <div className="ValidationColor">{errors.ifsc_code}</div>}
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Beneficiary Name */}
-                  <div className="col-md-4 mt-2">
-                    <div className="form-group">
-                      <label
-                        data-bs-toggle="tooltip"
-                        data-bs-placement="top"
-                        title={tooltipMessages.beneficiaryName}
-                      >Beneficiary Name <span>*</span></label>
-                      <input
-                        className="form-control"
-                        type="text"
-                        placeholder="Enter Beneficiary Name"
-                        value={bankDetail.beneficiary_name}
-                        onChange={(e) => handleInputChange(e, bankDetail.id, 'beneficiary_name')}
-                      />
-                      {errors.beneficiary_name && <div className="ValidationColor">{errors.beneficiary_name}</div>}
+                    {/* Beneficiary Name */}
+                    <div className="col-md-4 mt-2">
+                      <div className="form-group">
+                        <label
+                          data-bs-toggle="tooltip"
+                          data-bs-placement="top"
+                          title={tooltipMessages.beneficiaryName}
+                        >Beneficiary Name <span>*</span></label>
+                        <input
+                          className="form-control"
+                          type="text"
+                          placeholder="Enter Beneficiary Name"
+                          value={bankDetail.beneficiary_name}
+                          onChange={(e) => handleInputChange(e, bankDetail.id, 'beneficiary_name')}
+                        />
+                        {errors.beneficiary_name && <div className="ValidationColor">{errors.beneficiary_name}</div>}
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Cancelled Cheque / Bank Copy */}
-                  <div className="col-md-4 mt-2">
-                    <div className="form-group">
-                      <label
-                        data-bs-toggle="tooltip"
-                        data-bs-placement="top"
-                        title={tooltipMessages.cancelledCheque}
-                      >Cancelled Cheque / Bank Copy <span>*</span></label>
+                    {/* Cancelled Cheque / Bank Copy */}
+                    <div className="col-md-4 mt-2">
+                      <div className="form-group">
+                        <label
+                          data-bs-toggle="tooltip"
+                          data-bs-placement="top"
+                          title={tooltipMessages.cancelledCheque}
+                        >Cancelled Cheque / Bank Copy <span>*</span></label>
 
-                      <span className="ms-2 ">
-                        <a
-                          href={bankDetail?.attachment} // PDF file URL
+                        <span className="ms-2 ">
+                          <a
+                            href={bankDetail?.attachment} // PDF file URL
 
-                          download // Trigger download when clicked
-                          className="text-primary d-flex align-items-center"
-                        >
-
-                          <span className="me-2">Existing Files:</span>
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width={24}
-                            height={24}
-                            fill="#DE7008"
-                            className="bi bi-download"
-                            viewBox="0 0 16 16"
+                            download // Trigger download when clicked
+                            className="text-primary d-flex align-items-center"
                           >
-                            <path
-                              d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
-                            // style={{ fill: "#de7008!important" }}
-                            />
-                            <path
-                              d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
-                            // style={{ fill: "#de7008!important" }}
-                            />
-                          </svg>
 
-                          {/* {supplierData?.msme_details?.msme_attachments
+                            <span className="me-2">Existing Files:</span>
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width={24}
+                              height={24}
+                              fill="#DE7008"
+                              className="bi bi-download"
+                              viewBox="0 0 16 16"
+                            >
+                              <path
+                                d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
+                              // style={{ fill: "#de7008!important" }}
+                              />
+                              <path
+                                d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
+                              // style={{ fill: "#de7008!important" }}
+                              />
+                            </svg>
+
+                            {/* {supplierData?.msme_details?.msme_attachments
                               ?.length > 0
                               ? // Display the document name of the first attachment
                               supplierData?.msme_details?.msme_attachments[0]
                                 ?.document_name
                               : // If no attachment is present, show a default message
                               "No Document Available"} */}
-                        </a>
-                      </span>
-                      <input
-                        className="form-control"
-                        type="file"
-                        onChange={(e) => handleFileChangeBank(e, bankDetail.id)}
-                      />
-                      {errors.cancelled_cheque && <div className="ValidationColor">{errors.cancelled_cheque}</div>}
+                          </a>
+                        </span>
+                        <input
+                          className="form-control"
+                          type="file"
+                          onChange={(e) => handleFileChangeBank(e, bankDetail.id)}
+                        />
+                        {errors.cancelled_cheque && <div className="ValidationColor">{errors.cancelled_cheque}</div>}
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Remark */}
-                  <div className="col-md-4 mt-2">
-                    <div className="form-group">
-                      <label>Remark
-                        {/* <span>*</span> */}
-                      </label>
-                      <textarea
-                        className="form-control"
-                        rows="3"
-                        placeholder="Enter Remark"
-                        value={bankDetail.remark}
-                        onChange={(e) => handleInputChange(e, bankDetail.id, 'remark')}
-                      />
+                    {/* Remark */}
+                    <div className="col-md-4 mt-2">
+                      <div className="form-group">
+                        <label>Remark
+                          {/* <span>*</span> */}
+                        </label>
+                        <textarea
+                          className="form-control"
+                          rows="3"
+                          placeholder="Enter Remark"
+                          value={bankDetail.remark}
+                          onChange={(e) => handleInputChange(e, bankDetail.id, 'remark')}
+                        />
+                      </div>
                     </div>
                   </div>
+                </CollapsedCardKYC>
+              ))}
+
+
+              <div className="row mt-2 ms-2 justify-content-start">
+                <div className="col-md-2">
+                  <button className="purple-btn1" onClick={addBankDetails}>
+                    Add Bank Details
+                  </button>
                 </div>
-              </CollapsedCardKYC>
-            ))}
-
-
-            <div className="row mt-2 ms-2 justify-content-start">
-              <div className="col-md-2">
-                <button className="purple-btn1" onClick={addBankDetails}>
-                  Add Bank Details
-                </button>
               </div>
             </div>
-          </div>
-           )} 
+          )}
 
 
 
