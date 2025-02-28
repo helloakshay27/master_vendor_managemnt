@@ -35,6 +35,7 @@ const ApprovalList = () => {
     current_page: 1,
     total_pages: 0,
     total_count: 0,
+    per_page: 8, // ✅ Add per_page to avoid NaN issue
   });
 
   const pageSize = 8;
@@ -47,12 +48,9 @@ const ApprovalList = () => {
 
   const [filters, setFilters] = useState({
     company: null,
-    site: null,
-    project: null,
+
     department: null,
     modules: null,
-
-    materialtypes: null,
   });
   useEffect(() => {
     const fetchApprovals = async () => {
@@ -85,7 +83,7 @@ const ApprovalList = () => {
         setPagination({
           current_page: data.pagination.current_page || 1,
           total_pages: data.pagination.total_pages || 1,
-          total_count: data.pagination.total_records || 0,
+          total_count: data.pagination.total_records || 10,
         });
       } catch (error) {
         console.error("Error fetching page data:", error);
@@ -95,14 +93,13 @@ const ApprovalList = () => {
     };
 
     fetchApprovals();
-  }, [pagination.current_page, filters]); // Added `filters` to dependencies
-
+  }, [pagination.current_page]); // Added `filters`
   // const handleEditClick = () => {
   //   navigate("/approval_edit");
   // };
 
   const handleEditClick = (id) => {
-    navigate(`/approval_edit/${id}`);
+    navigate(`/approval-edit/${id}`);
   };
 
   useEffect(() => {
@@ -111,7 +108,6 @@ const ApprovalList = () => {
         const [companyRes, departmentRes, userRes] = await Promise.all([
           axios.get("https://vendors.lockated.com/pms/company_setups.json"),
           axios.get("https://vendors.lockated.com/pms/departments.json"),
-          axios.get("https://vendors.lockated.com/users.json"),
         ]);
 
         console.log("Raw Company Data:", companyRes.data);
@@ -133,12 +129,6 @@ const ApprovalList = () => {
 
         setCompanies(companyOptions);
         setDepartments(departmentOptions);
-        setUsers(
-          userRes.data.map(({ id, full_name }) => ({
-            value: id,
-            label: full_name,
-          }))
-        );
       } catch (error) {
         console.error("Error fetching dropdown data:", error);
       }
@@ -149,68 +139,44 @@ const ApprovalList = () => {
 
   const handleCompanyChange = (selectedOption) => {
     setSelectedCompany(selectedOption); // Set selected company
-    setSelectedProject(null); // Reset project selection
-    setSelectedSite(null); // Reset site selection
-    setSelectedWing(null); // Reset wing selection
-    setProjects([]); // Reset projects
-    setSiteOptions([]); // Reset site options
-    setWingsOptions([]); // Reset wings options
-
-    if (selectedOption) {
-      // Find the selected company from the list
-      const selectedCompanyData = companies.find(
-        (company) => company.id === selectedOption.value
-      );
-      setProjects(
-        selectedCompanyData?.projects.map((prj) => ({
-          value: prj.id,
-          label: prj.name,
-        }))
-      );
-    }
   };
 
   const handleFilterChange = (field, value) => {
     setFilters((prevFilters) => ({
       ...prevFilters,
-      [field]: value, // Dynamically update the correct filter field
+      [field]: value, // Update filter but don't fetch data yet
     }));
   };
-
   const handleFilterSubmit = async (e) => {
     e.preventDefault();
 
     let queryParams = new URLSearchParams();
-    console.log("Filters:", filters);
-
-    // Construct query parameters following the API format
     if (filters.company)
       queryParams.append("q[company_id_eq]", filters.company);
-
-    queryParams.append("q[department_id_eq]", filters.department);
+    if (filters.department)
+      queryParams.append("q[department_id_eq]", filters.department);
 
     queryParams.append("page", 1);
-    queryParams.append("page_size", 8); // Adjust page size as needed
+    queryParams.append("page_size", pagination.per_page); // Ensure correct page size
 
-    // API URL with query params
     const apiUrl = `https://vendors.lockated.com/pms/admin/invoice_approvals.json?${queryParams.toString()}&token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`;
-
-    console.log("API URL:", apiUrl); // Debugging
 
     try {
       const response = await fetch(apiUrl);
       if (!response.ok) throw new Error("Failed to fetch filtered data");
 
       const data = await response.json();
+
       setApprovals(data.invoice_approvals || []);
 
-      // Update pagination state
-      setPagination((prev) => ({
-        ...prev,
-        total_count: data.total_records || 0,
-        total_pages: Math.ceil((data.total_records || 0) / 8), // Ensure correct page count
-        current_page: 1, // Reset to page 1 when filtering
-      }));
+      if (data.pagination) {
+        setPagination({
+          current_page: data.pagination.current_page || 1,
+          total_pages: data.pagination.total_pages || 0,
+          total_count: data.pagination.total_records || 0,
+          per_page: data.pagination.per_page || 10, // Ensure per_page is set
+        });
+      }
     } catch (error) {
       console.error("Error fetching filtered data:", error);
     }
@@ -353,8 +319,22 @@ const ApprovalList = () => {
 
                       <SingleSelector
                         options={companies}
-                        value={selectedCompany}
-                        placeholder={`Select Company`} // Dynamic placeholder
+                        value={
+                          companies.find((c) => c.value === selectedCompany) ||
+                          null
+                        } // Ensure value is an object
+                        onChange={(selectedOption) => {
+                          setSelectedCompany(
+                            selectedOption ? selectedOption.value : null
+                          ); // Update selectedCompany state only
+                          setFilters((prevFilters) => ({
+                            ...prevFilters,
+                            company: selectedOption
+                              ? selectedOption.value
+                              : null, // Store company ID but don't trigger API call
+                          }));
+                        }}
+                        placeholder="Select Company"
                         isSearchable={true}
                       />
                     </div>
@@ -365,8 +345,23 @@ const ApprovalList = () => {
                       <label htmlFor="event-no-select">Deparment</label>
                       <SingleSelector
                         options={departments}
-                        value={selectedDepartment}
-                        placeholder={`Select Deparment`}
+                        value={
+                          departments.find(
+                            (d) => d.value === selectedDepartment
+                          ) || null
+                        } // Ensure value is an object
+                        onChange={(selectedOption) => {
+                          setSelectedDepartment(
+                            selectedOption ? selectedOption.value : null
+                          );
+                          setFilters((prevFilters) => ({
+                            ...prevFilters,
+                            department: selectedOption
+                              ? selectedOption.value
+                              : null,
+                          }));
+                        }}
+                        placeholder="Select Department"
                       />
                     </div>
 
@@ -375,7 +370,7 @@ const ApprovalList = () => {
                     <button
                       type="submit"
                       className="col-md-1 purple-btn2 ms-2 mt-4"
-                      // onClick={handleFilterSubmit}
+                      onClick={handleFilterSubmit}
                     >
                       Go{" "}
                     </button>
@@ -399,6 +394,7 @@ const ApprovalList = () => {
                       <th>Id</th>
                       <th>Function</th>
                       <th>Company</th>
+                      <th>Department</th>
 
                       <th>Created On</th>
                       <th>Created by</th>
@@ -419,9 +415,9 @@ const ApprovalList = () => {
                         <td>{record.id}</td>
 
                         <td>{record.approval_type}</td>
-                        <td>{record.company_name}</td>
+                        <td>{record.company}</td>
                         {/* <td>{record.project_name}</td> */}
-                        <td>{record.department_name}</td>
+                        <td>{record.department}</td>
 
                         {/* <td>{record.approval_type}</td>
                         <td>{record.material_type}</td> */}
@@ -528,15 +524,18 @@ const ApprovalList = () => {
                 <div>
                   <p>
                     Showing{" "}
-                    {Math.min(
-                      (pagination.current_page - 1) * pagination.per_page + 1,
-                      pagination.total_count
-                    )}{" "}
+                    {pagination.total_count > 0
+                      ? (pagination.current_page - 1) *
+                          (pagination.per_page || 10) +
+                        1
+                      : 0}{" "}
                     to{" "}
-                    {Math.min(
-                      pagination.current_page * pagination.per_page,
-                      pagination.total_count
-                    )}{" "}
+                    {pagination.total_count > 0
+                      ? Math.min(
+                          pagination.current_page * (pagination.per_page || 10),
+                          pagination.total_count
+                        )
+                      : 0}{" "}
                     of {pagination.total_count} entries
                   </p>
                 </div>

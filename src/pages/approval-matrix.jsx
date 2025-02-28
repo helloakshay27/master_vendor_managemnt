@@ -2,12 +2,14 @@ import React from "react";
 import CollapsibleCard from "../components/base/Card/CollapsibleCards";
 import { MultiSelector, SelectBox } from "../components";
 import Select from "react-select/base";
+import { useNavigate } from "react-router-dom";
 
 import axios from "axios";
 import { useState, useEffect } from "react";
 import SingleSelector from "../components/base/Select/SingleSelector";
 
 const ApprovalMatrix = () => {
+  const navigate = useNavigate(); //  navigate
   const [companies, setCompanies] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [selectedCompany, setSelectedCompany] = useState(null);
@@ -122,17 +124,14 @@ const ApprovalMatrix = () => {
 
   const handleKYCTypeChange = (selected) => {
     console.log("Selected KYC Types:", selected);
-    setSelectedKYCType(selected); // Store all selected values
+    setSelectedKYCType(selected); // Ensure this correctly stores selected values
   };
 
   const handleCreate = async () => {
     const finalFormData = {
       company_id: selectedCompany ? selectedCompany.value : null,
       department_id: selectedDepartment ? selectedDepartment.value : null,
-      approval_type:
-        selectedKYCType.length > 0
-          ? selectedKYCType.map((item) => item.value).join(",")
-          : "", // Ensure it correctly captures multiple selected values
+      approval_type: selectedKYCType ? selectedKYCType.value : "", // Fix here
     };
 
     console.log("Final Form Data Before Submit:", finalFormData);
@@ -151,7 +150,7 @@ const ApprovalMatrix = () => {
       department_id: finalFormData.department_id,
       approval_type: "vendor_rekyc",
       approval_function: finalFormData.approval_type,
-      invoice_approval_levels: approvalLevels.map((level) => ({
+      invoice_approval_levels_attributes: approvalLevels.map((level) => ({
         name: level.name,
         order: Number(level.order),
         active: true,
@@ -174,6 +173,8 @@ const ApprovalMatrix = () => {
       setSelectedDepartment(null);
       setSelectedKYCType([]);
       setApprovalLevels([{ order: "", name: "", users: [] }]); // Reset to initial empty level
+
+      navigate("/approval-list");
     } catch (error) {
       console.error("Error creating approval matrix:", error);
       alert("Failed to create approval matrix.");

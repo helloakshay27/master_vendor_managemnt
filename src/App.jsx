@@ -95,7 +95,7 @@ function App() {
           <Route path="/confirmation" element={<ConfirmationPage />} />
           <Route path="/approval-matrix" element={<ApprovalMatrix />} />
           <Route path="/approval-list" element={<ApprovalList />} />
-          <Route path="/approval-edit" element={<ApprovalEdit />} />
+          <Route path="/approval-edit/:id" element={<ApprovalEdit />} />
         </Routes>
       </div>
     </BrowserRouter>

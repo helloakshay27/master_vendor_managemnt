@@ -6,8 +6,10 @@ import Select from "react-select/base";
 import axios from "axios";
 import { useState, useEffect } from "react";
 import SingleSelector from "../components/base/Select/SingleSelector";
+import { useParams } from "react-router-dom"; // Import useParams
 
 const ApprovalEdit = () => {
+  const { id } = useParams(); // Get ID from URL
   const [companies, setCompanies] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [selectedCompany, setSelectedCompany] = useState(null);
@@ -26,6 +28,11 @@ const ApprovalEdit = () => {
     { value: "Bank Re-KYC", label: "Bank Rekyc" },
   ];
 
+  const [formData, setFormData] = useState({
+    company_id: null,
+    department_id: null,
+    approval_type: "",
+  });
   // Fetch Companies and Departments
   useEffect(() => {
     const fetchDropdownData = async () => {
@@ -69,6 +76,83 @@ const ApprovalEdit = () => {
     fetchDropdownData();
   }, []);
 
+  useEffect(() => {
+    const fetchApprovalData = async () => {
+      try {
+        const { data } = await axios.get(
+          `https://vendors.lockated.com/pms/admin/invoice_approvals/${id}/edit.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`
+        );
+
+        setFormData({
+          company_id: data.invoice_approval.company_id,
+          department_id: data.invoice_approval.department_id,
+          approval_type: data.invoice_approval.approval_function,
+        });
+
+        // Store approval levels with user IDs but no names yet
+        setApprovalLevels(
+          data.invoice_approval_levels.map((level) => ({
+            order: level.order ? level.order.toString() : "",
+            name: level.name || "",
+            users: level.escalate_to_users.map((userId) => ({
+              value: userId,
+              label: "", // Placeholder, to be updated later
+            })),
+          }))
+        );
+      } catch (error) {
+        console.error("Error fetching approval data:", error);
+      }
+    };
+
+    // if (id) {
+    fetchApprovalData();
+    // }
+  }, []); //  Runs only once on mount
+
+  useEffect(() => {
+    if (
+      users.length > 0 &&
+      approvalLevels.some((level) =>
+        level.users.some((user) => user.label === "")
+      )
+    ) {
+      setApprovalLevels((prevLevels) =>
+        prevLevels.map((level) => ({
+          ...level,
+          users: level.users.map((user) => ({
+            value: user.value,
+            label:
+              users.find((u) => u.value === user.value)?.label || user.label, // Keep existing label if already set
+          })),
+        }))
+      );
+    }
+  }, [users, approvalLevels]); // ✅ Update when users or approvalLevels change
+
+  useEffect(() => {
+    if (companies.length > 0 && departments.length > 0 && formData.company_id) {
+      setSelectedCompany(
+        companies.find((comp) => comp.value === formData.company_id) || null
+      );
+      setSelectedDepartment(
+        departments.find((dept) => dept.value === formData.department_id) ||
+          null
+      );
+      setSelectedKYCType(
+        kycTypes.find((type) => type.value === formData.approval_type) || null
+      );
+    }
+  }, [
+    companies,
+    departments,
+    formData.company_id,
+    formData.department_id,
+    formData.approval_type,
+  ]); // ✅ Only updates when specific values change
+
+  // Runs when `id` or `users` change
+
   // Add Approval Level
   const handleAddLevel = () => {
     setApprovalLevels([...approvalLevels, { order: "", name: "", users: [] }]);
@@ -88,11 +172,6 @@ const ApprovalEdit = () => {
 
   // Handle Company Selection
 
-  const [formData, setFormData] = useState({
-    company_id: null,
-    department_id: null,
-    approval_type: "",
-  });
   useEffect(() => {
     setFormData({
       company_id: selectedCompany ? selectedCompany.value : null,
@@ -111,71 +190,53 @@ const ApprovalEdit = () => {
     setSelectedDepartment(selected);
   };
 
-  // const handleKYCTypeChange = (selected) => {
-  //   console.log("Selected KYC Type:", selected);
-
-  //   // If MultiSelector returns an array, take the first selected value
-  //   const selectedValue = Array.isArray(selected) ? selected[0] : selected;
-
-  //   setSelectedKYCType(selectedValue);
-  // };
-
   const handleKYCTypeChange = (selected) => {
     console.log("Selected KYC Types:", selected);
     setSelectedKYCType(selected); // Store all selected values
   };
 
-  const handleCreate = async () => {
-    const finalFormData = {
-      company_id: selectedCompany ? selectedCompany.value : null,
-      department_id: selectedDepartment ? selectedDepartment.value : null,
-      approval_type:
-        selectedKYCType.length > 0
-          ? selectedKYCType.map((item) => item.value).join(",")
-          : "", // Ensure it correctly captures multiple selected values
+  const handleUpdate = async () => {
+    const payload = {
+      invoice_approval: {
+        // Static or Dynamic
+        approval_type: "vendor_rekyc",
+        approval_function: selectedKYCType ? selectedKYCType.value : null,
+
+        company_id: selectedCompany ? selectedCompany.value : null,
+
+        department_id: selectedDepartment ? selectedDepartment.value : null,
+
+        invoice_approval_levels_attributes: approvalLevels.map((level) => ({
+          name: level.name,
+          order: Number(level.order),
+          active: true,
+          escalate_to_users: level.users.map((user) => user.value),
+        })),
+      },
     };
 
-    console.log("Final Form Data Before Submit:", finalFormData);
+    console.log("Final Payload for Update:", payload);
 
     if (
-      !finalFormData.company_id ||
-      !finalFormData.department_id ||
-      !finalFormData.approval_type
+      !payload.invoice_approval.company_id ||
+      !payload.invoice_approval.department_id ||
+      !payload.invoice_approval.approval_type
     ) {
       alert("Please select a Company, Department, and KYC Type.");
       return;
     }
 
-    const payload = {
-      company_id: finalFormData.company_id,
-      department_id: finalFormData.department_id,
-      approval_type: finalFormData.approval_type,
-      invoice_approval_levels: approvalLevels.map((level) => ({
-        name: level.name,
-        order: Number(level.order),
-        active: true,
-        escalate_to_users: level.users.map((user) => user.value),
-      })),
-    };
-
-    console.log("Final Payload:", payload);
-
     try {
-      const response = await axios.post(
-        "https://vendors.lockated.com/pms/admin/invoice_approvals.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414",
+      const response = await axios.put(
+        `https://vendors.lockated.com/pms/admin/invoice_approvals/${id}.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`,
         payload
       );
 
       console.log("API Response:", response.data);
-      alert("Approval Matrix Created Successfully!");
-
-      setSelectedCompany(null);
-      setSelectedDepartment(null);
-      setSelectedKYCType([]);
-      setApprovalLevels([{ order: "", name: "", users: [] }]); // Reset to initial empty level
+      alert("Approval Matrix Updated Successfully!");
     } catch (error) {
-      console.error("Error creating approval matrix:", error);
-      alert("Failed to create approval matrix.");
+      console.error("Error updating approval matrix:", error);
+      alert("Failed to update approval matrix.");
     }
   };
 
@@ -266,7 +327,7 @@ const ApprovalEdit = () => {
                                   {" "}
                                   KYC Type
                                 </label>
-                                <MultiSelector
+                                <SingleSelector
                                   id="module-select"
                                   options={kycTypes}
                                   value={selectedKYCType} // Store selected KYC type
@@ -373,9 +434,9 @@ const ApprovalEdit = () => {
                       <div style={{ textAlign: "center" }}>
                         <button
                           className="purple-btn1 submit-btn"
-                          onClick={handleCreate}
+                          onClick={handleUpdate}
                         >
-                          Create
+                          update
                         </button>
                       </div>
                     </div>
