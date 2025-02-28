@@ -57,6 +57,7 @@ const ApprovalList = () => {
       setLoading(true);
       try {
         let queryParams = new URLSearchParams();
+        queryParams.append("q[approval_type_eq]", "vendor_rekyc");
 
         // Preserve filters when paginating
         if (filters.company)
@@ -151,6 +152,8 @@ const ApprovalList = () => {
     e.preventDefault();
 
     let queryParams = new URLSearchParams();
+    queryParams.append("q[approval_type_eq]", "vendor_rekyc");
+
     if (filters.company)
       queryParams.append("q[company_id_eq]", filters.company);
     if (filters.department)
@@ -185,11 +188,7 @@ const ApprovalList = () => {
   const handleResetFilters = async () => {
     setFilters({
       company: null,
-      site: null,
-      project: null,
       department: null,
-      materialtypes: null,
-      modules: null, // Reset module selection
     });
 
     setSelectedCompany(null);
@@ -202,7 +201,7 @@ const ApprovalList = () => {
 
     try {
       const response = await fetch(
-        `${baseURL}/pms/admin/invoice_approvals.json?q[approval_type_not_eq]=vendor_category&token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&page=1&page_size=${pageSize}`
+        `${baseURL}/pms/admin/invoice_approvals.json?q[approval_type_eq]=vendor_rekyc&token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&page=1&page_size=${pageSize}`
       );
       if (!response.ok) throw new Error("Failed to fetch initial data");
 
@@ -377,7 +376,7 @@ const ApprovalList = () => {
 
                     <button
                       className="col-md-1 purple-btn2 ms-2 mt-4"
-                      // onClick={handleResetFilters}
+                      onClick={handleResetFilters}
                     >
                       Reset
                     </button>
@@ -395,7 +394,7 @@ const ApprovalList = () => {
                       <th>Function</th>
                       <th>Company</th>
                       <th>Department</th>
-
+                      <th>ReKyc Type</th>
                       <th>Created On</th>
                       <th>Created by</th>
                     </tr>
@@ -418,7 +417,7 @@ const ApprovalList = () => {
                         <td>{record.company}</td>
                         {/* <td>{record.project_name}</td> */}
                         <td>{record.department}</td>
-
+                        <td>{record.approval_function}</td>
                         {/* <td>{record.approval_type}</td>
                         <td>{record.material_type}</td> */}
                         <td>{record.created_at}</td>
