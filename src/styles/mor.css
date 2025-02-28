@@ -5680,30 +5680,55 @@ ul.pagination.justify-content-center {
 
 
 /* Customizing the tooltip background and text color */
-.tooltip.bs-tooltip-top .tooltip-inner {
-  background-color: white; /* Red background */
-  color: var(--red); /* White text */
-  font-size: 14px; /* Font size */
-}
 
-.tooltip.bs-tooltip-top .tooltip-arrow {
-  /* border-top-color: #f00; Match the arrow with the tooltip background */
-}
+/* Tooltip inner styles for all positions (top, bottom, left, right) */
 
-/* Customizing the tooltip position */
-/* .tooltip {
-  padding: 10px;
-  border-radius: 5px;
-} */
 
-/* Optional: Tooltip shadow */
+/* Custom tooltip width and height */
 .tooltip-inner {
-  box-shadow: 2px 4px 6px rgba(0, 0, 0, 0.2);
-  /* width :60vh */
+  background-color: white !important; /* Red background */
+  color: var(--red ) !important; /* White text */
+  font-size: 14px !important; /* Font size */
+  box-shadow: 2px 4px 6px rgba(0, 0, 0, 0.2) !important; /* Tooltip shadow */
+  border-radius: 5px !important; /* Rounded corners */
+  /* padding: 10px; Padding around the text */
+  min-width: 400px !important; 
+  /* max-width: 300px; Maximum width of the tooltip */
+  /* height: 80px; Fixed height */
+  /* line-height: 80px; Center the text vertically */
+  /* text-align: center; Optional: Center the text horizontally */
 }
+
+/* Optional: You can set different widths for different placements (top, bottom, etc.) */
+.tooltip.bs-tooltip-top .tooltip-inner,
+.tooltip.bs-tooltip-bottom .tooltip-inner,
+.tooltip.bs-tooltip-right .tooltip-inner,
+.tooltip.bs-tooltip-left .tooltip-inner {
+  max-width: 350px !important; /* You can change this based on your needs */
+  width: auto; /* Allow width to adjust dynamically */
+}
+
+/* Customizing the arrow for each position */
+.tooltip.bs-tooltip-top .tooltip-arrow {
+  border-top-color: var(--red) !important; /* Match the arrow with the tooltip background */
+}
+
+.tooltip.bs-tooltip-bottom .tooltip-arrow {
+  border-bottom-color: var(--red) !important; /* Match the arrow with the tooltip background */
+}
+
+.tooltip.bs-tooltip-right .tooltip-arrow {
+  border-right-color: var(--red) !important; /* Match the arrow with the tooltip background */
+}
+
+.tooltip.bs-tooltip-left .tooltip-arrow {
+  border-left-color: var(--red) !important; /* Match the arrow with the tooltip background */
+}
+
+
 
 .ValidationColor{
-  color: var(--red); /* White text */
+  color: var(--red) !important; /* White text */
 }
 
 /* ConfirmationPage.css */
