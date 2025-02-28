@@ -2,6 +2,7 @@ import React from "react";
 import CollapsibleCard from "../components/base/Card/CollapsibleCards";
 import { MultiSelector, SelectBox } from "../components";
 import Select from "react-select/base";
+import { useNavigate } from "react-router-dom";
 
 import axios from "axios";
 import { useState, useEffect } from "react";
@@ -9,6 +10,7 @@ import SingleSelector from "../components/base/Select/SingleSelector";
 import { useParams } from "react-router-dom"; // Import useParams
 
 const ApprovalEdit = () => {
+  const navigate = useNavigate(); //  navigate
   const { id } = useParams(); // Get ID from URL
   const [companies, setCompanies] = useState([]);
   const [departments, setDepartments] = useState([]);
@@ -234,6 +236,8 @@ const ApprovalEdit = () => {
 
       console.log("API Response:", response.data);
       alert("Approval Matrix Updated Successfully!");
+
+      navigate("/approval-list");
     } catch (error) {
       console.error("Error updating approval matrix:", error);
       alert("Failed to update approval matrix.");
