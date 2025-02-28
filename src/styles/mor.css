@@ -5677,3 +5677,44 @@ ul.pagination.justify-content-center {
   color: var(--red);
 }
 /*# sourceMappingURL=mor.css-ed871f49aadae569d66f8e115a43114d30eed9833a2ddcbeef011041744e80a7.map */
+
+
+/* Customizing the tooltip background and text color */
+.tooltip.bs-tooltip-top .tooltip-inner {
+  background-color: white; /* Red background */
+  color: var(--red); /* White text */
+  font-size: 14px; /* Font size */
+}
+
+.tooltip.bs-tooltip-top .tooltip-arrow {
+  /* border-top-color: #f00; Match the arrow with the tooltip background */
+}
+
+/* Customizing the tooltip position */
+/* .tooltip {
+  padding: 10px;
+  border-radius: 5px;
+} */
+
+/* Optional: Tooltip shadow */
+.tooltip-inner {
+  box-shadow: 2px 4px 6px rgba(0, 0, 0, 0.2);
+  /* width :60vh */
+}
+
+.ValidationColor{
+  color: var(--red); /* White text */
+}
+
+/* ConfirmationPage.css */
+.alert {
+  padding: 15px;
+  border-radius: 5px;
+  font-size: 16px;
+}
+
+.alert-info {
+  background-color: #e9f7fd;
+  color: #31708f;
+  border: 1px solid #bce8f1;
+}

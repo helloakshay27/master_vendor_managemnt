@@ -6,8 +6,14 @@ import axios from "axios";
 import { SelectBox } from "../../../components";
 import { useParams } from "react-router-dom";
 import SingleSelector from "../../../components/base/Select/SingleSelector";
+import "../../../styles/mor.css";
+import { error } from "jquery";
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
+// import ReactTooltip from "react-tooltip";
 
 const SectionReKYCDetails = () => {
+  const navigate = useNavigate(); // Initialize navigate
+
   const { id } = useParams();
   const [supplierData, setSupplierData] = useState({});
   const [eInvoicingApplicable, setEInvoicingApplicable] = useState("");
@@ -32,6 +38,50 @@ const isRekycTypeEmpty = !rekycType || rekycType.length === 0;
 
   
   console.log(" re kyc type:", rekycType)
+
+
+  // Example state to hold dynamic tooltip messages
+  const [tooltipMessages, setTooltipMessages] = useState({
+    bankName: "Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes. ",
+    address: "Please provide the complete address of your bank branch,including the street address,city and postal code. ",
+    country: "Please choose your country from the list.",
+    state: "Please choose your state from the list.",
+    city:"Enter the city where your bank branch is located",
+    pincode:"Enter the postal code (Pin Code) for the bank branch location",
+    accountType:"Select the type of bank account your organization holds,such as Savings,Current,or any other relevant type.",
+    accountNumber:"Please provide your organization's bank account number.Make sure it is correct and matches the details at your bank.",
+    confirmAccountNumber:"Re-enter the  bank account number to confirm accuracy.Ensure it matches the original account number entered above.",
+    branchName:"Enter the name of the bank branch where your organization's account is held. ",
+    MICR:"Enter the MICR (Magnetic Ink Character Recognition) number of your  bank branch. This number is typically found on your cheque leaf. ",
+    IFSCCode:"Enter the IFSC (Indian Financial System Code) of your bank branch. This is required for electronic fund transfers like NEFT and RTGS  ",
+    beneficiaryName:"Enter the full legel name of the beneficiary.",
+    cancelledCheque:"Provide a cancelled cheque or a bank statement copy that clearly displays your bank account details.This helps verify your account information. The document must be uploaded in PDF format.",
+    MSMEUdyamNumberApplicable:"Select whether your organization is registered under the MSME (Micro, Small, and Medium Enterprises) or Udyam scheme. Choose 'Yes' if applicable, otherwise select 'No.' By selecting 'No, you confirm that your organization does not hold a valid MSME/Udyam registration number. A declaration is required, and this response will be timestamped to record the submission date and time.",
+    MSMEUdyamNumber:"Enter your organization's valid MSME or Udyam registration number. This number is issued by the Ministry of Micro, Small, and Medium Enterprises (MSME) under the Udyam registration scheme.",
+    MSMEUdyamValidFrom :"Enter the date when your MSME/Udyam registration became valid. This is the start date mentioned on your MSME/Udyam registration certificate for the financial year.",
+    MSMEUdyamValidTill :"Enter the date when your MSME/Udyam registration became valid. This is the end date mentioned on your MSME/Udyam registration certificate for the financial year.",
+    MSMEEnterpriseType :"elect the type of your organization under the MSME (Micro, Small, and Medium Enterprises) scheme. Choose from 'Micro,'Small,' or 'Medium' based on your organization's annual turnover and investment in plant and machinery.",
+    MSMEUdyamAttachment :"Attach a clear, scanned copy or digital image of your MSME/Udyam registration certificate to verify your organization's classification under the MSME scheme. The document must be uploaded in PDF format.",
+    DownloadSpecimen:"If you choose 'No' for e-invoicing, a specimen format will be available for download. This is for businesses not subject to e-invoicing under GST regulations. Please upload a signed declaration stating that your organization is not registered.The document must be uploaded in PDF format.",
+    UploadDeclaration:"If you choose E-Invoice applicable 'No', please upload a signed declaration document to verify the details you have submitted. The document must be uploaded in PDF format.Ensure that the document is clear, legible, and properly signed."
+  });
+
+  useEffect(() => {
+    // Initialize all tooltips after component mounts
+    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+    tooltipTriggerList.forEach((tooltipTriggerEl) => {
+      new window.bootstrap.Tooltip(tooltipTriggerEl);
+    });
+  }, []);
+
+  // useEffect(() => {
+  //   // Initialize all tooltips after component mounts
+  //   const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+  //   tooltipTriggerList.forEach((tooltipTriggerEl) => {
+  //     new window.bootstrap.Tooltip(tooltipTriggerEl);
+  //   });
+  // }, []);
+
 
 
   // const [bankDetailsList, setBankDetailsList] = useState([{ id: Date.now() }]);
@@ -561,8 +611,99 @@ const isRekycTypeEmpty = !rekycType || rekycType.length === 0;
 
   // update api
 
+  const [errors, setErrors] = useState({});
+  const [isChecked, setIsChecked] = useState(false); // Add this state to track checkbox
+
+  const handleCheckboxChange = () => {
+    setIsChecked(!isChecked);
+  };
+
   // Handle the Update Button Click
-  const handleUpdate = async () => {
+  const handleUpdate = async (bankDetail) => {
+ console.log("bank details:",bankDetail)
+
+    let validationErrors = {};
+    if(isRekycTypeEmpty ||isBankRekyc){
+             // Check if required fields are filled
+    if (!bankDetail.bank_name){ validationErrors.bank_name = "Bank Name is required."};
+    if (!bankDetail.address) {validationErrors.address = "Address is required."};
+    if (!bankDetail.country) {validationErrors.country = "Country is required."};
+    if (!bankDetail.state) {validationErrors.state = "State is required."};
+    if (!bankDetail.city) {validationErrors.city = "City is required."}{};
+    if (!bankDetail.pin_code || isNaN(bankDetail.pin_code)) {validationErrors.pin_code = "Valid Pin Code is required."};
+    if (!bankDetail.account_type) {validationErrors.account_type = "Account Type is required."};
+    if (!bankDetail.account_number) {validationErrors.account_number = "Account Number is required."};
+    if (!bankDetail.confirm_account_number) {validationErrors.confirm_account_number = "Confirm Account Number is required."};
+    if (bankDetail.account_number !== bankDetail.confirm_account_number) {validationErrors.account_match = "Account Number and Confirm Account Number must match."};
+    if (!bankDetail.branch_name) {validationErrors.branch_name = "Branch Name is required."};
+    if (!bankDetail.micr_number) {validationErrors.micr_number = "MICR Number is required."};
+    if (!bankDetail.ifsc_code) {validationErrors.ifsc_code = "IFSC Code is required."};
+    if (!bankDetail.beneficiary_name){ validationErrors.beneficiary_name = "Beneficiary Name is required."};
+    if (!bankDetail.cancelled_cheque) {validationErrors.cancelled_cheque = "Cancelled Cheque / Bank Copy is required."};
+
+    }
+    
+    
+    if((isRekycTypeEmpty ||isMsmeRekyc)){
+
+          // Validate MSME/Udyam Number Applicable
+  if (!msmeUdyamApplicable) {
+    validationErrors.msmeUdyamApplicable = "MSME/Udyam Number Applicable is required.";
+  }
+
+  // Validate MSME/Udyam Number if MSME/Udyam is applicable
+  if (msmeUdyamApplicable === "Yes" && !msmeNo) {
+    validationErrors.msmeNo = "MSME/Udyam Number is required.";
+  }
+
+  // Validate MSME/Udyam Valid From if MSME/Udyam is applicable
+  if (msmeUdyamApplicable === "Yes" && !validFrom) {
+    validationErrors.validFrom = "MSME/Udyam Valid From date is required.";
+  }
+
+  // Validate MSME/Udyam Valid Till if MSME/Udyam is applicable
+  if (msmeUdyamApplicable === "Yes" && !validTill) {
+    validationErrors.validTill = "MSME/Udyam Valid Till date is required.";
+  }
+
+  // Validate MSME Enterprise Type if MSME/Udyam is applicable
+  if (msmeUdyamApplicable === "Yes" && !msmeEnterpriseType) {
+    validationErrors.msmeEnterpriseType = "MSME Enterprise Type is required.";
+  }
+
+  // Validate MSME/Udyam Attachment if MSME/Udyam is applicable
+  // if (msmeUdyamApplicable === "Yes" && !msmeAttachments) {
+  //   validationErrors.msmeAttachments = "MSME/Udyam Attachment is required.";
+  // }
+
+  // if (msmeUdyamApplicable === "Yes" && (!msmeAttachments || msmeAttachments.length === 0)) {
+  //   validationErrors.msmeAttachments = "MSME/Udyam Attachment is required.";
+  // }
+
+    }   
+ 
+
+  // Add this inside your validation logic
+if (!isChecked) {
+  validationErrors.declaration = "Please check the declaration box to proceed.";
+}
+
+  // Validate file input (for file attachment)
+  // if (msmeUdyamApplicable === "Yes" && msmeUdyamAttachment && msmeUdyamAttachment.size === 0) {
+  //   validationErrors.msmeUdyamAttachment = "Please upload a valid file.";
+  // }
+
+    
+    // setErrors(validationErrors);
+    // return Object.keys(validationErrors).length === 0; // Return true if no errors
+
+
+    // Set errors and return if validation fails
+  // setErrors(validationErrors);
+  if (Object.keys(validationErrors).length > 0) {
+    // return false; // Return false if there are validation errors
+    return setErrors(validationErrors);
+  } else {
     const payload = {
       authenticity_token: "[FILTERED]", // Add your actual token or logic to get it
       vendor_re_kyc: {
@@ -631,9 +772,11 @@ const isRekycTypeEmpty = !rekycType || rekycType.length === 0;
       // await fetchSupplierData();
       if (response.status === 200) {
         // console.log('Update successful:', data);
-        alert("Updated successfully");
+        // alert("Updated successfully");
+        navigate('/confirmation'); // This will navigate to the confirmation page
         // await fetchSupplierData();
         // Optionally handle success (e.g., show a success message or redirect)
+        console.log("success")
       }
     } catch (error) {
       console.error(
@@ -641,8 +784,11 @@ const isRekycTypeEmpty = !rekycType || rekycType.length === 0;
         error.response ? error.response.data : error.message
       );
     }
+
+  }
   };
 
+  
   return (
     <>
       <div className="website-content overflowY-auto">
@@ -983,7 +1129,11 @@ const isRekycTypeEmpty = !rekycType || rekycType.length === 0;
               {/* Bank Name */}
               <div className="col-md-4">
                 <div className="form-group">
-                  <label>Bank Name <span>*</span></label>
+                  <label
+                  data-bs-toggle="tooltip"
+                  data-bs-placement="top"
+                  title={tooltipMessages.bankName}
+                  >Bank Name <span>*</span></label>
                   <input
                     className="form-control"
                     type="text"
@@ -991,13 +1141,21 @@ const isRekycTypeEmpty = !rekycType || rekycType.length === 0;
                     value={bankDetail.bank_name}
                     onChange={(e) => handleInputChange(e, bankDetail.id, 'bank_name')}
                   />
+                  {errors.bank_name && <span className="ValidationColor">{errors.bank_name}</span>}
+
+                  {/* {errors.bank_name && <div className="invalid-feedback">{errors.bank_name}</div>} */}
+        {console.log(errors.bank_name )}
                 </div>
               </div>
         
               {/* Address */}
               <div className="col-md-4">
                 <div className="form-group">
-                  <label>Address <span>*</span></label>
+                  <label
+                  data-bs-toggle="tooltip"
+                  data-bs-placement="top"
+                  title={tooltipMessages.address}
+                  >Address <span>*</span></label>
                   <input
                     className="form-control"
                     type="text"
@@ -1005,13 +1163,18 @@ const isRekycTypeEmpty = !rekycType || rekycType.length === 0;
                     value={bankDetail.address}
                     onChange={(e) => handleInputChange(e, bankDetail.id, 'address')}
                   />
+                   {errors.address && <div className="ValidationColor">{errors.address}</div>}
                 </div>
               </div>
         
               {/* Country */}
               <div className="col-md-4">
                 <div className="form-group">
-                  <label>Country <span>*</span></label>
+                  <label
+                  data-bs-toggle="tooltip"
+                  data-bs-placement="top"
+                  title={tooltipMessages.country}
+                  >Country <span>*</span></label>
                   <SingleSelector
                     options={countries}
                     // value={bankDetail.country}
@@ -1024,13 +1187,17 @@ const isRekycTypeEmpty = !rekycType || rekycType.length === 0;
                     // onChange={(e) => handleCountryChange(e, bankDetail.id)}  // Pass the bankDetail.id here
                   />
         
-                  
+        {errors.country && <div className="ValidationColor">{errors.country}</div>}
                 </div>
               </div>
         
               <div className="col-md-4">
                 <div className="form-group">
-                  <label>State <span>*</span></label>
+                  <label
+                   data-bs-toggle="tooltip"
+                   data-bs-placement="top"
+                   title={tooltipMessages.state}
+                  >State <span>*</span></label>
                   <SingleSelector
                     options={states}
                     // value={bankDetail.state}
@@ -1038,13 +1205,18 @@ const isRekycTypeEmpty = !rekycType || rekycType.length === 0;
                     value={selectedState}
                     onChange={(selectedOption) => handleStateChange(selectedOption)}
                   />
+                   {errors.state && <div className="ValidationColor">{errors.state}</div>}
                 </div>
               </div>
         
               {/* City */}
               <div className="col-md-4 mt-2">
                 <div className="form-group">
-                  <label>City <span>*</span></label>
+                  <label
+                  data-bs-toggle="tooltip"
+                  data-bs-placement="top"
+                  title={tooltipMessages.city}
+                  >City <span>*</span></label>
                   <input
                     className="form-control"
                     type="text"
@@ -1052,27 +1224,37 @@ const isRekycTypeEmpty = !rekycType || rekycType.length === 0;
                     value={bankDetail.city}
                     onChange={(e) => handleInputChange(e, bankDetail.id, 'city')}
                   />
+                   {errors.city && <div className="ValidationColor">{errors.city}</div>}
                 </div>
               </div>
         
               {/* Pin Code */}
               <div className="col-md-4 mt-2">
                 <div className="form-group">
-                  <label>Pin Code <span>*</span></label>
+                  <label
+                  data-bs-toggle="tooltip"
+                  data-bs-placement="top"
+                  title={tooltipMessages.pincode}
+                  >Pin Code <span>*</span></label>
                   <input
                     className="form-control"
                     type="number"
                     placeholder="Enter Pin Code"
                     value={bankDetail.pin_code}
-                    onChange={(e) => handleInputChange(e, bankDetail.id, 'pin_code')}
+                    onChange={(e) => handleInputChange(e, bankDetail.id, 'pin_code')}               
                   />
+                    {errors.pin_code && <div className="ValidationColor">{errors.pin_code}</div>}
                 </div>
               </div>
         
               {/* Account Type */}
               <div className="col-md-4 mt-2">
                 <div className="form-group">
-                  <label>Account Type <span>*</span></label>
+                  <label
+                  data-bs-toggle="tooltip"
+                  data-bs-placement="top"
+                  title={tooltipMessages.accountType}
+                  >Account Type <span>*</span></label>
                   <input
                     className="form-control"
                     type="text"
@@ -1080,13 +1262,18 @@ const isRekycTypeEmpty = !rekycType || rekycType.length === 0;
                     value={bankDetail.account_type}
                     onChange={(e) => handleInputChange(e, bankDetail.id, 'account_type')}
                   />
+                   {errors.account_type && <div className="ValidationColor">{errors.account_type}</div>}
                 </div>
               </div>
         
               {/* Account Number */}
               <div className="col-md-4 mt-2">
                 <div className="form-group">
-                  <label>Account Number <span>*</span></label>
+                  <label
+                  data-bs-toggle="tooltip"
+                  data-bs-placement="top"
+                  title={tooltipMessages.accountNumber}
+                  >Account Number <span>*</span></label>
                   <input
                     className="form-control"
                     type="number"
@@ -1094,13 +1281,19 @@ const isRekycTypeEmpty = !rekycType || rekycType.length === 0;
                     value={bankDetail.account_number}
                     onChange={(e) => handleInputChange(e, bankDetail.id, 'account_number')}
                   />
+
+{errors.account_number && <div className="ValidationColor">{errors.account_number}</div>}
                 </div>
               </div>
         
               {/* Confirm Account Number */}
               <div className="col-md-4 mt-2">
                 <div className="form-group">
-                  <label>Confirm Account Number <span>*</span></label>
+                  <label
+                  data-bs-toggle="tooltip"
+                  data-bs-placement="top"
+                  title={tooltipMessages.confirmAccountNumber}
+                  >Confirm Account Number <span>*</span></label>
                   <input
                     className="form-control"
                     type="number"
@@ -1108,13 +1301,19 @@ const isRekycTypeEmpty = !rekycType || rekycType.length === 0;
                     value={bankDetail.confirm_account_number}
                     onChange={(e) => handleInputChange(e, bankDetail.id, 'confirm_account_number')}
                   />
+                  {errors.confirm_account_number && <div className="ValidationColor">{errors.confirm_account_number}</div>}
+                  {errors.account_match && <div className="ValidationColor">{errors.account_match}</div>}
                 </div>
               </div>
         
               {/* Branch Name */}
               <div className="col-md-4 mt-2">
                 <div className="form-group">
-                  <label>Branch Name <span>*</span></label>
+                  <label
+                  data-bs-toggle="tooltip"
+                  data-bs-placement="top"
+                  title={tooltipMessages.branchName}
+                  >Branch Name <span>*</span></label>
                   <input
                     className="form-control"
                     type="text"
@@ -1122,13 +1321,18 @@ const isRekycTypeEmpty = !rekycType || rekycType.length === 0;
                     value={bankDetail.branch_name}
                     onChange={(e) => handleInputChange(e, bankDetail.id, 'branch_name')}
                   />
+                  {errors.branch_name && <div className="ValidationColor">{errors.branch_name}</div>}
                 </div>
               </div>
         
               {/* MICR No. */}
               <div className="col-md-4 mt-2">
                 <div className="form-group">
-                  <label>MICR No. <span>*</span></label>
+                  <label
+                  data-bs-toggle="tooltip"
+                  data-bs-placement="top"
+                  title={tooltipMessages.MICR}
+                  >MICR No. <span>*</span></label>
                   <input
                     className="form-control"
                     type="text"
@@ -1136,13 +1340,18 @@ const isRekycTypeEmpty = !rekycType || rekycType.length === 0;
                     value={bankDetail.micr_number}
                     onChange={(e) => handleInputChange(e, bankDetail.id, 'micr_number')}
                   />
+                  {errors.micr_number && <div className="ValidationColor">{errors.micr_number}</div>}
                 </div>
               </div>
         
               {/* IFSC Code */}
               <div className="col-md-4 mt-2">
                 <div className="form-group">
-                  <label>IFSC Code <span>*</span></label>
+                  <label
+                  data-bs-toggle="tooltip"
+                  data-bs-placement="top"
+                  title={tooltipMessages.IFSCCode}
+                  >IFSC Code <span>*</span></label>
                   <input
                     className="form-control"
                     type="text"
@@ -1150,13 +1359,18 @@ const isRekycTypeEmpty = !rekycType || rekycType.length === 0;
                     value={bankDetail.ifsc_code}
                     onChange={(e) => handleInputChange(e, bankDetail.id, 'ifsc_code')}
                   />
+                  {errors.ifsc_code && <div className="ValidationColor">{errors.ifsc_code}</div>}
                 </div>
               </div>
         
               {/* Beneficiary Name */}
               <div className="col-md-4 mt-2">
                 <div className="form-group">
-                  <label>Beneficiary Name <span>*</span></label>
+                  <label
+                  data-bs-toggle="tooltip"
+                  data-bs-placement="top"
+                  title={tooltipMessages.beneficiaryName}
+                  >Beneficiary Name <span>*</span></label>
                   <input
                     className="form-control"
                     type="text"
@@ -1164,25 +1378,33 @@ const isRekycTypeEmpty = !rekycType || rekycType.length === 0;
                     value={bankDetail.beneficiary_name}
                     onChange={(e) => handleInputChange(e, bankDetail.id, 'beneficiary_name')}
                   />
+                  {errors.beneficiary_name && <div className="ValidationColor">{errors.beneficiary_name}</div>}
                 </div>
               </div>
         
               {/* Cancelled Cheque / Bank Copy */}
               <div className="col-md-4 mt-2">
                 <div className="form-group">
-                  <label>Cancelled Cheque / Bank Copy <span>*</span></label>
+                  <label
+                  data-bs-toggle="tooltip"
+                  data-bs-placement="top"
+                  title={tooltipMessages.cancelledCheque}
+                  >Cancelled Cheque / Bank Copy <span>*</span></label>
                   <input
                     className="form-control"
                     type="file"
                     onChange={(e) => handleFileChangeBank(e, bankDetail.id)}
                   />
+                  {errors.cancelled_cheque && <div className="ValidationColor">{errors.cancelled_cheque}</div>}
                 </div>
               </div>
         
               {/* Remark */}
               <div className="col-md-4 mt-2">
                 <div className="form-group">
-                  <label>Remark <span>*</span></label>
+                  <label>Remark 
+                    {/* <span>*</span> */}
+                    </label>
                   <textarea
                     className="form-control"
                     rows="3"
@@ -1206,6 +1428,9 @@ const isRekycTypeEmpty = !rekycType || rekycType.length === 0;
                     </div>
                   </div>
 )}
+
+
+
       
          
 
@@ -1262,7 +1487,11 @@ const isRekycTypeEmpty = !rekycType || rekycType.length === 0;
     {/* MSME/Udyam Number Applicable */}
     <div className="col-md-4 mt-2">
       <div className="form-group">
-        <label>
+        <label
+         data-bs-toggle="tooltip"
+         data-bs-placement="top"
+         title={tooltipMessages.MSMEUdyamNumberApplicable}
+        >
           MSME/Udyam Number Applicable <span>*</span>
         </label>
         <select
@@ -1273,6 +1502,8 @@ const isRekycTypeEmpty = !rekycType || rekycType.length === 0;
           <option value="Yes">Yes</option>
           <option value="No">No</option>
         </select>
+
+        {errors.msmeUdyamApplicable && <div className="ValidationColor">{errors.msmeUdyamApplicable}</div>} {/* Show error */}
       </div>
     </div>
 
@@ -1280,7 +1511,15 @@ const isRekycTypeEmpty = !rekycType || rekycType.length === 0;
     {msmeUdyamApplicable === "Yes" && (
       <div className="col-md-4 mt-2">
         <div className="form-group">
-          <label>
+          <label
+          //  data-bs-toggle="tooltip"
+          //  data-bs-placement="top"
+          //  title={tooltipMessages.MSMEUdyamNumber}
+
+           data-bs-toggle="tooltip"
+         data-bs-placement="top"
+         title={tooltipMessages.MSMEUdyamNumber}
+          >
             MSME/Udyam Number <span>*</span>
           </label>
           <input
@@ -1292,6 +1531,7 @@ const isRekycTypeEmpty = !rekycType || rekycType.length === 0;
             onChange={handleMsmeNoChange} // Add onChange handler here
             // value={supplierData?.msme_details?.msme_no}
           />
+           {errors.msmeNo && <div className="ValidationColor">{errors.msmeNo}</div>} {/* Show error */}
         </div>
       </div>
     )}
@@ -1300,7 +1540,11 @@ const isRekycTypeEmpty = !rekycType || rekycType.length === 0;
     {msmeUdyamApplicable === "Yes" && (
       <div className="col-md-4 mt-2">
         <div className="form-group">
-          <label>
+          <label
+           data-bs-toggle="tooltip"
+           data-bs-placement="top"
+           title={tooltipMessages.MSMEUdyamValidFrom}
+          >
             MSME/Udyam Valid From <span>*</span>
           </label>
           <input
@@ -1312,6 +1556,7 @@ const isRekycTypeEmpty = !rekycType || rekycType.length === 0;
             onChange={handleValidFromChange} // Add onChange handler here
             // value={supplierData?.msme_details?.valid_from}
           />
+           {errors.validFrom && <div className="ValidationColor">{errors.validFrom}</div>} {/* Show error */}
         </div>
       </div>
     )}
@@ -1320,7 +1565,11 @@ const isRekycTypeEmpty = !rekycType || rekycType.length === 0;
     {msmeUdyamApplicable === "Yes" && (
       <div className="col-md-4 mt-2">
         <div className="form-group">
-          <label>
+          <label
+           data-bs-toggle="tooltip"
+           data-bs-placement="top"
+           title={tooltipMessages.MSMEUdyamValidTill}
+          >
             MSME/Udyam Valid Till <span>*</span>
           </label>
           <input
@@ -1332,6 +1581,7 @@ const isRekycTypeEmpty = !rekycType || rekycType.length === 0;
             onChange={handleValidTillChange}
             // value={supplierData?.msme_details?.valid_till}
           />
+           {errors.validTill && <div className="ValidationColor">{errors.validTill}</div>} {/* Show error */}
         </div>
       </div>
     )}
@@ -1340,7 +1590,11 @@ const isRekycTypeEmpty = !rekycType || rekycType.length === 0;
     {msmeUdyamApplicable === "Yes" && (
       <div className="col-md-4 mt-2">
         <div className="form-group">
-          <label>
+          <label
+           data-bs-toggle="tooltip"
+           data-bs-placement="top"
+           title={tooltipMessages.MSMEEnterpriseType}
+          >
             MSME Enterprise Type <span>*</span>
           </label>
           <select 
@@ -1356,6 +1610,7 @@ const isRekycTypeEmpty = !rekycType || rekycType.length === 0;
             <option value="Medium">Medium</option>
             <option value="Not_applicable">Not Applicable</option>
           </select>
+          {errors.msmeEnterpriseType && <div className="ValidationColor">{errors.msmeEnterpriseType}</div>} {/* Show error */}
         </div>
       </div>
     )}
@@ -1375,7 +1630,7 @@ const isRekycTypeEmpty = !rekycType || rekycType.length === 0;
               xmlns="http://www.w3.org/2000/svg"
               width={24}
               height={24}
-              fill="currentColor"
+              fill="#DE7008"
               className="bi bi-download"
               viewBox="0 0 16 16"
             >
@@ -1399,15 +1654,155 @@ const isRekycTypeEmpty = !rekycType || rekycType.length === 0;
     {msmeUdyamApplicable === "Yes" && (
       <div className="col-md-4 mt-2">
         <div className="form-group">
-          <label>
+          <label
+           data-bs-toggle="tooltip"
+           data-bs-placement="top"
+           title={tooltipMessages.MSMEUdyamAttachment}
+          >
             MSME/Udyam Attachment <span>*</span>
           </label>
+         <span className="ms-2">
+         <a
+      href={supplierData?.msme_details?.msme_attachments[0]?.file_url} // PDF file URL
+      download // Trigger download when clicked
+      className="text-primary d-flex align-items-center"
+    >
+
+<span className="me-2">Existing Files:</span>
+           <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width={24}
+              height={24}
+              fill="#DE7008"
+              className="bi bi-download"
+              viewBox="0 0 16 16"
+            >
+              <path
+                d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
+                // style={{ fill: "#de7008!important" }}
+              />
+              <path
+                d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
+                // style={{ fill: "#de7008!important" }}
+              />
+            </svg>
+           
+            {supplierData?.msme_details?.msme_attachments
+                        ?.length > 0
+                        ? // Display the document name of the first attachment
+                          supplierData?.msme_details?.msme_attachments[0]
+                            ?.document_name
+                        : // If no attachment is present, show a default message
+                          "No Document Available"}
+           
+
+</a>
+</span>
           <input className="form-control" type="file" name="" onChange={handleFileChange}  />
+          {/* {errors.msmeAttachments && <div className="ValidationColor">{errors.msmeAttachments}</div>} Show error */}
         </div>
       </div>
     )}
   </div>
 </div>
+
+
+{/* // no */}
+<div className="row">
+{msmeUdyamApplicable === "No" && (
+  <div className="col-md-4 mt-2 ms-3">
+    <div className="form-group">
+      <label
+       data-bs-toggle="tooltip"
+       data-bs-placement="top"
+       title={tooltipMessages.DownloadSpecimen}
+      >
+        Download Specimen <span>*</span>
+      </label>
+      <a
+        download="Specimen_E-Invoicing_Declaration.docx"
+        className="text-primary d-flex align-items-center"
+        href="https://vendor.panchshil.com/assets/Yes%20_%20msme.pdf"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width={24}
+          height={24}
+          fill="#DE7008"
+          className="bi bi-download"
+          viewBox="0 0 16 16"
+        >
+          <path
+            d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
+            style={{ fill: "#de7008!important" }}
+          />
+          <path
+            d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
+            style={{ fill: "#de7008!important" }}
+          />
+        </svg>
+        <span className="mt-2 ms-2">
+          Specimen For E-Invoicing Declaration.pdf
+        </span>
+      </a>
+    </div>
+  </div>
+)}
+
+
+{msmeUdyamApplicable === "No" && (
+      <div className="col-md-4 mt-2">
+        <div className="form-group">
+          <label
+           data-bs-toggle="tooltip"
+           data-bs-placement="top"
+           title={tooltipMessages.UploadDeclaration}
+          >
+            Upload Declaration <span>*</span>
+          </label>
+
+          <span className="ms-2">
+         <a
+      href={supplierData?.msme_details?.msme_attachments[0]?.file_url} // PDF file URL
+      download // Trigger download when clicked
+      className="text-primary d-flex align-items-center"
+    >
+
+<span className="me-2">Existing Files:</span>
+           <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width={24}
+              height={24}
+              fill="#DE7008"
+              className="bi bi-download"
+              viewBox="0 0 16 16"
+            >
+              <path
+                d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
+                // style={{ fill: "#de7008!important" }}
+              />
+              <path
+                d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
+                // style={{ fill: "#de7008!important" }}
+              />
+            </svg>
+           
+            {supplierData?.msme_details?.msme_attachments
+                        ?.length > 0
+                        ? // Display the document name of the first attachment
+                          supplierData?.msme_details?.msme_attachments[0]
+                            ?.document_name
+                        : // If no attachment is present, show a default message
+                          "No Document Available"}
+           
+
+</a>
+</span>
+          <input className="form-control" type="file" name="" onChange={handleFileChange}  />
+        </div>
+      </div>
+    )}
+    </div>
 </div>
           )}
 
@@ -1464,7 +1859,7 @@ const isRekycTypeEmpty = !rekycType || rekycType.length === 0;
               xmlns="http://www.w3.org/2000/svg"
               width={24}
               height={24}
-              fill="currentColor"
+              fill="#DE7008"
               className="bi bi-download"
               viewBox="0 0 16 16"
             >
@@ -1574,6 +1969,7 @@ const isRekycTypeEmpty = !rekycType || rekycType.length === 0;
                     type="checkbox"
                     id="declaration-checkbox"
                     required=""
+                    onChange={handleCheckboxChange}
                   />
                 </span>{" "}
                 I, undersigned, on behalf of M/S Dell Organization Test hereby
@@ -1585,9 +1981,11 @@ const isRekycTypeEmpty = !rekycType || rekycType.length === 0;
                 to verify information submitted herein or regarding the
                 competence of the&nbsp;Organization
               </p>
-              <div id="checkboxError" style={{ color: "red", display: "none" }}>
+
+              {errors.declaration && <div className="ValidationColor">{errors.declaration}</div>}
+              {/* <div id="checkboxError" style={{ color: "red", display: "none" }}>
                 Please check this box to proceed.
-              </div>
+              </div> */}
             </div>
           </div>
         </div>

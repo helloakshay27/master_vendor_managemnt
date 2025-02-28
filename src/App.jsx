@@ -35,6 +35,7 @@ import SectionReKYCDetails from "./pages/pms/suppliers/rekyc";
 import ApprovalMatrix from "./pages/approval-matrix.jsx";
 import ApprovalList from "./pages/approval-list.jsx";
 import ApprovalEdit from "./pages/approval-edit.jsx";
+import ConfirmationPage from "./pages/confirmation.jsx";
 
 function App() {
   return (
@@ -91,6 +92,7 @@ function App() {
           <Route path="/create-bid/:eventId" element={<CreateBid />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/rekyc/:id" element={<SectionReKYCDetails />} />
+          <Route path="/confirmation" element={<ConfirmationPage />} />
           <Route path="/approval-matrix" element={<ApprovalMatrix />} />
           <Route path="/approval-list" element={<ApprovalList />} />
           <Route path="/approval-edit" element={<ApprovalEdit />} />

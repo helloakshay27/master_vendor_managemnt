@@ -66,6 +66,9 @@ function Members() {
                 <Link to="/rekyc">Section Re KYC Details</Link>
               </li>
               {/* <li>
+                <Link to="/confirmation">confirmation</Link>
+              </li> */}
+              {/* <li>
                 <Link to="/user-list">user_list</Link>
               </li>
 
