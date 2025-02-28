@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect ,useRef} from "react";
 import CollapsedCardKYC from "../../../components/base/Card/CollapsedCardKYC";
 import CardBodyKYC from "../../../components/base/Card/CardBodyKYC";
 import CardBodyMsme from "../../../components/base/Card/CardBodyMsme";
@@ -14,6 +14,7 @@ import CryptoJS from 'crypto-js'; // Import crypto-js for encryption
 
 const SectionReKYCDetails = () => {
   const navigate = useNavigate(); // Initialize navigate
+  const fileInputRef = useRef(null);
 
   const { id } = useParams();
   const [supplierData, setSupplierData] = useState({});
@@ -108,26 +109,40 @@ const SectionReKYCDetails = () => {
 
 
   // For handling MSME attachments (storing encrypted files)
-  const handleFileChange = (event) => {
-    const file = event.target.files[0];
+  const handleFileChange = (file) => {
+    // const file = event.target.files[0];
 
-    if (file) {
-      encryptFileContent(file)
-        .then((encryptedContent) => {
-          // Store the encrypted file in the msmeAttachments state
-          const attachment = {
-            content_type: file.type,
-            content: encryptedContent, // Store encrypted content instead of raw file
-            filename: file.name,
-          };
+    // if (file) {
+    //   encryptFileContent(file)
+    //     .then((encryptedContent) => {
+    //       // Store the encrypted file in the msmeAttachments state
+    //       const attachment = {
+    //         content_type: file.type,
+    //         content: encryptedContent, // Store encrypted content instead of raw file
+    //         filename: file.name,
+    //       };
 
-          setMsmeAttachments([...msmeAttachments, attachment]);
-          console.log("Encrypted MSME attachment:", encryptedContent);
-        })
-        .catch((error) => {
-          console.error("Error encrypting file:", error);
-        });
-    }
+    //       setMsmeAttachments([...msmeAttachments, attachment]);
+    //       console.log("Encrypted MSME attachment:", encryptedContent);
+    //     })
+    //     .catch((error) => {
+    //       console.error("Error encrypting file:", error);
+    //     });
+        
+    // }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64String = reader.result.split(",")[1];
+      const attachment= {
+        filename: file.name,
+        content: base64String,
+        content_type: file.type,
+      };
+      setMsmeAttachments([...msmeAttachments, attachment]);
+    };
+    reader.readAsDataURL(file);
+
   };
 
 
@@ -534,11 +549,14 @@ const SectionReKYCDetails = () => {
         remark: "",
       },
     ]);
+
+    setFormSubmitted(true);
   };
 
   // Function to delete bank details
   const deleteBankDetails = (id) => {
     setBankDetailsList(bankDetailsList.filter((item) => item.id !== id));
+    setFormSubmitted(false)
   };
 
   const handleFileChangeBank = (e, id) => {
@@ -688,6 +706,7 @@ const SectionReKYCDetails = () => {
 
   const [errors, setErrors] = useState({});
   const [isChecked, setIsChecked] = useState(false); // Add this state to track checkbox
+  const [formSubmitted, setFormSubmitted] = useState(false);
 
   const handleCheckboxChange = () => {
     setIsChecked(!isChecked);
@@ -698,7 +717,7 @@ const SectionReKYCDetails = () => {
     console.log("bank details:", bankDetail)
 
     let validationErrors = {};
-    if (isRekycTypeEmpty || isBankRekyc) {
+    if ((isRekycTypeEmpty || isBankRekyc) && formSubmitted ) {
       // Check if required fields are filled
       if (!bankDetail.bank_name) { validationErrors.bank_name = "Bank Name is required." };
       if (!bankDetail.address) { validationErrors.address = "Address is required." };
@@ -1218,7 +1237,7 @@ const SectionReKYCDetails = () => {
                           value={bankDetail.bank_name}
                           onChange={(e) => handleInputChange(e, bankDetail.id, 'bank_name')}
                         />
-                        {errors.bank_name && <span className="ValidationColor">{errors.bank_name}</span>}
+                        {formSubmitted && errors.bank_name && <span className="ValidationColor">{errors.bank_name}</span>}
 
                         {/* {errors.bank_name && <div className="invalid-feedback">{errors.bank_name}</div>} */}
                         {console.log(errors.bank_name)}
@@ -1240,7 +1259,7 @@ const SectionReKYCDetails = () => {
                           value={bankDetail.address}
                           onChange={(e) => handleInputChange(e, bankDetail.id, 'address')}
                         />
-                        {errors.address && <div className="ValidationColor">{errors.address}</div>}
+                        {formSubmitted && errors.address && <div className="ValidationColor">{errors.address}</div>}
                       </div>
                     </div>
 
@@ -1298,7 +1317,7 @@ const SectionReKYCDetails = () => {
                           value={bankDetail.city}
                           onChange={(e) => handleInputChange(e, bankDetail.id, 'city')}
                         />
-                        {errors.city && <div className="ValidationColor">{errors.city}</div>}
+                        {formSubmitted && errors.city && <div className="ValidationColor">{errors.city}</div>}
                       </div>
                     </div>
 
@@ -1317,28 +1336,28 @@ const SectionReKYCDetails = () => {
                           value={bankDetail.pin_code}
                           onChange={(e) => handleInputChange(e, bankDetail.id, 'pin_code')}
                         />
-                        {errors.pin_code && <div className="ValidationColor">{errors.pin_code}</div>}
+                        { formSubmitted && errors.pin_code && <div className="ValidationColor">{errors.pin_code}</div>}
                       </div>
                     </div>
 
-                    {/* Account Type */}
-                    <div className="col-md-4 mt-2">
-                      <div className="form-group">
-                        <label
-                          data-bs-toggle="tooltip"
-                          data-bs-placement="top"
-                          title={tooltipMessages.accountType}
-                        >Account Type <span>*</span></label>
-                        <input
-                          className="form-control"
-                          type="text"
-                          placeholder="Enter Account Type"
-                          value={bankDetail.account_type}
-                          onChange={(e) => handleInputChange(e, bankDetail.id, 'account_type')}
-                        />
-                        {errors.account_type && <div className="ValidationColor">{errors.account_type}</div>}
-                      </div>
+                  {/* Account Type */}
+                  <div className="col-md-4 mt-2">
+                    <div className="form-group">
+                      <label
+                        data-bs-toggle="tooltip"
+                        data-bs-placement="top"
+                        title={tooltipMessages.accountType}
+                      >Account Type <span>*</span></label>
+                      <input
+                        className="form-control"
+                        type="text"
+                        placeholder="Enter Account Type"
+                        value={bankDetail.account_type}
+                        onChange={(e) => handleInputChange(e, bankDetail.id, 'account_type')}
+                      />
+                      {formSubmitted && errors.account_type && <div className="ValidationColor">{errors.account_type}</div>}
                     </div>
+                  </div>
 
                     {/* Account Number */}
                     <div className="col-md-4 mt-2">
@@ -1356,105 +1375,105 @@ const SectionReKYCDetails = () => {
                           onChange={(e) => handleInputChange(e, bankDetail.id, 'account_number')}
                         />
 
-                        {errors.account_number && <div className="ValidationColor">{errors.account_number}</div>}
-                      </div>
+                      {formSubmitted && errors.account_number && <div className="ValidationColor">{errors.account_number}</div>}
                     </div>
+                  </div>
 
-                    {/* Confirm Account Number */}
-                    <div className="col-md-4 mt-2">
-                      <div className="form-group">
-                        <label
-                          data-bs-toggle="tooltip"
-                          data-bs-placement="top"
-                          title={tooltipMessages.confirmAccountNumber}
-                        >Confirm Account Number <span>*</span></label>
-                        <input
-                          className="form-control"
-                          type="number"
-                          placeholder="Enter Confirm Account Number"
-                          value={bankDetail.confirm_account_number}
-                          onChange={(e) => handleInputChange(e, bankDetail.id, 'confirm_account_number')}
-                        />
-                        {errors.confirm_account_number && <div className="ValidationColor">{errors.confirm_account_number}</div>}
-                        {errors.account_match && <div className="ValidationColor">{errors.account_match}</div>}
-                      </div>
+                  {/* Confirm Account Number */}
+                  <div className="col-md-4 mt-2">
+                    <div className="form-group">
+                      <label
+                        data-bs-toggle="tooltip"
+                        data-bs-placement="top"
+                        title={tooltipMessages.confirmAccountNumber}
+                      >Confirm Account Number <span>*</span></label>
+                      <input
+                        className="form-control"
+                        type="number"
+                        placeholder="Enter Confirm Account Number"
+                        value={bankDetail.confirm_account_number}
+                        onChange={(e) => handleInputChange(e, bankDetail.id, 'confirm_account_number')}
+                      />
+                      {formSubmitted && errors.confirm_account_number && <div className="ValidationColor">{errors.confirm_account_number}</div>}
+                      { formSubmitted && errors.account_match && <div className="ValidationColor">{errors.account_match}</div>}
                     </div>
+                  </div>
 
-                    {/* Branch Name */}
-                    <div className="col-md-4 mt-2">
-                      <div className="form-group">
-                        <label
-                          data-bs-toggle="tooltip"
-                          data-bs-placement="top"
-                          title={tooltipMessages.branchName}
-                        >Branch Name <span>*</span></label>
-                        <input
-                          className="form-control"
-                          type="text"
-                          placeholder="Enter Branch Name"
-                          value={bankDetail.branch_name}
-                          onChange={(e) => handleInputChange(e, bankDetail.id, 'branch_name')}
-                        />
-                        {errors.branch_name && <div className="ValidationColor">{errors.branch_name}</div>}
-                      </div>
+                  {/* Branch Name */}
+                  <div className="col-md-4 mt-2">
+                    <div className="form-group">
+                      <label
+                        data-bs-toggle="tooltip"
+                        data-bs-placement="top"
+                        title={tooltipMessages.branchName}
+                      >Branch Name <span>*</span></label>
+                      <input
+                        className="form-control"
+                        type="text"
+                        placeholder="Enter Branch Name"
+                        value={bankDetail.branch_name}
+                        onChange={(e) => handleInputChange(e, bankDetail.id, 'branch_name')}
+                      />
+                      {formSubmitted && errors.branch_name && <div className="ValidationColor">{errors.branch_name}</div>}
                     </div>
+                  </div>
 
-                    {/* MICR No. */}
-                    <div className="col-md-4 mt-2">
-                      <div className="form-group">
-                        <label
-                          data-bs-toggle="tooltip"
-                          data-bs-placement="top"
-                          title={tooltipMessages.MICR}
-                        >MICR No. <span>*</span></label>
-                        <input
-                          className="form-control"
-                          type="text"
-                          placeholder="Enter MICR No."
-                          value={bankDetail.micr_number}
-                          onChange={(e) => handleInputChange(e, bankDetail.id, 'micr_number')}
-                        />
-                        {errors.micr_number && <div className="ValidationColor">{errors.micr_number}</div>}
-                      </div>
+                  {/* MICR No. */}
+                  <div className="col-md-4 mt-2">
+                    <div className="form-group">
+                      <label
+                        data-bs-toggle="tooltip"
+                        data-bs-placement="top"
+                        title={tooltipMessages.MICR}
+                      >MICR No. <span>*</span></label>
+                      <input
+                        className="form-control"
+                        type="text"
+                        placeholder="Enter MICR No."
+                        value={bankDetail.micr_number}
+                        onChange={(e) => handleInputChange(e, bankDetail.id, 'micr_number')}
+                      />
+                      {formSubmitted && errors.micr_number && <div className="ValidationColor">{errors.micr_number}</div>}
                     </div>
+                  </div>
 
-                    {/* IFSC Code */}
-                    <div className="col-md-4 mt-2">
-                      <div className="form-group">
-                        <label
-                          data-bs-toggle="tooltip"
-                          data-bs-placement="top"
-                          title={tooltipMessages.IFSCCode}
-                        >IFSC Code <span>*</span></label>
-                        <input
-                          className="form-control"
-                          type="text"
-                          placeholder="Enter IFSC Code"
-                          value={bankDetail.ifsc_code}
-                          onChange={(e) => handleInputChange(e, bankDetail.id, 'ifsc_code')}
-                        />
-                        {errors.ifsc_code && <div className="ValidationColor">{errors.ifsc_code}</div>}
-                      </div>
+                  {/* IFSC Code */}
+                  <div className="col-md-4 mt-2">
+                    <div className="form-group">
+                      <label
+                        data-bs-toggle="tooltip"
+                        data-bs-placement="top"
+                        title={tooltipMessages.IFSCCode}
+                      >IFSC Code <span>*</span></label>
+                      <input
+                        className="form-control"
+                        type="text"
+                        placeholder="Enter IFSC Code"
+                        value={bankDetail.ifsc_code}
+                        onChange={(e) => handleInputChange(e, bankDetail.id, 'ifsc_code')}
+                      />
+                      {formSubmitted && errors.ifsc_code && <div className="ValidationColor">{errors.ifsc_code}</div>}
                     </div>
+                  </div>
 
-                    {/* Beneficiary Name */}
-                    <div className="col-md-4 mt-2">
-                      <div className="form-group">
-                        <label
-                          data-bs-toggle="tooltip"
-                          data-bs-placement="top"
-                          title={tooltipMessages.beneficiaryName}
-                        >Beneficiary Name <span>*</span></label>
-                        <input
-                          className="form-control"
-                          type="text"
-                          placeholder="Enter Beneficiary Name"
-                          value={bankDetail.beneficiary_name}
-                          onChange={(e) => handleInputChange(e, bankDetail.id, 'beneficiary_name')}
-                        />
-                        {errors.beneficiary_name && <div className="ValidationColor">{errors.beneficiary_name}</div>}
-                      </div>
+                  {/* Beneficiary Name */}
+                  <div className="col-md-4 mt-2">
+                    <div className="form-group">
+                      <label
+                        data-bs-toggle="tooltip"
+                        data-bs-placement="top"
+                        title={tooltipMessages.beneficiaryName}
+                      >Beneficiary Name <span>*</span></label>
+                      <input
+                        className="form-control"
+                        type="text"
+                        placeholder="Enter Beneficiary Name"
+                        value={bankDetail.beneficiary_name}
+                        onChange={(e) => handleInputChange(e, bankDetail.id, 'beneficiary_name')}
+                      />
+                      {formSubmitted && errors.beneficiary_name && <div className="ValidationColor">{errors.beneficiary_name}</div>}
                     </div>
+                  </div>
 
                     {/* Cancelled Cheque / Bank Copy */}
                     <div className="col-md-4 mt-2">
@@ -1499,16 +1518,19 @@ const SectionReKYCDetails = () => {
                                 ?.document_name
                               : // If no attachment is present, show a default message
                               "No Document Available"} */}
-                          </a>
-                        </span>
-                        <input
-                          className="form-control"
-                          type="file"
-                          onChange={(e) => handleFileChangeBank(e, bankDetail.id)}
-                        />
-                        {errors.cancelled_cheque && <div className="ValidationColor">{errors.cancelled_cheque}</div>}
-                      </div>
+                        </a>
+                      </span>
+                      <input
+                        className="form-control"
+                        type="file"
+                        onChange={(e) => handleFileChangeBank(e, bankDetail.id)}
+                         multiple
+                        accept=".xlsx,.csv,.pdf,.docx,.doc,.xls,.txt,.png,.jpg,.jpeg,.zip,.rar,.jfif,.svg,.mp4,.mp3,.avi,.flv,.wmv"
+                      />
+                      
+                      { formSubmitted && errors.cancelled_cheque && <div className="ValidationColor">{errors.cancelled_cheque}</div>}
                     </div>
+                  </div>
 
                     {/* Remark */}
                     <div className="col-md-4 mt-2">
@@ -1610,6 +1632,7 @@ const SectionReKYCDetails = () => {
                         onChange={handleMsmeUdyamChange}
                         className="form-control"
                       >
+                        <option value=""></option>
                         <option value="Yes">Yes</option>
                         <option value="No">No</option>
                       </select>
@@ -1807,7 +1830,17 @@ const SectionReKYCDetails = () => {
                               "No Document Available"}
                           </a>
                         </span>
-                        <input className="form-control" type="file" name="" onChange={handleFileChange} />
+                        {/* <input className="form-control" type="file" name="" onChange={handleFileChange} /> */}
+                        <input
+                        className="form-control"
+                        type="file"
+                        onChange={(e) =>
+                          handleFileChange(e.target.files[0])
+                        }
+                        ref={fileInputRef}
+                        multiple
+                        accept=".xlsx,.csv,.pdf,.docx,.doc,.xls,.txt,.png,.jpg,.jpeg,.zip,.rar,.jfif,.svg,.mp4,.mp3,.avi,.flv,.wmv"
+                      />
                         {errors.msmeAttachments && <div className="ValidationColor">{errors.msmeAttachments}</div>}
                       </div>
                     </div>
