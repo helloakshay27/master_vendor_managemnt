@@ -76,13 +76,7 @@ const SectionReKYCDetails = () => {
     });
   }, []);
 
-  // useEffect(() => {
-  //   // Initialize all tooltips after component mounts
-  //   const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
-  //   tooltipTriggerList.forEach((tooltipTriggerEl) => {
-  //     new window.bootstrap.Tooltip(tooltipTriggerEl);
-  //   });
-  // }, []);
+ 
 
   const encryptFileContent = (file) => {
     return new Promise((resolve, reject) => {
@@ -110,27 +104,7 @@ const SectionReKYCDetails = () => {
 
   // For handling MSME attachments (storing encrypted files)
   const handleFileChange = (file) => {
-    // const file = event.target.files[0];
-
-    // if (file) {
-    //   encryptFileContent(file)
-    //     .then((encryptedContent) => {
-    //       // Store the encrypted file in the msmeAttachments state
-    //       const attachment = {
-    //         content_type: file.type,
-    //         content: encryptedContent, // Store encrypted content instead of raw file
-    //         filename: file.name,
-    //       };
-
-    //       setMsmeAttachments([...msmeAttachments, attachment]);
-    //       console.log("Encrypted MSME attachment:", encryptedContent);
-    //     })
-    //     .catch((error) => {
-    //       console.error("Error encrypting file:", error);
-    //     });
-        
-    // }
-
+  
     const reader = new FileReader();
     reader.onloadend = () => {
       const base64String = reader.result.split(",")[1];
@@ -146,58 +120,13 @@ const SectionReKYCDetails = () => {
   };
 
 
-  // const handleFileChange = (event) => {
-  //   const file = event.target.files[0]; // Get the first file selected
-
-  //   if (file) {
-  //     const fileReader = new FileReader();
-
-  //     fileReader.onloadend = () => {
-  //       const fileUrl = fileReader.result.split(',')[1]; // Extract base64 content
-
-  //       // Optionally encrypt the file content before setting it
-  //       const encryptedFileUrl = encryptFileContent(fileUrl);
-
-  //       // Store encrypted content (or base64 if not encrypted) in the state
-  //       const attachment = {
-  //         content_type: file.type, // Content type (e.g., "application/pdf")
-  //         content: encryptedFileUrl, // Store encrypted content (or base64)
-  //         filename: file.name, // File name
-  //       };
-
-  //       // Update the state with the file details
-  //       setMsmeAttachments([...msmeAttachments, attachment]);
-  //     };
-
-  //     fileReader.readAsDataURL(file); // Read the file as base64
-  //   }
-  // };
+  
 
 
-  // const [bankDetailsList, setBankDetailsList] = useState([{ id: Date.now() }]);
-
-  // Function to add
-  // const addBankDetails = () => {
-  //   setBankDetailsList([
-  //     ...bankDetailsList,
-  //     { id: Date.now() },
-  //   ]);
-  // };
-
-  // Function to delete
-  // const deleteBankDetails = (id) => {
-  //   setBankDetailsList(bankDetailsList.filter((item) => item.id !== id));
-  // };
-
-  // States to track the dropdown selections
-  // const [eInvoicingApplicable, setEInvoicingApplicable] = useState("Yes");
+ 
   const [msmeUdyamApplicable, setMsmeUdyamApplicable] = useState("");
   const [msmeEnterpriseType, setMsmeEnterpriseType] = useState("");
 
-  // // Handle change in "E-invoicing Applicable" dropdown
-  // const handleEInvoicingChange = (event) => {
-  //   setEInvoicingApplicable(event.target.value);
-  // };
 
   // Handle change in select box
   const handleEInvoicingChange = (event) => {
@@ -250,24 +179,6 @@ const SectionReKYCDetails = () => {
     console.log("fetch.........");
 
     fetchSupplierData(id);
-
-    // axios.get('https://vendors.lockated.com//pms/suppliers/7409/rekyc_by_sections.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414')
-    //   .then(response => {
-    //     setSupplierData(response.data); // Update the state with the response data
-    //     setEInvoicingApplicable(response.data?.einvoicing);
-    //     setMsmeUdyamApplicable(response.data?.msme_details?.msme)
-    //     setMsmeEnterpriseType(response.data?.msme_details?.enterprise);
-    //     setBankDetailsList(response.data?.bank_details);
-    //     setMsmeNo(response.data?.msme_details?.msme_no)
-    //     setValidFrom(response.data?.msme_details?.valid_from)
-    //     setValidTill(response.data?.msme_details?.valid_till)
-    //     setRekycId(response.data?.id)
-    //     console.log("enterprise:",response.data?.msme_details?.enterprise)
-    //   })
-    //   .catch(error => {
-    //     console.error('There was an error fetching the data!', error);
-    //   });
-    // store this in function
   }, [id]); // Empty dependency array ensures this runs once on mount
 
   console.log("supplier data:", supplierData);
@@ -278,25 +189,6 @@ const SectionReKYCDetails = () => {
   const [states, setStates] = useState([]); // Store states based on selected country
   const [selectedCountry, setSelectedCountry] = useState(null); // Store selected country
   const [selectedState, setSelectedState] = useState(null); // Store selected state
-
-  // useEffect(() => {
-  //   axios
-  //     .get('https://vendor.panchshil.com/pms/dropdown_countries?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414')
-  //     .then(response => {
-  //       if (response.data) {
-  //         // Format country options for the SelectBox
-  //         const formattedCountries = response.data.countries.map(country => ({
-  //           value: country.id, // Assuming the API returns `id` and `name` for countries
-  //           label: country.name,
-  //         }));
-  //         setCountries(formattedCountries);
-  //         // console.log("countries:",response.data)
-  //       }
-  //     })
-  //     .catch(error => {
-  //       console.error('Error fetching countries:', error);
-  //     });
-  // }, []);
 
   useEffect(() => {
     axios
@@ -336,41 +228,6 @@ const SectionReKYCDetails = () => {
       });
   }, [supplierData]);
 
-  // const handleCountryChange = (selectedOption) => {
-  //   console.log("selected option :",selectedOption)
-  //   const countryId = selectedOption?.value;
-  //   // setSelectedCountry(countryId);
-  //   setSelectedCountry(selectedOption)
-  //   console.log("contry id:",countryId)
-
-  // useEffect(() => {
-  //   if (selectedCountry) {
-  //     // Fetch states based on the selected country
-  //     axios
-  //       .get(`https://vendors.lockated.com/pms/dropdown_states?country_id=${selectedCountry.value}&&token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`)
-  //       .then(response => {
-  //         if (response.data) {
-  //           const formattedStates = response.data.states.map(state => ({
-  //             value: state.id,
-  //             label: state.name,
-  //           }));
-  //           setStates(formattedStates);
-
-  //           // Set selected state if bank data exists
-  //           if (supplierData?.bank_details) {
-  //             const preSelectedState = formattedStates.find(
-  //               state => state.label === supplierData.bank_details[0]?.state
-  //             );
-  //             setSelectedState(preSelectedState || null);
-  //           }
-  //         }
-  //       })
-  //       .catch(error => {
-  //         console.error('Error fetching states:', error);
-  //       });
-  //   }
-  // }, [selectedCountry]);
-
   useEffect(() => {
     if (selectedCountry) {
       // Fetch states based on the selected country
@@ -402,7 +259,7 @@ const SectionReKYCDetails = () => {
     }
   }, [selectedCountry, supplierData]);
 
-  const handleCountryChange = (selectedOption) => {
+  const handleCountryChange = (selectedOption ,bankId) => {
     setSelectedCountry(selectedOption);
     console.log("selected option :", selectedOption);
     setBankDetailsList((prevDetails) =>
@@ -412,112 +269,37 @@ const SectionReKYCDetails = () => {
           : bankDetail
       )
     );
+
+
+    // setBankDetailsList(prevList =>
+    //   prevList.map(bankDetail =>
+    //     bankDetail.id === bankId
+    //       ? { ...bankDetail, country: selectedOption ? selectedOption.label : "" }
+    //       : bankDetail
+    //   )
+    // );
   };
 
-  //   // Clear state and fetch new states based on the selected country
-  //   setSelectedState(null);  // Clear state selection
-  //   setStates([]);  // Clear state dropdown
-
-  //   // Fetch new states based on the selected country
-  //   axios
-  //     .get(`https://vendors.lockated.com/pms/dropdown_states?country_id=${selectedOption.value}&token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`)
-  //     .then(response => {
-  //       if (response.data) {
-  //         const formattedStates = response.data.states.map(state => ({
-  //           value: state.id,
-  //           label: state.name,
-  //         }));
-  //         setStates(formattedStates);
-  //       }
-  //     })
-  //     .catch(error => {
-  //       console.error('Error fetching states:', error);
-  //     });
-  // };
-
-  // const handleCountryChange = (selectedOption) => {
-  //   setSelectedCountry(selectedOption);  // Set selected country
-  //   setSelectedState(null);  // Clear state
-  //   setStates([]);  // Clear state dropdown
-  // };
-
-  const handleStateChange = (selectedOption) => {
+  
+  const handleStateChange = (selectedOption ,bankId) => {
     setSelectedState(selectedOption); // Set selected state
+
+    // setBankDetailsList(prevList =>
+    //   prevList.map(bankDetail =>
+    //     bankDetail.id === bankId
+    //       ? { ...bankDetail, state: selectedOption ? selectedOption.label : "" }
+    //       : bankDetail
+    //   )
+    // );
   };
 
-  // const handleCountryChange = (selectedOption) => {
-  //   console.log("Selected country:", selectedOption); // Logs the full option
-  //   setSelectedCountry(selectedOption); // Set the full option object
-  //   setSelectedState(null)
-  //   setStates([])
+ 
+  // bank
 
-  //   // Fetch states based on selected country
-  //   axios
-  //     .get(`https://vendors.lockated.com/pms/dropdown_states?country_id=${selectedOption}&&token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`)
-  //     .then(response => {
-  //       if (response.data) {
-  //         const formattedStates = response.data.states.map(state => ({
-  //           value: state.id,
-  //           label: state.name,
-  //         }));
-  //         setStates(formattedStates);
-  //         console.log("states:", formattedStates)
-
-  //       }
-  //     })
-  //     .catch(error => {
-  //       console.error('Error fetching states:', error);
-  //     });
-  // };
-
-  // // Fetch states based on selected country
-  // axios
-  //   .get(`https://vendor.panchshil.com/pms/dropdown_states?country_id=${countryId}&&token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`)
-  //   .then(response => {
-  //     if (response.data) {
-  //       const formattedStates = response.data.states.map(state => ({
-  //         value: state.id,
-  //         label: state.name,
-  //       }));
-  //       setStates(formattedStates);
-  //     }
-  //   })
-  //   .catch(error => {
-  //     console.error('Error fetching states:', error);
-  //   });
-  // };
-
-  // const handleStateChange = (selectedOption) => {
-  //   setSelectedState(selectedOption?.value);
-  // };
-
-  // banck
-
-  const [bankDetailsList, setBankDetailsList] = useState([
-    // Dummy data as an example
-    // { id: 1, bank_name: 'Bank A', address: 'Address A', country: 'USA', city: 'City A' },
-    // { id: 2, bank_name: 'Bank B', address: 'Address B', country: 'Canada', city: 'City B' },
-  ]);
+  const [bankDetailsList, setBankDetailsList] = useState([]);
 
   // Function to handle field changes
-  // const handleInputChange = (e, bankId, field) => {
-  //   const { value } = e.target;
-  //   setBankDetailsList((prev) =>
-  //     prev.map((bank) =>
-  //       bank.id === bankId ? { ...bank, [field]: value } : bank
-  //     )
-  //   );
-  // };
-
-  // const handleInputChange = (e, id, field) => {
-  //   const { value } = e.target;
-  //   setBankDetailsList(prevDetails =>
-  //     prevDetails.map(bankDetail =>
-  //       bankDetail.id === id ? { ...bankDetail, [field]: value } : bankDetail
-  //     )
-  //   );
-  // };
-
+  
   const handleInputChange = (e, id, field) => {
     const { value } = e.target;
     setBankDetailsList((prevDetails) =>
@@ -526,6 +308,8 @@ const SectionReKYCDetails = () => {
       )
     );
   };
+
+  
 
   // Function to add a new bank detail
   const addBankDetails = () => {
@@ -547,16 +331,17 @@ const SectionReKYCDetails = () => {
         ifsc_code: "",
         beneficiary_name: "",
         remark: "",
+        isNew: true, 
       },
     ]);
-
-    setFormSubmitted(true);
+    
+    // setFormSubmitted(true);
   };
 
   // Function to delete bank details
   const deleteBankDetails = (id) => {
     setBankDetailsList(bankDetailsList.filter((item) => item.id !== id));
-    setFormSubmitted(false)
+    // setFormSubmitted(false)
   };
 
   const handleFileChangeBank = (e, id) => {
@@ -597,15 +382,6 @@ const SectionReKYCDetails = () => {
   // State for eInvoicing Attachments
   const [einvoicingAttachments, setEinvoicingAttachments] = useState([]);
 
-  // Handler for MSME/Udyam Applicable
-  //  const handleMsmeUdyamChange = (e) => {
-  //    setMsmeUdyamApplicable(e.target.value);
-  //  };
-
-  // Handler for MSME Enterprise Type
-  //  const handleMsmeEnterpriseChange = (e) => {
-  //    setMsmeEnterpriseType(e.target.value);
-  //  };
 
   // Handler for MSME/Udyam Number
   const handleMsmeNoChange = (e) => {
@@ -622,26 +398,6 @@ const SectionReKYCDetails = () => {
     setValidTill(e.target.value);
   };
 
-  // Handler for Attachment (File Input)
-  //  const handleFileChange = (e) => {
-  //    setAttachment(e.target.files[0]);
-  //  };
-
-  // Handle file input change
-  // const handleFileChange = (event) => {
-  //   const file = event.target.files[0]; // Get the first file selected
-
-  //   if (file) {
-  //     const attachment = {
-  //       content_type: file.type, // Content type (e.g., "application/pdf")
-  //       contect: file, // The file object itself
-  //       filename: file.name, // File name
-  //     };
-
-  //     // Update the state with the file details
-  //     setMsmeAttachments([...msmeAttachments, attachment]);
-  //   }
-  // };
 
   // Handle eInvoicing File Change
   const handleEinvoicingFileChange = (event) => {
@@ -706,7 +462,7 @@ const SectionReKYCDetails = () => {
 
   const [errors, setErrors] = useState({});
   const [isChecked, setIsChecked] = useState(false); // Add this state to track checkbox
-  const [formSubmitted, setFormSubmitted] = useState(false);
+  // const [formSubmitted, setFormSubmitted] = useState(false);
 
   const handleCheckboxChange = () => {
     setIsChecked(!isChecked);
@@ -716,12 +472,15 @@ const SectionReKYCDetails = () => {
   const handleUpdate = async (bankDetail) => {
     console.log("bank details:", bankDetail)
 
+    // console.log('formSubmitted:', formSubmitted); 
+
     let validationErrors = {};
-    if ((isRekycTypeEmpty || isBankRekyc) && formSubmitted ) {
-      // Check if required fields are filled
-      if (!bankDetail.bank_name) { validationErrors.bank_name = "Bank Name is required." };
-      if (!bankDetail.address) { validationErrors.address = "Address is required." };
-      if (!bankDetail.country) { validationErrors.country = "Country is required." };
+    
+    bankDetailsList.forEach((bankDetail) => {
+      if (bankDetail.isNew) {  // Only validate if it's a new entry
+        if (!bankDetail.bank_name) validationErrors.bank_name = "Bank Name is required.";
+        if (!bankDetail.address) validationErrors.address = "Address is required.";
+        if (!bankDetail.country) { validationErrors.country = "Country is required." };
       if (!bankDetail.state) { validationErrors.state = "State is required." };
       if (!bankDetail.city) { validationErrors.city = "City is required." } { };
       if (!bankDetail.pin_code || isNaN(bankDetail.pin_code)) { validationErrors.pin_code = "Valid Pin Code is required." };
@@ -735,7 +494,9 @@ const SectionReKYCDetails = () => {
       if (!bankDetail.beneficiary_name) { validationErrors.beneficiary_name = "Beneficiary Name is required." };
       if (!bankDetail.cancelled_cheque) { validationErrors.cancelled_cheque = "Cancelled Cheque / Bank Copy is required." };
 
-    }
+        // Add other validation checks here
+      }
+    });
 
 
     if ((isRekycTypeEmpty || isMsmeRekyc)) {
@@ -782,14 +543,7 @@ const SectionReKYCDetails = () => {
       validationErrors.declaration = "Please check the declaration box to proceed.";
     }
 
-    // Validate file input (for file attachment)
-    // if (msmeUdyamApplicable === "Yes" && msmeUdyamAttachment && msmeUdyamAttachment.size === 0) {
-    //   validationErrors.msmeUdyamAttachment = "Please upload a valid file.";
-    // }
-
-
-    // setErrors(validationErrors);
-    // return Object.keys(validationErrors).length === 0; // Return true if no errors
+    
 
 
     // Set errors and return if validation fails
@@ -820,33 +574,7 @@ const SectionReKYCDetails = () => {
       };
 
       console.log("payload submition", payload);
-      // Perform the PATCH request
-      // try {
-      //   const response = await fetch(`http://vendors.lockated.com/pms/suppliers/${rekycId}/update_rekyc_by_sections`, {
-      //     method: 'PATCH',
-      //     headers: {
-      //       'Accept': 'application/json',
-      //       'Content-Type': 'application/json',
-      //       // Add any necessary authentication token or session headers
-      //       'token':'bfa5004e7b0175622be8f7e69b37d01290b737f82e078414',
-      //       'Cookie': '_erp_session=YOUR_SESSION_ID' // Make sure to update your session ID if needed
-      //     },
-      //     body: JSON.stringify(payload)
-      //   });
-
-      //   const data = await response.json();
-      //   if (response.ok) {
-      //     console.log('Update successful:', data);
-      //     alert("Update successfully")
-      //     // Optionally handle success (e.g., show a success message or redirect)
-      //   } else {
-      //     console.error('Error during update:', data);
-      //     // Optionally handle error (e.g., show an error message)
-      //   }
-      // } catch (error) {
-      //   console.error('Network error:', error);
-      //   // Handle network error if needed
-      // }
+     
 
       try {
         const response = await axios.patch(
@@ -1237,7 +965,7 @@ const SectionReKYCDetails = () => {
                           value={bankDetail.bank_name}
                           onChange={(e) => handleInputChange(e, bankDetail.id, 'bank_name')}
                         />
-                        {formSubmitted && errors.bank_name && <span className="ValidationColor">{errors.bank_name}</span>}
+                        {bankDetail.isNew && errors.bank_name && <span className="ValidationColor">{errors.bank_name}</span>}
 
                         {/* {errors.bank_name && <div className="invalid-feedback">{errors.bank_name}</div>} */}
                         {console.log(errors.bank_name)}
@@ -1259,7 +987,7 @@ const SectionReKYCDetails = () => {
                           value={bankDetail.address}
                           onChange={(e) => handleInputChange(e, bankDetail.id, 'address')}
                         />
-                        {formSubmitted && errors.address && <div className="ValidationColor">{errors.address}</div>}
+                        {bankDetail.isNew && errors.address && <div className="ValidationColor">{errors.address}</div>}
                       </div>
                     </div>
 
@@ -1275,11 +1003,11 @@ const SectionReKYCDetails = () => {
                         <SingleSelector
                           options={countries}
                           value={selectedCountry} // Controlled component
-                          onChange={(selectedOption) => handleCountryChange(selectedOption)} // Properly handling onChange
+                          onChange={(selectedOption) => handleCountryChange(selectedOption,bankDetail.id)} // Properly handling onChange
                         />
 
                         {/* Validation Error Message */}
-                        {formSubmitted && errors.country && <div className="ValidationColor">{errors.country}</div>}
+                        {bankDetail.isNew && errors.country && <div className="ValidationColor">{errors.country}</div>}
                       </div>
                     </div>
 
@@ -1296,9 +1024,9 @@ const SectionReKYCDetails = () => {
                           // value={bankDetail.state}
                           // value={states.find(country => country.label === bankDetail.state) || {}}
                           value={selectedState}
-                          onChange={(selectedOption) => handleStateChange(selectedOption)}
+                          onChange={(selectedOption) => handleStateChange(selectedOption,bankDetail.id)}
                         />
-                        {formSubmitted &&errors.state && <div className="ValidationColor">{errors.state}</div>}
+                        {bankDetail.isNew && errors.state && <div className="ValidationColor">{errors.state}</div>}
                       </div>
                     </div>
 
@@ -1317,7 +1045,7 @@ const SectionReKYCDetails = () => {
                           value={bankDetail.city}
                           onChange={(e) => handleInputChange(e, bankDetail.id, 'city')}
                         />
-                        {formSubmitted && errors.city && <div className="ValidationColor">{errors.city}</div>}
+                        {bankDetail.isNew && errors.city && <div className="ValidationColor">{errors.city}</div>}
                       </div>
                     </div>
 
@@ -1336,7 +1064,7 @@ const SectionReKYCDetails = () => {
                           value={bankDetail.pin_code}
                           onChange={(e) => handleInputChange(e, bankDetail.id, 'pin_code')}
                         />
-                        { formSubmitted && errors.pin_code && <div className="ValidationColor">{errors.pin_code}</div>}
+                        {bankDetail.isNew && errors.pin_code && <div className="ValidationColor">{errors.pin_code}</div>}
                       </div>
                     </div>
 
@@ -1355,7 +1083,7 @@ const SectionReKYCDetails = () => {
                         value={bankDetail.account_type}
                         onChange={(e) => handleInputChange(e, bankDetail.id, 'account_type')}
                       />
-                      {formSubmitted && errors.account_type && <div className="ValidationColor">{errors.account_type}</div>}
+                      { bankDetail.isNew && errors.account_type && <div className="ValidationColor">{errors.account_type}</div>}
                     </div>
                   </div>
 
@@ -1369,13 +1097,13 @@ const SectionReKYCDetails = () => {
                         >Account Number <span>*</span></label>
                         <input
                           className="form-control"
-                          type="number"
+                          type="text"
                           placeholder="Enter Account Number"
                           value={bankDetail.account_number}
                           onChange={(e) => handleInputChange(e, bankDetail.id, 'account_number')}
                         />
 
-                      {formSubmitted && errors.account_number && <div className="ValidationColor">{errors.account_number}</div>}
+                      {bankDetail.isNew && errors.account_number && <div className="ValidationColor">{errors.account_number}</div>}
                     </div>
                   </div>
 
@@ -1389,13 +1117,13 @@ const SectionReKYCDetails = () => {
                       >Confirm Account Number <span>*</span></label>
                       <input
                         className="form-control"
-                        type="number"
+                        type="text"
                         placeholder="Enter Confirm Account Number"
                         value={bankDetail.confirm_account_number}
                         onChange={(e) => handleInputChange(e, bankDetail.id, 'confirm_account_number')}
                       />
-                      {formSubmitted && errors.confirm_account_number && <div className="ValidationColor">{errors.confirm_account_number}</div>}
-                      { formSubmitted && errors.account_match && <div className="ValidationColor">{errors.account_match}</div>}
+                      {bankDetail.isNew && errors.confirm_account_number && <div className="ValidationColor">{errors.confirm_account_number}</div>}
+                      {bankDetail.isNew && errors.account_match && <div className="ValidationColor">{errors.account_match}</div>}
                     </div>
                   </div>
 
@@ -1414,7 +1142,7 @@ const SectionReKYCDetails = () => {
                         value={bankDetail.branch_name}
                         onChange={(e) => handleInputChange(e, bankDetail.id, 'branch_name')}
                       />
-                      {formSubmitted && errors.branch_name && <div className="ValidationColor">{errors.branch_name}</div>}
+                      {bankDetail.isNew && errors.branch_name && <div className="ValidationColor">{errors.branch_name}</div>}
                     </div>
                   </div>
 
@@ -1433,7 +1161,7 @@ const SectionReKYCDetails = () => {
                         value={bankDetail.micr_number}
                         onChange={(e) => handleInputChange(e, bankDetail.id, 'micr_number')}
                       />
-                      {formSubmitted && errors.micr_number && <div className="ValidationColor">{errors.micr_number}</div>}
+                      {bankDetail.isNew && errors.micr_number && <div className="ValidationColor">{errors.micr_number}</div>}
                     </div>
                   </div>
 
@@ -1452,7 +1180,7 @@ const SectionReKYCDetails = () => {
                         value={bankDetail.ifsc_code}
                         onChange={(e) => handleInputChange(e, bankDetail.id, 'ifsc_code')}
                       />
-                      {formSubmitted && errors.ifsc_code && <div className="ValidationColor">{errors.ifsc_code}</div>}
+                      {bankDetail.isNew && errors.ifsc_code && <div className="ValidationColor">{errors.ifsc_code}</div>}
                     </div>
                   </div>
 
@@ -1471,7 +1199,7 @@ const SectionReKYCDetails = () => {
                         value={bankDetail.beneficiary_name}
                         onChange={(e) => handleInputChange(e, bankDetail.id, 'beneficiary_name')}
                       />
-                      {formSubmitted && errors.beneficiary_name && <div className="ValidationColor">{errors.beneficiary_name}</div>}
+                      {bankDetail.isNew && errors.beneficiary_name && <div className="ValidationColor">{errors.beneficiary_name}</div>}
                     </div>
                   </div>
 
@@ -1485,10 +1213,9 @@ const SectionReKYCDetails = () => {
                         >Cancelled Cheque / Bank Copy <span>*</span></label>
 
                         <span className="ms-2 ">
-                          <a
-                            href={bankDetail?.attachment} // PDF file URL
-
-                            download // Trigger download when clicked
+                        <a
+                            href={`https://vendors.lockated.com${bankDetail?.attachment}`} // Append base URL
+                            download // Ensure it triggers a download
                             className="text-primary d-flex align-items-center"
                           >
 
@@ -1521,14 +1248,14 @@ const SectionReKYCDetails = () => {
                         </a>
                       </span>
                       <input
-                        className="form-control"
+                        className="form-control mt-2"
                         type="file"
                         onChange={(e) => handleFileChangeBank(e, bankDetail.id)}
                          multiple
                         accept=".xlsx,.csv,.pdf,.docx,.doc,.xls,.txt,.png,.jpg,.jpeg,.zip,.rar,.jfif,.svg,.mp4,.mp3,.avi,.flv,.wmv"
                       />
                       
-                      { formSubmitted && errors.cancelled_cheque && <div className="ValidationColor">{errors.cancelled_cheque}</div>}
+                      {bankDetail.isNew && errors.cancelled_cheque && <div className="ValidationColor">{errors.cancelled_cheque}</div>}
                     </div>
                   </div>
 
@@ -1796,9 +1523,9 @@ const SectionReKYCDetails = () => {
                           MSME/Udyam Attachment <span>*</span>
                         </label>
                         <span className="ms-2">
-                          <a
-                            href={supplierData?.msme_details?.msme_attachments[0]?.file_url} // PDF file URL
-                            download // Trigger download when clicked
+                        <a
+                            href={`https://vendors.lockated.com${supplierData?.msme_details?.msme_attachments[0]?.file_url}`} // Append base URL
+                            download // Ensure it prompts download
                             className="text-primary d-flex align-items-center"
                           >
 
@@ -1832,7 +1559,7 @@ const SectionReKYCDetails = () => {
                         </span>
                         {/* <input className="form-control" type="file" name="" onChange={handleFileChange} /> */}
                         <input
-                        className="form-control"
+                        className="form-control mt-2"
                         type="file"
                         onChange={(e) =>
                           handleFileChange(e.target.files[0])
