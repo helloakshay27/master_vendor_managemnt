@@ -58,7 +58,8 @@ export default function SingleSelector({
   return (
     <Select
       options={options} // Options for dropdown
-      value={value} // Currently selected value
+      value={value} // Currently selected value4
+      // value={options.find((option) => option.value === value)} // Ensure the selected value is shown
       onChange={onChange} // Callback for when value changes
       placeholder={placeholder} // Placeholder text
       // className="basic-single-select" // Custom class
