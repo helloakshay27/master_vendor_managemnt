@@ -182,43 +182,84 @@ const ApprovalList = () => {
     }
   };
 
+  // const handleResetFilters = async () => {
+  //   setFilters({
+  //     company: null,
+  //     department: null,
+  //   });
+  
+  //   setSelectedCompany(null);
+  //   setSelectedDepartment(null);
+  
+  //   // Reset Pagination to Page 1
+  //   setPagination({
+  //     current_page: 1,
+  //     total_pages: 0,
+  //     total_count: 0,
+  //     per_page: pageSize, // Ensure per_page is reset
+  //   });
+  
+  //   try {
+  //     const response = await fetch(
+  //       `${baseURL}/pms/admin/invoice_approvals.json?q[approval_type_not_eq]=vendor_category&token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&page=1&page_size=${pageSize}`
+  //     );
+  //     if (!response.ok) throw new Error("Failed to fetch initial data");
+  
+  //     const data = await response.json();
+  //     setApprovals(data.invoice_approvals || []);
+  
+  //     setPagination({
+  //       current_page: 1,
+  //       total_pages: data.pagination?.total_pages || 1,
+  //       total_count: data.pagination?.total_records || 0,
+  //       per_page: data.pagination?.per_page || pageSize, // Ensure per_page is set
+  //     });
+  //   } catch (error) {
+  //     console.error("Error resetting filters:", error);
+  //   }
+  // };
+  
+  
   const handleResetFilters = async () => {
     setFilters({
       company: null,
-      site: null,
-      project: null,
       department: null,
-      materialtypes: null,
-      modules: null, // Reset module selection
     });
-
+  
     setSelectedCompany(null);
-
+    setSelectedDepartment(null);
+  
     // Reset Pagination to Page 1
-    setPagination((prev) => ({
-      ...prev,
+    setPagination({
       current_page: 1,
-    }));
-
+      total_pages: 0,
+      total_count: 0,
+      per_page: pageSize, // Ensure per_page is reset
+    });
+  
     try {
-      const response = await fetch(
-        `${baseURL}/pms/admin/invoice_approvals.json?q[approval_type_not_eq]=vendor_category&token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&page=1&page_size=${pageSize}`
-      );
+      const apiUrl = `${baseURL}/pms/admin/invoice_approvals.json?page=1&page_size=${pageSize}&token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`;
+  
+      const response = await fetch(apiUrl);
       if (!response.ok) throw new Error("Failed to fetch initial data");
-
+  
       const data = await response.json();
       setApprovals(data.invoice_approvals || []);
-
+  
       setPagination({
         current_page: 1,
-        total_pages: data.total_pages || 1,
-        total_count: data.total_records || 0,
+        total_pages: data.pagination?.total_pages || 1,
+        total_count: data.pagination?.total_records || 0,
+        per_page: data.pagination?.per_page || pageSize, // Ensure per_page is set
       });
     } catch (error) {
       console.error("Error resetting filters:", error);
     }
   };
+  
 
+
+  
   const pageNumbers = [];
   for (let i = 1; i <= pagination.total_pages; i++) {
     pageNumbers.push(i);
@@ -377,7 +418,7 @@ const ApprovalList = () => {
 
                     <button
                       className="col-md-1 purple-btn2 ms-2 mt-4"
-                      // onClick={handleResetFilters}
+                      onClick={handleResetFilters}
                     >
                       Reset
                     </button>
