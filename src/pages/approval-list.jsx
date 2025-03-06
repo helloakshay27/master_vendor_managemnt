@@ -13,10 +13,10 @@ import { baseURL } from "../confi/apiDomain";
 const ApprovalList = () => {
   const [approvals, setApprovals] = useState([]);
 
-  const [companies, setCompanies] = useState([]);
+  // const [companies, setCompanies] = useState([]);
   const [departments, setDepartments] = useState([]);
 
-  const [selectedCompany, setSelectedCompany] = useState(null);
+  // const [selectedCompany, setSelectedCompany] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const [selectedSite, setSelectedSite] = useState(null);
@@ -59,8 +59,8 @@ const ApprovalList = () => {
         let queryParams = new URLSearchParams();
 
         // Preserve filters when paginating
-        if (filters.company)
-          queryParams.append("q[company_id_eq]", filters.company);
+        // if (filters.company)
+        //   queryParams.append("q[company_id_eq]", filters.company);
 
         if (filters.department)
           queryParams.append("q[department_id_eq]", filters.department);
@@ -105,29 +105,34 @@ const ApprovalList = () => {
   useEffect(() => {
     const fetchDropdownData = async () => {
       try {
-        const [companyRes, departmentRes, userRes] = await Promise.all([
-          axios.get("https://vendors.lockated.com/pms/company_setups.json"),
+        const [
+          ,
+          // companyRes
+          departmentRes,
+          userRes,
+        ] = await Promise.all([
+          // axios.get("https://vendors.lockated.com/pms/company_setups.json"),
           axios.get("https://vendors.lockated.com/pms/departments.json"),
         ]);
 
-        console.log("Raw Company Data:", companyRes.data);
+        // console.log("Raw Company Data:", companyRes.data);
         console.log("Raw Department Data:", departmentRes.data);
 
         // Correctly map company and department data
-        const companyOptions = companyRes.data.map(([id, name]) => ({
-          value: id, // ID is the first element in the array
-          label: name, // Name is the second element
-        }));
+        // const companyOptions = companyRes.data.map(([id, name]) => ({
+        //   value: id, // ID is the first element in the array
+        //   label: name, // Name is the second element
+        // }));
 
         const departmentOptions = departmentRes.data.map(([id, name]) => ({
           value: id,
           label: name,
         }));
 
-        console.log("Processed Companies:", companyOptions);
+        // console.log("Processed Companies:", companyOptions);
         console.log("Processed Departments:", departmentOptions);
 
-        setCompanies(companyOptions);
+        // setCompanies(companyOptions);
         setDepartments(departmentOptions);
       } catch (error) {
         console.error("Error fetching dropdown data:", error);
@@ -137,9 +142,9 @@ const ApprovalList = () => {
     fetchDropdownData();
   }, []);
 
-  const handleCompanyChange = (selectedOption) => {
-    setSelectedCompany(selectedOption); // Set selected company
-  };
+  // const handleCompanyChange = (selectedOption) => {
+  //   setSelectedCompany(selectedOption); // Set selected company
+  // };
 
   const handleFilterChange = (field, value) => {
     setFilters((prevFilters) => ({
@@ -151,8 +156,8 @@ const ApprovalList = () => {
     e.preventDefault();
 
     let queryParams = new URLSearchParams();
-    if (filters.company)
-      queryParams.append("q[company_id_eq]", filters.company);
+    // if (filters.company)
+    //   queryParams.append("q[company_id_eq]", filters.company);
     if (filters.department)
       queryParams.append("q[department_id_eq]", filters.department);
 
@@ -182,53 +187,15 @@ const ApprovalList = () => {
     }
   };
 
-  // const handleResetFilters = async () => {
-  //   setFilters({
-  //     company: null,
-  //     department: null,
-  //   });
-  
-  //   setSelectedCompany(null);
-  //   setSelectedDepartment(null);
-  
-  //   // Reset Pagination to Page 1
-  //   setPagination({
-  //     current_page: 1,
-  //     total_pages: 0,
-  //     total_count: 0,
-  //     per_page: pageSize, // Ensure per_page is reset
-  //   });
-  
-  //   try {
-  //     const response = await fetch(
-  //       `${baseURL}/pms/admin/invoice_approvals.json?q[approval_type_not_eq]=vendor_category&token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&page=1&page_size=${pageSize}`
-  //     );
-  //     if (!response.ok) throw new Error("Failed to fetch initial data");
-  
-  //     const data = await response.json();
-  //     setApprovals(data.invoice_approvals || []);
-  
-  //     setPagination({
-  //       current_page: 1,
-  //       total_pages: data.pagination?.total_pages || 1,
-  //       total_count: data.pagination?.total_records || 0,
-  //       per_page: data.pagination?.per_page || pageSize, // Ensure per_page is set
-  //     });
-  //   } catch (error) {
-  //     console.error("Error resetting filters:", error);
-  //   }
-  // };
-  
-  
   const handleResetFilters = async () => {
     setFilters({
       company: null,
       department: null,
     });
-  
+
     setSelectedCompany(null);
     setSelectedDepartment(null);
-  
+
     // Reset Pagination to Page 1
     setPagination({
       current_page: 1,
@@ -236,16 +203,16 @@ const ApprovalList = () => {
       total_count: 0,
       per_page: pageSize, // Ensure per_page is reset
     });
-  
+
     try {
       const apiUrl = `${baseURL}/pms/admin/invoice_approvals.json?page=1&page_size=${pageSize}&token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`;
-  
+
       const response = await fetch(apiUrl);
       if (!response.ok) throw new Error("Failed to fetch initial data");
-  
+
       const data = await response.json();
       setApprovals(data.invoice_approvals || []);
-  
+
       setPagination({
         current_page: 1,
         total_pages: data.pagination?.total_pages || 1,
@@ -256,10 +223,7 @@ const ApprovalList = () => {
       console.error("Error resetting filters:", error);
     }
   };
-  
 
-
-  
   const pageNumbers = [];
   for (let i = 1; i <= pagination.total_pages; i++) {
     pageNumbers.push(i);
@@ -294,6 +258,53 @@ const ApprovalList = () => {
     setPagination((prev) => ({ ...prev, current_page: page }));
   };
 
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
+
+  const handleFileChange = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    setSelectedFile(file); // Accept all file types
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    if (!selectedFile) {
+      alert("Please select a file to upload.");
+      return;
+    }
+
+    setUploading(true);
+    const formData = new FormData();
+    formData.append("invoice_approval[approval_file]", selectedFile);
+
+    try {
+      const response = await axios.post(
+        "https://vendors.lockated.com/pms/admin/invoice_approvals/import_rekyc",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Accept: "application/json", // Ensures the API understands the request
+          },
+        }
+      );
+
+      alert("File uploaded successfully!");
+      console.log("Upload Response:", response.data);
+    } catch (error) {
+      console.error("Error uploading file:", error.response?.data || error);
+      alert(
+        `File upload failed: ${
+          error.response?.data?.message || "Please try again."
+        }`
+      );
+    } finally {
+      setUploading(false);
+    }
+  };
+
   return (
     <div>
       <div className="website-content" style={{ overflowY: "auto" }}>
@@ -314,7 +325,7 @@ const ApprovalList = () => {
                   <span className="material-symbols-outlined"> add </span>
                   <span>Add</span>
                 </button>
-                {/* <button
+                <button
                   className="purple-btn2"
                   fdprocessedid="xn3e6n"
                   data-bs-toggle="modal"
@@ -334,10 +345,10 @@ const ApprovalList = () => {
                 </button>
                 <a
                   className="d-flex btn-sm purple-btn1 my-2"
-                  href="/pms/admin/invoice_approvals/export.xlsx"
+                  href="https://vendors.lockated.com//pms/admin/invoice_approvals/export_rekyc.xlsx?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078411"
                 >
                   Export to Excel
-                </a> */}
+                </a>
               </div>
             </div>
             <div className="card mt-4 pb-4">
@@ -355,7 +366,7 @@ const ApprovalList = () => {
 
                   <div className="row my-2 align-items-end">
                     {/* Event Title */}
-                    <div className="col-md-3">
+                    {/* <div className="col-md-3">
                       <label htmlFor="event-title-select">Company</label>
 
                       <SingleSelector
@@ -378,7 +389,7 @@ const ApprovalList = () => {
                         placeholder="Select Company"
                         isSearchable={true}
                       />
-                    </div>
+                    </div> */}
 
                     {/* Event Number */}
 
@@ -584,7 +595,7 @@ const ApprovalList = () => {
             </div>
           </div>
 
-          {/* <div
+          <div
             className="modal fade"
             id="importModal"
             tabIndex={-1}
@@ -614,12 +625,7 @@ const ApprovalList = () => {
                   <div className="modal-body">
                     <section className="upload-div">
                       Drag & Drop or
-                      <input
-                        required="required"
-                        name="invoice_approval[approval_file]"
-                        type="file"
-                        id="approval_file"
-                      />
+                      <input type="file" onChange={handleFileChange} />
                     </section>
                   </div>
                   <div className="modal-footer">
@@ -627,22 +633,29 @@ const ApprovalList = () => {
                       download="Approval Import.xlsx"
                       target="_blank"
                       className="purple-btn1"
-                      href="/Approval Import.xlsx"
+                      href="https://vendors.lockated.com/Rekyc%20Approval%20Import.xlsx"
                     >
                       Download Sample Format
                     </a>
-                    <input
+                    {/* <inpu
                       type="submit"
                       name="commit"
                       defaultValue="Import"
                       className="purple-btn2"
                       data-disable-with="Import"
-                    />
+                    /> */}
+                    <button
+                      onClick={handleSubmit}
+                      className="purple-btn2"
+                      disabled={uploading}
+                    >
+                      {uploading ? "Uploading..." : "Import"}
+                    </button>
                   </div>
                 </div>
               </div>
             </div>
-          </div> */}
+          </div>
 
           {/* Dynamic tab content will be inserted here */}
         </div>
