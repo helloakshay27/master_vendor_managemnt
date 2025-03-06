@@ -297,6 +297,8 @@ const SectionReKYCDetails = () => {
   // bank
 
   const [bankDetailsList, setBankDetailsList] = useState([]);
+  const [deletedBankDetails, setDeletedBankDetails] = useState([]); // Store deleted bank details
+
 
   // Function to handle field changes
   
@@ -331,6 +333,7 @@ const SectionReKYCDetails = () => {
         ifsc_code: "",
         beneficiary_name: "",
         remark: "",
+        _destroy: "false",
         isNew: true, 
       },
     ]);
@@ -341,33 +344,95 @@ const SectionReKYCDetails = () => {
   // Function to delete bank details
   const deleteBankDetails = (id) => {
     setBankDetailsList(bankDetailsList.filter((item) => item.id !== id));
-    // setFormSubmitted(false)
+    // // setFormSubmitted(false)
+
+    // setBankDetailsList(bankDetailsList.map((item) =>
+    //   item.id === id
+    //     ? { ...item, _destroy: true } // Mark this bank detail as deleted
+    //     : item
+    // ));
+
+    // setBankDetailsList(bankDetailsList.map((item) =>
+    //   item.id === id
+    //     ? { ...item, _destroy: true } // Mark this bank detail as deleted
+    //     : item
+    // ));
+
+
+    // Store deleted bank details separately
+  const deletedItem = bankDetailsList.find((item) => item.id === id);
+  if (deletedItem) {
+    setDeletedBankDetails([...deletedBankDetails, { id, _destroy: true }]);
+  }
+
+
+
+    // setBankDetailsList(bankDetailsList.map((item) =>
+    //   item.id === id
+    //     ? { ...item, _destroy: true } // Mark this bank detail as deleted
+    //     : item
+    // ).filter(item => item._destroy !== true)); // Also filter out items with _destroy: true
   };
 
   const handleFileChangeBank = (e, id) => {
+    // const file = e.target.files[0]; // Get the selected file
+    // if (!file) return;
+
+    // // If you want to use base64 or file URLs, you can do something like this:
+    // const fileReader = new FileReader();
+
+    // fileReader.onloadend = () => {
+    //   // Update the `bankDetail` state with the file URL (base64 in this case)
+    //   const fileUrl = fileReader.result;
+    //   console.log("fiel url:",fileUrl)
+
+    //   setBankDetailsList((prevDetails) =>
+    //     prevDetails.map((bankDetail) =>
+    //       bankDetail.id === id
+    //         ? {
+    //           ...bankDetail,
+    //           attachment: fileUrl, // Set the file URL in the bank detail
+    //         }
+    //         : bankDetail
+    //     )
+    //   );
+    // };
+
+    // fileReader.readAsDataURL(file); // Read the file as a base64 string
+
+
     const file = e.target.files[0]; // Get the selected file
     if (!file) return;
-
-    // If you want to use base64 or file URLs, you can do something like this:
-    const fileReader = new FileReader();
-
-    fileReader.onloadend = () => {
-      // Update the `bankDetail` state with the file URL (base64 in this case)
-      const fileUrl = fileReader.result;
-
+  
+    // Create a FileReader to read the file as base64
+    const reader = new FileReader();
+  
+    reader.onloadend = () => {
+      // Extract the base64 string from the reader's result
+      const base64String = reader.result.split(",")[1];
+  
+      // Create the attachment object in the format you want
+      const attachment = {
+        filename: file.name,
+        content: base64String,
+        content_type: file.type,
+      };
+  
+      // Update the bankDetailsList with the new attachment
       setBankDetailsList((prevDetails) =>
         prevDetails.map((bankDetail) =>
           bankDetail.id === id
             ? {
-              ...bankDetail,
-              attachment: fileUrl, // Set the file URL in the bank detail
-            }
+                ...bankDetail,
+                attachment: attachment, // Update the attachment in the bank detail
+              }
             : bankDetail
         )
       );
     };
-
-    fileReader.readAsDataURL(file); // Read the file as a base64 string
+  
+    // Read the file as base64
+    reader.readAsDataURL(file);
   };
   console.log("banck details :", bankDetailsList);
 
@@ -433,7 +498,14 @@ const SectionReKYCDetails = () => {
       einvoicing: eInvoicingApplicable || "",
       einvoicing_attachments:
         eInvoicingApplicable === "No" ? einvoicingAttachments : [], //added
-      bank_details_attributes: bankDetailsList,
+      // bank_details_attributes: bankDetailsList,
+      bank_details_attributes: bankDetailsList.map((item) => ({
+        ...item,
+        id: item.isNew ? null : item.id, // Set id to null if it's a new entry
+        // _destroy: item._destroy ? true : null, // Convert _destroy to boolean or null
+      })),
+  
+      deletedBankDetails: deletedBankDetails, // Deleted bank details
       // {
       //   "1740052205996": { // Note this key remains a string
       //     _destroy: "false",
@@ -480,8 +552,8 @@ const SectionReKYCDetails = () => {
       if (bankDetail.isNew) {  // Only validate if it's a new entry
         if (!bankDetail.bank_name) validationErrors.bank_name = "Bank Name is required.";
         if (!bankDetail.address) validationErrors.address = "Address is required.";
-        if (!bankDetail.country) { validationErrors.country = "Country is required." };
-      if (!bankDetail.state) { validationErrors.state = "State is required." };
+        // if (!bankDetail.country) { validationErrors.country = "Country is required." };
+      // if (!bankDetail.state) { validationErrors.state = "State is required." };
       if (!bankDetail.city) { validationErrors.city = "City is required." } { };
       if (!bankDetail.pin_code || isNaN(bankDetail.pin_code)) { validationErrors.pin_code = "Valid Pin Code is required." };
       if (!bankDetail.account_type) { validationErrors.account_type = "Account Type is required." };
@@ -492,7 +564,7 @@ const SectionReKYCDetails = () => {
       if (!bankDetail.micr_number) { validationErrors.micr_number = "MICR Number is required." };
       if (!bankDetail.ifsc_code) { validationErrors.ifsc_code = "IFSC Code is required." };
       if (!bankDetail.beneficiary_name) { validationErrors.beneficiary_name = "Beneficiary Name is required." };
-      if (!bankDetail.cancelled_cheque) { validationErrors.cancelled_cheque = "Cancelled Cheque / Bank Copy is required." };
+      // if (!bankDetail.cancelled_cheque) { validationErrors.cancelled_cheque = "Cancelled Cheque / Bank Copy is required." };
 
         // Add other validation checks here
       }
@@ -1251,6 +1323,11 @@ const SectionReKYCDetails = () => {
                         className="form-control mt-2"
                         type="file"
                         onChange={(e) => handleFileChangeBank(e, bankDetail.id)}
+
+                        // onChange={(e) =>
+                        //   handleFileChange(e.target.files[0])
+                        // }
+                        ref={fileInputRef}
                          multiple
                         accept=".xlsx,.csv,.pdf,.docx,.doc,.xls,.txt,.png,.jpg,.jpeg,.zip,.rar,.jfif,.svg,.mp4,.mp3,.avi,.flv,.wmv"
                       />
