@@ -10,9 +10,9 @@ import SingleSelector from "../components/base/Select/SingleSelector";
 
 const ApprovalMatrix = () => {
   const navigate = useNavigate(); //  navigate
-  const [companies, setCompanies] = useState([]);
+  // const [companies, setCompanies] = useState([]);
   const [departments, setDepartments] = useState([]);
-  const [selectedCompany, setSelectedCompany] = useState(null);
+  // const [selectedCompany, setSelectedCompany] = useState(null);
   const [selectedDepartment, setSelectedDepartment] = useState(null);
 
   const [approvalLevels, setApprovalLevels] = useState([
@@ -32,30 +32,30 @@ const ApprovalMatrix = () => {
   useEffect(() => {
     const fetchDropdownData = async () => {
       try {
-        const [companyRes, departmentRes, userRes] = await Promise.all([
-          axios.get("https://vendors.lockated.com/pms/company_setups.json"),
+        const [ departmentRes, userRes] = await Promise.all([
+          // axios.get("https://vendors.lockated.com/pms/company_setups.json"),
           axios.get("https://vendors.lockated.com/pms/departments.json"),
           axios.get("https://vendors.lockated.com/users.json"),
         ]);
 
-        console.log("Raw Company Data:", companyRes.data);
+        // console.log("Raw Company Data:", companyRes.data);
         console.log("Raw Department Data:", departmentRes.data);
 
         // Correctly map company and department data
-        const companyOptions = companyRes.data.map(([id, name]) => ({
-          value: id, // ID is the first element in the array
-          label: name, // Name is the second element
-        }));
+        // const companyOptions = companyRes.data.map(([id, name]) => ({
+        //   value: id, // ID is the first element in the array
+        //   label: name, // Name is the second element
+        // }));
 
         const departmentOptions = departmentRes.data.map(([id, name]) => ({
           value: id,
           label: name,
         }));
 
-        console.log("Processed Companies:", companyOptions);
+        // console.log("Processed Companies:", companyOptions);
         console.log("Processed Departments:", departmentOptions);
 
-        setCompanies(companyOptions);
+        // setCompanies(companyOptions);
         setDepartments(departmentOptions);
         setUsers(
           userRes.data.map(({ id, full_name }) => ({
@@ -97,16 +97,18 @@ const ApprovalMatrix = () => {
   });
   useEffect(() => {
     setFormData({
-      company_id: selectedCompany ? selectedCompany.value : null,
+      // company_id: selectedCompany ? selectedCompany.value : null,
       department_id: selectedDepartment ? selectedDepartment.value : null,
       approval_type: selectedKYCType ? selectedKYCType.value : "",
     });
-  }, [selectedCompany, selectedDepartment, selectedKYCType]);
+  }, [
+    // selectedCompany
+    , selectedDepartment, selectedKYCType]);
 
-  const handleCompanyChange = (selected) => {
-    console.log("Selected Company:", selected);
-    setSelectedCompany(selected);
-  };
+  // const handleCompanyChange = (selected) => {
+  //   console.log("Selected Company:", selected);
+  //   setSelectedCompany(selected);
+  // };
 
   const handleDepartmentChange = (selected) => {
     console.log("Selected Department:", selected);
@@ -129,7 +131,7 @@ const ApprovalMatrix = () => {
 
   const handleCreate = async () => {
     const finalFormData = {
-      company_id: selectedCompany ? selectedCompany.value : null,
+      // company_id: selectedCompany ? selectedCompany.value : null,
       department_id: selectedDepartment ? selectedDepartment.value : null,
       approval_type: selectedKYCType ? selectedKYCType.value : "", // Fix here
     };
@@ -137,7 +139,7 @@ const ApprovalMatrix = () => {
     console.log("Final Form Data Before Submit:", finalFormData);
 
     if (
-      !finalFormData.company_id ||
+      // !finalFormData.company_id ||
       !finalFormData.department_id ||
       !finalFormData.approval_type
     ) {
@@ -146,7 +148,7 @@ const ApprovalMatrix = () => {
     }
 
     const payload = {
-      company_id: finalFormData.company_id,
+      // company_id: finalFormData.company_id,
       department_id: finalFormData.department_id,
       approval_type: "vendor_rekyc",
       approval_function: finalFormData.approval_type,
@@ -169,7 +171,7 @@ const ApprovalMatrix = () => {
       console.log("API Response:", response.data);
       alert("Approval Matrix Created Successfully!");
 
-      setSelectedCompany(null);
+      // setSelectedCompany(null);
       setSelectedDepartment(null);
       setSelectedKYCType([]);
       setApprovalLevels([{ order: "", name: "", users: [] }]); // Reset to initial empty level
@@ -235,7 +237,7 @@ const ApprovalMatrix = () => {
                           <div>
                             <div className="row my-2 align-items-end">
                               {/* Event Title */}
-                              <div className="col-md-3">
+                              {/* <div className="col-md-3">
                                 <label htmlFor="event-title-select">
                                   Select Comapny
                                 </label>
@@ -246,7 +248,7 @@ const ApprovalMatrix = () => {
                                   onChange={handleCompanyChange}
                                   placeholder="select comapny"
                                 />
-                              </div>
+                              </div> */}
 
                               {/* Status */}
                               <div className="col-md-3">
