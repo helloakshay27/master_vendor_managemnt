@@ -79,6 +79,8 @@ const SectionReKYCDetails = () => {
       "If you choose 'No' for e-invoicing, a specimen format will be available for download. This is for businesses not subject to e-invoicing under GST regulations. Please upload a signed declaration stating that your organization is not registered.The document must be uploaded in PDF format.",
     UploadDeclaration:
       "If you choose E-Invoice applicable 'No', please upload a signed declaration document to verify the details you have submitted. The document must be uploaded in PDF format.Ensure that the document is clear, legible, and properly signed.",
+      GSTINApplicable:"Indicate whether your organization is registered under the Goods and Services Tax (GST) Act. Select 'Yes' if GSTIN is applicable to your organization.",
+      GSTINAttachment:"Upload a digital copy of the official GSTIN certificate or document showing your GST registration number. Ensure the document is legible and valid."
   });
 
   useEffect(() => {
@@ -131,6 +133,22 @@ const SectionReKYCDetails = () => {
     };
     reader.readAsDataURL(file);
   };
+
+  // For handling MSME attachments (storing encrypted files)
+  const handleFileChange2 = (file) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64String = reader.result.split(",")[1];
+      const attachment = {
+        filename: file.name,
+        content: base64String,
+        content_type: file.type,
+      };
+      setEinvoicingAttachments([...einvoicingAttachments, attachment]);
+    };
+    reader.readAsDataURL(file);
+  };
+
 
   const handleFileChangegst = (event) => {
     const files = event.target.files;
@@ -214,9 +232,9 @@ const SectionReKYCDetails = () => {
       // setGstClassification(response.data?.gst_classification);
       setGstinNumber(response.data?.gstin || ""); // Set GSTIN
       // setSelectedCountry(response.data?.bank_details.country)
-      setGstinAttachments(
-        response.data?.basic_information?.gstin_attachments || []
-      );
+      // setGstinAttachments(
+      //   response.data?.basic_information?.gstin_attachments || []
+      // );
 
       setGstApplicable(
         response.data?.gstin_applicable === "Yes" ? "Yes" : "No"
@@ -359,13 +377,13 @@ const SectionReKYCDetails = () => {
                 prevDetails.map((prevBankDetail) =>
                   prevBankDetail.id === bankDetail.id
                     ? {
-                        ...prevBankDetail,
-                        stateOptions: formattedStates,
-                        selectedState:
-                          formattedStates.find(
-                            (state) => state.label === bankDetail.state
-                          ) || null,
-                      }
+                      ...prevBankDetail,
+                      stateOptions: formattedStates,
+                      selectedState:
+                        formattedStates.find(
+                          (state) => state.label === bankDetail.state
+                        ) || null,
+                    }
                     : prevBankDetail
                 )
               );
@@ -402,6 +420,7 @@ const SectionReKYCDetails = () => {
 
   const [bankDetailsList, setBankDetailsList] = useState([]);
   const [deletedBankDetails, setDeletedBankDetails] = useState([]); // Store deleted bank details
+  const [bankAttachments, setBankAttachments] = useState([]); // State for bank attachments
 
   // Function to handle field changes
 
@@ -420,20 +439,20 @@ const SectionReKYCDetails = () => {
       ...bankDetailsList,
       {
         id: Date.now(),
-        bank_name: "",
-        address: "",
-        country: "",
-        state: "",
-        city: "",
-        pin_code: "",
-        account_type: "",
-        account_number: "",
-        confirm_account_number: "",
-        branch_name: "",
-        micr_number: "",
-        ifsc_code: "",
-        beneficiary_name: "",
-        remark: "",
+        bank_name: null,
+        address: null,
+        country: null,
+        state: null,
+        city: null,
+        pin_code: null,
+        account_type: null,
+        account_number: null,
+        confirm_account_number: null,
+        branch_name: null,
+        micr_number: null,
+        ifsc_code: null,
+        beneficiary_name: null,
+        remark: null,
         _destroy: "false",
         isNew: true,
       },
@@ -472,65 +491,22 @@ const SectionReKYCDetails = () => {
     // ).filter(item => item._destroy !== true)); // Also filter out items with _destroy: true
   };
 
-  const handleFileChangeBank = (e, id) => {
-    // const file = e.target.files[0]; // Get the selected file
-    // if (!file) return;
-
-    // // If you want to use base64 or file URLs, you can do something like this:
-    // const fileReader = new FileReader();
-
-    // fileReader.onloadend = () => {
-    //   // Update the `bankDetail` state with the file URL (base64 in this case)
-    //   const fileUrl = fileReader.result;
-    //   console.log("fiel url:",fileUrl)
-
-    //   setBankDetailsList((prevDetails) =>
-    //     prevDetails.map((bankDetail) =>
-    //       bankDetail.id === id
-    //         ? {
-    //           ...bankDetail,
-    //           attachment: fileUrl, // Set the file URL in the bank detail
-    //         }
-    //         : bankDetail
-    //     )
-    //   );
-    // };
-
-    // fileReader.readAsDataURL(file); // Read the file as a base64 string
-
-    const file = e.target.files[0]; // Get the selected file
-    if (!file) return;
-
-    // Create a FileReader to read the file as base64
+  const handleFileChangeBank = (file) => {
     const reader = new FileReader();
-
     reader.onloadend = () => {
-      // Extract the base64 string from the reader's result
       const base64String = reader.result.split(",")[1];
-
-      // Create the attachment object in the format you want
       const attachment = {
         filename: file.name,
         content: base64String,
         content_type: file.type,
       };
-
-      // Update the bankDetailsList with the new attachment
-      setBankDetailsList((prevDetails) =>
-        prevDetails.map((bankDetail) =>
-          bankDetail.id === id
-            ? {
-                ...bankDetail,
-                attachment: attachment, // Update the attachment in the bank detail
-              }
-            : bankDetail
-        )
-      );
+      setBankAttachments([...bankAttachments, attachment]);
     };
-
-    // Read the file as base64
     reader.readAsDataURL(file);
   };
+
+
+ 
   console.log("banck details :", bankDetailsList);
 
   // Define state for form fields
@@ -560,20 +536,20 @@ const SectionReKYCDetails = () => {
   };
 
   // Handle eInvoicing File Change
-  const handleEinvoicingFileChange = (event) => {
-    const file = event.target.files[0]; // Get the selected file
+  // const handleEinvoicingFileChange = (event) => {
+  //   const file = event.target.files[0]; // Get the selected file
 
-    if (file) {
-      const attachment = {
-        content_type: file.type, // Content type (e.g., "application/pdf")
-        contect: file, // The file object itself
-        filename: file.name, // File name
-      };
+  //   if (file) {
+  //     const attachment = {
+  //       content_type: file.type, // Content type (e.g., "application/pdf")
+  //       contect: file, // The file object itself
+  //       filename: file.name, // File name
+  //     };
 
-      // Update the eInvoicing attachments state
-      setEinvoicingAttachments([...einvoicingAttachments, attachment]);
-    }
-  };
+  //     // Update the eInvoicing attachments state
+  //     setEinvoicingAttachments([...einvoicingAttachments, attachment]);
+  //   }
+  // };
 
   // edit pay load
 
@@ -596,22 +572,18 @@ const SectionReKYCDetails = () => {
       // bank_details_attributes: bankDetailsList,
       bank_details_attributes: bankDetailsList.map((item) => ({
         ...item,
-        id: item.isNew ? null : item.id, // Set id to null if it's a new entry
+        id: item.isNew? null : item.id, // Set id to null if it's a new entry
+        attachment:item.isNew? bankAttachments: null,
         // _destroy: item._destroy ? true : null, // Convert _destroy to boolean or null
       })),
 
-      deletedBankDetails: deletedBankDetails,
+      deletedBankDetails: deletedBankDetails, //deleted details
 
       gstin_applicable: gstApplicable || "",
       gst_classification_id: gstClassification?.value || "",
       gstin: gstinNumber || "",
       // gstin_attachments: gstinAttachments || [],
-      gstin_attachments:
-        gstinAttachments.length > 0
-          ? gstinAttachments // If new files are uploaded, send them
-          : supplierData?.basic_information?.gstin_attachments?.length > 0
-          ? null // If existing files are present, pass null
-          : [], // Otherwise, send an empty array
+      gstin_attachments:gstinAttachments
     },
   };
 
@@ -712,14 +684,14 @@ const SectionReKYCDetails = () => {
           "MSME Enterprise Type is required.";
       }
 
-      // Validate MSME/Udyam Attachment if MSME/Udyam is applicable
-      if (msmeUdyamApplicable === "Yes" && !msmeAttachments) {
-        validationErrors.msmeAttachments = "MSME/Udyam Attachment is required.";
-      }
+      // // Validate MSME/Udyam Attachment if MSME/Udyam is applicable
+      // if (msmeUdyamApplicable === "Yes" && supplierData?.msme_details?.msme_attachments?.length ===0) {
+      //   validationErrors.msmeAttachments = "MSME/Udyam Attachment is required.";
+      // }
 
       if (
         msmeUdyamApplicable === "Yes" &&
-        (!msmeAttachments || msmeAttachments.length === 0)
+        (supplierData?.msme_details?.msme_attachments ?.length === 0)
       ) {
         validationErrors.msmeAttachments = "MSME/Udyam Attachment is required.";
       }
@@ -732,7 +704,7 @@ const SectionReKYCDetails = () => {
         validationErrors.gstClassification = "GST Classification is required.";
       if (!gstinNumber)
         validationErrors.gstinNumber = "GSTIN Number is required.";
-      if (!gstinAttachments || gstinAttachments.length === 0)
+      if (supplierData?.basic_information?.gstin_attachments.length === 0)
         validationErrors.gstinAttachments = "GSTIN Attachment is required.";
     }
 
@@ -748,8 +720,37 @@ const SectionReKYCDetails = () => {
       // return false; // Return false if there are validation errors
       return setErrors(validationErrors);
     } else {
+      // const payload = {
+      //   authenticity_token: "[FILTERED]", // Add your actual token or logic to get it
+      //   vendor_re_kyc: {
+      //     status: "details_submitted_by_vendor",
+      //   },
+      //   pms_supplier: {
+      //     rekyc_id: rekycId,
+      //     msme: msmeUdyamApplicable || "",
+      //     msme_no: msmeUdyamApplicable === "No" ? "" : msmeNo || "",
+      //     valid_from: msmeUdyamApplicable === "No" ? "" : validFrom || "",
+      //     valid_till: msmeUdyamApplicable === "No" ? "" : validTill || "",
+      //     enterprise:
+      //       msmeUdyamApplicable === "No" ? "" : msmeEnterpriseType || "",
+      //     msme_attachments: msmeUdyamApplicable === "No" ? [] : msmeAttachments,
+      //     einvoicing: eInvoicingApplicable || "",
+      //     einvoicing_attachments:
+      //       eInvoicingApplicable === "No" ? einvoicingAttachments : [],
+      //     bank_details_attributes: bankDetailsList,
+
+      //     gstin_applicable: gstApplicable || "",
+      //     gst_classification_id: gstClassification?.value || "",
+      //     gstin: gstApplicable === "No" ? "" : gstinNumber || "",
+      //     gstin_attachments:
+      //       gstApplicable === "No" ? [] : gstinAttachments || [],
+      //   },
+      // };
+
+
+
       const payload = {
-        authenticity_token: "[FILTERED]", // Add your actual token or logic to get it
+        authenticity_token: "[FILTERED]", // No quotes for the token value, but the key is a string
         vendor_re_kyc: {
           status: "details_submitted_by_vendor",
         },
@@ -759,22 +760,34 @@ const SectionReKYCDetails = () => {
           msme_no: msmeUdyamApplicable === "No" ? "" : msmeNo || "",
           valid_from: msmeUdyamApplicable === "No" ? "" : validFrom || "",
           valid_till: msmeUdyamApplicable === "No" ? "" : validTill || "",
-          enterprise:
-            msmeUdyamApplicable === "No" ? "" : msmeEnterpriseType || "",
+          enterprise: msmeUdyamApplicable === "No" ? "" : msmeEnterpriseType || "",
           msme_attachments: msmeUdyamApplicable === "No" ? [] : msmeAttachments,
           einvoicing: eInvoicingApplicable || "",
           einvoicing_attachments:
-            eInvoicingApplicable === "No" ? einvoicingAttachments : [],
-          bank_details_attributes: bankDetailsList,
-
+            eInvoicingApplicable === "No" ? einvoicingAttachments : [], //added
+          // bank_details_attributes: bankDetailsList,
+          bank_details_attributes: bankDetailsList.map((item) => ({
+            ...item,
+            id: item.isNew? null : item.id, // Set id to null if it's a new entry
+            attachment:item.isNew? bankAttachments: null,
+            // _destroy: item._destroy ? true : null, // Convert _destroy to boolean or null
+          })),
+    
+          deletedBankDetails: deletedBankDetails, //deleted details
+    
           gstin_applicable: gstApplicable || "",
           gst_classification_id: gstClassification?.value || "",
-          gstin: gstApplicable === "No" ? "" : gstinNumber || "",
-          gstin_attachments:
-            gstApplicable === "No" ? [] : gstinAttachments || [],
+          gstin: gstinNumber || "",
+          // gstin_attachments: gstinAttachments || [],
+          gstin_attachments:gstinAttachments
+            // gstinAttachments.length > 0
+            //   ? gstinAttachments // If new files are uploaded, send them
+            //   : supplierData?.basic_information?.gstin_attachments?.length > 0
+            //     ? null // If existing files are present, pass null
+            //     : [], // Otherwise, send an empty array
         },
       };
-
+    
       console.log("payload submition", payload);
 
       try {
@@ -1041,10 +1054,10 @@ const SectionReKYCDetails = () => {
                       {supplierData?.basic_information?.pan_attachments
                         ?.length > 0
                         ? // Display the document name of the first attachment
-                          supplierData?.basic_information?.pan_attachments[0]
-                            ?.document_name
+                        supplierData?.basic_information?.pan_attachments[0]
+                          ?.document_name
                         : // If no attachment is present, show a default message
-                          "No Document Available"}
+                        "No Document Available"}
                     </label>
                   </div>
                 </div>
@@ -1127,10 +1140,10 @@ const SectionReKYCDetails = () => {
                       {supplierData?.basic_information?.gstin_attachments
                         ?.length > 0
                         ? // Display the document name of the first attachment
-                          supplierData?.basic_information?.gstin_attachments[0]
-                            ?.document_name || "No Document Available"
+                        supplierData?.basic_information?.gstin_attachments[0]
+                          ?.document_name || "No Document Available"
                         : // If no attachment is present, show a default message
-                          "No Document Available"}
+                        "No Document Available"}
                     </label>
                   </div>
                 </div>
@@ -1152,7 +1165,7 @@ const SectionReKYCDetails = () => {
                     <label
                       data-bs-toggle="tooltip"
                       data-bs-placement="top"
-                      title={tooltipMessages.MSMEUdyamNumberApplicable}
+                      title={tooltipMessages.GSTINApplicable}
                     >
                       GSTIN Applicable<span></span>
                     </label>
@@ -1271,7 +1284,8 @@ const SectionReKYCDetails = () => {
                       <label
                         data-bs-toggle="tooltip"
                         data-bs-placement="top"
-                        title="Upload your official GSTIN certificate"
+                        // title="Upload your official GSTIN certificate"
+                        title={tooltipMessages.GSTINAttachment}
                       >
                         GSTIN Attachment<span>*</span>
                       </label>
@@ -1279,8 +1293,8 @@ const SectionReKYCDetails = () => {
                       {/* Display existing attachments dynamically */}
                       <div className="existing-files d-flex align-items-center">
                         <p className="mb-0 me-2">Existing Files:</p>
-                        {gstinAttachments.length > 0 ? (
-                          gstinAttachments.map((file, index) => (
+                        {supplierData?.basic_information?.gstin_attachments.length > 0 ? (
+                          supplierData?.basic_information?.gstin_attachments.map((file, index) => (
                             <a
                               key={index}
                               href={`https://vendors.lockated.com${file.file_url}`} // Append base URL
@@ -1382,7 +1396,7 @@ const SectionReKYCDetails = () => {
                         )}
 
                         {/* {errors.bank_name && <div className="invalid-feedback">{errors.bank_name}</div>} */}
-                        {console.log(errors.bank_name)}
+                        {/* {console.log(errors.bank_name)} */}
                       </div>
                     </div>
 
@@ -1754,11 +1768,11 @@ const SectionReKYCDetails = () => {
                             >
                               <path
                                 d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
-                                // style={{ fill: "#de7008!important" }}
+                              // style={{ fill: "#de7008!important" }}
                               />
                               <path
                                 d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
-                                // style={{ fill: "#de7008!important" }}
+                              // style={{ fill: "#de7008!important" }}
                               />
                             </svg>
 
@@ -1771,7 +1785,7 @@ const SectionReKYCDetails = () => {
                               "No Document Available"} */}
                           </a>
                         </span>
-                        <input
+                        {/* <input
                           className="form-control mt-2"
                           type="file"
                           onChange={(e) =>
@@ -1780,6 +1794,15 @@ const SectionReKYCDetails = () => {
                           // onChange={(e) =>
                           //   handleFileChange(e.target.files[0])
                           // }
+                          ref={fileInputRef}
+                          multiple
+                          accept=".xlsx,.csv,.pdf,.docx,.doc,.xls,.txt,.png,.jpg,.jpeg,.zip,.rar,.jfif,.svg,.mp4,.mp3,.avi,.flv,.wmv"
+                        /> */}
+
+                        <input
+                          className="form-control mt-2"
+                          type="file"
+                          onChange={(e) => handleFileChangeBank(e.target.files[0])}
                           ref={fileInputRef}
                           multiple
                           accept=".xlsx,.csv,.pdf,.docx,.doc,.xls,.txt,.png,.jpg,.jpeg,.zip,.rar,.jfif,.svg,.mp4,.mp3,.avi,.flv,.wmv"
@@ -1825,43 +1848,7 @@ const SectionReKYCDetails = () => {
             </div>
           )}
 
-          {/* Address */}
-          {/* <div className="col-md-4">
-                    <div className="form-group">
-                      <label>
-                        Address <span>*</span>
-                      </label>
-                      <input
-                        className="form-control"
-                        type="text"
-                        placeholder="Enter Address"
-                        value={bankDetail.address}
-                        onChange={(e) =>
-                          handleInputChange(e, bankDetail.id, "address")
-                        }
-                      />
-                    </div>
-                  </div> */}
-
-          {/* Country */}
-          {/* <div className="col-md-4">
-                    <div className="form-group">
-                      <label>
-                        Country <span>*</span>
-                      </label>
-                      <SingleSelector
-                        options={countries}
-                        value={selectedCountry}
-                        onChange={
-                          (selectedOption) =>
-                            handleCountryChange(selectedOption)
-                          // console.log("selected option onchange :",selectedOption)
-                        }
-                        // onChange={(e) => handleCountryChange(e, bankDetail.id)}  // Pass the bankDetail.id here
-                      />
-                    </div>
-                  </div> */}
-
+         
           {/* rekeyc type present  */}
 
           {(isRekycTypeEmpty || isMsmeRekyc) && (
@@ -1923,7 +1910,7 @@ const SectionReKYCDetails = () => {
                           placeholder=""
                           value={msmeNo}
                           onChange={handleMsmeNoChange} // Add onChange handler here
-                          // value={supplierData?.msme_details?.msme_no}
+                        // value={supplierData?.msme_details?.msme_no}
                         />
                         {errors.msmeNo && (
                           <div className="ValidationColor">{errors.msmeNo}</div>
@@ -1951,7 +1938,7 @@ const SectionReKYCDetails = () => {
                           placeholder=""
                           value={validFrom}
                           onChange={handleValidFromChange} // Add onChange handler here
-                          // value={supplierData?.msme_details?.valid_from}
+                        // value={supplierData?.msme_details?.valid_from}
                         />
                         {errors.validFrom && (
                           <div className="ValidationColor">
@@ -1981,7 +1968,7 @@ const SectionReKYCDetails = () => {
                           placeholder=""
                           value={validTill}
                           onChange={handleValidTillChange}
-                          // value={supplierData?.msme_details?.valid_till}
+                        // value={supplierData?.msme_details?.valid_till}
                         />
                         {errors.validTill && (
                           <div className="ValidationColor">
@@ -2090,21 +2077,21 @@ const SectionReKYCDetails = () => {
                             >
                               <path
                                 d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
-                                // style={{ fill: "#de7008!important" }}
+                              // style={{ fill: "#de7008!important" }}
                               />
                               <path
                                 d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
-                                // style={{ fill: "#de7008!important" }}
+                              // style={{ fill: "#de7008!important" }}
                               />
                             </svg>
 
                             {supplierData?.msme_details?.msme_attachments
                               ?.length > 0
                               ? // Display the document name of the first attachment
-                                supplierData?.msme_details?.msme_attachments[0]
-                                  ?.document_name
+                              supplierData?.msme_details?.msme_attachments[0]
+                                ?.document_name
                               : // If no attachment is present, show a default message
-                                "No Document Available"}
+                              "No Document Available"}
                           </a>
                         </span>
                         {/* <input className="form-control" type="file" name="" onChange={handleFileChange} /> */}
@@ -2200,21 +2187,21 @@ const SectionReKYCDetails = () => {
                           >
                             <path
                               d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
-                              // style={{ fill: "#de7008!important" }}
+                            // style={{ fill: "#de7008!important" }}
                             />
                             <path
                               d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
-                              // style={{ fill: "#de7008!important" }}
+                            // style={{ fill: "#de7008!important" }}
                             />
                           </svg>
 
                           {supplierData?.msme_details?.msme_attachments
                             ?.length > 0
                             ? // Display the document name of the first attachment
-                              supplierData?.msme_details?.msme_attachments[0]
-                                ?.document_name
+                            supplierData?.msme_details?.msme_attachments[0]
+                              ?.document_name
                             : // If no attachment is present, show a default message
-                              "No Document Available"}
+                            "No Document Available"}
                         </a>
                       </span>
                       <input
@@ -2304,13 +2291,22 @@ const SectionReKYCDetails = () => {
                         <label>
                           Upload Declaration <span>*</span>
                         </label>
-                        <input
+                        {/* <input
                           id="attachment"
                           accept=" "
                           className="form-control"
                           type="file"
                           name=""
                           onChange={handleEinvoicingFileChange}
+                        /> */}
+
+                        <input
+                          className="form-control mt-2"
+                          type="file"
+                          onChange={(e) => handleFileChange2(e.target.files[0])}
+                          ref={fileInputRef}
+                          multiple
+                          accept=".xlsx,.csv,.pdf,.docx,.doc,.xls,.txt,.png,.jpg,.jpeg,.zip,.rar,.jfif,.svg,.mp4,.mp3,.avi,.flv,.wmv"
                         />
                       </div>
                     </div>
