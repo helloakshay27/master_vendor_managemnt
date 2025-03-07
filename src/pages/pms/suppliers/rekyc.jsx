@@ -79,8 +79,10 @@ const SectionReKYCDetails = () => {
       "If you choose 'No' for e-invoicing, a specimen format will be available for download. This is for businesses not subject to e-invoicing under GST regulations. Please upload a signed declaration stating that your organization is not registered.The document must be uploaded in PDF format.",
     UploadDeclaration:
       "If you choose E-Invoice applicable 'No', please upload a signed declaration document to verify the details you have submitted. The document must be uploaded in PDF format.Ensure that the document is clear, legible, and properly signed.",
-      GSTINApplicable:"Indicate whether your organization is registered under the Goods and Services Tax (GST) Act. Select 'Yes' if GSTIN is applicable to your organization.",
-      GSTINAttachment:"Upload a digital copy of the official GSTIN certificate or document showing your GST registration number. Ensure the document is legible and valid."
+    GSTINApplicable:
+      "Indicate whether your organization is registered under the Goods and Services Tax (GST) Act. Select 'Yes' if GSTIN is applicable to your organization.",
+    GSTINAttachment:
+      "Upload a digital copy of the official GSTIN certificate or document showing your GST registration number. Ensure the document is legible and valid.",
   });
 
   useEffect(() => {
@@ -148,7 +150,6 @@ const SectionReKYCDetails = () => {
     };
     reader.readAsDataURL(file);
   };
-
 
   const handleFileChangegst = (event) => {
     const files = event.target.files;
@@ -377,13 +378,13 @@ const SectionReKYCDetails = () => {
                 prevDetails.map((prevBankDetail) =>
                   prevBankDetail.id === bankDetail.id
                     ? {
-                      ...prevBankDetail,
-                      stateOptions: formattedStates,
-                      selectedState:
-                        formattedStates.find(
-                          (state) => state.label === bankDetail.state
-                        ) || null,
-                    }
+                        ...prevBankDetail,
+                        stateOptions: formattedStates,
+                        selectedState:
+                          formattedStates.find(
+                            (state) => state.label === bankDetail.state
+                          ) || null,
+                      }
                     : prevBankDetail
                 )
               );
@@ -505,8 +506,6 @@ const SectionReKYCDetails = () => {
     reader.readAsDataURL(file);
   };
 
-
- 
   console.log("banck details :", bankDetailsList);
 
   // Define state for form fields
@@ -572,18 +571,25 @@ const SectionReKYCDetails = () => {
       // bank_details_attributes: bankDetailsList,
       bank_details_attributes: bankDetailsList.map((item) => ({
         ...item,
-        id: item.isNew? null : item.id, // Set id to null if it's a new entry
-        attachment:item.isNew? bankAttachments: null,
+        id: item.isNew ? null : item.id, // Set id to null if it's a new entry
+        attachment: item.isNew ? bankAttachments : null,
         // _destroy: item._destroy ? true : null, // Convert _destroy to boolean or null
       })),
 
       deletedBankDetails: deletedBankDetails, //deleted details
 
+      // gstin_applicable: gstApplicable || "",
+      // gst_classification_id: gstClassification?.value || "",
+      // gstin: gstinNumber || "",
+      // // gstin_attachments: gstinAttachments || [],
+      // gstin_attachments: gstinAttachments,
+
       gstin_applicable: gstApplicable || "",
-      gst_classification_id: gstClassification?.value || "",
-      gstin: gstinNumber || "",
-      // gstin_attachments: gstinAttachments || [],
-      gstin_attachments:gstinAttachments
+      ...(gstApplicable === "Yes" && {
+        gst_classification_id: gstClassification?.value || "",
+        gstin: gstinNumber || "",
+        gstin_attachments: gstinAttachments,
+      }),
     },
   };
 
@@ -691,7 +697,7 @@ const SectionReKYCDetails = () => {
 
       if (
         msmeUdyamApplicable === "Yes" &&
-        (supplierData?.msme_details?.msme_attachments ?.length === 0)
+        supplierData?.msme_details?.msme_attachments?.length === 0
       ) {
         validationErrors.msmeAttachments = "MSME/Udyam Attachment is required.";
       }
@@ -747,8 +753,6 @@ const SectionReKYCDetails = () => {
       //   },
       // };
 
-
-
       const payload = {
         authenticity_token: "[FILTERED]", // No quotes for the token value, but the key is a string
         vendor_re_kyc: {
@@ -760,7 +764,8 @@ const SectionReKYCDetails = () => {
           msme_no: msmeUdyamApplicable === "No" ? "" : msmeNo || "",
           valid_from: msmeUdyamApplicable === "No" ? "" : validFrom || "",
           valid_till: msmeUdyamApplicable === "No" ? "" : validTill || "",
-          enterprise: msmeUdyamApplicable === "No" ? "" : msmeEnterpriseType || "",
+          enterprise:
+            msmeUdyamApplicable === "No" ? "" : msmeEnterpriseType || "",
           msme_attachments: msmeUdyamApplicable === "No" ? [] : msmeAttachments,
           einvoicing: eInvoicingApplicable || "",
           einvoicing_attachments:
@@ -768,26 +773,26 @@ const SectionReKYCDetails = () => {
           // bank_details_attributes: bankDetailsList,
           bank_details_attributes: bankDetailsList.map((item) => ({
             ...item,
-            id: item.isNew? null : item.id, // Set id to null if it's a new entry
-            attachment:item.isNew? bankAttachments: null,
+            id: item.isNew ? null : item.id, // Set id to null if it's a new entry
+            attachment: item.isNew ? bankAttachments : null,
             // _destroy: item._destroy ? true : null, // Convert _destroy to boolean or null
           })),
-    
+
           deletedBankDetails: deletedBankDetails, //deleted details
-    
+
           gstin_applicable: gstApplicable || "",
           gst_classification_id: gstClassification?.value || "",
           gstin: gstinNumber || "",
           // gstin_attachments: gstinAttachments || [],
-          gstin_attachments:gstinAttachments
-            // gstinAttachments.length > 0
-            //   ? gstinAttachments // If new files are uploaded, send them
-            //   : supplierData?.basic_information?.gstin_attachments?.length > 0
-            //     ? null // If existing files are present, pass null
-            //     : [], // Otherwise, send an empty array
+          gstin_attachments: gstinAttachments,
+          // gstinAttachments.length > 0
+          //   ? gstinAttachments // If new files are uploaded, send them
+          //   : supplierData?.basic_information?.gstin_attachments?.length > 0
+          //     ? null // If existing files are present, pass null
+          //     : [], // Otherwise, send an empty array
         },
       };
-    
+
       console.log("payload submition", payload);
 
       try {
@@ -1054,10 +1059,10 @@ const SectionReKYCDetails = () => {
                       {supplierData?.basic_information?.pan_attachments
                         ?.length > 0
                         ? // Display the document name of the first attachment
-                        supplierData?.basic_information?.pan_attachments[0]
-                          ?.document_name
+                          supplierData?.basic_information?.pan_attachments[0]
+                            ?.document_name
                         : // If no attachment is present, show a default message
-                        "No Document Available"}
+                          "No Document Available"}
                     </label>
                   </div>
                 </div>
@@ -1140,10 +1145,10 @@ const SectionReKYCDetails = () => {
                       {supplierData?.basic_information?.gstin_attachments
                         ?.length > 0
                         ? // Display the document name of the first attachment
-                        supplierData?.basic_information?.gstin_attachments[0]
-                          ?.document_name || "No Document Available"
+                          supplierData?.basic_information?.gstin_attachments[0]
+                            ?.document_name || "No Document Available"
                         : // If no attachment is present, show a default message
-                        "No Document Available"}
+                          "No Document Available"}
                     </label>
                   </div>
                 </div>
@@ -1151,7 +1156,6 @@ const SectionReKYCDetails = () => {
             </div>
           </div>
 
-          {/* {(isRekycTypeEmpty || isMsmeRekyc) && ( */}
           <div className="card mx-3 pb-4 mt-4">
             <div className="card-header3">
               <h3 className="card-title">GST Details</h3>
@@ -1177,7 +1181,7 @@ const SectionReKYCDetails = () => {
                       value={
                         gstApplicable
                           ? { value: gstApplicable, label: gstApplicable }
-                          : { value: "No", label: "No" } // Default to "No" instead of null
+                          : { value: "No", label: "No" }
                       }
                       onChange={(selected) => {
                         setGstApplicable(selected?.value || "No"); // Ensure it always has a string
@@ -1192,174 +1196,134 @@ const SectionReKYCDetails = () => {
                   </div>
                 </div>
 
-                {/* Show fields only if GSTIN is applicable (Yes) */}
-                {/* {msmeUdyamApplicable === "Yes" && ( */}
-                <>
-                  {/* GSTIN Classification - Using SingleSelector */}
-                  <div className="col-md-4 mt-2">
-                    <div className="form-group">
-                      <label
-                        data-bs-toggle="tooltip"
-                        data-bs-placement="top"
-                        title={tooltipMessages.MSMEUdyamNumber}
-                      >
-                        GSTIN Classification<span></span>
-                      </label>
-                      {/* <SingleSelector
-                        options={gstClassifications.map((item) => ({
-                          value: item.value,
-                          label: item.name,
-                        }))} // Options from API
-                        value={gstClassification} // Ensure correct preselected value
-                        onChange={setGstClassification} // Update state when changed
-                      />
-
-                      {errors.msmeEnterpriseType && (
-                        <div className="ValidationColor">
-                          {errors.msmeEnterpriseType}
-                        </div>
-                      )} */}
-
-                      <select
-                        className="form-control"
-                        value={gstClassification?.value || ""}
-                        onChange={(e) => {
-                          const selectedValue = parseInt(e.target.value, 10);
-                          const selectedOption = gstClassifications.find(
-                            (item) => item.value === selectedValue
-                          );
-                          setGstClassification(selectedOption || null);
-                        }}
-                      >
-                        <option value="">Select GST Classification</option>
-                        {gstClassifications.map((item) => (
-                          <option key={item.value} value={item.value}>
-                            {item.name}
-                          </option>
-                        ))}
-                      </select>
-
-                      {/* {errors.msmeEnterpriseType && (
-                        <div className="ValidationColor">
-                          {errors.msmeEnterpriseType}
-                        </div>
-                      )} */}
+                {/* Conditionally render fields only if GSTIN Applicable is Yes */}
+                {gstApplicable === "Yes" && (
+                  <>
+                    {/* GSTIN Classification */}
+                    <div className="col-md-4 mt-2">
+                      <div className="form-group">
+                        <label
+                          data-bs-toggle="tooltip"
+                          data-bs-placement="top"
+                          title={tooltipMessages.MSMEUdyamNumber}
+                        >
+                          GSTIN Classification<span></span>
+                        </label>
+                        <select
+                          className="form-control"
+                          value={gstClassification?.value || ""}
+                          onChange={(e) => {
+                            const selectedValue = parseInt(e.target.value, 10);
+                            const selectedOption = gstClassifications.find(
+                              (item) => item.value === selectedValue
+                            );
+                            setGstClassification(selectedOption || null);
+                          }}
+                        >
+                          <option value="">Select GST Classification</option>
+                          {gstClassifications.map((item) => (
+                            <option key={item.value} value={item.value}>
+                              {item.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
                     </div>
-                  </div>
 
-                  {/* GSTIN No. - Text Input */}
-                  <div className="col-md-4 mt-2">
-                    <div className="form-group">
-                      <label
-                        data-bs-toggle="tooltip"
-                        data-bs-placement="top"
-                        title={tooltipMessages.MSMEEnterpriseType}
-                      >
-                        GSTIN No.<span>*</span>
-                      </label>
-                      <input
-                        className="form-control"
-                        type="text"
-                        name="gstin_no"
-                        placeholder=""
-                        value={gstinNumber} // Use gstinNumber state
-                        onChange={(e) => setGstinNumber(e.target.value)} // Update state on change
-                      />
-                      {/* {errors.msmeNo && (
-                        <div className="ValidationColor">{errors.msmeNo}</div>
-                      )} */}
-                      {errors.gstinNumber && (
-                        <div className="ValidationColor">
-                          {errors.gstinNumber}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* ✅ New GSTIN Attachment Section */}
-                  {/* GSTIN Attachment Section */}
-                  {/* GSTIN Attachment Section */}
-                  <div className="col-md-4 mt-2">
-                    <div className="form-group">
-                      <label
-                        data-bs-toggle="tooltip"
-                        data-bs-placement="top"
-                        // title="Upload your official GSTIN certificate"
-                        title={tooltipMessages.GSTINAttachment}
-                      >
-                        GSTIN Attachment<span>*</span>
-                      </label>
-
-                      {/* Display existing attachments dynamically */}
-                      <div className="existing-files d-flex align-items-center">
-                        <p className="mb-0 me-2">Existing Files:</p>
-                        {supplierData?.basic_information?.gstin_attachments.length > 0 ? (
-                          supplierData?.basic_information?.gstin_attachments.map((file, index) => (
-                            <a
-                              key={index}
-                              href={`https://vendors.lockated.com${file.file_url}`} // Append base URL
-                              download // Ensure it triggers a download
-                              className="text-primary d-flex align-items-center"
-                            >
-                              <span className="me-2">{file.document_name}</span>{" "}
-                              {/* Show file name */}
-                              {/* Download Icon */}
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width={20}
-                                height={20}
-                                fill="#DE7008"
-                                className="bi bi-download"
-                                viewBox="0 0 16 16"
-                              >
-                                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
-                                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
-                              </svg>
-                            </a>
-                          ))
-                        ) : (
-                          <p className="mb-0">No attachments found</p>
+                    {/* GSTIN No. */}
+                    <div className="col-md-4 mt-2">
+                      <div className="form-group">
+                        <label
+                          data-bs-toggle="tooltip"
+                          data-bs-placement="top"
+                          title={tooltipMessages.MSMEEnterpriseType}
+                        >
+                          GSTIN No.<span>*</span>
+                        </label>
+                        <input
+                          className="form-control"
+                          type="text"
+                          name="gstin_no"
+                          value={gstinNumber}
+                          onChange={(e) => setGstinNumber(e.target.value)}
+                        />
+                        {errors.gstinNumber && (
+                          <div className="ValidationColor">
+                            {errors.gstinNumber}
+                          </div>
                         )}
                       </div>
-
-                      {/* File upload input */}
-                      {/* <input
-                        id="attachment"
-                        accept="application/pdf"
-                        className="form-control mt-2"
-                        multiple
-                        type="file"
-                        name="pms_supplier[gstin_attachments][]"
-                      />
-                      {errors.gstinAttachments && <div className="ValidationColor">{errors.gstinAttachments}</div>} */}
-                      <input
-                        id="attachment"
-                        accept="application/pdf"
-                        className="form-control mt-2"
-                        multiple
-                        type="file"
-                        name="pms_supplier[gstin_attachments][]"
-                        onChange={handleFileChangegst} // Handle file selection
-                      />
-                      {errors.gstinAttachments && (
-                        <div className="ValidationColor">
-                          {errors.gstinAttachments}
-                        </div>
-                      )}
-
-                      {/* <div
-                        className="file-type-error"
-                        style={{ display: "none", color: "red" }}
-                      >
-                        Only PDF files are allowed.
-                      </div> */}
                     </div>
-                  </div>
-                </>
+
+                    {/* GSTIN Attachment */}
+                    <div className="col-md-4 mt-2">
+                      <div className="form-group">
+                        <label
+                          data-bs-toggle="tooltip"
+                          data-bs-placement="top"
+                          title={tooltipMessages.GSTINAttachment}
+                        >
+                          GSTIN Attachment<span>*</span>
+                        </label>
+
+                        {/* Display existing attachments dynamically */}
+                        <div className="existing-files d-flex align-items-center">
+                          <p className="mb-0 me-2">Existing Files:</p>
+                          {supplierData?.basic_information?.gstin_attachments
+                            .length > 0 ? (
+                            supplierData?.basic_information?.gstin_attachments.map(
+                              (file, index) => (
+                                <a
+                                  key={index}
+                                  href={`https://vendors.lockated.com${file.file_url}`}
+                                  download
+                                  className="text-primary d-flex align-items-center"
+                                >
+                                  <span className="me-2">
+                                    {file.document_name}
+                                  </span>{" "}
+                                  {/* Show file name */}
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width={20}
+                                    height={20}
+                                    fill="#DE7008"
+                                    className="bi bi-download"
+                                    viewBox="0 0 16 16"
+                                  >
+                                    <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                                    <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                                  </svg>
+                                </a>
+                              )
+                            )
+                          ) : (
+                            <p className="mb-0">No attachments found</p>
+                          )}
+                        </div>
+
+                        {/* File upload input */}
+                        <input
+                          id="attachment"
+                          accept="application/pdf"
+                          className="form-control mt-2"
+                          multiple
+                          type="file"
+                          name="pms_supplier[gstin_attachments][]"
+                          onChange={handleFileChangegst}
+                        />
+                        {errors.gstinAttachments && (
+                          <div className="ValidationColor">
+                            {errors.gstinAttachments}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>
-          {/* )} */}
 
           {(isRekycTypeEmpty || isBankRekyc) && (
             <div>
@@ -1768,11 +1732,11 @@ const SectionReKYCDetails = () => {
                             >
                               <path
                                 d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
-                              // style={{ fill: "#de7008!important" }}
+                                // style={{ fill: "#de7008!important" }}
                               />
                               <path
                                 d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
-                              // style={{ fill: "#de7008!important" }}
+                                // style={{ fill: "#de7008!important" }}
                               />
                             </svg>
 
@@ -1802,7 +1766,9 @@ const SectionReKYCDetails = () => {
                         <input
                           className="form-control mt-2"
                           type="file"
-                          onChange={(e) => handleFileChangeBank(e.target.files[0])}
+                          onChange={(e) =>
+                            handleFileChangeBank(e.target.files[0])
+                          }
                           ref={fileInputRef}
                           multiple
                           accept=".xlsx,.csv,.pdf,.docx,.doc,.xls,.txt,.png,.jpg,.jpeg,.zip,.rar,.jfif,.svg,.mp4,.mp3,.avi,.flv,.wmv"
@@ -1848,7 +1814,6 @@ const SectionReKYCDetails = () => {
             </div>
           )}
 
-         
           {/* rekeyc type present  */}
 
           {(isRekycTypeEmpty || isMsmeRekyc) && (
@@ -1910,7 +1875,7 @@ const SectionReKYCDetails = () => {
                           placeholder=""
                           value={msmeNo}
                           onChange={handleMsmeNoChange} // Add onChange handler here
-                        // value={supplierData?.msme_details?.msme_no}
+                          // value={supplierData?.msme_details?.msme_no}
                         />
                         {errors.msmeNo && (
                           <div className="ValidationColor">{errors.msmeNo}</div>
@@ -1938,7 +1903,7 @@ const SectionReKYCDetails = () => {
                           placeholder=""
                           value={validFrom}
                           onChange={handleValidFromChange} // Add onChange handler here
-                        // value={supplierData?.msme_details?.valid_from}
+                          // value={supplierData?.msme_details?.valid_from}
                         />
                         {errors.validFrom && (
                           <div className="ValidationColor">
@@ -1968,7 +1933,7 @@ const SectionReKYCDetails = () => {
                           placeholder=""
                           value={validTill}
                           onChange={handleValidTillChange}
-                        // value={supplierData?.msme_details?.valid_till}
+                          // value={supplierData?.msme_details?.valid_till}
                         />
                         {errors.validTill && (
                           <div className="ValidationColor">
@@ -2077,21 +2042,21 @@ const SectionReKYCDetails = () => {
                             >
                               <path
                                 d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
-                              // style={{ fill: "#de7008!important" }}
+                                // style={{ fill: "#de7008!important" }}
                               />
                               <path
                                 d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
-                              // style={{ fill: "#de7008!important" }}
+                                // style={{ fill: "#de7008!important" }}
                               />
                             </svg>
 
                             {supplierData?.msme_details?.msme_attachments
                               ?.length > 0
                               ? // Display the document name of the first attachment
-                              supplierData?.msme_details?.msme_attachments[0]
-                                ?.document_name
+                                supplierData?.msme_details?.msme_attachments[0]
+                                  ?.document_name
                               : // If no attachment is present, show a default message
-                              "No Document Available"}
+                                "No Document Available"}
                           </a>
                         </span>
                         {/* <input className="form-control" type="file" name="" onChange={handleFileChange} /> */}
@@ -2187,21 +2152,21 @@ const SectionReKYCDetails = () => {
                           >
                             <path
                               d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
-                            // style={{ fill: "#de7008!important" }}
+                              // style={{ fill: "#de7008!important" }}
                             />
                             <path
                               d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
-                            // style={{ fill: "#de7008!important" }}
+                              // style={{ fill: "#de7008!important" }}
                             />
                           </svg>
 
                           {supplierData?.msme_details?.msme_attachments
                             ?.length > 0
                             ? // Display the document name of the first attachment
-                            supplierData?.msme_details?.msme_attachments[0]
-                              ?.document_name
+                              supplierData?.msme_details?.msme_attachments[0]
+                                ?.document_name
                             : // If no attachment is present, show a default message
-                            "No Document Available"}
+                              "No Document Available"}
                         </a>
                       </span>
                       <input
