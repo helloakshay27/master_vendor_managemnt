@@ -33,6 +33,9 @@ const SectionReKYCDetails = () => {
 
   // Check if 'Bank Rekyc' is in the rekycType array
   const isBankRekyc = rekycType && rekycType.includes("Bank Rekyc");
+
+  const isGstinRekyc = rekycType && rekycType.includes("GSTIN Rekyc");
+
   console.log("bank re:", isBankRekyc);
 
   // !rekycType ||
@@ -695,12 +698,12 @@ const SectionReKYCDetails = () => {
       //   validationErrors.msmeAttachments = "MSME/Udyam Attachment is required.";
       // }
 
-      if (
-        msmeUdyamApplicable === "Yes" &&
-        supplierData?.msme_details?.msme_attachments?.length === 0
-      ) {
-        validationErrors.msmeAttachments = "MSME/Udyam Attachment is required.";
-      }
+        // if (
+        //   msmeUdyamApplicable === "Yes" &&
+        //   (supplierData?.msme_details?.msme_attachments ?.length === 0)
+        // ) {
+        //   validationErrors.msmeAttachments = "MSME/Udyam Attachment is required.";
+        // }
     }
 
     if (!gstApplicable) {
@@ -1156,6 +1159,7 @@ const SectionReKYCDetails = () => {
             </div>
           </div>
 
+          {(isRekycTypeEmpty || isGstinRekyc) && (
           <div className="card mx-3 pb-4 mt-4">
             <div className="card-header3">
               <h3 className="card-title">GST Details</h3>
@@ -1324,6 +1328,7 @@ const SectionReKYCDetails = () => {
               </div>
             </div>
           </div>
+          )}
 
           {(isRekycTypeEmpty || isBankRekyc) && (
             <div>
