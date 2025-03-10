@@ -36,11 +36,11 @@ const SectionReKYCDetails = () => {
 
   const isGstinRekyc = rekycType && rekycType.includes("GSTIN Rekyc");
 
-  console.log("bank re:", isBankRekyc);
+  // console.log("bank re:", isBankRekyc);
 
   // !rekycType ||
 
-  console.log(" re kyc type:", rekycType);
+  // console.log(" re kyc type:", rekycType)
 
   // Example state to hold dynamic tooltip messages
   const [tooltipMessages, setTooltipMessages] = useState({
@@ -204,7 +204,7 @@ const SectionReKYCDetails = () => {
     setMsmeEnterpriseType(newValue);
   };
 
-  console.log("msme type", msmeEnterpriseType);
+  // console.log("msme type", msmeEnterpriseType);
   // api details
 
   const [gstClassification, setGstClassification] = useState("");
@@ -250,7 +250,7 @@ const SectionReKYCDetails = () => {
 
       setGstClassification(selectedClassification || null);
 
-      console.log("enterprise:", response.data?.msme_details?.enterprise);
+      // console.log("enterprise:", response.data?.msme_details?.enterprise);
     } catch (error) {
       console.error("There was an error fetching the data!", error);
     }
@@ -258,7 +258,7 @@ const SectionReKYCDetails = () => {
 
   useEffect(() => {
     // Fetch data from the API
-    console.log("fetch.........");
+    // console.log("fetch.........");
 
     fetchSupplierData(id);
   }, [id]);
@@ -288,7 +288,7 @@ const SectionReKYCDetails = () => {
     }
   }, [gstClassifications, id]);
 
-  console.log("supplier data:", supplierData);
+  // console.log("supplier data:", supplierData);
 
   // country and state
 
@@ -372,7 +372,7 @@ const SectionReKYCDetails = () => {
           .then((response) => {
             if (response.data) {
               const formattedStates = response.data.states.map((state) => ({
-                value: state.id,
+                value: state.value,
                 label: state.name,
               }));
 
@@ -401,6 +401,7 @@ const SectionReKYCDetails = () => {
   }, [supplierData]);
 
   const handleCountryChange = (selectedOption, bankId) => {
+
     setBankDetailsList((prevDetails) =>
       prevDetails.map((bankDetail) =>
         bankDetail.id === bankId
@@ -408,6 +409,37 @@ const SectionReKYCDetails = () => {
           : bankDetail
       )
     );
+
+    // Fetch states based on the selected country
+    axios
+      .get(
+        `https://vendors.lockated.com/pms/dropdown_states?country_id=${selectedOption.value}&&token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`
+      )
+      .then((response) => {
+        if (response.data) {
+          
+          const formattedStates = response.data.states.map((state) => ({
+            value: state.value,
+            label: state.name,
+          }));
+
+          // Update bank details with state options
+          setBankDetailsList((prevDetails) =>
+            prevDetails.map((bankDetail) =>
+              bankDetail.id === bankId
+                ? {
+                    ...bankDetail,
+                    stateOptions: formattedStates,
+                    selectedState: null, // Reset selected state when country changes
+                  }
+                : bankDetail
+            )
+          );
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching states:", error);
+      });
   };
 
   const handleStateChange = (selectedOption, bankId) => {
@@ -509,7 +541,7 @@ const SectionReKYCDetails = () => {
     reader.readAsDataURL(file);
   };
 
-  console.log("banck details :", bankDetailsList);
+  // console.log("banck details :", bankDetailsList);
 
   // Define state for form fields
   //  const [msmeUdyamApplicable, setMsmeUdyamApplicable] = useState("No");
@@ -596,7 +628,7 @@ const SectionReKYCDetails = () => {
     },
   };
 
-  console.log("payload:", payload);
+  // console.log("payload:", payload);
 
   // update api
 
@@ -610,7 +642,7 @@ const SectionReKYCDetails = () => {
 
   // Handle the Update Button Click
   const handleUpdate = async (bankDetail) => {
-    console.log("bank details:", bankDetail);
+    // console.log("bank details:", bankDetail);
 
     // console.log('formSubmitted:', formSubmitted);
 
@@ -796,7 +828,7 @@ const SectionReKYCDetails = () => {
         },
       };
 
-      console.log("payload submition", payload);
+      // console.log("payload submition", payload);
 
       try {
         const response = await axios.patch(
@@ -812,7 +844,7 @@ const SectionReKYCDetails = () => {
           // }
         );
 
-        console.log("Response:", response.data); // Check the response data
+        // console.log("Response:", response.data); // Check the response data
         // await fetchSupplierData();
         if (response.status === 200) {
           // console.log('Update successful:', data);
@@ -1332,11 +1364,11 @@ const SectionReKYCDetails = () => {
 
           {(isRekycTypeEmpty || isBankRekyc) && (
             <div>
-              {bankDetailsList?.map((bankDetail) => (
+              {bankDetailsList?.map((bankDetails) => (
                 <CollapsedCardKYC
-                  key={bankDetail.id}
+                  key={bankDetails.id}
                   title="Bank Details"
-                  onDelete={() => deleteBankDetails(bankDetail.id)}
+                  onDelete={() => deleteBankDetails(bankDetails.id)}
                 >
                   <div className="row">
                     {/* Bank Name */}
@@ -1353,12 +1385,12 @@ const SectionReKYCDetails = () => {
                           className="form-control"
                           type="text"
                           placeholder="Enter Bank name"
-                          value={bankDetail.bank_name}
+                          value={bankDetails.bank_name}
                           onChange={(e) =>
-                            handleInputChange(e, bankDetail.id, "bank_name")
+                            handleInputChange(e, bankDetails.id, "bank_name")
                           }
                         />
-                        {bankDetail.isNew && errors.bank_name && (
+                        {bankDetails.isNew && errors.bank_name && (
                           <span className="ValidationColor">
                             {errors.bank_name}
                           </span>
@@ -1383,12 +1415,12 @@ const SectionReKYCDetails = () => {
                           className="form-control"
                           type="text"
                           placeholder="Enter Address"
-                          value={bankDetail.address}
+                          value={bankDetails.address}
                           onChange={(e) =>
-                            handleInputChange(e, bankDetail.id, "address")
+                            handleInputChange(e, bankDetails.id, "address")
                           }
                         />
-                        {bankDetail.isNew && errors.address && (
+                        {bankDetails.isNew && errors.address && (
                           <div className="ValidationColor">
                             {errors.address}
                           </div>
@@ -1411,14 +1443,14 @@ const SectionReKYCDetails = () => {
                         {/* Country Dropdown */}
                         <SingleSelector
                           options={countries}
-                          value={bankDetail.selectedCountry}
+                          value={bankDetails.selectedCountry}
                           onChange={(selectedOption) =>
-                            handleCountryChange(selectedOption, bankDetail.id)
+                            handleCountryChange(selectedOption, bankDetails.id)
                           } // Properly handling onChange
                         />
 
                         {/* Validation Error Message */}
-                        {bankDetail.isNew && errors.country && (
+                        {bankDetails.isNew && errors.country && (
                           <div className="ValidationColor">
                             {errors.country}
                           </div>
@@ -1436,15 +1468,17 @@ const SectionReKYCDetails = () => {
                           State <span>*</span>
                         </label>
                         <SingleSelector
-                          // value={bankDetail.state}
-                          // value={states.find(country => country.label === bankDetail.state) || {}}
-                          options={bankDetail.stateOptions || []} // Use dynamic state options
-                          value={bankDetail.selectedState} // Ensure preselected state is shown for existing data
+                          options={bankDetails.stateOptions} // Use dynamic state options
+                          value={
+                            bankDetails.stateOptions?.find(
+                              (option) => option.value === bankDetails.state
+                            ) || null
+                          } // Ensure preselected state is shown for existing data
                           onChange={(selectedOption) =>
-                            handleStateChange(selectedOption, bankDetail.id)
+                            handleStateChange(selectedOption, bankDetails.id)
                           }
                         />
-                        {bankDetail.isNew && errors.state && (
+                        {bankDetails.isNew && errors.state && (
                           <div className="ValidationColor">{errors.state}</div>
                         )}
                       </div>
@@ -1464,12 +1498,12 @@ const SectionReKYCDetails = () => {
                           className="form-control"
                           type="text"
                           placeholder="Enter City Name"
-                          value={bankDetail.city}
+                          value={bankDetails.city}
                           onChange={(e) =>
-                            handleInputChange(e, bankDetail.id, "city")
+                            handleInputChange(e, bankDetails.id, "city")
                           }
                         />
-                        {bankDetail.isNew && errors.city && (
+                        {bankDetails.isNew && errors.city && (
                           <div className="ValidationColor">{errors.city}</div>
                         )}
                       </div>
@@ -1489,12 +1523,12 @@ const SectionReKYCDetails = () => {
                           className="form-control"
                           type="number"
                           placeholder="Enter Pin Code"
-                          value={bankDetail.pin_code}
+                          value={bankDetails.pin_code}
                           onChange={(e) =>
-                            handleInputChange(e, bankDetail.id, "pin_code")
+                            handleInputChange(e, bankDetails.id, "pin_code")
                           }
                         />
-                        {bankDetail.isNew && errors.pin_code && (
+                        {bankDetails.isNew && errors.pin_code && (
                           <div className="ValidationColor">
                             {errors.pin_code}
                           </div>
@@ -1516,12 +1550,12 @@ const SectionReKYCDetails = () => {
                           className="form-control"
                           type="text"
                           placeholder="Enter Account Type"
-                          value={bankDetail.account_type}
+                          value={bankDetails.account_type}
                           onChange={(e) =>
-                            handleInputChange(e, bankDetail.id, "account_type")
+                            handleInputChange(e, bankDetails.id, "account_type")
                           }
                         />
-                        {bankDetail.isNew && errors.account_type && (
+                        {bankDetails.isNew && errors.account_type && (
                           <div className="ValidationColor">
                             {errors.account_type}
                           </div>
@@ -1543,17 +1577,17 @@ const SectionReKYCDetails = () => {
                           className="form-control"
                           type="text"
                           placeholder="Enter Account Number"
-                          value={bankDetail.account_number}
+                          value={bankDetails.account_number}
                           onChange={(e) =>
                             handleInputChange(
                               e,
-                              bankDetail.id,
+                              bankDetails.id,
                               "account_number"
                             )
                           }
                         />
 
-                        {bankDetail.isNew && errors.account_number && (
+                        {bankDetails.isNew && errors.account_number && (
                           <div className="ValidationColor">
                             {errors.account_number}
                           </div>
@@ -1575,21 +1609,21 @@ const SectionReKYCDetails = () => {
                           className="form-control"
                           type="text"
                           placeholder="Enter Confirm Account Number"
-                          value={bankDetail.confirm_account_number}
+                          value={bankDetails.confirm_account_number}
                           onChange={(e) =>
                             handleInputChange(
                               e,
-                              bankDetail.id,
+                              bankDetails.id,
                               "confirm_account_number"
                             )
                           }
                         />
-                        {bankDetail.isNew && errors.confirm_account_number && (
+                        {bankDetails.isNew && errors.confirm_account_number && (
                           <div className="ValidationColor">
                             {errors.confirm_account_number}
                           </div>
                         )}
-                        {bankDetail.isNew && errors.account_match && (
+                        {bankDetails.isNew && errors.account_match && (
                           <div className="ValidationColor">
                             {errors.account_match}
                           </div>
@@ -1611,12 +1645,12 @@ const SectionReKYCDetails = () => {
                           className="form-control"
                           type="text"
                           placeholder="Enter Branch Name"
-                          value={bankDetail.branch_name}
+                          value={bankDetails.branch_name}
                           onChange={(e) =>
-                            handleInputChange(e, bankDetail.id, "branch_name")
+                            handleInputChange(e, bankDetails.id, "branch_name")
                           }
                         />
-                        {bankDetail.isNew && errors.branch_name && (
+                        {bankDetails.isNew && errors.branch_name && (
                           <div className="ValidationColor">
                             {errors.branch_name}
                           </div>
@@ -1638,12 +1672,12 @@ const SectionReKYCDetails = () => {
                           className="form-control"
                           type="text"
                           placeholder="Enter MICR No."
-                          value={bankDetail.micr_number}
+                          value={bankDetails.micr_number}
                           onChange={(e) =>
-                            handleInputChange(e, bankDetail.id, "micr_number")
+                            handleInputChange(e, bankDetails.id, "micr_number")
                           }
                         />
-                        {bankDetail.isNew && errors.micr_number && (
+                        {bankDetails.isNew && errors.micr_number && (
                           <div className="ValidationColor">
                             {errors.micr_number}
                           </div>
@@ -1665,12 +1699,12 @@ const SectionReKYCDetails = () => {
                           className="form-control"
                           type="text"
                           placeholder="Enter IFSC Code"
-                          value={bankDetail.ifsc_code}
+                          value={bankDetails.ifsc_code}
                           onChange={(e) =>
-                            handleInputChange(e, bankDetail.id, "ifsc_code")
+                            handleInputChange(e, bankDetails.id, "ifsc_code")
                           }
                         />
-                        {bankDetail.isNew && errors.ifsc_code && (
+                        {bankDetails.isNew && errors.ifsc_code && (
                           <div className="ValidationColor">
                             {errors.ifsc_code}
                           </div>
@@ -1692,16 +1726,16 @@ const SectionReKYCDetails = () => {
                           className="form-control"
                           type="text"
                           placeholder="Enter Beneficiary Name"
-                          value={bankDetail.beneficiary_name}
+                          value={bankDetails.beneficiary_name}
                           onChange={(e) =>
                             handleInputChange(
                               e,
-                              bankDetail.id,
+                              bankDetails.id,
                               "beneficiary_name"
                             )
                           }
                         />
-                        {bankDetail.isNew && errors.beneficiary_name && (
+                        {bankDetails.isNew && errors.beneficiary_name && (
                           <div className="ValidationColor">
                             {errors.beneficiary_name}
                           </div>
@@ -1722,7 +1756,7 @@ const SectionReKYCDetails = () => {
 
                         <span className="ms-2 ">
                           <a
-                            href={`https://vendors.lockated.com${bankDetail?.attachment}`} // Append base URL
+                            href={`https://vendors.lockated.com${bankDetails?.attachment}`} // Append base URL
                             download // Ensure it triggers a download
                             className="text-primary d-flex align-items-center"
                           >
@@ -1758,7 +1792,7 @@ const SectionReKYCDetails = () => {
                           className="form-control mt-2"
                           type="file"
                           onChange={(e) =>
-                            handleFileChangeBank(e, bankDetail.id)
+                            handleFileChangeBank(e, bankDetails.id)
                           }
                           // onChange={(e) =>
                           //   handleFileChange(e.target.files[0])
@@ -1779,7 +1813,7 @@ const SectionReKYCDetails = () => {
                           accept=".xlsx,.csv,.pdf,.docx,.doc,.xls,.txt,.png,.jpg,.jpeg,.zip,.rar,.jfif,.svg,.mp4,.mp3,.avi,.flv,.wmv"
                         />
 
-                        {bankDetail.isNew && errors.cancelled_cheque && (
+                        {bankDetails.isNew && errors.cancelled_cheque && (
                           <div className="ValidationColor">
                             {errors.cancelled_cheque}
                           </div>
@@ -1798,9 +1832,9 @@ const SectionReKYCDetails = () => {
                           className="form-control"
                           rows="3"
                           placeholder="Enter Remark"
-                          value={bankDetail.remark}
+                          value={bankDetails.remark}
                           onChange={(e) =>
-                            handleInputChange(e, bankDetail.id, "remark")
+                            handleInputChange(e, bankDetails.id, "remark")
                           }
                         />
                       </div>
