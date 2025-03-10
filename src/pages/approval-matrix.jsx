@@ -26,13 +26,14 @@ const ApprovalMatrix = () => {
     { value: "MSME Re-KYC", label: "MSME Rekyc" },
     { value: "E-invoicing Re-KYC", label: "E-invoicing Rekyc" },
     { value: "Bank Re-KYC", label: "Bank Rekyc" },
+    { value: "GSTIN Rekyc", label: "GSTIN Rekyc" },
   ];
 
   // Fetch Companies and Departments
   useEffect(() => {
     const fetchDropdownData = async () => {
       try {
-        const [ departmentRes, userRes] = await Promise.all([
+        const [departmentRes, userRes] = await Promise.all([
           // axios.get("https://vendors.lockated.com/pms/company_setups.json"),
           axios.get("https://vendors.lockated.com/pms/departments.json"),
           axios.get("https://vendors.lockated.com/users.json"),
@@ -102,8 +103,11 @@ const ApprovalMatrix = () => {
       approval_type: selectedKYCType ? selectedKYCType.value : "",
     });
   }, [
+    ,
     // selectedCompany
-    , selectedDepartment, selectedKYCType]);
+    selectedDepartment,
+    selectedKYCType,
+  ]);
 
   // const handleCompanyChange = (selected) => {
   //   console.log("Selected Company:", selected);

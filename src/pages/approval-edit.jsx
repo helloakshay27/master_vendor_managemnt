@@ -28,6 +28,7 @@ const ApprovalEdit = () => {
     { value: "MSME Re-KYC", label: "MSME Rekyc" },
     { value: "E-invoicing Re-KYC", label: "E-invoicing Rekyc" },
     { value: "Bank Re-KYC", label: "Bank Rekyc" },
+    { value: "GSTIN Rekyc", label: "GSTIN Rekyc" },
   ];
 
   const [formData, setFormData] = useState({
@@ -39,30 +40,30 @@ const ApprovalEdit = () => {
   useEffect(() => {
     const fetchDropdownData = async () => {
       try {
-        const [companyRes, departmentRes, userRes] = await Promise.all([
-          axios.get("https://vendors.lockated.com/pms/company_setups.json"),
-          axios.get("https://vendors.lockated.com/pms/departments.json"),
-          axios.get("https://vendors.lockated.com/users.json"),
+        const [departmentRes, userRes] = await Promise.all([
+          // axios.get("https://vendor.panchshil.com/pms/company_setups.json"),
+          axios.get("https://vendor.panchshil.com/pms/departments.json"),
+          axios.get("https://vendor.panchshil.com/users.json"),
         ]);
 
-        console.log("Raw Company Data:", companyRes.data);
+        // console.log("Raw Company Data:", companyRes.data);
         console.log("Raw Department Data:", departmentRes.data);
 
         // Correctly map company and department data
-        const companyOptions = companyRes.data.map(([id, name]) => ({
-          value: id, // ID is the first element in the array
-          label: name, // Name is the second element
-        }));
+        // const companyOptions = companyRes.data.map(([id, name]) => ({
+        //   value: id, // ID is the first element in the array
+        //   label: name, // Name is the second element
+        // }));
 
         const departmentOptions = departmentRes.data.map(([id, name]) => ({
           value: id,
           label: name,
         }));
 
-        console.log("Processed Companies:", companyOptions);
+        // console.log("Processed Companies:", companyOptions);
         console.log("Processed Departments:", departmentOptions);
 
-        setCompanies(companyOptions);
+        // setCompanies(companyOptions);
         setDepartments(departmentOptions);
         setUsers(
           userRes.data.map(({ id, full_name }) => ({
@@ -86,19 +87,34 @@ const ApprovalEdit = () => {
         );
 
         setFormData({
-          company_id: data.invoice_approval.company_id,
           department_id: data.invoice_approval.department_id,
           approval_type: data.invoice_approval.approval_function,
         });
 
-        // Store approval levels with user IDs but no names yet
+        // Find the matching KYC Type
+        const matchedKYCType = kycTypes.find(
+          (kyc) => kyc.value === data.invoice_approval.approval_function
+        );
+
+        console.log(
+          "Fetched KYC Type:",
+          data.invoice_approval.approval_function
+        );
+        console.log("Matched KYC Type:", matchedKYCType);
+
+        if (matchedKYCType) {
+          setSelectedKYCType(matchedKYCType);
+        } else {
+          setSelectedKYCType(null); // Reset if not found
+        }
+
         setApprovalLevels(
           data.invoice_approval_levels.map((level) => ({
             order: level.order ? level.order.toString() : "",
             name: level.name || "",
             users: level.escalate_to_users.map((userId) => ({
               value: userId,
-              label: "", // Placeholder, to be updated later
+              label: "",
             })),
           }))
         );
@@ -107,10 +123,8 @@ const ApprovalEdit = () => {
       }
     };
 
-    // if (id) {
     fetchApprovalData();
-    // }
-  }, []); //  Runs only once on mount
+  }, [id]);
 
   useEffect(() => {
     if (
@@ -133,25 +147,15 @@ const ApprovalEdit = () => {
   }, [users, approvalLevels]); // ✅ Update when users or approvalLevels change
 
   useEffect(() => {
-    if (companies.length > 0 && departments.length > 0 && formData.company_id) {
-      setSelectedCompany(
-        companies.find((comp) => comp.value === formData.company_id) || null
+    if (departments.length > 0 && formData.department_id) {
+      const matchedDepartment = departments.find(
+        (dept) => dept.value === formData.department_id
       );
-      setSelectedDepartment(
-        departments.find((dept) => dept.value === formData.department_id) ||
-          null
-      );
-      setSelectedKYCType(
-        kycTypes.find((type) => type.value === formData.approval_type) || null
-      );
+      if (matchedDepartment) {
+        setSelectedDepartment(matchedDepartment);
+      }
     }
-  }, [
-    companies,
-    departments,
-    formData.company_id,
-    formData.department_id,
-    formData.approval_type,
-  ]); // ✅ Only updates when specific values change
+  }, [departments, formData.department_id]); // Dependencies: Run when these change
 
   // Runs when `id` or `users` change
 
@@ -172,20 +176,22 @@ const ApprovalEdit = () => {
     setApprovalLevels(updatedLevels);
   };
 
-  // Handle Company Selection
-
   useEffect(() => {
-    setFormData({
-      company_id: selectedCompany ? selectedCompany.value : null,
-      department_id: selectedDepartment ? selectedDepartment.value : null,
-      approval_type: selectedKYCType ? selectedKYCType.value : "",
-    });
-  }, [selectedCompany, selectedDepartment, selectedKYCType]);
+    setFormData((prev) => ({
+      ...prev,
+      department_id: selectedDepartment
+        ? selectedDepartment.value
+        : prev.department_id,
+      approval_type: selectedKYCType
+        ? selectedKYCType.value
+        : prev.approval_type,
+    }));
+  }, [selectedDepartment, selectedKYCType]);
 
-  const handleCompanyChange = (selected) => {
-    console.log("Selected Company:", selected);
-    setSelectedCompany(selected);
-  };
+  // const handleCompanyChange = (selected) => {
+  //   console.log("Selected Company:", selected);
+  //   setSelectedCompany(selected);
+  // };
 
   const handleDepartmentChange = (selected) => {
     console.log("Selected Department:", selected);
@@ -204,7 +210,7 @@ const ApprovalEdit = () => {
         approval_type: "vendor_rekyc",
         approval_function: selectedKYCType ? selectedKYCType.value : null,
 
-        company_id: selectedCompany ? selectedCompany.value : null,
+        // company_id: selectedCompany ? selectedCompany.value : null,
 
         department_id: selectedDepartment ? selectedDepartment.value : null,
 
@@ -220,7 +226,7 @@ const ApprovalEdit = () => {
     console.log("Final Payload for Update:", payload);
 
     if (
-      !payload.invoice_approval.company_id ||
+      // !payload.invoice_approval.company_id ||
       !payload.invoice_approval.department_id ||
       !payload.invoice_approval.approval_type
     ) {
@@ -298,7 +304,7 @@ const ApprovalEdit = () => {
                           <div>
                             <div className="row my-2 align-items-end">
                               {/* Event Title */}
-                              <div className="col-md-3">
+                              {/* <div className="col-md-3">
                                 <label htmlFor="event-title-select">
                                   Select Comapny
                                 </label>
@@ -309,7 +315,7 @@ const ApprovalEdit = () => {
                                   onChange={handleCompanyChange}
                                   placeholder="select comapny"
                                 />
-                              </div>
+                              </div> */}
 
                               {/* Status */}
                               <div className="col-md-3">

@@ -9,6 +9,7 @@ import SingleSelector from "../components/base/Select/SingleSelector";
 import axios from "axios";
 import { SingleValue } from "react-select/animated";
 import { baseURL } from "../confi/apiDomain";
+import FormatDate from "../components/FormatDate";
 
 const ApprovalList = () => {
   const [approvals, setApprovals] = useState([]);
@@ -112,7 +113,7 @@ const ApprovalList = () => {
           departmentRes,
           userRes,
         ] = await Promise.all([
-          // axios.get("https://vendors.lockated.com/pms/company_setups.json"),
+          axios.get("https://vendors.lockated.com/pms/company_setups.json"),
           axios.get("https://vendors.lockated.com/pms/departments.json"),
         ]);
 
@@ -190,11 +191,11 @@ const ApprovalList = () => {
 
   const handleResetFilters = async () => {
     setFilters({
-      company: null,
+      // company: null,
       department: null,
     });
 
-    setSelectedCompany(null);
+    // setSelectedCompany(null);
     setSelectedDepartment(null);
 
     // Reset Pagination to Page 1
@@ -474,9 +475,16 @@ const ApprovalList = () => {
                         <td>{record.approval_function}</td>
                         {/* <td>{record.approval_type}</td>
                         <td>{record.material_type}</td> */}
-                        <td>{record.created_at}</td>
+                        {/* <td>{record.created_at}</td>
 
-                        <td>{record.created_by}</td>
+                        <td>{record.created_by}</td> */}
+
+                        <td>
+                          <FormatDate timestamp={record.created_at} />
+                        </td>
+                        <td>
+                          <FormatDate timestamp={record.created_by} />
+                        </td>
                       </tr>
                     ))}
                   </tbody>
