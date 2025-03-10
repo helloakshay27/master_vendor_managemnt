@@ -33,14 +33,11 @@ const SectionReKYCDetails = () => {
 
   // Check if 'Bank Rekyc' is in the rekycType array
   const isBankRekyc = rekycType && rekycType.includes("Bank Rekyc");
-
-  const isGstinRekyc = rekycType && rekycType.includes("GSTIN Rekyc");
-
-  // console.log("bank re:", isBankRekyc);
+  console.log("bank re:", isBankRekyc);
 
   // !rekycType ||
 
-  // console.log(" re kyc type:", rekycType)
+  console.log(" re kyc type:", rekycType);
 
   // Example state to hold dynamic tooltip messages
   const [tooltipMessages, setTooltipMessages] = useState({
@@ -204,7 +201,7 @@ const SectionReKYCDetails = () => {
     setMsmeEnterpriseType(newValue);
   };
 
-  // console.log("msme type", msmeEnterpriseType);
+  console.log("msme type", msmeEnterpriseType);
   // api details
 
   const [gstClassification, setGstClassification] = useState("");
@@ -212,6 +209,7 @@ const SectionReKYCDetails = () => {
   const [gstinNumber, setGstinNumber] = useState("");
   const [gstinAttachments, setGstinAttachments] = useState([]);
   const [gstOptions, setGstOptions] = useState([]);
+  const [bankDetailsList, setBankDetailsList] = useState([]);
 
   // Function to fetch supplier data
   const fetchSupplierData = async () => {
@@ -250,7 +248,7 @@ const SectionReKYCDetails = () => {
 
       setGstClassification(selectedClassification || null);
 
-      // console.log("enterprise:", response.data?.msme_details?.enterprise);
+      console.log("enterprise:", response.data?.msme_details?.enterprise);
     } catch (error) {
       console.error("There was an error fetching the data!", error);
     }
@@ -258,7 +256,7 @@ const SectionReKYCDetails = () => {
 
   useEffect(() => {
     // Fetch data from the API
-    // console.log("fetch.........");
+    console.log("fetch.........");
 
     fetchSupplierData(id);
   }, [id]);
@@ -288,173 +286,100 @@ const SectionReKYCDetails = () => {
     }
   }, [gstClassifications, id]);
 
-  // console.log("supplier data:", supplierData);
+  console.log("supplier data:", supplierData);
 
   // country and state
 
-  const [countries, setCountries] = useState([]); // Store country options
-  const [states, setStates] = useState([]); // Store states based on selected country
-  const [selectedCountry, setSelectedCountry] = useState(null); // Store selected country
-  const [selectedState, setSelectedState] = useState(null); // Store selected state
+  const [countries, setCountries] = useState([]);
+  const [states, setStates] = useState([]);
+  const [selectedCountry, setSelectedCountry] = useState(null);
+  const [selectedState, setSelectedState] = useState(null);
 
-  useEffect(() => {
-    axios
-      .get(
+  const fetchCountries = async () => {
+    try {
+      const response = await axios.get(
         "https://vendors.lockated.com/pms/dropdown_countries?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414"
-      )
-      .then((response) => {
-        if (response.data) {
-          const formattedCountries = response.data.countries.map((country) => ({
-            value: country.value,
-            label: country.name,
-          }));
-          setCountries(formattedCountries);
+      );
 
-          // Set preselected country for existing bank details
-          if (supplierData?.bank_details?.length > 0) {
-            const updatedBankDetails = supplierData.bank_details.map(
-              (bankDetail) => ({
-                ...bankDetail,
-                selectedCountry:
-                  formattedCountries.find(
-                    (country) => country.value === bankDetail.country
-                  ) || null,
-              })
-            );
-            setBankDetailsList(updatedBankDetails);
-          }
-        }
-      })
-      .catch((error) => {
-        console.error("Error fetching countries:", error);
-      });
-  }, [supplierData]);
+      const formattedCountries = response.data.countries.map((country) => ({
+        value: country.value,
+        label: country.name, // Map 'name' to 'label' for react-select
+      }));
 
-  // useEffect(() => {
-  //   if (selectedCountry) {
-  //     // Fetch states based on the selected country
-  //     console.log("selected country for states:", selectedCountry);
-  //     axios
-  //       .get(
-  //         `https://vendors.lockated.com/pms/dropdown_states?country_id=${selectedCountry.value}&&token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`
-  //       )
-  //       .then((response) => {
-  //         if (response.data) {
-  //           const formattedStates = response.data.states.map((state) => ({
-  //             value: state.id,
-  //             label: state.name,
-  //           }));
-  //           setStates(formattedStates);
-
-  //           // Set selected state if bank data exists
-  //           if (supplierData?.bank_details) {
-  //             const preSelectedState = formattedStates.find(
-  //               (state) => state.label === supplierData.bank_details[0]?.state
-  //             );
-  //             setSelectedState(preSelectedState || null);
-  //           }
-  //         }
-  //       })
-  //       .catch((error) => {
-  //         console.error("Error fetching states:", error);
-  //       });
-  //   }
-  // }, [selectedCountry, supplierData]);
+      setCountries(formattedCountries);
+    } catch (error) {
+      console.error("Error fetching countries:", error);
+    }
+  };
 
   useEffect(() => {
-    if (supplierData?.bank_details?.length > 0) {
-      // Fetch states based on the preselected country
-      supplierData.bank_details.forEach((bankDetail) => {
-        axios
-          .get(
-            `https://vendors.lockated.com/pms/dropdown_states?country_id=${bankDetail.country}&&token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`
-          )
-          .then((response) => {
-            if (response.data) {
-              const formattedStates = response.data.states.map((state) => ({
-                value: state.value,
-                label: state.name,
-              }));
+    fetchCountries();
+  }, []);
 
-              // Update bank details with preselected states
-              setBankDetailsList((prevDetails) =>
-                prevDetails.map((prevBankDetail) =>
-                  prevBankDetail.id === bankDetail.id
-                    ? {
-                        ...prevBankDetail,
-                        stateOptions: formattedStates,
-                        selectedState:
-                          formattedStates.find(
-                            (state) => state.label === bankDetail.state
-                          ) || null,
-                      }
-                    : prevBankDetail
-                )
-              );
-            }
-          })
-          .catch((error) => {
-            console.error("Error fetching states:", error);
-          });
-      });
+  const fetchStates = async (countryId) => {
+    try {
+      const response = await axios.get(
+        `https://vendors.lockated.com/pms/dropdown_states?country_id=${countryId}&&token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`
+      );
+
+      const formattedStates = response.data.states.map((state) => ({
+        value: state.value,
+        label: state.name, // Map 'name' to 'label' for react-select
+      }));
+
+      setStates(formattedStates);
+    } catch (error) {
+      console.error("Error fetching states:", error);
     }
-  }, [supplierData]);
+  };
+
+  useEffect(() => {
+    if (bankDetailsList.length > 0) {
+      const firstBank = bankDetailsList[0];
+      setSelectedCountry(firstBank.country);
+      fetchStates(firstBank.country); // Fetch states when country is set
+      setSelectedState(firstBank.state);
+    }
+  }, [bankDetailsList]);
+
+  // const handleCountryChange = (e, bankId) => {
+  //   const selectedCountryId = e.target.value;
+  //   setSelectedCountry(selectedCountryId);
+  //   fetchStates(selectedCountryId);
+
+  //   setBankDetailsList(
+  //     bankDetailsList.map((bank) =>
+  //       bank.id === bankId
+  //         ? { ...bank, country: selectedCountryId, state: null }
+  //         : bank
+  //     )
+  //   );
+  // };
 
   const handleCountryChange = (selectedOption, bankId) => {
-
-    setBankDetailsList((prevDetails) =>
-      prevDetails.map((bankDetail) =>
+    setBankDetailsList((prevList) =>
+      prevList.map((bankDetail) =>
         bankDetail.id === bankId
-          ? { ...bankDetail, selectedCountry: selectedOption }
+          ? { ...bankDetail, country: selectedOption?.value, state: null } // Reset state when country changes
           : bankDetail
       )
     );
 
-    // Fetch states based on the selected country
-    axios
-      .get(
-        `https://vendors.lockated.com/pms/dropdown_states?country_id=${selectedOption.value}&&token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`
-      )
-      .then((response) => {
-        if (response.data) {
-          
-          const formattedStates = response.data.states.map((state) => ({
-            value: state.value,
-            label: state.name,
-          }));
-
-          // Update bank details with state options
-          setBankDetailsList((prevDetails) =>
-            prevDetails.map((bankDetail) =>
-              bankDetail.id === bankId
-                ? {
-                    ...bankDetail,
-                    stateOptions: formattedStates,
-                    selectedState: null, // Reset selected state when country changes
-                  }
-                : bankDetail
-            )
-          );
-        }
-      })
-      .catch((error) => {
-        console.error("Error fetching states:", error);
-      });
+    if (selectedOption) {
+      fetchStates(selectedOption.value); // Fetch states for selected country
+    }
   };
 
   const handleStateChange = (selectedOption, bankId) => {
-    setBankDetailsList((prevDetails) =>
-      prevDetails.map((bankDetail) =>
+    setBankDetailsList((prevList) =>
+      prevList.map((bankDetail) =>
         bankDetail.id === bankId
-          ? { ...bankDetail, selectedState: selectedOption }
+          ? { ...bankDetail, state: selectedOption?.value }
           : bankDetail
       )
     );
   };
 
-  // bank
-
-  const [bankDetailsList, setBankDetailsList] = useState([]);
   const [deletedBankDetails, setDeletedBankDetails] = useState([]); // Store deleted bank details
   const [bankAttachments, setBankAttachments] = useState([]); // State for bank attachments
 
@@ -541,7 +466,7 @@ const SectionReKYCDetails = () => {
     reader.readAsDataURL(file);
   };
 
-  // console.log("banck details :", bankDetailsList);
+  console.log("banck details :", bankDetailsList);
 
   // Define state for form fields
   //  const [msmeUdyamApplicable, setMsmeUdyamApplicable] = useState("No");
@@ -628,7 +553,7 @@ const SectionReKYCDetails = () => {
     },
   };
 
-  // console.log("payload:", payload);
+  console.log("payload:", payload);
 
   // update api
 
@@ -642,7 +567,7 @@ const SectionReKYCDetails = () => {
 
   // Handle the Update Button Click
   const handleUpdate = async (bankDetail) => {
-    // console.log("bank details:", bankDetail);
+    console.log("bank details:", bankDetail);
 
     // console.log('formSubmitted:', formSubmitted);
 
@@ -655,8 +580,12 @@ const SectionReKYCDetails = () => {
           validationErrors.bank_name = "Bank Name is required.";
         if (!bankDetail.address)
           validationErrors.address = "Address is required.";
-        // if (!bankDetail.country) { validationErrors.country = "Country is required." };
-        // if (!bankDetail.state) { validationErrors.state = "State is required." };
+        if (!bankDetail.country) {
+          validationErrors.country = "Country is required.";
+        }
+        if (!bankDetail.state) {
+          validationErrors.state = "State is required.";
+        }
         if (!bankDetail.city) {
           validationErrors.city = "City is required.";
         }
@@ -730,12 +659,12 @@ const SectionReKYCDetails = () => {
       //   validationErrors.msmeAttachments = "MSME/Udyam Attachment is required.";
       // }
 
-        // if (
-        //   msmeUdyamApplicable === "Yes" &&
-        //   (supplierData?.msme_details?.msme_attachments ?.length === 0)
-        // ) {
-        //   validationErrors.msmeAttachments = "MSME/Udyam Attachment is required.";
-        // }
+      if (
+        msmeUdyamApplicable === "Yes" &&
+        supplierData?.msme_details?.msme_attachments?.length === 0
+      ) {
+        validationErrors.msmeAttachments = "MSME/Udyam Attachment is required.";
+      }
     }
 
     if (!gstApplicable) {
@@ -809,6 +738,7 @@ const SectionReKYCDetails = () => {
           bank_details_attributes: bankDetailsList.map((item) => ({
             ...item,
             id: item.isNew ? null : item.id, // Set id to null if it's a new entry
+
             attachment: item.isNew ? bankAttachments : null,
             // _destroy: item._destroy ? true : null, // Convert _destroy to boolean or null
           })),
@@ -828,7 +758,7 @@ const SectionReKYCDetails = () => {
         },
       };
 
-      // console.log("payload submition", payload);
+      console.log("payload submition", payload);
 
       try {
         const response = await axios.patch(
@@ -844,7 +774,7 @@ const SectionReKYCDetails = () => {
           // }
         );
 
-        // console.log("Response:", response.data); // Check the response data
+        console.log("Response:", response.data); // Check the response data
         // await fetchSupplierData();
         if (response.status === 200) {
           // console.log('Update successful:', data);
@@ -1191,7 +1121,6 @@ const SectionReKYCDetails = () => {
             </div>
           </div>
 
-          {(isRekycTypeEmpty || isGstinRekyc) && (
           <div className="card mx-3 pb-4 mt-4">
             <div className="card-header3">
               <h3 className="card-title">GST Details</h3>
@@ -1360,15 +1289,14 @@ const SectionReKYCDetails = () => {
               </div>
             </div>
           </div>
-          )}
 
           {(isRekycTypeEmpty || isBankRekyc) && (
             <div>
-              {bankDetailsList?.map((bankDetails) => (
+              {bankDetailsList?.map((bankDetail) => (
                 <CollapsedCardKYC
-                  key={bankDetails.id}
+                  key={bankDetail.id}
                   title="Bank Details"
-                  onDelete={() => deleteBankDetails(bankDetails.id)}
+                  onDelete={() => deleteBankDetails(bankDetail.id)}
                 >
                   <div className="row">
                     {/* Bank Name */}
@@ -1385,12 +1313,12 @@ const SectionReKYCDetails = () => {
                           className="form-control"
                           type="text"
                           placeholder="Enter Bank name"
-                          value={bankDetails.bank_name}
+                          value={bankDetail.bank_name}
                           onChange={(e) =>
-                            handleInputChange(e, bankDetails.id, "bank_name")
+                            handleInputChange(e, bankDetail.id, "bank_name")
                           }
                         />
-                        {bankDetails.isNew && errors.bank_name && (
+                        {bankDetail.isNew && errors.bank_name && (
                           <span className="ValidationColor">
                             {errors.bank_name}
                           </span>
@@ -1415,12 +1343,12 @@ const SectionReKYCDetails = () => {
                           className="form-control"
                           type="text"
                           placeholder="Enter Address"
-                          value={bankDetails.address}
+                          value={bankDetail.address}
                           onChange={(e) =>
-                            handleInputChange(e, bankDetails.id, "address")
+                            handleInputChange(e, bankDetail.id, "address")
                           }
                         />
-                        {bankDetails.isNew && errors.address && (
+                        {bankDetail.isNew && errors.address && (
                           <div className="ValidationColor">
                             {errors.address}
                           </div>
@@ -1441,16 +1369,44 @@ const SectionReKYCDetails = () => {
                         </label>
 
                         {/* Country Dropdown */}
+                        {/* <SingleSelector
+                          options={countries}
+                          value={bankDetail.selectedCountry}
+                          onChange={(selectedOption) =>
+                            handleCountryChange(selectedOption, bankDetail.id)
+                          } // Properly handling onChange
+                        /> */}
+
+                        {/* <select
+                          className="form-control"
+                          value={bankDetail.country || ""}
+                          onChange={(e) =>
+                            handleCountryChange(e, bankDetail.id)
+                          }
+                        >
+                          <option value="">Select Country</option>
+                          {countries.map((country) => (
+                            <option key={country.value} value={country.value}>
+                              {country.name}
+                            </option>
+                          ))}
+                        </select> */}
+
                         <SingleSelector
                           options={countries}
-                          value={bankDetails.selectedCountry}
+                          value={
+                            countries.find(
+                              (c) => c.value === bankDetail.country
+                            ) || null
+                          }
                           onChange={(selectedOption) =>
-                            handleCountryChange(selectedOption, bankDetails.id)
-                          } // Properly handling onChange
+                            handleCountryChange(selectedOption, bankDetail.id)
+                          }
+                          placeholder="Select Country"
                         />
 
                         {/* Validation Error Message */}
-                        {bankDetails.isNew && errors.country && (
+                        {bankDetail.isNew && errors.country && (
                           <div className="ValidationColor">
                             {errors.country}
                           </div>
@@ -1467,18 +1423,33 @@ const SectionReKYCDetails = () => {
                         >
                           State <span>*</span>
                         </label>
+
+                        {/* <select
+                          className="form-control"
+                          value={bankDetail.state || ""}
+                          onChange={(e) => handleStateChange(e, bankDetail.id)}
+                        >
+                          <option value="">Select State</option>
+                          {states.map((state) => (
+                            <option key={state.value} value={state.value}>
+                              {state.name}
+                            </option>
+                          ))}
+                        </select> */}
+
                         <SingleSelector
-                          options={bankDetails.stateOptions} // Use dynamic state options
+                          options={states}
                           value={
-                            bankDetails.stateOptions?.find(
-                              (option) => option.value === bankDetails.state
-                            ) || null
-                          } // Ensure preselected state is shown for existing data
-                          onChange={(selectedOption) =>
-                            handleStateChange(selectedOption, bankDetails.id)
+                            states.find((s) => s.value === bankDetail.state) ||
+                            null
                           }
+                          onChange={(selectedOption) =>
+                            handleStateChange(selectedOption, bankDetail.id)
+                          }
+                          placeholder="Select State"
+                          isDisabled={!bankDetail.country} // Disable if no country selected
                         />
-                        {bankDetails.isNew && errors.state && (
+                        {bankDetail.isNew && errors.state && (
                           <div className="ValidationColor">{errors.state}</div>
                         )}
                       </div>
@@ -1498,12 +1469,12 @@ const SectionReKYCDetails = () => {
                           className="form-control"
                           type="text"
                           placeholder="Enter City Name"
-                          value={bankDetails.city}
+                          value={bankDetail.city}
                           onChange={(e) =>
-                            handleInputChange(e, bankDetails.id, "city")
+                            handleInputChange(e, bankDetail.id, "city")
                           }
                         />
-                        {bankDetails.isNew && errors.city && (
+                        {bankDetail.isNew && errors.city && (
                           <div className="ValidationColor">{errors.city}</div>
                         )}
                       </div>
@@ -1523,12 +1494,12 @@ const SectionReKYCDetails = () => {
                           className="form-control"
                           type="number"
                           placeholder="Enter Pin Code"
-                          value={bankDetails.pin_code}
+                          value={bankDetail.pin_code}
                           onChange={(e) =>
-                            handleInputChange(e, bankDetails.id, "pin_code")
+                            handleInputChange(e, bankDetail.id, "pin_code")
                           }
                         />
-                        {bankDetails.isNew && errors.pin_code && (
+                        {bankDetail.isNew && errors.pin_code && (
                           <div className="ValidationColor">
                             {errors.pin_code}
                           </div>
@@ -1550,12 +1521,12 @@ const SectionReKYCDetails = () => {
                           className="form-control"
                           type="text"
                           placeholder="Enter Account Type"
-                          value={bankDetails.account_type}
+                          value={bankDetail.account_type}
                           onChange={(e) =>
-                            handleInputChange(e, bankDetails.id, "account_type")
+                            handleInputChange(e, bankDetail.id, "account_type")
                           }
                         />
-                        {bankDetails.isNew && errors.account_type && (
+                        {bankDetail.isNew && errors.account_type && (
                           <div className="ValidationColor">
                             {errors.account_type}
                           </div>
@@ -1577,17 +1548,17 @@ const SectionReKYCDetails = () => {
                           className="form-control"
                           type="text"
                           placeholder="Enter Account Number"
-                          value={bankDetails.account_number}
+                          value={bankDetail.account_number}
                           onChange={(e) =>
                             handleInputChange(
                               e,
-                              bankDetails.id,
+                              bankDetail.id,
                               "account_number"
                             )
                           }
                         />
 
-                        {bankDetails.isNew && errors.account_number && (
+                        {bankDetail.isNew && errors.account_number && (
                           <div className="ValidationColor">
                             {errors.account_number}
                           </div>
@@ -1609,21 +1580,21 @@ const SectionReKYCDetails = () => {
                           className="form-control"
                           type="text"
                           placeholder="Enter Confirm Account Number"
-                          value={bankDetails.confirm_account_number}
+                          value={bankDetail.confirm_account_number}
                           onChange={(e) =>
                             handleInputChange(
                               e,
-                              bankDetails.id,
+                              bankDetail.id,
                               "confirm_account_number"
                             )
                           }
                         />
-                        {bankDetails.isNew && errors.confirm_account_number && (
+                        {bankDetail.isNew && errors.confirm_account_number && (
                           <div className="ValidationColor">
                             {errors.confirm_account_number}
                           </div>
                         )}
-                        {bankDetails.isNew && errors.account_match && (
+                        {bankDetail.isNew && errors.account_match && (
                           <div className="ValidationColor">
                             {errors.account_match}
                           </div>
@@ -1645,12 +1616,12 @@ const SectionReKYCDetails = () => {
                           className="form-control"
                           type="text"
                           placeholder="Enter Branch Name"
-                          value={bankDetails.branch_name}
+                          value={bankDetail.branch_name}
                           onChange={(e) =>
-                            handleInputChange(e, bankDetails.id, "branch_name")
+                            handleInputChange(e, bankDetail.id, "branch_name")
                           }
                         />
-                        {bankDetails.isNew && errors.branch_name && (
+                        {bankDetail.isNew && errors.branch_name && (
                           <div className="ValidationColor">
                             {errors.branch_name}
                           </div>
@@ -1672,12 +1643,12 @@ const SectionReKYCDetails = () => {
                           className="form-control"
                           type="text"
                           placeholder="Enter MICR No."
-                          value={bankDetails.micr_number}
+                          value={bankDetail.micr_number}
                           onChange={(e) =>
-                            handleInputChange(e, bankDetails.id, "micr_number")
+                            handleInputChange(e, bankDetail.id, "micr_number")
                           }
                         />
-                        {bankDetails.isNew && errors.micr_number && (
+                        {bankDetail.isNew && errors.micr_number && (
                           <div className="ValidationColor">
                             {errors.micr_number}
                           </div>
@@ -1699,12 +1670,12 @@ const SectionReKYCDetails = () => {
                           className="form-control"
                           type="text"
                           placeholder="Enter IFSC Code"
-                          value={bankDetails.ifsc_code}
+                          value={bankDetail.ifsc_code}
                           onChange={(e) =>
-                            handleInputChange(e, bankDetails.id, "ifsc_code")
+                            handleInputChange(e, bankDetail.id, "ifsc_code")
                           }
                         />
-                        {bankDetails.isNew && errors.ifsc_code && (
+                        {bankDetail.isNew && errors.ifsc_code && (
                           <div className="ValidationColor">
                             {errors.ifsc_code}
                           </div>
@@ -1726,16 +1697,16 @@ const SectionReKYCDetails = () => {
                           className="form-control"
                           type="text"
                           placeholder="Enter Beneficiary Name"
-                          value={bankDetails.beneficiary_name}
+                          value={bankDetail.beneficiary_name}
                           onChange={(e) =>
                             handleInputChange(
                               e,
-                              bankDetails.id,
+                              bankDetail.id,
                               "beneficiary_name"
                             )
                           }
                         />
-                        {bankDetails.isNew && errors.beneficiary_name && (
+                        {bankDetail.isNew && errors.beneficiary_name && (
                           <div className="ValidationColor">
                             {errors.beneficiary_name}
                           </div>
@@ -1756,7 +1727,7 @@ const SectionReKYCDetails = () => {
 
                         <span className="ms-2 ">
                           <a
-                            href={`https://vendors.lockated.com${bankDetails?.attachment}`} // Append base URL
+                            href={`https://vendors.lockated.com${bankDetail?.attachment}`} // Append base URL
                             download // Ensure it triggers a download
                             className="text-primary d-flex align-items-center"
                           >
@@ -1792,7 +1763,7 @@ const SectionReKYCDetails = () => {
                           className="form-control mt-2"
                           type="file"
                           onChange={(e) =>
-                            handleFileChangeBank(e, bankDetails.id)
+                            handleFileChangeBank(e, bankDetail.id)
                           }
                           // onChange={(e) =>
                           //   handleFileChange(e.target.files[0])
@@ -1813,7 +1784,7 @@ const SectionReKYCDetails = () => {
                           accept=".xlsx,.csv,.pdf,.docx,.doc,.xls,.txt,.png,.jpg,.jpeg,.zip,.rar,.jfif,.svg,.mp4,.mp3,.avi,.flv,.wmv"
                         />
 
-                        {bankDetails.isNew && errors.cancelled_cheque && (
+                        {bankDetail.isNew && errors.cancelled_cheque && (
                           <div className="ValidationColor">
                             {errors.cancelled_cheque}
                           </div>
@@ -1832,9 +1803,9 @@ const SectionReKYCDetails = () => {
                           className="form-control"
                           rows="3"
                           placeholder="Enter Remark"
-                          value={bankDetails.remark}
+                          value={bankDetail.remark}
                           onChange={(e) =>
-                            handleInputChange(e, bankDetails.id, "remark")
+                            handleInputChange(e, bankDetail.id, "remark")
                           }
                         />
                       </div>
