@@ -43,6 +43,7 @@ const ApprovalEdit = () => {
         const [departmentRes, userRes] = await Promise.all([
           // axios.get("https://vendor.panchshil.com/pms/company_setups.json"),
           axios.get("https://vendor.panchshil.com/pms/departments.json"),
+
           axios.get("https://vendor.panchshil.com/users.json"),
         ]);
 
@@ -230,9 +231,24 @@ const ApprovalEdit = () => {
       !payload.invoice_approval.department_id ||
       !payload.invoice_approval.approval_type
     ) {
-      alert("Please select a Company, Department, and KYC Type.");
+      alert("Please select  Department, and KYC Type.");
       return;
     }
+
+    // try {
+    //   const response = await axios.put(
+    //     `https://vendors.lockated.com/pms/admin/invoice_approvals/${id}.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`,
+    //     payload
+    //   );
+
+    //   console.log("API Response:", response.data);
+    //   alert("Approval Matrix Updated Successfully!");
+
+    //   navigate("/approval-list");
+    // } catch (error) {
+    //   console.error("Error updating approval matrix:", error);
+    //   alert("Failed to update approval matrix.");
+    // }
 
     try {
       const response = await axios.put(
@@ -246,7 +262,12 @@ const ApprovalEdit = () => {
       navigate("/approval-list");
     } catch (error) {
       console.error("Error updating approval matrix:", error);
-      alert("Failed to update approval matrix.");
+
+      if (error.response?.data?.error) {
+        alert(error.response.data.error[0]); // Show the exact error message
+      } else {
+        alert("Failed to update approval matrix.");
+      }
     }
   };
 

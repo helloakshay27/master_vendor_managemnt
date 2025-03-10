@@ -283,12 +283,12 @@ const ApprovalList = () => {
 
     try {
       const response = await axios.post(
-        "https://vendors.lockated.com/pms/admin/invoice_approvals/import_rekyc",
+        "https://vendors.lockated.com/pms/admin/invoice_approvals/import_rekyc?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414",
         formData,
         {
           headers: {
             "Content-Type": "multipart/form-data",
-            Accept: "application/json", // Ensures the API understands the request
+            Accept: "application/json",
           },
         }
       );
@@ -447,7 +447,7 @@ const ApprovalList = () => {
                       <th>Edit</th>
                       <th>Id</th>
                       <th>Function</th>
-                      <th>Company</th>
+                      {/* <th>Company</th> */}
                       <th>Department</th>
                       <th>ReKyc Type</th>
                       <th>Created On</th>
@@ -469,7 +469,7 @@ const ApprovalList = () => {
                         <td>{record.id}</td>
 
                         <td>{record.approval_type}</td>
-                        <td>{record.company}</td>
+                        {/* <td>{record.company}</td> */}
                         {/* <td>{record.project_name}</td> */}
                         <td>{record.department}</td>
                         <td>{record.approval_function}</td>
@@ -482,9 +482,7 @@ const ApprovalList = () => {
                         <td>
                           <FormatDate timestamp={record.created_at} />
                         </td>
-                        <td>
-                          <FormatDate timestamp={record.created_by} />
-                        </td>
+                        <td>{record.created_by}</td>
                       </tr>
                     ))}
                   </tbody>
