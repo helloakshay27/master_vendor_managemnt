@@ -7,6 +7,7 @@ export default function SingleSelector({
   onChange,
   placeholder,
   isDisabled,
+  defaultValue, // Add defaultValue prop
 }) {
   const customStyles = {
     control: (base) => ({
@@ -58,23 +59,17 @@ export default function SingleSelector({
   return (
     <Select
       options={options} // Options for dropdown
-      value={value} // Currently selected value4
-      // value={options.find((option) => option.value === value)} // Ensure the selected value is shown
+      value={value} // Currently selected value
       onChange={onChange} // Callback for when value changes
       placeholder={placeholder} // Placeholder text
-      // className="basic-single-select" // Custom class
-      // classNamePrefix="select"
       styles={customStyles}
       isDisabled={isDisabled}
       isSearchable={true} // Enable the search bar
       isClearable={true} // Enable the clear (cancel) functionality for the selected value
       closeMenuOnSelect={true} // Optionally close the menu when a selection is made
-      // menuPlacement="top" // Make dropdown appear above the input field
-      // menuPosition="fixed"
-
       className="basic-single-select custom-select"
-      // classNamePrefix="select"
       classNamePrefix="react-select"
+      defaultValue={defaultValue} // Set default value
     />
   );
 }
