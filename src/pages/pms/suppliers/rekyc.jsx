@@ -21,6 +21,7 @@ const SectionReKYCDetails = () => {
   const [eInvoicingApplicable, setEInvoicingApplicable] = useState("");
   const [rekycId, setRekycId] = useState(null);
   const [rekycType, setRekycType] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   // Check if the rekycType array is null or empty
   const isRekycTypeEmpty = !rekycType || rekycType.length === 0;
@@ -782,6 +783,8 @@ const SectionReKYCDetails = () => {
       //   },
       // };
 
+      setLoading(true);
+
       const payload = {
         authenticity_token: "[FILTERED]", // No quotes for the token value, but the key is a string
         vendor_re_kyc: {
@@ -860,7 +863,9 @@ const SectionReKYCDetails = () => {
         );
 
         alert("Something went wrong! ");
-      }
+      }finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -2435,6 +2440,21 @@ const SectionReKYCDetails = () => {
         </div>
         <div className=" d-flex justify-content-center">
           <div className="col-md-2">
+          {loading && (
+                  <div className="loader-container">
+                    <div className="lds-ring">
+                      <div></div>
+                      <div></div>
+                      <div></div>
+                      <div></div>
+                      <div></div>
+                      <div></div>
+                      <div></div>
+                      <div></div>
+                    </div>
+                    <p>Updating...</p>
+                  </div>
+                )}
             <button className="purple-btn2" onClick={handleUpdate}>
               Update
             </button>
