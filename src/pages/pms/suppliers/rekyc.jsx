@@ -151,17 +151,42 @@ const SectionReKYCDetails = () => {
     reader.readAsDataURL(file);
   };
 
+  // const handleFileChangegst = (event) => {
+  //   const files = event.target.files;
+  //   if (!files.length) return;
+
+  //   const newAttachments = [];
+  //   Array.from(files).forEach((file) => {
+  //     if (file.type !== "application/pdf") {
+  //       alert("Only PDF files are allowed.");
+  //       return;
+  //     }
+
+  //     const reader = new FileReader();
+  //     reader.onloadend = () => {
+  //       const base64String = reader.result.split(",")[1];
+  //       newAttachments.push({
+  //         filename: file.name,
+  //         content: base64String,
+  //         content_type: file.type,
+  //       });
+
+  //       // Ensure all files are processed before updating state
+  //       if (newAttachments.length === files.length) {
+  //         setGstinAttachments([...gstinAttachments, ...newAttachments]);
+  //       }
+  //     };
+
+  //     reader.readAsDataURL(file);
+  //   });
+  // };
+
   const handleFileChangegst = (event) => {
     const files = event.target.files;
     if (!files.length) return;
 
     const newAttachments = [];
     Array.from(files).forEach((file) => {
-      if (file.type !== "application/pdf") {
-        alert("Only PDF files are allowed.");
-        return;
-      }
-
       const reader = new FileReader();
       reader.onloadend = () => {
         const base64String = reader.result.split(",")[1];
@@ -173,7 +198,10 @@ const SectionReKYCDetails = () => {
 
         // Ensure all files are processed before updating state
         if (newAttachments.length === files.length) {
-          setGstinAttachments([...gstinAttachments, ...newAttachments]);
+          setGstinAttachments((prevAttachments) => [
+            ...prevAttachments,
+            ...newAttachments,
+          ]);
         }
       };
 
@@ -402,8 +430,8 @@ const SectionReKYCDetails = () => {
         id: Date.now(),
         bank_name: null,
         address: null,
-        country: null,
-        state: null,
+        country_id: null,
+        state_id: null,
         city: null,
         pin_code: null,
         account_type: null,
@@ -452,7 +480,7 @@ const SectionReKYCDetails = () => {
     // ).filter(item => item._destroy !== true)); // Also filter out items with _destroy: true
   };
 
-  const handleFileChangeBank = (file) => {
+  const handleFileChangeBank = (file, bankId) => {
     const reader = new FileReader();
     reader.onloadend = () => {
       const base64String = reader.result.split(",")[1];
@@ -461,7 +489,12 @@ const SectionReKYCDetails = () => {
         content: base64String,
         content_type: file.type,
       };
-      setBankAttachments([...bankAttachments, attachment]);
+      // setBankAttachments([...bankAttachments, attachment]);
+
+      setBankAttachments((prevAttachments) => ({
+        ...prevAttachments,
+        [bankId]: attachment, // Store attachment against the bank ID
+      }));
     };
     reader.readAsDataURL(file);
   };
@@ -531,10 +564,19 @@ const SectionReKYCDetails = () => {
       // bank_details_attributes: bankDetailsList,
       bank_details_attributes: bankDetailsList.map((item) => ({
         ...item,
-        id: item.isNew ? null : item.id, // Set id to null if it's a new entry
-        attachment: item.isNew ? bankAttachments : null,
-        // _destroy: item._destroy ? true : null, // Convert _destroy to boolean or null
+        id: item.isNew ? null : item.id,
+
+        attachment: item.isNew
+          ? bankAttachments[item.id] || null // If new attachment exists, pass it; otherwise, null
+          : bankAttachments[item.id] || (item.attachment ? null : null), // If existing, only pass null if no new file is uploaded
       })),
+      // attachment: item.isNew
+      //   ? bankAttachments[item.tempId] || null // Use tempId for new items
+      //   : bankAttachments[item.id] || null, // Use id for existing items
+      // Set id to null if it's a new entry
+      // attachment: item.isNew ? bankAttachments : null,
+      // _destroy: item._destroy ? true : null, // Convert _destroy to boolean or null
+      // })),
 
       deletedBankDetails: deletedBankDetails, //deleted details
 
@@ -739,8 +781,12 @@ const SectionReKYCDetails = () => {
             ...item,
             id: item.isNew ? null : item.id, // Set id to null if it's a new entry
 
-            attachment: item.isNew ? bankAttachments : null,
+            // attachment: item.isNew ? bankAttachments : null,
             // _destroy: item._destroy ? true : null, // Convert _destroy to boolean or null
+
+            attachment: item.isNew
+              ? bankAttachments[item.id] || null // If new attachment exists, pass it; otherwise, null
+              : bankAttachments[item.id] || (item.attachment ? null : null), // If existing, only pass null if no new file is uploaded
           })),
 
           deletedBankDetails: deletedBankDetails, //deleted details
@@ -1270,9 +1316,9 @@ const SectionReKYCDetails = () => {
                         {/* File upload input */}
                         <input
                           id="attachment"
-                          accept="application/pdf"
+                          // accept="application/pdf"
                           className="form-control mt-2"
-                          multiple
+                          // multiple
                           type="file"
                           name="pms_supplier[gstin_attachments][]"
                           onChange={handleFileChangegst}
@@ -1697,7 +1743,7 @@ const SectionReKYCDetails = () => {
                           className="form-control"
                           type="text"
                           placeholder="Enter Beneficiary Name"
-                          value={bankDetail.beneficiary_name}
+                          value={bankDetail.benficary_name}
                           onChange={(e) =>
                             handleInputChange(
                               e,
@@ -1725,65 +1771,46 @@ const SectionReKYCDetails = () => {
                           Cancelled Cheque / Bank Copy <span>*</span>
                         </label>
 
-                        <span className="ms-2 ">
-                          <a
-                            href={`https://vendors.lockated.com${bankDetail?.attachment}`} // Append base URL
-                            download // Ensure it triggers a download
-                            className="text-primary d-flex align-items-center"
-                          >
-                            <span className="me-2">Existing Files:</span>
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width={24}
-                              height={24}
-                              fill="#DE7008"
-                              className="bi bi-download"
-                              viewBox="0 0 16 16"
+                        {/* Conditionally Render Existing File Download Link */}
+                        {bankDetail?.attachment && (
+                          <span className="ms-2">
+                            <a
+                              href={`https://vendors.lockated.com${bankDetail.attachment}`} // Ensure URL is correct
+                              download // Forces file download
+                              className="text-primary d-flex align-items-center"
                             >
-                              <path
-                                d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
-                                // style={{ fill: "#de7008!important" }}
-                              />
-                              <path
-                                d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
-                                // style={{ fill: "#de7008!important" }}
-                              />
-                            </svg>
+                              <span className="me-2">Existing File:</span>
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width={24}
+                                height={24}
+                                fill="#DE7008"
+                                className="bi bi-download"
+                                viewBox="0 0 16 16"
+                              >
+                                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                              </svg>
+                            </a>
+                          </span>
+                        )}
 
-                            {/* {supplierData?.msme_details?.msme_attachments
-                              ?.length > 0
-                              ? // Display the document name of the first attachment
-                              supplierData?.msme_details?.msme_attachments[0]
-                                ?.document_name
-                              : // If no attachment is present, show a default message
-                              "No Document Available"} */}
-                          </a>
-                        </span>
-                        {/* <input
-                          className="form-control mt-2"
-                          type="file"
-                          onChange={(e) =>
-                            handleFileChangeBank(e, bankDetail.id)
-                          }
-                          // onChange={(e) =>
-                          //   handleFileChange(e.target.files[0])
-                          // }
-                          ref={fileInputRef}
-                          multiple
-                          accept=".xlsx,.csv,.pdf,.docx,.doc,.xls,.txt,.png,.jpg,.jpeg,.zip,.rar,.jfif,.svg,.mp4,.mp3,.avi,.flv,.wmv"
-                        /> */}
-
+                        {/* File Input for Uploading New Attachments */}
                         <input
                           className="form-control mt-2"
                           type="file"
                           onChange={(e) =>
-                            handleFileChangeBank(e.target.files[0])
+                            handleFileChangeBank(
+                              e.target.files[0],
+                              bankDetail.id
+                            )
                           }
                           ref={fileInputRef}
                           multiple
                           accept=".xlsx,.csv,.pdf,.docx,.doc,.xls,.txt,.png,.jpg,.jpeg,.zip,.rar,.jfif,.svg,.mp4,.mp3,.avi,.flv,.wmv"
                         />
 
+                        {/* Validation Message */}
                         {bankDetail.isNew && errors.cancelled_cheque && (
                           <div className="ValidationColor">
                             {errors.cancelled_cheque}
