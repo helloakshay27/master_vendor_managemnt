@@ -84,7 +84,7 @@ const ApprovalEdit = () => {
     const fetchApprovalData = async () => {
       try {
         const { data } = await axios.get(
-          `https://vendors.lockated.com/pms/admin/invoice_approvals/${id}/edit.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`
+          `https://vendor.panchshil.com/pms/admin/invoice_approvals/${id}/edit.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`
         );
 
         setFormData({
@@ -252,7 +252,7 @@ const ApprovalEdit = () => {
 
     try {
       const response = await axios.put(
-        `https://vendors.lockated.com/pms/admin/invoice_approvals/${id}.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`,
+        `https://vendor.panchshil.com/pms/admin/invoice_approvals/${id}.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`,
         payload
       );
 

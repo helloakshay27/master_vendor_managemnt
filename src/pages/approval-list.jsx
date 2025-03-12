@@ -71,7 +71,7 @@ const ApprovalList = () => {
         queryParams.append("page", pagination.current_page);
         queryParams.append("page_size", 10); // Use API per_page value
 
-        const apiUrl = `${baseURL}/pms/admin/invoice_approvals.json?${queryParams.toString()}&token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`;
+        const apiUrl = `https://vendor.panchshil.com/pms/admin/invoice_approvals.json?${queryParams.toString()}&token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`;
 
         console.log("API URL (Pagination):", apiUrl);
 
@@ -113,8 +113,8 @@ const ApprovalList = () => {
           departmentRes,
           userRes,
         ] = await Promise.all([
-          axios.get("https://vendors.lockated.com/pms/company_setups.json"),
-          axios.get("https://vendors.lockated.com/pms/departments.json"),
+          axios.get("https://vendor.panchshil.com/pms/company_setups.json"),
+          axios.get("https://vendor.panchshil.com/pms/departments.json"),
         ]);
 
         // console.log("Raw Company Data:", companyRes.data);
@@ -166,7 +166,7 @@ const ApprovalList = () => {
     queryParams.append("page", 1);
     queryParams.append("page_size", pagination.per_page); // Ensure correct page size
 
-    const apiUrl = `https://vendors.lockated.com/pms/admin/invoice_approvals.json?${queryParams.toString()}&token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`;
+    const apiUrl = `https://vendor.panchshil.com/pms/admin/invoice_approvals.json?${queryParams.toString()}&token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`;
 
     try {
       const response = await fetch(apiUrl);
@@ -283,7 +283,7 @@ const ApprovalList = () => {
 
     try {
       const response = await axios.post(
-        "https://vendors.lockated.com/pms/admin/invoice_approvals/import_rekyc?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414",
+        "https://vendor.panchshil.com/pms/admin/invoice_approvals/import_rekyc?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414",
         formData,
         {
           headers: {
@@ -347,7 +347,7 @@ const ApprovalList = () => {
                 </button>
                 <a
                   className="d-flex btn-sm purple-btn1 my-2"
-                  href="https://vendors.lockated.com//pms/admin/invoice_approvals/export_rekyc.xlsx?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078411"
+                  href="https://vendor.panchshil.com/pms/admin/invoice_approvals/export_rekyc.xlsx?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078411"
                 >
                   Export to Excel
                 </a>
@@ -640,7 +640,7 @@ const ApprovalList = () => {
                       download="Approval Import.xlsx"
                       target="_blank"
                       className="purple-btn1"
-                      href="https://vendors.lockated.com/Rekyc%20Approval%20Import.xlsx"
+                      href="https://vendor.panchshil.com/Rekyc%20Approval%20Import.xlsx"
                     >
                       Download Sample Format
                     </a>
