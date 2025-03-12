@@ -24,10 +24,10 @@ const ApprovalEdit = () => {
 
   const [users, setUsers] = useState([]);
   const kycTypes = [
-    { value: "General Re-KYC", label: "General Rekyc" },
-    { value: "MSME Re-KYC", label: "MSME Rekyc" },
-    { value: "E-invoicing Re-KYC", label: "E-invoicing Rekyc" },
-    { value: "Bank Re-KYC", label: "Bank Rekyc" },
+    { value: " General Rekyc", label: "General Re-KYC" },
+    { value: "MSME Rekyc", label: "MSME Re-KYC" },
+    { value: "E-invoicing  Rekyc", label: "E-invoicing Re-KYC" },
+    { value: "Bank Rekyc", label: "Bank Rekyc Re-KYC" },
     { value: "GSTIN Rekyc", label: "GSTIN Rekyc" },
   ];
 

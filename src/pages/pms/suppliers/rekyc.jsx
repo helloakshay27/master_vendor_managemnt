@@ -1910,7 +1910,7 @@ const SectionReKYCDetails = () => {
                         onChange={handleMsmeUdyamChange}
                         className="form-control"
                       >
-                        <option value=""></option>
+                        <option value="">select</option>
                         <option value="Yes">Yes</option>
                         <option value="No">No</option>
                       </select>
@@ -2034,6 +2034,7 @@ const SectionReKYCDetails = () => {
                           className="form-control"
                           value={msmeEnterpriseType}
                         >
+                          <option value="">select option</option>
                           <option value="Micro">Micro</option>
                           <option value="Small">Small</option>
                           <option value="Medium">Medium</option>
