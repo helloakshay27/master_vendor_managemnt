@@ -30,8 +30,8 @@ const SectionReKYCDetails = () => {
   const isMsmeRekyc =
     rekycType &&
     rekycType.includes(
-      // "MSME Rekyc"
-      "MSME Re-kyc"
+      "MSME Rekyc"
+      // "MSME Re-kyc"
     );
 
   // Check if 'E-invoicing Rekyc' is in the rekycType array
