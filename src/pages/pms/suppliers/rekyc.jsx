@@ -464,7 +464,7 @@ const SectionReKYCDetails = () => {
         branch_name: null,
         micr_number: null,
         ifsc_code: null,
-        beneficiary_name: null,
+        benficary_name: null,
         remark: null,
         _destroy: "false",
         isNew: true,
@@ -683,8 +683,8 @@ const SectionReKYCDetails = () => {
         if (!bankDetail.ifsc_code) {
           validationErrors.ifsc_code = "IFSC Code is required.";
         }
-        if (!bankDetail.beneficiary_name) {
-          validationErrors.beneficiary_name = "Beneficiary Name is required.";
+        if (!bankDetail.benficiary_name) {
+          validationErrors.benficiary_name = "Beneficiary Name is required.";
         }
         // if (!bankDetail.cancelled_cheque) { validationErrors.cancelled_cheque = "Cancelled Cheque / Bank Copy is required." };
 
@@ -1776,18 +1776,18 @@ const SectionReKYCDetails = () => {
                           type="text"
                           placeholder="Enter Beneficiary Name"
                           // value={bankDetail.benficary_name}
-                          value={bankDetail.beneficiary_name} // Correct key
+                          value={bankDetail.benficary_name} // Correct key
                           onChange={(e) =>
                             handleInputChange(
                               e,
                               bankDetail.id,
-                              "beneficiary_name"
+                              "benficary_name"
                             )
                           }
                         />
-                        {bankDetail.isNew && errors.beneficiary_name && (
+                        {bankDetail.isNew && errors.benficary_name && (
                           <div className="ValidationColor">
-                            {errors.beneficiary_name}
+                            {errors.benficary_name}
                           </div>
                         )}
                       </div>
