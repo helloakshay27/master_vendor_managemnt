@@ -27,7 +27,12 @@ const SectionReKYCDetails = () => {
   const isRekycTypeEmpty = !rekycType || rekycType.length === 0;
 
   // Check if rekycType is null, empty, or contains "MSME Rekyc"
-  const isMsmeRekyc = rekycType && rekycType.includes("MSME Rekyc");
+  const isMsmeRekyc =
+    rekycType &&
+    rekycType.includes(
+      // "MSME Rekyc"
+      "MSME Re-kyc"
+    );
 
   // Check if 'E-invoicing Rekyc' is in the rekycType array
   const isEnvoiceRekyc = rekycType && rekycType.includes("E-invoicing Rekyc");
@@ -124,6 +129,20 @@ const SectionReKYCDetails = () => {
   };
 
   // For handling MSME attachments (storing encrypted files)
+  // const handleFileChange = (file) => {
+  //   const reader = new FileReader();
+  //   reader.onloadend = () => {
+  //     const base64String = reader.result.split(",")[1];
+  //     const attachment = {
+  //       filename: file.name,
+  //       content: base64String,
+  //       content_type: file.type,
+  //     };
+  //     setMsmeAttachments([...msmeAttachments, attachment]);
+  //   };
+  //   reader.readAsDataURL(file);
+  // };
+
   const handleFileChange = (file) => {
     const reader = new FileReader();
     reader.onloadend = () => {
@@ -133,7 +152,11 @@ const SectionReKYCDetails = () => {
         content: base64String,
         content_type: file.type,
       };
-      setMsmeAttachments([...msmeAttachments, attachment]);
+
+      // Replace previous attachment with the new one (store only the latest file)
+      setMsmeAttachments([attachment]);
+
+      console.log("Updated MSME Attachments:", [attachment]); // Debugging log
     };
     reader.readAsDataURL(file);
   };
@@ -267,7 +290,7 @@ const SectionReKYCDetails = () => {
   const fetchSupplierData = async () => {
     try {
       const response = await axios.get(
-        `https://vendor.panchshil.com/pms/suppliers/${id}/rekyc_by_sections.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`
+        `https://vendor.panchshil.com/pms/suppliers/${id}/rekyc_by_sections.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&&rekycId`
       );
 
       // Update the state with the response data
@@ -725,9 +748,16 @@ const SectionReKYCDetails = () => {
       //   validationErrors.msmeAttachments = "MSME/Udyam Attachment is required.";
       // }
 
+      // if (
+      //   msmeUdyamApplicable === "Yes" &&
+      //   supplierData?.msme_details?.msme_attachments?.length === 0
+      // ) {
+      //   validationErrors.msmeAttachments = "MSME/Udyam Attachment is required.";
+      // }
       if (
         msmeUdyamApplicable === "Yes" &&
-        supplierData?.msme_details?.msme_attachments?.length === 0
+        supplierData?.msme_details?.msme_attachments?.length === 0 &&
+        msmeAttachments.length === 0 // Also check msmeAttachments state
       ) {
         validationErrors.msmeAttachments = "MSME/Udyam Attachment is required.";
       }
@@ -2096,40 +2126,44 @@ const SectionReKYCDetails = () => {
                         >
                           MSME/Udyam Attachment <span>*</span>
                         </label>
-                        <span className="ms-2">
-                          <a
-                            href={`https://vendor.panchshil.com${supplierData?.msme_details?.msme_attachments[0]?.file_url}`} // Append base URL
-                            download // Ensure it prompts download
-                            className="text-primary d-flex align-items-center"
-                          >
-                            <span className="me-2">Existing Files:</span>
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width={24}
-                              height={24}
-                              fill="#DE7008"
-                              className="bi bi-download"
-                              viewBox="0 0 16 16"
-                            >
-                              <path
-                                d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
-                                // style={{ fill: "#de7008!important" }}
-                              />
-                              <path
-                                d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
-                                // style={{ fill: "#de7008!important" }}
-                              />
-                            </svg>
 
-                            {supplierData?.msme_details?.msme_attachments
-                              ?.length > 0
-                              ? // Display the document name of the first attachment
-                                supplierData?.msme_details?.msme_attachments[0]
-                                  ?.document_name
-                              : // If no attachment is present, show a default message
-                                "No Document Available"}
-                          </a>
-                        </span>
+                        {supplierData?.msme_details?.msme_attachments?.length >
+                          0 && (
+                          <span className="ms-2">
+                            <a
+                              href={`https://vendor.panchshil.com${supplierData?.msme_details?.msme_attachments[0]?.file_url}`} // Append base URL
+                              download // Ensure it prompts download
+                              className="text-primary d-flex align-items-center"
+                            >
+                              <span className="me-2">Existing Files:</span>
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width={24}
+                                height={24}
+                                fill="#DE7008"
+                                className="bi bi-download"
+                                viewBox="0 0 16 16"
+                              >
+                                <path
+                                  d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
+                                  // style={{ fill: "#de7008!important" }}
+                                />
+                                <path
+                                  d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
+                                  // style={{ fill: "#de7008!important" }}
+                                />
+                              </svg>
+
+                              {supplierData?.msme_details?.msme_attachments
+                                ?.length > 0
+                                ? // Display the document name of the first attachment
+                                  supplierData?.msme_details
+                                    ?.msme_attachments[0]?.document_name
+                                : // If no attachment is present, show a default message
+                                  "No Document Available"}
+                            </a>
+                          </span>
+                        )}
                         {/* <input className="form-control" type="file" name="" onChange={handleFileChange} /> */}
                         <input
                           className="form-control mt-2"
