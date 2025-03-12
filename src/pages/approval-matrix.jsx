@@ -35,8 +35,8 @@ const ApprovalMatrix = () => {
       try {
         const [departmentRes, userRes] = await Promise.all([
           // axios.get("https://vendors.lockated.com/pms/company_setups.json"),
-          axios.get("https://vendors.lockated.com/pms/departments.json"),
-          axios.get("https://vendors.lockated.com/users.json"),
+          axios.get("https://vendor.panchshil.com/pms/departments.json"),
+          axios.get("https://vendor.panchshil.com/users.json"),
         ]);
 
         // console.log("Raw Company Data:", companyRes.data);
@@ -168,7 +168,7 @@ const ApprovalMatrix = () => {
 
     try {
       const response = await axios.post(
-        "https://vendors.lockated.com/pms/admin/invoice_approvals.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414",
+        "https://vendor.panchshil.com/pms/admin/invoice_approvals.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414",
         payload
       );
 

@@ -267,7 +267,7 @@ const SectionReKYCDetails = () => {
   const fetchSupplierData = async () => {
     try {
       const response = await axios.get(
-        `https://vendors.lockated.com/pms/suppliers/${id}/rekyc_by_sections.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`
+        `https://vendor.panchshil.com/pms/suppliers/${id}/rekyc_by_sections.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`
       );
 
       // Update the state with the response data
@@ -320,7 +320,7 @@ const SectionReKYCDetails = () => {
   const fetchGstClassifications = async () => {
     try {
       const response = await axios.get(
-        "https://vendors.lockated.com/pms/suppliers/gst_classification_dropdown"
+        "https://vendor.panchshil.com/pms/suppliers/gst_classification_dropdown"
       );
       setGstClassifications(response.data.gst_classifications || []);
     } catch (error) {
@@ -350,7 +350,7 @@ const SectionReKYCDetails = () => {
   const fetchCountries = async () => {
     try {
       const response = await axios.get(
-        "https://vendors.lockated.com/pms/dropdown_countries?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414"
+        "https://vendor.panchshil.com/pms/dropdown_countries?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414"
       );
 
       const formattedCountries = response.data.countries.map((country) => ({
@@ -371,7 +371,7 @@ const SectionReKYCDetails = () => {
   const fetchStates = async (countryId) => {
     try {
       const response = await axios.get(
-        `https://vendors.lockated.com/pms/dropdown_states?country_id=${countryId}&&token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`
+        `https://vendor.panchshil.com/pms/dropdown_states?country_id=${countryId}&&token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`
       );
 
       const formattedStates = response.data.states.map((state) => ({
@@ -834,7 +834,7 @@ const SectionReKYCDetails = () => {
 
       try {
         const response = await axios.patch(
-          `https://vendors.lockated.com/pms/suppliers/${rekycId}/update_rekyc_by_sections.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`,
+          `https://vendor.panchshil.com/pms/suppliers/${rekycId}/update_rekyc_by_sections.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`,
           payload
           // {
           //   headers: {
@@ -863,9 +863,9 @@ const SectionReKYCDetails = () => {
         );
 
         alert("Something went wrong! ");
-      }finally {
+      } finally {
         setLoading(false);
-      }
+      }
     }
   };
 
@@ -1317,7 +1317,7 @@ const SectionReKYCDetails = () => {
                                 (file, index) => (
                                   <a
                                     key={index}
-                                    href={`https://vendors.lockated.com${file.file_url}`}
+                                    href={`https://vendor.panchshil.com${file.file_url}`}
                                     download
                                     className="text-primary d-flex align-items-center"
                                   >
@@ -1808,7 +1808,7 @@ const SectionReKYCDetails = () => {
                         {bankDetail?.attachment && (
                           <span className="ms-2">
                             <a
-                              href={`https://vendors.lockated.com${bankDetail.attachment}`} // Ensure URL is correct
+                              href={`https://vendor.panchshil.com${bankDetail.attachment}`} // Ensure URL is correct
                               download // Forces file download
                               className="text-primary d-flex align-items-center"
                             >
@@ -2097,7 +2097,7 @@ const SectionReKYCDetails = () => {
                         </label>
                         <span className="ms-2">
                           <a
-                            href={`https://vendors.lockated.com${supplierData?.msme_details?.msme_attachments[0]?.file_url}`} // Append base URL
+                            href={`https://vendor.panchshil.com${supplierData?.msme_details?.msme_attachments[0]?.file_url}`} // Append base URL
                             download // Ensure it prompts download
                             className="text-primary d-flex align-items-center"
                           >
@@ -2440,21 +2440,21 @@ const SectionReKYCDetails = () => {
         </div>
         <div className=" d-flex justify-content-center">
           <div className="col-md-2">
-          {loading && (
-                  <div className="loader-container">
-                    <div className="lds-ring">
-                      <div></div>
-                      <div></div>
-                      <div></div>
-                      <div></div>
-                      <div></div>
-                      <div></div>
-                      <div></div>
-                      <div></div>
-                    </div>
-                    <p>Updating...</p>
-                  </div>
-                )}
+            {loading && (
+              <div className="loader-container">
+                <div className="lds-ring">
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                </div>
+                <p>Updating...</p>
+              </div>
+            )}
             <button className="purple-btn2" onClick={handleUpdate}>
               Update
             </button>
