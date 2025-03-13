@@ -4,7 +4,7 @@ import CardBodyKYC from "../../../components/base/Card/CardBodyKYC";
 import CardBodyMsme from "../../../components/base/Card/CardBodyMsme";
 import axios from "axios";
 import { SelectBox } from "../../../components";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import SingleSelector from "../../../components/base/Select/SingleSelector";
 import "../../../styles/mor.css";
 import { error } from "jquery";
@@ -19,6 +19,8 @@ const SectionReKYCDetails = () => {
   const { id } = useParams();
   const [supplierData, setSupplierData] = useState({});
   const [eInvoicingApplicable, setEInvoicingApplicable] = useState("");
+  const [searchParams] = useSearchParams(); // Access query parameters
+  const rekyc_id = searchParams.get('rekyc_id');
   const [rekycId, setRekycId] = useState(null);
   const [rekycType, setRekycType] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -290,7 +292,7 @@ const SectionReKYCDetails = () => {
   const fetchSupplierData = async () => {
     try {
       const response = await axios.get(
-        `https://vendor.panchshil.com/pms/suppliers/${id}/rekyc_by_sections.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&&rekycId`
+        `https://vendor.panchshil.com/pms/suppliers/${id}/rekyc_by_sections.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&rekyc_id=${rekyc_id}`
       );
 
       // Update the state with the response data
@@ -598,7 +600,7 @@ const SectionReKYCDetails = () => {
       status: "details_submitted_by_vendor",
     },
     pms_supplier: {
-      rekyc_id: rekycId,
+      rekyc_id: rekyc_id,
       msme: msmeUdyamApplicable || "",
       msme_no: msmeUdyamApplicable === "No" ? "" : msmeNo || "",
       valid_from: msmeUdyamApplicable === "No" ? "" : validFrom || "",
@@ -821,7 +823,7 @@ const SectionReKYCDetails = () => {
           status: "details_submitted_by_vendor",
         },
         pms_supplier: {
-          rekyc_id: rekycId,
+          rekyc_id: rekyc_id,
           msme: msmeUdyamApplicable || "",
           msme_no: msmeUdyamApplicable === "No" ? "" : msmeNo || "",
           valid_from: msmeUdyamApplicable === "No" ? "" : validFrom || "",
@@ -864,7 +866,7 @@ const SectionReKYCDetails = () => {
 
       try {
         const response = await axios.patch(
-          `https://vendor.panchshil.com/pms/suppliers/${rekycId}/update_rekyc_by_sections.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`,
+          `https://vendor.panchshil.com/pms/suppliers/${rekycId}/update_rekyc_by_sections.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&rekyc_id=${rekyc_id}`,
           payload
           // {
           //   headers: {
