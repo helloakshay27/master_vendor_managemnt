@@ -924,7 +924,7 @@ const SectionReKYCDetails = () => {
                     <span className="me-3">
                       <span className="text-dark">:</span>
                     </span>
-                    {supplierData?.organization_name || ""}
+                    {supplierData?.organization_details?.company || ""}
                   </label>
                 </div>
               </div>
@@ -937,7 +937,7 @@ const SectionReKYCDetails = () => {
                     <span className="me-3">
                       <span className="text-dark">:</span>
                     </span>
-                    {supplierData?.gstin || ""}
+                    {supplierData?.organization_details?.certifying_company_gstin || ""}
                   </label>
                 </div>
               </div>
