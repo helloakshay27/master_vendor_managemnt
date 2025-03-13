@@ -17,11 +17,11 @@ const SectionReKYCDetails = () => {
   const fileInputRef = useRef(null);
 
   const { id } = useParams();
-  console.log("id:",id)
+  console.log("id:", id);
   const [supplierData, setSupplierData] = useState({});
   const [eInvoicingApplicable, setEInvoicingApplicable] = useState("");
   const [searchParams] = useSearchParams(); // Access query parameters
-  const rekyc_id = searchParams.get('rekyc_id');
+  const rekyc_id = searchParams.get("rekyc_id");
   const [rekycId, setRekycId] = useState(null);
   const [rekycType, setRekycType] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -414,9 +414,9 @@ const SectionReKYCDetails = () => {
   useEffect(() => {
     if (bankDetailsList.length > 0) {
       const firstBank = bankDetailsList[0];
-      setSelectedCountry(firstBank.country);
-      fetchStates(firstBank.country); // Fetch states when country is set
-      setSelectedState(firstBank.state);
+      setSelectedCountry(firstBank.country_id);
+      fetchStates(firstBank.country_id); // Fetch states when country is set
+      setSelectedState(firstBank.state_id);
     }
   }, [bankDetailsList]);
 
@@ -438,7 +438,7 @@ const SectionReKYCDetails = () => {
     setBankDetailsList((prevList) =>
       prevList.map((bankDetail) =>
         bankDetail.id === bankId
-          ? { ...bankDetail, country: selectedOption?.value, state: null } // Reset state when country changes
+          ? { ...bankDetail, country_id: selectedOption?.value, state_id: null } // Reset state when country changes
           : bankDetail
       )
     );
@@ -452,7 +452,7 @@ const SectionReKYCDetails = () => {
     setBankDetailsList((prevList) =>
       prevList.map((bankDetail) =>
         bankDetail.id === bankId
-          ? { ...bankDetail, state: selectedOption?.value }
+          ? { ...bankDetail, state_id: selectedOption?.value }
           : bankDetail
       )
     );
@@ -665,58 +665,58 @@ const SectionReKYCDetails = () => {
 
     let validationErrors = {};
 
-    bankDetailsList.forEach((bankDetail) => {
-      if (bankDetail.isNew) {
-        // Only validate if it's a new entry
-        if (!bankDetail.bank_name)
-          validationErrors.bank_name = "Bank Name is required.";
-        if (!bankDetail.address)
-          validationErrors.address = "Address is required.";
-        if (!bankDetail.country) {
-          validationErrors.country = "Country is required.";
-        }
-        if (!bankDetail.state) {
-          validationErrors.state = "State is required.";
-        }
-        if (!bankDetail.city) {
-          validationErrors.city = "City is required.";
-        }
-        {
-        }
-        if (!bankDetail.pin_code || isNaN(bankDetail.pin_code)) {
-          validationErrors.pin_code = "Valid Pin Code is required.";
-        }
-        if (!bankDetail.account_type) {
-          validationErrors.account_type = "Account Type is required.";
-        }
-        if (!bankDetail.account_number) {
-          validationErrors.account_number = "Account Number is required.";
-        }
-        if (!bankDetail.confirm_account_number) {
-          validationErrors.confirm_account_number =
-            "Confirm Account Number is required.";
-        }
-        if (bankDetail.account_number !== bankDetail.confirm_account_number) {
-          validationErrors.account_match =
-            "Account Number and Confirm Account Number must match.";
-        }
-        if (!bankDetail.branch_name) {
-          validationErrors.branch_name = "Branch Name is required.";
-        }
-        if (!bankDetail.micr_number) {
-          validationErrors.micr_number = "MICR Number is required.";
-        }
-        if (!bankDetail.ifsc_code) {
-          validationErrors.ifsc_code = "IFSC Code is required.";
-        }
-        if (!bankDetail.benficiary_name) {
-          validationErrors.benficiary_name = "Beneficiary Name is required.";
-        }
-        // if (!bankDetail.cancelled_cheque) { validationErrors.cancelled_cheque = "Cancelled Cheque / Bank Copy is required." };
+    // bankDetailsList.forEach((bankDetail) => {
+    //   if (bankDetail.isNew) {
+    //     // Only validate if it's a new entry
+    //     if (!bankDetail.bank_name)
+    //       validationErrors.bank_name = "Bank Name is required.";
+    //     if (!bankDetail.address)
+    //       validationErrors.address = "Address is required.";
+    //     if (!bankDetail.country) {
+    //       validationErrors.country = "Country is required.";
+    //     }
+    //     if (!bankDetail.state) {
+    //       validationErrors.state = "State is required.";
+    //     }
+    //     if (!bankDetail.city) {
+    //       validationErrors.city = "City is required.";
+    //     }
+    //     {
+    //     }
+    //     if (!bankDetail.pin_code || isNaN(bankDetail.pin_code)) {
+    //       validationErrors.pin_code = "Valid Pin Code is required.";
+    //     }
+    //     if (!bankDetail.account_type) {
+    //       validationErrors.account_type = "Account Type is required.";
+    //     }
+    //     if (!bankDetail.account_number) {
+    //       validationErrors.account_number = "Account Number is required.";
+    //     }
+    //     if (!bankDetail.confirm_account_number) {
+    //       validationErrors.confirm_account_number =
+    //         "Confirm Account Number is required.";
+    //     }
+    //     if (bankDetail.account_number !== bankDetail.confirm_account_number) {
+    //       validationErrors.account_match =
+    //         "Account Number and Confirm Account Number must match.";
+    //     }
+    //     if (!bankDetail.branch_name) {
+    //       validationErrors.branch_name = "Branch Name is required.";
+    //     }
+    //     if (!bankDetail.micr_number) {
+    //       validationErrors.micr_number = "MICR Number is required.";
+    //     }
+    //     if (!bankDetail.ifsc_code) {
+    //       validationErrors.ifsc_code = "IFSC Code is required.";
+    //     }
+    //     if (!bankDetail.benficiary_name) {
+    //       validationErrors.benficiary_name = "Beneficiary Name is required.";
+    //     }
+    //     // if (!bankDetail.cancelled_cheque) { validationErrors.cancelled_cheque = "Cancelled Cheque / Bank Copy is required." };
 
-        // Add other validation checks here
-      }
-    });
+    //     // Add other validation checks here
+    //   }
+    // });
 
     if (isRekycTypeEmpty || isMsmeRekyc) {
       // Validate MSME/Udyam Number Applicable
@@ -764,20 +764,20 @@ const SectionReKYCDetails = () => {
       ) {
         validationErrors.msmeAttachments = "MSME/Udyam Attachment is required.";
       }
-      
     }
 
     if (isRekycTypeEmpty || isGstinRekyc) {
-    if (!gstApplicable) {
-      validationErrors.gstApplicable = "GST Applicable is required.";
-    } else if (gstApplicable === "Yes") {
-      if (!gstClassification?.value)
-        validationErrors.gstClassification = "GST Classification is required.";
-      if (!gstinNumber)
-        validationErrors.gstinNumber = "GSTIN Number is required.";
-      if (supplierData?.basic_information?.gstin_attachments.length === 0)
-        validationErrors.gstinAttachments = "GSTIN Attachment is required.";
-    }
+      if (!gstApplicable) {
+        validationErrors.gstApplicable = "GST Applicable is required.";
+      } else if (gstApplicable === "Yes") {
+        if (!gstClassification?.value)
+          validationErrors.gstClassification =
+            "GST Classification is required.";
+        if (!gstinNumber)
+          validationErrors.gstinNumber = "GSTIN Number is required.";
+        if (supplierData?.basic_information?.gstin_attachments.length === 0)
+          validationErrors.gstinAttachments = "GSTIN Attachment is required.";
+      }
     }
 
     // Add this inside your validation logic
@@ -937,7 +937,8 @@ const SectionReKYCDetails = () => {
                     <span className="me-3">
                       <span className="text-dark">:</span>
                     </span>
-                    {supplierData?.organization_details?.certifying_company_gstin || ""}
+                    {supplierData?.organization_details
+                      ?.certifying_company_gstin || ""}
                   </label>
                 </div>
               </div>
@@ -1511,7 +1512,7 @@ const SectionReKYCDetails = () => {
                           options={countries}
                           value={
                             countries.find(
-                              (c) => c.value === bankDetail.country
+                              (c) => c.value === bankDetail.country_id
                             ) || null
                           }
                           onChange={(selectedOption) =>
@@ -1555,14 +1556,15 @@ const SectionReKYCDetails = () => {
                         <SingleSelector
                           options={states}
                           value={
-                            states.find((s) => s.value === bankDetail.state) ||
-                            null
+                            states.find(
+                              (s) => s.value === bankDetail.state_id
+                            ) || null
                           }
                           onChange={(selectedOption) =>
                             handleStateChange(selectedOption, bankDetail.id)
                           }
                           placeholder="Select State"
-                          isDisabled={!bankDetail.country} // Disable if no country selected
+                          isDisabled={!bankDetail.country_id} // Disable if no country selected
                         />
                         {bankDetail.isNew && errors.state && (
                           <div className="ValidationColor">{errors.state}</div>
