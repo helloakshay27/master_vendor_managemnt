@@ -17,6 +17,7 @@ const SectionReKYCDetails = () => {
   const fileInputRef = useRef(null);
 
   const { id } = useParams();
+  console.log("id:",id)
   const [supplierData, setSupplierData] = useState({});
   const [eInvoicingApplicable, setEInvoicingApplicable] = useState("");
   const [searchParams] = useSearchParams(); // Access query parameters
@@ -763,8 +764,10 @@ const SectionReKYCDetails = () => {
       ) {
         validationErrors.msmeAttachments = "MSME/Udyam Attachment is required.";
       }
+      
     }
 
+    if (isRekycTypeEmpty || isGstinRekyc) {
     if (!gstApplicable) {
       validationErrors.gstApplicable = "GST Applicable is required.";
     } else if (gstApplicable === "Yes") {
@@ -774,6 +777,7 @@ const SectionReKYCDetails = () => {
         validationErrors.gstinNumber = "GSTIN Number is required.";
       if (supplierData?.basic_information?.gstin_attachments.length === 0)
         validationErrors.gstinAttachments = "GSTIN Attachment is required.";
+    }
     }
 
     // Add this inside your validation logic
@@ -863,10 +867,11 @@ const SectionReKYCDetails = () => {
       };
 
       console.log("payload submition", payload);
+      // console.log("rekyc id")
 
       try {
         const response = await axios.patch(
-          `https://vendor.panchshil.com/pms/suppliers/${rekycId}/update_rekyc_by_sections.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&rekyc_id=${rekyc_id}`,
+          `https://vendor.panchshil.com/pms/suppliers/${id}/update_rekyc_by_sections.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&rekyc_id=${rekyc_id}`,
           payload
           // {
           //   headers: {
