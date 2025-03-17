@@ -694,59 +694,64 @@ const SectionReKYCDetails = () => {
     // console.log('formSubmitted:', formSubmitted);
 
     let validationErrors = {};
+    // if (isRekycTypeEmpty || isBankRekyc ) {
+    bankDetailsList.forEach((bankDetail) => {
+      if (bankDetail.isNew) {
+        // Only validate if it's a new entry
+        if (!bankDetail.bank_name){
+          validationErrors.bank_name = "Bank Name is required.";
+        }
+        if (!bankDetail.address){
+          validationErrors.address = "Address is required.";
+        }
+        if (!bankDetail.country_id) {
+          validationErrors.country_id = "Country is required.";
+        }
+        if (!bankDetail.state_id) {
+          validationErrors.state_id = "State is required.";
+        }
+        if (!bankDetail.city) {
+          validationErrors.city = "City is required.";
+        }
+        // {
+        // }
 
-    // bankDetailsList.forEach((bankDetail) => {
-    //   if (bankDetail.isNew) {
-    //     // Only validate if it's a new entry
-    //     if (!bankDetail.bank_name)
-    //       validationErrors.bank_name = "Bank Name is required.";
-    //     if (!bankDetail.address)
-    //       validationErrors.address = "Address is required.";
-    //     if (!bankDetail.country) {
-    //       validationErrors.country = "Country is required.";
-    //     }
-    //     if (!bankDetail.state) {
-    //       validationErrors.state = "State is required.";
-    //     }
-    //     if (!bankDetail.city) {
-    //       validationErrors.city = "City is required.";
-    //     }
-    //     {
-    //     }
-    //     if (!bankDetail.pin_code || isNaN(bankDetail.pin_code)) {
-    //       validationErrors.pin_code = "Valid Pin Code is required.";
-    //     }
-    //     if (!bankDetail.account_type) {
-    //       validationErrors.account_type = "Account Type is required.";
-    //     }
-    //     if (!bankDetail.account_number) {
-    //       validationErrors.account_number = "Account Number is required.";
-    //     }
-    //     if (!bankDetail.confirm_account_number) {
-    //       validationErrors.confirm_account_number =
-    //         "Confirm Account Number is required.";
-    //     }
-    //     if (bankDetail.account_number !== bankDetail.confirm_account_number) {
-    //       validationErrors.account_match =
-    //         "Account Number and Confirm Account Number must match.";
-    //     }
-    //     if (!bankDetail.branch_name) {
-    //       validationErrors.branch_name = "Branch Name is required.";
-    //     }
-    //     if (!bankDetail.micr_number) {
-    //       validationErrors.micr_number = "MICR Number is required.";
-    //     }
-    //     if (!bankDetail.ifsc_code) {
-    //       validationErrors.ifsc_code = "IFSC Code is required.";
-    //     }
-    //     if (!bankDetail.benficiary_name) {
-    //       validationErrors.benficiary_name = "Beneficiary Name is required.";
-    //     }
-    //     // if (!bankDetail.cancelled_cheque) { validationErrors.cancelled_cheque = "Cancelled Cheque / Bank Copy is required." };
+        if (!bankDetail.pin_code || isNaN(bankDetail.pin_code)) {
+          validationErrors.pin_code = "Valid Pin Code is required.";
+        }
 
-    //     // Add other validation checks here
-    //   }
-    // });
+        if (!bankDetail.account_type) {
+          validationErrors.account_type = "Account Type is required.";
+        }
+        if (!bankDetail.account_number) {
+          validationErrors.account_number = "Account Number is required.";
+        }
+        if (!bankDetail.confirm_account_number) {
+          validationErrors.confirm_account_number =
+            "Confirm Account Number is required.";
+        }
+        if (bankDetail.account_number !== bankDetail.confirm_account_number) {
+          validationErrors.account_match =
+            "Account Number and Confirm Account Number must match.";
+        }
+        if (!bankDetail.branch_name) {
+          validationErrors.branch_name = "Branch Name is required.";
+        }
+        if (!bankDetail.micr_number) {
+          validationErrors.micr_number = "MICR Number is required.";
+        }
+        if (!bankDetail.ifsc_code) {
+          validationErrors.ifsc_code = "IFSC Code is required.";
+        }
+        if (!bankDetail.benficary_name) {
+          validationErrors.benficary_name = "Beneficiary Name is required.";
+        }
+        // if (!bankDetail.cancelled_cheque) { validationErrors.cancelled_cheque = "Cancelled Cheque / Bank Copy is required." };
+
+        // Add other validation checks here
+      }
+    });
+  // }
 
     if (isRekycTypeEmpty || isMsmeRekyc) {
       // Validate MSME/Udyam Number Applicable
@@ -1559,9 +1564,9 @@ const SectionReKYCDetails = () => {
                         />
 
                         {/* Validation Error Message */}
-                        {bankDetail.isNew && errors.country && (
+                        {bankDetail.isNew && errors.country_id && (
                           <div className="ValidationColor">
-                            {errors.country}
+                            {errors.country_id}
                           </div>
                         )}
                       </div>
@@ -1603,8 +1608,8 @@ const SectionReKYCDetails = () => {
                           placeholder="Select State"
                           isDisabled={!bankDetail.country_id} // Disable if no country selected
                         />
-                        {bankDetail.isNew && errors.state && (
-                          <div className="ValidationColor">{errors.state}</div>
+                        {bankDetail.isNew && errors.state_id && (
+                          <div className="ValidationColor">{errors.state_id}</div>
                         )}
                       </div>
                     </div>
