@@ -289,6 +289,9 @@ const SectionReKYCDetails = () => {
   const [gstinAttachments, setGstinAttachments] = useState([]);
   const [gstOptions, setGstOptions] = useState([]);
   const [bankDetailsList, setBankDetailsList] = useState([]);
+  const [majorActivity, setMajorActivity] = useState("");
+  const [classificationYear, setClassificationYear] = useState("");
+  const [classificationDate, setClassificationDate] = useState("");
 
   // Function to fetch supplier data
   const fetchSupplierData = async () => {
@@ -306,6 +309,10 @@ const SectionReKYCDetails = () => {
       setMsmeNo(response.data?.msme_details?.msme_no);
       setValidFrom(response.data?.msme_details?.valid_from);
       setValidTill(response.data?.msme_details?.valid_till);
+      setMajorActivity(response.data?.msme_details?.major_activity);
+      setClassificationYear(response.data?.msme_details?.classification_year);
+      setClassificationDate(response.data?.msme_details?.classification_date);
+
       setRekycId(response.data?.id);
       setRekycType(response.data?.rekyc_type);
 
@@ -568,6 +575,23 @@ const SectionReKYCDetails = () => {
     setMsmeNo(e.target.value);
   };
 
+  const handleClassificationYearChange = (e) => {
+    const selectedYear = e.target.value;
+    setClassificationYear(selectedYear);
+
+    let validFromDate = "";
+    let validTillDate = "";
+
+    if (selectedYear) {
+      const [startYear, endYear] = selectedYear.split("-");
+      validFromDate = `${startYear}-04-01`;
+      validTillDate = `20${endYear}-03-31`;
+    }
+
+    setValidFrom(validFromDate);
+    setValidTill(validTillDate);
+  };
+
   // Handler for Valid From date
   const handleValidFromChange = (e) => {
     setValidFrom(e.target.value);
@@ -608,6 +632,12 @@ const SectionReKYCDetails = () => {
       valid_from: msmeUdyamApplicable === "No" ? "" : validFrom || "",
       valid_till: msmeUdyamApplicable === "No" ? "" : validTill || "",
       enterprise: msmeUdyamApplicable === "No" ? "" : msmeEnterpriseType || "",
+      major_activity: msmeUdyamApplicable === "No" ? "" : majorActivity || "",
+      classification_year:
+        msmeUdyamApplicable === "No" ? "" : classificationYear || "",
+      classification_date:
+        msmeUdyamApplicable === "No" ? "" : classificationDate || "",
+
       msme_attachments: msmeUdyamApplicable === "No" ? [] : msmeAttachments,
       einvoicing: eInvoicingApplicable || "",
       einvoicing_attachments:
@@ -665,59 +695,64 @@ const SectionReKYCDetails = () => {
     // console.log('formSubmitted:', formSubmitted);
 
     let validationErrors = {};
+    // if (isRekycTypeEmpty || isBankRekyc ) {
+    bankDetailsList.forEach((bankDetail) => {
+      if (bankDetail.isNew) {
+        // Only validate if it's a new entry
+        if (!bankDetail.bank_name){
+          validationErrors.bank_name = "Bank Name is required.";
+        }
+        if (!bankDetail.address){
+          validationErrors.address = "Address is required.";
+        }
+        if (!bankDetail.country_id) {
+          validationErrors.country_id = "Country is required.";
+        }
+        if (!bankDetail.state_id) {
+          validationErrors.state_id = "State is required.";
+        }
+        if (!bankDetail.city) {
+          validationErrors.city = "City is required.";
+        }
+        // {
+        // }
 
-    // bankDetailsList.forEach((bankDetail) => {
-    //   if (bankDetail.isNew) {
-    //     // Only validate if it's a new entry
-    //     if (!bankDetail.bank_name)
-    //       validationErrors.bank_name = "Bank Name is required.";
-    //     if (!bankDetail.address)
-    //       validationErrors.address = "Address is required.";
-    //     if (!bankDetail.country) {
-    //       validationErrors.country = "Country is required.";
-    //     }
-    //     if (!bankDetail.state) {
-    //       validationErrors.state = "State is required.";
-    //     }
-    //     if (!bankDetail.city) {
-    //       validationErrors.city = "City is required.";
-    //     }
-    //     {
-    //     }
-    //     if (!bankDetail.pin_code || isNaN(bankDetail.pin_code)) {
-    //       validationErrors.pin_code = "Valid Pin Code is required.";
-    //     }
-    //     if (!bankDetail.account_type) {
-    //       validationErrors.account_type = "Account Type is required.";
-    //     }
-    //     if (!bankDetail.account_number) {
-    //       validationErrors.account_number = "Account Number is required.";
-    //     }
-    //     if (!bankDetail.confirm_account_number) {
-    //       validationErrors.confirm_account_number =
-    //         "Confirm Account Number is required.";
-    //     }
-    //     if (bankDetail.account_number !== bankDetail.confirm_account_number) {
-    //       validationErrors.account_match =
-    //         "Account Number and Confirm Account Number must match.";
-    //     }
-    //     if (!bankDetail.branch_name) {
-    //       validationErrors.branch_name = "Branch Name is required.";
-    //     }
-    //     if (!bankDetail.micr_number) {
-    //       validationErrors.micr_number = "MICR Number is required.";
-    //     }
-    //     if (!bankDetail.ifsc_code) {
-    //       validationErrors.ifsc_code = "IFSC Code is required.";
-    //     }
-    //     if (!bankDetail.benficiary_name) {
-    //       validationErrors.benficiary_name = "Beneficiary Name is required.";
-    //     }
-    //     // if (!bankDetail.cancelled_cheque) { validationErrors.cancelled_cheque = "Cancelled Cheque / Bank Copy is required." };
+        if (!bankDetail.pin_code || isNaN(bankDetail.pin_code)) {
+          validationErrors.pin_code = "Valid Pin Code is required.";
+        }
 
-    //     // Add other validation checks here
-    //   }
-    // });
+        if (!bankDetail.account_type) {
+          validationErrors.account_type = "Account Type is required.";
+        }
+        if (!bankDetail.account_number) {
+          validationErrors.account_number = "Account Number is required.";
+        }
+        if (!bankDetail.confirm_account_number) {
+          validationErrors.confirm_account_number =
+            "Confirm Account Number is required.";
+        }
+        if (bankDetail.account_number !== bankDetail.confirm_account_number) {
+          validationErrors.account_match =
+            "Account Number and Confirm Account Number must match.";
+        }
+        if (!bankDetail.branch_name) {
+          validationErrors.branch_name = "Branch Name is required.";
+        }
+        if (!bankDetail.micr_number) {
+          validationErrors.micr_number = "MICR Number is required.";
+        }
+        if (!bankDetail.ifsc_code) {
+          validationErrors.ifsc_code = "IFSC Code is required.";
+        }
+        if (!bankDetail.benficary_name) {
+          validationErrors.benficary_name = "Beneficiary Name is required.";
+        }
+        // if (!bankDetail.cancelled_cheque) { validationErrors.cancelled_cheque = "Cancelled Cheque / Bank Copy is required." };
+
+        // Add other validation checks here
+      }
+    });
+  // }
 
     if (isRekycTypeEmpty || isMsmeRekyc) {
       // Validate MSME/Udyam Number Applicable
@@ -835,6 +870,13 @@ const SectionReKYCDetails = () => {
           valid_till: msmeUdyamApplicable === "No" ? "" : validTill || "",
           enterprise:
             msmeUdyamApplicable === "No" ? "" : msmeEnterpriseType || "",
+          major_activity:
+            msmeUdyamApplicable === "No" ? "" : majorActivity || "",
+          classification_year:
+            msmeUdyamApplicable === "No" ? "" : classificationYear || "",
+          classification_date:
+            msmeUdyamApplicable === "No" ? "" : classificationDate || "",
+
           msme_attachments: msmeUdyamApplicable === "No" ? [] : msmeAttachments,
           einvoicing: eInvoicingApplicable || "",
           einvoicing_attachments:
@@ -1523,9 +1565,9 @@ const SectionReKYCDetails = () => {
                         />
 
                         {/* Validation Error Message */}
-                        {bankDetail.isNew && errors.country && (
+                        {bankDetail.isNew && errors.country_id && (
                           <div className="ValidationColor">
-                            {errors.country}
+                            {errors.country_id}
                           </div>
                         )}
                       </div>
@@ -1567,8 +1609,8 @@ const SectionReKYCDetails = () => {
                           placeholder="Select State"
                           isDisabled={!bankDetail.country_id} // Disable if no country selected
                         />
-                        {bankDetail.isNew && errors.state && (
-                          <div className="ValidationColor">{errors.state}</div>
+                        {bankDetail.isNew && errors.state_id && (
+                          <div className="ValidationColor">{errors.state_id}</div>
                         )}
                       </div>
                     </div>
@@ -1963,6 +2005,41 @@ const SectionReKYCDetails = () => {
                     </div>
                   </div>
 
+                  {msmeUdyamApplicable === "Yes" && (
+                    <div className="col-md-4 mt-2">
+                      <div className="form-group">
+                        <label
+                          data-bs-toggle="tooltip"
+                          data-bs-placement="top"
+                          title={tooltipMessages.MSMEEnterpriseType}
+                        >
+                          Major Activity <span>*</span>
+                        </label>
+                        <select
+                          // className="form-control"
+                          // value={supplierData?.msme_details?.enterprise}
+
+                          onChange={(e) => setMajorActivity(e.target.value)}
+                          className="form-control"
+                          value={majorActivity}
+                        >
+                          <option value="">select option</option>
+                          <option value="services">Services</option>
+                          <option value="trader">Trader</option>
+                          <option value="manufacture">manufacture</option>
+                          <option value="others">Others</option>
+                        </select>
+                        {/* {errors.msmeEnterpriseType && (
+                          <div className="ValidationColor">
+                            {errors.msmeEnterpriseType}
+                          </div>
+                        )}{" "} */}
+                        {/* Show error */}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* MSME/Udyam Valid Till */}
                   {/* MSME/Udyam Number */}
                   {msmeUdyamApplicable === "Yes" && (
                     <div className="col-md-4 mt-2">
@@ -1995,6 +2072,41 @@ const SectionReKYCDetails = () => {
                     </div>
                   )}
 
+                  {msmeUdyamApplicable === "Yes" && (
+                    <div className="col-md-4 mt-2">
+                      <div className="form-group">
+                        <label
+                          data-bs-toggle="tooltip"
+                          data-bs-placement="top"
+                          title={tooltipMessages.MSMEEnterpriseType}
+                        >
+                          Classifiction Year <span>*</span>
+                        </label>
+                        <select
+                          // onChange={(e) =>
+                          //   setClassificationYear(e.target.value)
+                          // }
+                          onChange={handleClassificationYearChange}
+                          className="form-control"
+                          value={classificationYear}
+                        >
+                          <option value="">Select Option</option>
+                          <option value="2021-22">2021-22</option>
+                          <option value="2022-23">2022-23</option>
+                          <option value="2023-24">2023-24</option>
+                          <option value="2024-25">2024-25</option>
+                        </select>
+
+                        {/* {errors.msmeEnterpriseType && (
+                          <div className="ValidationColor">
+                            {errors.msmeEnterpriseType}
+                          </div>
+                        )}{" "} */}
+                        {/* Show error */}
+                      </div>
+                    </div>
+                  )}
+
                   {/* MSME/Udyam Valid From */}
                   {msmeUdyamApplicable === "Yes" && (
                     <div className="col-md-4 mt-2">
@@ -2012,6 +2124,7 @@ const SectionReKYCDetails = () => {
                           name="name"
                           placeholder=""
                           value={validFrom}
+                          disabled={!!classificationYear} // Disable when classification year is selected
                           onChange={handleValidFromChange} // Add onChange handler here
                           // value={supplierData?.msme_details?.valid_from}
                         />
@@ -2042,6 +2155,7 @@ const SectionReKYCDetails = () => {
                           name="name"
                           placeholder=""
                           value={validTill}
+                          disabled={!!classificationYear} // Disable when classification year is selected
                           onChange={handleValidTillChange}
                           // value={supplierData?.msme_details?.valid_till}
                         />
@@ -2089,6 +2203,47 @@ const SectionReKYCDetails = () => {
                       </div>
                     </div>
                   )}
+
+                  {msmeUdyamApplicable === "Yes" && (
+                    <div className="col-md-4 mt-2">
+                      <div className="form-group">
+                        <label
+                          data-bs-toggle="tooltip"
+                          data-bs-placement="top"
+                          title={tooltipMessages.MSMEEnterpriseType}
+                        >
+                          Classifiction Date <span>*</span>
+                        </label>
+                        {/* <input
+                          className="form-control"
+                          type="date"
+                          name="name"
+                          placeholder=""
+                          value={validTill}
+                          onChange={handleValidTillChange}
+                          // value={supplierData?.msme_details?.valid_till}
+                        /> */}
+
+                        <input
+                          className="form-control"
+                          type="date"
+                          name="classificationDate"
+                          value={classificationDate}
+                          onChange={(e) =>
+                            setClassificationDate(e.target.value)
+                          }
+                        />
+
+                        {/* {errors.msmeEnterpriseType && (
+                          <div className="ValidationColor">
+                            {errors.msmeEnterpriseType}
+                          </div>
+                        )}{" "} */}
+                        {/* Show error */}
+                      </div>
+                    </div>
+                  )}
+
                   {/*  */}
                   {msmeUdyamApplicable === "Yes" && (
                     <div className="col-md-4 mt-2">
