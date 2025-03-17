@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useState, useEffect } from "react";
 import SingleSelector from "../components/base/Select/SingleSelector";
+import { baseURL } from "../confi/apiDomain";
 
 const ApprovalMatrix = () => {
   const navigate = useNavigate(); //  navigate
@@ -35,8 +36,8 @@ const ApprovalMatrix = () => {
       try {
         const [departmentRes, userRes] = await Promise.all([
           // axios.get("https://vendors.lockated.com/pms/company_setups.json"),
-          axios.get("https://vendor.panchshil.com/pms/departments.json"),
-          axios.get("https://vendor.panchshil.com/users.json"),
+          axios.get(`${baseURL}/pms/departments.json`),
+          axios.get(`${baseURL}/users.json`),
         ]);
 
         // console.log("Raw Company Data:", companyRes.data);
@@ -168,7 +169,7 @@ const ApprovalMatrix = () => {
 
     try {
       const response = await axios.post(
-        "https://vendor.panchshil.com/pms/admin/invoice_approvals.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414",
+        (`${baseURL}/pms/admin/invoice_approvals.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`),
         payload
       );
 

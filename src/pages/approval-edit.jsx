@@ -8,6 +8,7 @@ import axios from "axios";
 import { useState, useEffect } from "react";
 import SingleSelector from "../components/base/Select/SingleSelector";
 import { useParams } from "react-router-dom"; // Import useParams
+import { baseURL } from "../confi/apiDomain";
 
 const ApprovalEdit = () => {
   const navigate = useNavigate(); //  navigate
@@ -41,10 +42,10 @@ const ApprovalEdit = () => {
     const fetchDropdownData = async () => {
       try {
         const [departmentRes, userRes] = await Promise.all([
-          // axios.get("https://vendor.panchshil.com/pms/company_setups.json"),
-          axios.get("https://vendor.panchshil.com/pms/departments.json"),
+          // axios.get("${baseURL}/pms/company_setups.json"),
+          axios.get(`${baseURL}/pms/departments.json`),
 
-          axios.get("https://vendor.panchshil.com/users.json"),
+          axios.get(`${baseURL}/users.json`),
         ]);
 
         // console.log("Raw Company Data:", companyRes.data);
@@ -84,7 +85,7 @@ const ApprovalEdit = () => {
     const fetchApprovalData = async () => {
       try {
         const { data } = await axios.get(
-          `https://vendor.panchshil.com/pms/admin/invoice_approvals/${id}/edit.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`
+          `${baseURL}/pms/admin/invoice_approvals/${id}/edit.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`
         );
 
         setFormData({
@@ -252,7 +253,7 @@ const ApprovalEdit = () => {
 
     try {
       const response = await axios.put(
-        `https://vendor.panchshil.com/pms/admin/invoice_approvals/${id}.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`,
+        `${baseURL}/pms/admin/invoice_approvals/${id}.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`,
         payload
       );
 

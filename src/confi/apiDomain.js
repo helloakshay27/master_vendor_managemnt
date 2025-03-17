@@ -1,5 +1,6 @@
 // Define the baseURL directly in the code
-const baseURL = "https://vendors.lockated.com/";
+const baseURL = "https://vendor.panchshil.com/";
+const testbaseURL = "https://vendors.lockated.com/";
 
 // Retrieve the token dynamically from session storage
 let token = ""; // Default to an empty string

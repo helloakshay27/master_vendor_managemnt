@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { baseURL } from "../../../confi/apiDomain";
 
 const CardBodyMsme = () => {
   // States to track the dropdown selections
@@ -113,7 +114,7 @@ const CardBodyMsme = () => {
                   <a
                     download="Specimen_E-Invoicing_Declaration.docx"
                     className="text-primary d-flex align-items-center"
-                    href="https://vendor.panchshil.com/assets/Yes%20_%20msme.pdf"
+                    href="${baseURL}/assets/Yes%20_%20msme.pdf"
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"

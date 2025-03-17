@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { baseURL } from "../../../confi/apiDomain";
 
 const CardBodyKYC = () => {
   // States to track the dropdown selections
@@ -101,7 +102,7 @@ const CardBodyKYC = () => {
                   <a
                     download="Specimen_MSME_Udyam_Declaration.docx"
                     className="text-primary d-flex align-items-center"
-                    href="https://vendor.panchshil.com/assets/Specimen_MSME_Udyam_Declaration.docx"
+                    href="${baseURL}/assets/Specimen_MSME_Udyam_Declaration.docx"
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"

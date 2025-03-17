@@ -10,6 +10,7 @@ import "../../../styles/mor.css";
 import { error } from "jquery";
 import { useNavigate } from "react-router-dom"; // Import useNavigate
 import CryptoJS from "crypto-js"; // Import crypto-js for encryption
+import { baseURL } from "../../../confi/apiDomain";
 // import ReactTooltip from "react-tooltip";
 
 const SectionReKYCDetails = () => {
@@ -293,7 +294,7 @@ const SectionReKYCDetails = () => {
   const fetchSupplierData = async () => {
     try {
       const response = await axios.get(
-        `https://vendor.panchshil.com/pms/suppliers/${id}/rekyc_by_sections.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&rekyc_id=${rekyc_id}`
+        `${baseURL}/pms/suppliers/${id}/rekyc_by_sections.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&rekyc_id=${rekyc_id}`
       );
 
       // Update the state with the response data
@@ -346,7 +347,7 @@ const SectionReKYCDetails = () => {
   const fetchGstClassifications = async () => {
     try {
       const response = await axios.get(
-        "https://vendor.panchshil.com/pms/suppliers/gst_classification_dropdown"
+        (`${baseURL}/pms/suppliers/gst_classification_dropdown`)
       );
       setGstClassifications(response.data.gst_classifications || []);
     } catch (error) {
@@ -376,7 +377,7 @@ const SectionReKYCDetails = () => {
   const fetchCountries = async () => {
     try {
       const response = await axios.get(
-        "https://vendor.panchshil.com/pms/dropdown_countries?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414"
+        (`${baseURL}/pms/dropdown_countries?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`)
       );
 
       const formattedCountries = response.data.countries.map((country) => ({
@@ -397,7 +398,7 @@ const SectionReKYCDetails = () => {
   const fetchStates = async (countryId) => {
     try {
       const response = await axios.get(
-        `https://vendor.panchshil.com/pms/dropdown_states?country_id=${countryId}&&token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`
+        `${baseURL}/pms/dropdown_states?country_id=${countryId}&&token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`
       );
 
       const formattedStates = response.data.states.map((state) => ({
@@ -871,7 +872,7 @@ const SectionReKYCDetails = () => {
 
       try {
         const response = await axios.patch(
-          `https://vendor.panchshil.com/pms/suppliers/${id}/update_rekyc_by_sections.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&rekyc_id=${rekyc_id}`,
+          `${baseURL}/pms/suppliers/${id}/update_rekyc_by_sections.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&rekyc_id=${rekyc_id}`,
           payload
           // {
           //   headers: {
@@ -1355,7 +1356,7 @@ const SectionReKYCDetails = () => {
                                 (file, index) => (
                                   <a
                                     key={index}
-                                    href={`https://vendor.panchshil.com${file.file_url}`}
+                                    href={`${baseURL}${file.file_url}`}
                                     download
                                     className="text-primary d-flex align-items-center"
                                   >
@@ -1847,7 +1848,7 @@ const SectionReKYCDetails = () => {
                         {bankDetail?.attachment && (
                           <span className="ms-2">
                             <a
-                              href={`https://vendor.panchshil.com${bankDetail.attachment}`} // Ensure URL is correct
+                              href={`${baseURL}${bankDetail.attachment}`} // Ensure URL is correct
                               download // Forces file download
                               className="text-primary d-flex align-items-center"
                             >
@@ -2098,7 +2099,7 @@ const SectionReKYCDetails = () => {
                         <a
                           download="Specimen_E-Invoicing_Declaration.docx"
                           className="text-primary d-flex align-items-center"
-                          href="https://vendor.panchshil.com/assets/Yes%20_%20msme.pdf"
+                          href={`${baseURL}/assets/Yes%20_%20msme.pdf`}
                         >
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -2140,7 +2141,7 @@ const SectionReKYCDetails = () => {
                           0 && (
                           <span className="ms-2">
                             <a
-                              href={`https://vendor.panchshil.com${supplierData?.msme_details?.msme_attachments[0]?.file_url}`} // Append base URL
+                              href={`${baseURL}${supplierData?.msme_details?.msme_attachments[0]?.file_url}`} // Append base URL
                               download // Ensure it prompts download
                               className="text-primary d-flex align-items-center"
                             >
@@ -2208,7 +2209,7 @@ const SectionReKYCDetails = () => {
                       <a
                         download="Specimen_E-Invoicing_Declaration.docx"
                         className="text-primary d-flex align-items-center"
-                        href="https://vendor.panchshil.com/assets/Yes%20_%20msme.pdf"
+                        href={`${baseURL}/assets/Yes%20_%20msme.pdf`}
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -2403,7 +2404,7 @@ const SectionReKYCDetails = () => {
           <a
             download="Specimen_MSME_Udyam_Declaration.docx"
             className="text-primary d-flex align-items-center"
-            href="https://vendor.panchshil.com/assets/Specimen_MSME_Udyam_Declaration.docx"
+            href="${baseURL}/assets/Specimen_MSME_Udyam_Declaration.docx"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
