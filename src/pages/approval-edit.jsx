@@ -162,14 +162,14 @@ const ApprovalEdit = () => {
   // Runs when `id` or `users` change
 
   // Add Approval Level
-  const handleAddLevel = () => {
-    setApprovalLevels([...approvalLevels, { order: "", name: "", users: [] }]);
-  };
+  // const handleAddLevel = () => {
+  //   setApprovalLevels([...approvalLevels, { order: "", name: "", users: [] }]);
+  // };
 
-  // Remove Approval Level
-  const handleRemoveLevel = (index) => {
-    setApprovalLevels(approvalLevels.filter((_, i) => i !== index));
-  };
+  // // Remove Approval Level
+  // const handleRemoveLevel = (index) => {
+  //   setApprovalLevels(approvalLevels.filter((_, i) => i !== index));
+  // };
 
   // Handle Input Change
   const handleInputChange = (index, field, value) => {
@@ -234,6 +234,25 @@ const ApprovalEdit = () => {
     ) {
       alert("Please select  Department, and KYC Type.");
       return;
+    }
+
+    for (let i = 0; i < approvalLevels.length; i++) {
+      const level = approvalLevels[i];
+
+      if (!level.order || level.order.toString().trim() === "") {
+        alert(`Please enter an order `);
+        return;
+      }
+
+      if (!level.name.trim()) {
+        alert(`Please enter a name `);
+        return;
+      }
+
+      if (!level.users || level.users.length === 0) {
+        alert(`Please select at least one user`);
+        return;
+      }
     }
 
     // try {
@@ -441,22 +460,22 @@ const ApprovalEdit = () => {
                                   placeholder="Select Users"
                                 />
                               </fieldset>
-                              <button
+                              {/* <button
                                 className="remove-item ms-4 mb-3 px-2 rounded purple-btn1"
                                 style={{ padding: "1px 3px" }}
                                 onClick={() => handleRemoveLevel(index)}
                               >
                                 x
-                              </button>
+                              </button> */}
                             </div>
                           ))}
                           <div className="ms-3 mt-2">
-                            <button
+                            {/* <button
                               className=" purple-btn1 submit-btn"
                               onClick={handleAddLevel}
                             >
                               +
-                            </button>
+                            </button> */}
                           </div>
                         </div>
                         <div></div>

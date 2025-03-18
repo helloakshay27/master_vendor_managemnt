@@ -354,7 +354,7 @@ const SectionReKYCDetails = () => {
   const fetchGstClassifications = async () => {
     try {
       const response = await axios.get(
-        (`${baseURL}/pms/suppliers/gst_classification_dropdown`)
+        `${baseURL}/pms/suppliers/gst_classification_dropdown`
       );
       setGstClassifications(response.data.gst_classifications || []);
     } catch (error) {
@@ -384,7 +384,7 @@ const SectionReKYCDetails = () => {
   const fetchCountries = async () => {
     try {
       const response = await axios.get(
-        (`${baseURL}/pms/dropdown_countries?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`)
+        `${baseURL}/pms/dropdown_countries?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`
       );
 
       const formattedCountries = response.data.countries.map((country) => ({
@@ -628,15 +628,16 @@ const SectionReKYCDetails = () => {
     pms_supplier: {
       rekyc_id: rekyc_id,
       msme: msmeUdyamApplicable || "",
-      msme_no: msmeUdyamApplicable === "No" ? "" : msmeNo || "",
-      valid_from: msmeUdyamApplicable === "No" ? "" : validFrom || "",
-      valid_till: msmeUdyamApplicable === "No" ? "" : validTill || "",
-      enterprise: msmeUdyamApplicable === "No" ? "" : msmeEnterpriseType || "",
-      major_activity: msmeUdyamApplicable === "No" ? "" : majorActivity || "",
+      msme_no: msmeUdyamApplicable === "No" ? "" : msmeNo || null,
+      valid_from: msmeUdyamApplicable === "No" ? "" : validFrom || null,
+      valid_till: msmeUdyamApplicable === "No" ? "" : validTill || null,
+      enterprise:
+        msmeUdyamApplicable === "No" ? "" : msmeEnterpriseType || null,
+      major_activity: msmeUdyamApplicable === "No" ? "" : majorActivity || null,
       classification_year:
-        msmeUdyamApplicable === "No" ? "" : classificationYear || "",
+        msmeUdyamApplicable === "No" ? "" : classificationYear || null,
       classification_date:
-        msmeUdyamApplicable === "No" ? "" : classificationDate || "",
+        msmeUdyamApplicable === "No" ? "" : classificationDate || null,
 
       msme_attachments: msmeUdyamApplicable === "No" ? [] : msmeAttachments,
       einvoicing: eInvoicingApplicable || "",
@@ -667,9 +668,9 @@ const SectionReKYCDetails = () => {
       // // gstin_attachments: gstinAttachments || [],
       // gstin_attachments: gstinAttachments,
 
-      gstin_applicable: gstApplicable || "",
+      gstin_applicable: gstApplicable || null,
       ...(gstApplicable === "Yes" && {
-        gst_classification_id: gstClassification?.value || "",
+        gst_classification_id: gstClassification?.value || null,
         gstin: gstinNumber || "",
         gstin_attachments: gstinAttachments,
       }),
@@ -699,10 +700,10 @@ const SectionReKYCDetails = () => {
     bankDetailsList.forEach((bankDetail) => {
       if (bankDetail.isNew) {
         // Only validate if it's a new entry
-        if (!bankDetail.bank_name){
+        if (!bankDetail.bank_name) {
           validationErrors.bank_name = "Bank Name is required.";
         }
-        if (!bankDetail.address){
+        if (!bankDetail.address) {
           validationErrors.address = "Address is required.";
         }
         if (!bankDetail.country_id) {
@@ -752,7 +753,7 @@ const SectionReKYCDetails = () => {
         // Add other validation checks here
       }
     });
-  // }
+    // }
 
     if (isRekycTypeEmpty || isMsmeRekyc) {
       // Validate MSME/Udyam Number Applicable
@@ -865,17 +866,17 @@ const SectionReKYCDetails = () => {
         pms_supplier: {
           rekyc_id: rekyc_id,
           msme: msmeUdyamApplicable || "",
-          msme_no: msmeUdyamApplicable === "No" ? "" : msmeNo || "",
-          valid_from: msmeUdyamApplicable === "No" ? "" : validFrom || "",
-          valid_till: msmeUdyamApplicable === "No" ? "" : validTill || "",
+          msme_no: msmeUdyamApplicable === "No" ? "" : msmeNo || null,
+          valid_from: msmeUdyamApplicable === "No" ? "" : validFrom || null,
+          valid_till: msmeUdyamApplicable === "No" ? "" : validTill || null,
           enterprise:
-            msmeUdyamApplicable === "No" ? "" : msmeEnterpriseType || "",
+            msmeUdyamApplicable === "No" ? "" : msmeEnterpriseType || null,
           major_activity:
-            msmeUdyamApplicable === "No" ? "" : majorActivity || "",
+            msmeUdyamApplicable === "No" ? "" : majorActivity || null,
           classification_year:
-            msmeUdyamApplicable === "No" ? "" : classificationYear || "",
+            msmeUdyamApplicable === "No" ? "" : classificationYear || null,
           classification_date:
-            msmeUdyamApplicable === "No" ? "" : classificationDate || "",
+            msmeUdyamApplicable === "No" ? "" : classificationDate || null,
 
           msme_attachments: msmeUdyamApplicable === "No" ? [] : msmeAttachments,
           einvoicing: eInvoicingApplicable || "",
@@ -896,8 +897,8 @@ const SectionReKYCDetails = () => {
 
           deletedBankDetails: deletedBankDetails, //deleted details
 
-          gstin_applicable: gstApplicable || "",
-          gst_classification_id: gstClassification?.value || "",
+          gstin_applicable: gstApplicable || null,
+          gst_classification_id: gstClassification?.value || null,
           gstin: gstinNumber || "",
           // gstin_attachments: gstinAttachments || [],
           gstin_attachments: gstinAttachments,
@@ -1610,7 +1611,9 @@ const SectionReKYCDetails = () => {
                           isDisabled={!bankDetail.country_id} // Disable if no country selected
                         />
                         {bankDetail.isNew && errors.state_id && (
-                          <div className="ValidationColor">{errors.state_id}</div>
+                          <div className="ValidationColor">
+                            {errors.state_id}
+                          </div>
                         )}
                       </div>
                     </div>

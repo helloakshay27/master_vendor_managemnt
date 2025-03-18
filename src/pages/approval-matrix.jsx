@@ -74,14 +74,14 @@ const ApprovalMatrix = () => {
   }, []);
 
   // Add Approval Level
-  const handleAddLevel = () => {
-    setApprovalLevels([...approvalLevels, { order: "", name: "", users: [] }]);
-  };
+  // const handleAddLevel = () => {
+  //   setApprovalLevels([...approvalLevels, { order: "", name: "", users: [] }]);
+  // };
 
-  // Remove Approval Level
-  const handleRemoveLevel = (index) => {
-    setApprovalLevels(approvalLevels.filter((_, i) => i !== index));
-  };
+  // // Remove Approval Level
+  // const handleRemoveLevel = (index) => {
+  //   setApprovalLevels(approvalLevels.filter((_, i) => i !== index));
+  // };
 
   // Handle Input Change
   const handleInputChange = (index, field, value) => {
@@ -148,8 +148,27 @@ const ApprovalMatrix = () => {
       !finalFormData.department_id ||
       !finalFormData.approval_type
     ) {
-      alert("Please select a Company, Department, and KYC Type.");
+      alert("Please select a Department, and KYC Type.");
       return;
+    }
+
+    for (let i = 0; i < approvalLevels.length; i++) {
+      const level = approvalLevels[i];
+
+      if (!level.order || level.order.toString().trim() === "") {
+        alert(`Please enter an order `);
+        return;
+      }
+
+      if (!level.name.trim()) {
+        alert(`Please enter a name `);
+        return;
+      }
+
+      if (!level.users || level.users.length === 0) {
+        alert(`Please select at least one user`);
+        return;
+      }
     }
 
     const payload = {
@@ -169,7 +188,7 @@ const ApprovalMatrix = () => {
 
     try {
       const response = await axios.post(
-        (`${baseURL}/pms/admin/invoice_approvals.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`),
+        `${baseURL}/pms/admin/invoice_approvals.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`,
         payload
       );
 
@@ -183,8 +202,13 @@ const ApprovalMatrix = () => {
 
       navigate("/approval-list");
     } catch (error) {
-      console.error("Error creating approval matrix:", error);
-      alert("Failed to create approval matrix.");
+      console.error("Error updating approval matrix:", error);
+
+      if (error.response?.data?.error) {
+        alert(error.response.data.error[0]); // Show the exact error message
+      } else {
+        alert("Failed to update approval matrix.");
+      }
     }
   };
 
@@ -357,22 +381,22 @@ const ApprovalMatrix = () => {
                                   placeholder="Select Users"
                                 />
                               </fieldset>
-                              <button
+                              {/* <button
                                 className="remove-item ms-4 mb-3 px-2 rounded purple-btn1"
                                 style={{ padding: "1px 3px" }}
                                 onClick={() => handleRemoveLevel(index)}
                               >
                                 x
-                              </button>
+                              </button> */}
                             </div>
                           ))}
                           <div className="ms-3 mt-2">
-                            <button
+                            {/* <button
                               className=" purple-btn1 submit-btn"
                               onClick={handleAddLevel}
                             >
                               +
-                            </button>
+                            </button> */}
                           </div>
                         </div>
                         <div></div>
