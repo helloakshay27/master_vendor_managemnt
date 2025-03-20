@@ -25,7 +25,7 @@ const ApprovalMatrix = () => {
   const kycTypes = [
     { value: " General Rekyc", label: "General Re-KYC" },
     { value: "MSME Rekyc", label: "MSME Re-KYC" },
-    { value: "E-invoicing  Rekyc", label: "E-invoicing Re-KYC" },
+    { value: "E-invoicing Rekyc", label: "E-invoicing Re-KYC" },
     { value: "Bank Rekyc", label: "Bank Rekyc Re-KYC" },
     { value: "GSTIN Rekyc", label: "GSTIN Rekyc" },
   ];

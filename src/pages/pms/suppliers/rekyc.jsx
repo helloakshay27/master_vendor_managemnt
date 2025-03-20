@@ -58,7 +58,7 @@ const SectionReKYCDetails = () => {
       "Please provide the complete address of your bank branch,including the street address,city and postal code. ",
     country: "Please choose your country from the list.",
     state: "Please choose your state from the list.",
-    city: "Enter the city where your bank branch is located",
+    city_name: "Enter the city where your bank branch is located",
     pincode: "Enter the postal code (Pin Code) for the bank branch location",
     accountType:
       "Select the type of bank account your organization holds,such as Savings,Current,or any other relevant type.",
@@ -490,8 +490,8 @@ const SectionReKYCDetails = () => {
         address: null,
         country_id: null,
         state_id: null,
-        city: null,
-        pin_code: null,
+        city_name: null,
+        pincode: null,
         account_type: null,
         account_number: null,
         confirm_account_number: null,
@@ -712,14 +712,14 @@ const SectionReKYCDetails = () => {
         if (!bankDetail.state_id) {
           validationErrors.state_id = "State is required.";
         }
-        if (!bankDetail.city) {
-          validationErrors.city = "City is required.";
+        if (!bankDetail.city_name) {
+          validationErrors.city_name = "City is required.";
         }
         // {
         // }
 
-        if (!bankDetail.pin_code || isNaN(bankDetail.pin_code)) {
-          validationErrors.pin_code = "Valid Pin Code is required.";
+        if (!bankDetail.pincode || isNaN(bankDetail.pincode)) {
+          validationErrors.pincode = "Valid Pin Code is required.";
         }
 
         if (!bankDetail.account_type) {
@@ -1624,7 +1624,7 @@ const SectionReKYCDetails = () => {
                         <label
                           data-bs-toggle="tooltip"
                           data-bs-placement="top"
-                          title={tooltipMessages.city}
+                          title={tooltipMessages.city_name}
                         >
                           City <span>*</span>
                         </label>
@@ -1632,13 +1632,13 @@ const SectionReKYCDetails = () => {
                           className="form-control"
                           type="text"
                           placeholder="Enter City Name"
-                          value={bankDetail.city}
+                          value={bankDetail.city_name}
                           onChange={(e) =>
-                            handleInputChange(e, bankDetail.id, "city")
+                            handleInputChange(e, bankDetail.id, "city_name")
                           }
                         />
-                        {bankDetail.isNew && errors.city && (
-                          <div className="ValidationColor">{errors.city}</div>
+                        {bankDetail.isNew && errors.city_name && (
+                          <div className="ValidationColor">{errors.city_name}</div>
                         )}
                       </div>
                     </div>
@@ -1657,14 +1657,14 @@ const SectionReKYCDetails = () => {
                           className="form-control"
                           type="number"
                           placeholder="Enter Pin Code"
-                          value={bankDetail.pin_code}
+                          value={bankDetail.pincode}
                           onChange={(e) =>
-                            handleInputChange(e, bankDetail.id, "pin_code")
+                            handleInputChange(e, bankDetail.id, "pincode")
                           }
                         />
-                        {bankDetail.isNew && errors.pin_code && (
+                        {bankDetail.isNew && errors.pincode && (
                           <div className="ValidationColor">
-                            {errors.pin_code}
+                            {errors.pincode}
                           </div>
                         )}
                       </div>
