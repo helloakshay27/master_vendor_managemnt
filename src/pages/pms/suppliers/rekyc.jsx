@@ -1638,7 +1638,9 @@ const SectionReKYCDetails = () => {
                           }
                         />
                         {bankDetail.isNew && errors.city_name && (
-                          <div className="ValidationColor">{errors.city_name}</div>
+                          <div className="ValidationColor">
+                            {errors.city_name}
+                          </div>
                         )}
                       </div>
                     </div>
@@ -2367,7 +2369,7 @@ const SectionReKYCDetails = () => {
                       <a
                         download="Specimen_E-Invoicing_Declaration.docx"
                         className="text-primary d-flex align-items-center"
-                        href={`${baseURL}/assets/Yes%20_%20msme.pdf`}
+                        href={`${baseURL}/assets/NO_%20MSME.pdf`}
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -2387,7 +2389,7 @@ const SectionReKYCDetails = () => {
                           />
                         </svg>
                         <span className="mt-2 ms-2">
-                          Specimen For E-Invoicing Declaration.pdf
+                          Specimen For No Msme.pdf
                         </span>
                       </a>
                     </div>
