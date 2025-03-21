@@ -677,7 +677,78 @@ const SectionReKYCDetails = () => {
     },
   };
 
+  const payloadCondition = {
+    authenticity_token: "[FILTERED]", // No quotes for the token value, but the key is a string
+    vendor_re_kyc: {
+      status: "details_submitted_by_vendor",
+    },
+    pms_supplier: {
+      rekyc_id: rekyc_id,
+    },
+  };
+
+  // If the condition is met, include only GSTN-related fields
+if (isRekycTypeEmpty || isGstinRekyc) {
+  payloadCondition.pms_supplier = {
+    ...payloadCondition.pms_supplier, // Keep existing keys
+    gstin_applicable: gstApplicable || null,
+    ...(gstApplicable === "Yes" && {
+      gst_classification_id: gstClassification?.value || null,
+      gstin: gstinNumber || "",
+      gstin_attachments: gstinAttachments || [],
+    }),
+  };
+}
+
+
+// If the condition is met, include only Bank Details
+if (isRekycTypeEmpty || isBankRekyc) {
+  payloadCondition.pms_supplier = {
+    ...payloadCondition.pms_supplier, // Keep existing keys
+    bank_details_attributes: bankDetailsList.map((item) => ({
+      ...item,
+      id: item.isNew ? null : item.id,
+
+      attachment: item.isNew
+        ? bankAttachments[item.id] || null // If new attachment exists, pass it; otherwise, null
+        : bankAttachments[item.id] || (item.attachment ? null : null), // If existing, only pass null if no new file is uploaded
+    })),
+
+    deletedBankDetails: deletedBankDetails || [], // Deleted bank details, if any
+  };
+}
+
+// If the condition is met, include only MSME-related fields
+if (isRekycTypeEmpty || isMsmeRekyc) {
+  payloadCondition.pms_supplier = {
+    ...payloadCondition.pms_supplier, // Keep existing keys
+    msme: msmeUdyamApplicable || "",
+    msme_no: msmeUdyamApplicable === "No" ? "" : msmeNo || null,
+    valid_from: msmeUdyamApplicable === "No" ? "" : validFrom || null,
+    valid_till: msmeUdyamApplicable === "No" ? "" : validTill || null,
+    enterprise: msmeUdyamApplicable === "No" ? "" : msmeEnterpriseType || null,
+    major_activity:
+      msmeUdyamApplicable === "No" ? "" : majorActivity || null,
+    classification_year:
+      msmeUdyamApplicable === "No" ? "" : classificationYear || null,
+    classification_date:
+      msmeUdyamApplicable === "No" ? "" : classificationDate || null,
+    msme_attachments: msmeUdyamApplicable === "No" ? [] : msmeAttachments,
+  };
+}
+
+// If the condition is met, include only E-Invoicing-related fields
+if (isRekycTypeEmpty || isEnvoiceRekyc) {
+  payloadCondition.pms_supplier = {
+    ...payloadCondition.pms_supplier, // Keep existing keys
+    einvoicing: eInvoicingApplicable || "",
+    einvoicing_attachments:
+      eInvoicingApplicable === "No" ? einvoicingAttachments || [] : [] ,
+  };
+}
+
   console.log("payload:", payload);
+  console.log("payload condition:", payloadCondition);
 
   // update api
 
@@ -858,6 +929,62 @@ const SectionReKYCDetails = () => {
 
       setLoading(true);
 
+      // const payload = {
+      //   authenticity_token: "[FILTERED]", // No quotes for the token value, but the key is a string
+      //   vendor_re_kyc: {
+      //     status: "details_submitted_by_vendor",
+      //   },
+      //   pms_supplier: {
+      //     rekyc_id: rekyc_id,
+      //     msme: msmeUdyamApplicable || "",
+      //     msme_no: msmeUdyamApplicable === "No" ? "" : msmeNo || null,
+      //     valid_from: msmeUdyamApplicable === "No" ? "" : validFrom || null,
+      //     valid_till: msmeUdyamApplicable === "No" ? "" : validTill || null,
+      //     enterprise:
+      //       msmeUdyamApplicable === "No" ? "" : msmeEnterpriseType || null,
+      //     major_activity:
+      //       msmeUdyamApplicable === "No" ? "" : majorActivity || null,
+      //     classification_year:
+      //       msmeUdyamApplicable === "No" ? "" : classificationYear || null,
+      //     classification_date:
+      //       msmeUdyamApplicable === "No" ? "" : classificationDate || null,
+
+      //     msme_attachments: msmeUdyamApplicable === "No" ? [] : msmeAttachments,
+      //     einvoicing: eInvoicingApplicable || "",
+      //     einvoicing_attachments:
+      //       eInvoicingApplicable === "No" ? einvoicingAttachments : [], //added
+      //     // bank_details_attributes: bankDetailsList,
+      //     bank_details_attributes: bankDetailsList.map((item) => ({
+      //       ...item,
+      //       id: item.isNew ? null : item.id, // Set id to null if it's a new entry
+
+      //       // attachment: item.isNew ? bankAttachments : null,
+      //       // _destroy: item._destroy ? true : null, // Convert _destroy to boolean or null
+
+      //       attachment: item.isNew
+      //         ? bankAttachments[item.id] || null // If new attachment exists, pass it; otherwise, null
+      //         : bankAttachments[item.id] || (item.attachment ? null : null), // If existing, only pass null if no new file is uploaded
+      //     })),
+
+      //     deletedBankDetails: deletedBankDetails, //deleted details
+
+      //     gstin_applicable: gstApplicable || null,
+      //     gst_classification_id: gstClassification?.value || null,
+      //     gstin: gstinNumber || "",
+      //     // gstin_attachments: gstinAttachments || [],
+      //     gstin_attachments: gstinAttachments,
+      //     // gstinAttachments.length > 0
+      //     //   ? gstinAttachments // If new files are uploaded, send them
+      //     //   : supplierData?.basic_information?.gstin_attachments?.length > 0
+      //     //     ? null // If existing files are present, pass null
+      //     //     : [], // Otherwise, send an empty array
+      //   },
+      // };
+
+      // console.log("payload submition", payload);
+      // console.log("rekyc id")
+
+      // condition wise payload
       const payload = {
         authenticity_token: "[FILTERED]", // No quotes for the token value, but the key is a string
         vendor_re_kyc: {
@@ -865,53 +992,68 @@ const SectionReKYCDetails = () => {
         },
         pms_supplier: {
           rekyc_id: rekyc_id,
-          msme: msmeUdyamApplicable || "",
-          msme_no: msmeUdyamApplicable === "No" ? "" : msmeNo || null,
-          valid_from: msmeUdyamApplicable === "No" ? "" : validFrom || null,
-          valid_till: msmeUdyamApplicable === "No" ? "" : validTill || null,
-          enterprise:
-            msmeUdyamApplicable === "No" ? "" : msmeEnterpriseType || null,
-          major_activity:
-            msmeUdyamApplicable === "No" ? "" : majorActivity || null,
-          classification_year:
-            msmeUdyamApplicable === "No" ? "" : classificationYear || null,
-          classification_date:
-            msmeUdyamApplicable === "No" ? "" : classificationDate || null,
-
-          msme_attachments: msmeUdyamApplicable === "No" ? [] : msmeAttachments,
-          einvoicing: eInvoicingApplicable || "",
-          einvoicing_attachments:
-            eInvoicingApplicable === "No" ? einvoicingAttachments : [], //added
-          // bank_details_attributes: bankDetailsList,
-          bank_details_attributes: bankDetailsList.map((item) => ({
-            ...item,
-            id: item.isNew ? null : item.id, // Set id to null if it's a new entry
-
-            // attachment: item.isNew ? bankAttachments : null,
-            // _destroy: item._destroy ? true : null, // Convert _destroy to boolean or null
-
-            attachment: item.isNew
-              ? bankAttachments[item.id] || null // If new attachment exists, pass it; otherwise, null
-              : bankAttachments[item.id] || (item.attachment ? null : null), // If existing, only pass null if no new file is uploaded
-          })),
-
-          deletedBankDetails: deletedBankDetails, //deleted details
-
-          gstin_applicable: gstApplicable || null,
-          gst_classification_id: gstClassification?.value || null,
-          gstin: gstinNumber || "",
-          // gstin_attachments: gstinAttachments || [],
-          gstin_attachments: gstinAttachments,
-          // gstinAttachments.length > 0
-          //   ? gstinAttachments // If new files are uploaded, send them
-          //   : supplierData?.basic_information?.gstin_attachments?.length > 0
-          //     ? null // If existing files are present, pass null
-          //     : [], // Otherwise, send an empty array
         },
       };
+      // If the condition is met, include only GSTN-related fields
+if (isRekycTypeEmpty || isGstinRekyc) {
+  payload.pms_supplier = {
+    ...payload.pms_supplier, // Keep existing keys
+    gstin_applicable: gstApplicable || null,
+    ...(gstApplicable === "Yes" && {
+      gst_classification_id: gstClassification?.value || null,
+      gstin: gstinNumber || "",
+      gstin_attachments: gstinAttachments || [],
+    }),
+  };
+}
 
-      console.log("payload submition", payload);
-      // console.log("rekyc id")
+// If the condition is met, include only Bank Details
+if (isRekycTypeEmpty || isBankRekyc) {
+  payload.pms_supplier = {
+    ...payload.pms_supplier, // Keep existing keys
+    bank_details_attributes: bankDetailsList.map((item) => ({
+      ...item,
+      id: item.isNew ? null : item.id,
+
+      attachment: item.isNew
+        ? bankAttachments[item.id] || null // If new attachment exists, pass it; otherwise, null
+        : bankAttachments[item.id] || (item.attachment ? null : null), // If existing, only pass null if no new file is uploaded
+    })),
+
+    deletedBankDetails: deletedBankDetails || [], // Deleted bank details, if any
+  };
+}
+
+// If the condition is met, include only MSME-related fields
+if (isRekycTypeEmpty || isMsmeRekyc) {
+  payload.pms_supplier = {
+    ...payload.pms_supplier, // Keep existing keys
+    msme: msmeUdyamApplicable || "",
+    msme_no: msmeUdyamApplicable === "No" ? "" : msmeNo || null,
+    valid_from: msmeUdyamApplicable === "No" ? "" : validFrom || null,
+    valid_till: msmeUdyamApplicable === "No" ? "" : validTill || null,
+    enterprise: msmeUdyamApplicable === "No" ? "" : msmeEnterpriseType || null,
+    major_activity:
+      msmeUdyamApplicable === "No" ? "" : majorActivity || null,
+    classification_year:
+      msmeUdyamApplicable === "No" ? "" : classificationYear || null,
+    classification_date:
+      msmeUdyamApplicable === "No" ? "" : classificationDate || null,
+    msme_attachments: msmeUdyamApplicable === "No" ? [] : msmeAttachments,
+  };
+}
+
+// If the condition is met, include only E-Invoicing-related fields
+if (isRekycTypeEmpty || isEnvoiceRekyc) {
+  payload.pms_supplier = {
+    ...payload.pms_supplier, // Keep existing keys
+    einvoicing: eInvoicingApplicable || "",
+    einvoicing_attachments:
+      eInvoicingApplicable === "No" ? einvoicingAttachments || [] : [],
+  };
+}
+
+console.log("payload submition with conditions:", payload);
 
       try {
         const response = await axios.patch(
