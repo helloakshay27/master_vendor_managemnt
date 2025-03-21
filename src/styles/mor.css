@@ -5697,7 +5697,20 @@ ul.pagination.justify-content-center {
   /* height: 80px; Fixed height */
   /* line-height: 80px; Center the text vertically */
   /* text-align: center; Optional: Center the text horizontally */
+
+   /* Light Red Box Shadow on All Sides */
+   box-shadow: 0px 0px 8px 2px rgba(255, 0, 0, 0.3) !important;
+   /* border: 1px solid var(--red) !important; Red border */
 }
+/* Adjust margin between tooltip and text */
+.tooltip {
+  margin-left: 10px !important; /* Space between text and tooltip */
+  
+}
+.tooltip.bs-tooltip-top {
+  margin: 10px !important;
+}
+
 
 /* Optional: You can set different widths for different placements (top, bottom, etc.) */
 .tooltip.bs-tooltip-top .tooltip-inner,
@@ -5708,21 +5721,22 @@ ul.pagination.justify-content-center {
   width: auto; /* Allow width to adjust dynamically */
 }
 
+
 /* Customizing the arrow for each position */
-.tooltip.bs-tooltip-top .tooltip-arrow {
-  border-top-color: var(--red) !important; /* Match the arrow with the tooltip background */
+.tooltip.bs-tooltip-top .tooltip-arrow::before {
+  border-top-color:  rgba(255, 0, 0, 0.3) !important; /* Match the arrow with the tooltip background */
 }
 
-.tooltip.bs-tooltip-bottom .tooltip-arrow {
-  border-bottom-color: var(--red) !important; /* Match the arrow with the tooltip background */
+.tooltip.bs-tooltip-bottom .tooltip-arrow::before {
+  border-bottom-color: rgba(255, 0, 0, 0.3) !important; /* Match the arrow with the tooltip background */
 }
 
-.tooltip.bs-tooltip-right .tooltip-arrow {
-  border-right-color: var(--red) !important; /* Match the arrow with the tooltip background */
+.tooltip.bs-tooltip-right .tooltip-arrow::before {
+  border-right-color: rgba(255, 0, 0, 0.3) !important; /* Match the arrow with the tooltip background */
 }
 
-.tooltip.bs-tooltip-left .tooltip-arrow {
-  border-left-color: var(--red) !important; /* Match the arrow with the tooltip background */
+.tooltip.bs-tooltip-left .tooltip-arrow::before {
+  border-left-color: rgba(255, 0, 0, 0.3) !important; /* Match the arrow with the tooltip background */
 }
 
 
@@ -5802,4 +5816,39 @@ ul.pagination.justify-content-center {
   font-size: 16px;
   color: #DE7008; /* Matches your primary theme color */
   font-weight: bold;
+}
+
+
+/* select */
+
+select {
+  appearance: none; /* Removes default arrow */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-color: white;
+  border: 1px solid #ccc;
+  padding: 8px 30px 8px 10px;
+  font-size: 16px;
+  cursor: pointer;
+  position: relative;
+}
+
+/* Add a custom down arrow */
+.select-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.select-wrapper select {
+  width: 100%;
+}
+
+.select-wrapper::after {
+  content: "▼"; /* Downward arrow */
+  font-size: 14px;
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  pointer-events: none;
 }

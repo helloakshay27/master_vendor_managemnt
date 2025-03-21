@@ -1180,10 +1180,10 @@ const SectionReKYCDetails = () => {
                       {supplierData?.basic_information?.pan_attachments
                         ?.length > 0
                         ? // Display the document name of the first attachment
-                          supplierData?.basic_information?.pan_attachments[0]
-                            ?.document_name
+                        supplierData?.basic_information?.pan_attachments[0]
+                          ?.document_name
                         : // If no attachment is present, show a default message
-                          "No Document Available"}
+                        "No Document Available"}
                     </label>
                   </div>
                 </div>
@@ -1266,10 +1266,10 @@ const SectionReKYCDetails = () => {
                       {supplierData?.basic_information?.gstin_attachments
                         ?.length > 0
                         ? // Display the document name of the first attachment
-                          supplierData?.basic_information?.gstin_attachments[0]
-                            ?.document_name || "No Document Available"
+                        supplierData?.basic_information?.gstin_attachments[0]
+                          ?.document_name || "No Document Available"
                         : // If no attachment is present, show a default message
-                          "No Document Available"}
+                        "No Document Available"}
                     </label>
                   </div>
                 </div>
@@ -1293,6 +1293,22 @@ const SectionReKYCDetails = () => {
                         title={tooltipMessages.GSTINApplicable}
                       >
                         GSTIN Applicable<span></span>
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="18"
+                          height="18"
+                          viewBox="0 0 512 512"
+                          style={{ marginLeft: "8px" }}
+                        >
+                          {/* Black Circle */}
+                          <circle cx="250" cy="250" r="250" fill="black" />
+
+                          {/* White "i" icon */}
+                          <path
+                            fill="white"
+                            d="M256 128c-13.255 0-24 10.745-24 24s10.745 24 24 24 24-10.745 24-24-10.745-24-24-24zm16 80h-32c-8.837 0-16 7.163-16 16v160c0 8.837 7.163 16 16 16h32c8.837 0 16-7.163 16-16V224c0-8.837-7.163-16-16-16z"
+                          />
+                        </svg>
                       </label>
                       <SingleSelector
                         options={[
@@ -1324,9 +1340,9 @@ const SectionReKYCDetails = () => {
                       <div className="col-md-4 mt-2">
                         <div className="form-group">
                           <label
-                            data-bs-toggle="tooltip"
-                            data-bs-placement="top"
-                            title={tooltipMessages.MSMEUdyamNumber}
+                          // data-bs-toggle="tooltip"
+                          // data-bs-placement="top"
+                          // title={tooltipMessages.MSMEUdyamNumber}
                           >
                             GSTIN Classification<span></span>
                           </label>
@@ -1358,9 +1374,9 @@ const SectionReKYCDetails = () => {
                       <div className="col-md-4 mt-2">
                         <div className="form-group">
                           <label
-                            data-bs-toggle="tooltip"
-                            data-bs-placement="top"
-                            title={tooltipMessages.MSMEEnterpriseType}
+                          // data-bs-toggle="tooltip"
+                          // data-bs-placement="top"
+                          // title={tooltipMessages.MSMEEnterpriseType}
                           >
                             GSTIN No.<span>*</span>
                           </label>
@@ -1388,6 +1404,22 @@ const SectionReKYCDetails = () => {
                             title={tooltipMessages.GSTINAttachment}
                           >
                             GSTIN Attachment<span>*</span>
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="18"
+                              height="18"
+                              viewBox="0 0 512 512"
+                              style={{ marginLeft: "8px" }}
+                            >
+                              {/* Black Circle */}
+                              <circle cx="250" cy="250" r="250" fill="black" />
+
+                              {/* White "i" icon */}
+                              <path
+                                fill="white"
+                                d="M256 128c-13.255 0-24 10.745-24 24s10.745 24 24 24 24-10.745 24-24-10.745-24-24-24zm16 80h-32c-8.837 0-16 7.163-16 16v160c0 8.837 7.163 16 16 16h32c8.837 0 16-7.163 16-16V224c0-8.837-7.163-16-16-16z"
+                              />
+                            </svg>
                           </label>
 
                           {/* Display existing attachments dynamically */}
@@ -1468,6 +1500,22 @@ const SectionReKYCDetails = () => {
                           title={tooltipMessages.bankName}
                         >
                           Bank Name <span>*</span>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="18"
+                            height="18"
+                            viewBox="0 0 512 512"
+                            style={{ marginLeft: "8px" }}
+                          >
+                            {/* Black Circle */}
+                            <circle cx="250" cy="250" r="250" fill="black" />
+
+                            {/* White "i" icon */}
+                            <path
+                              fill="white"
+                              d="M256 128c-13.255 0-24 10.745-24 24s10.745 24 24 24 24-10.745 24-24-10.745-24-24-24zm16 80h-32c-8.837 0-16 7.163-16 16v160c0 8.837 7.163 16 16 16h32c8.837 0 16-7.163 16-16V224c0-8.837-7.163-16-16-16z"
+                            />
+                          </svg>
                         </label>
                         <input
                           className="form-control"
@@ -1498,6 +1546,22 @@ const SectionReKYCDetails = () => {
                           title={tooltipMessages.address}
                         >
                           Address <span>*</span>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="18"
+                            height="18"
+                            viewBox="0 0 512 512"
+                            style={{ marginLeft: "8px" }}
+                          >
+                            {/* Black Circle */}
+                            <circle cx="250" cy="250" r="250" fill="black" />
+
+                            {/* White "i" icon */}
+                            <path
+                              fill="white"
+                              d="M256 128c-13.255 0-24 10.745-24 24s10.745 24 24 24 24-10.745 24-24-10.745-24-24-24zm16 80h-32c-8.837 0-16 7.163-16 16v160c0 8.837 7.163 16 16 16h32c8.837 0 16-7.163 16-16V224c0-8.837-7.163-16-16-16z"
+                            />
+                          </svg>
                         </label>
                         <input
                           className="form-control"
@@ -1526,6 +1590,22 @@ const SectionReKYCDetails = () => {
                           title={tooltipMessages.country}
                         >
                           Country <span>*</span>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="18"
+                            height="18"
+                            viewBox="0 0 512 512"
+                            style={{ marginLeft: "8px" }}
+                          >
+                            {/* Black Circle */}
+                            <circle cx="250" cy="250" r="250" fill="black" />
+
+                            {/* White "i" icon */}
+                            <path
+                              fill="white"
+                              d="M256 128c-13.255 0-24 10.745-24 24s10.745 24 24 24 24-10.745 24-24-10.745-24-24-24zm16 80h-32c-8.837 0-16 7.163-16 16v160c0 8.837 7.163 16 16 16h32c8.837 0 16-7.163 16-16V224c0-8.837-7.163-16-16-16z"
+                            />
+                          </svg>
                         </label>
 
                         {/* Country Dropdown */}
@@ -1582,6 +1662,22 @@ const SectionReKYCDetails = () => {
                           title={tooltipMessages.state}
                         >
                           State <span>*</span>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="18"
+                            height="18"
+                            viewBox="0 0 512 512"
+                            style={{ marginLeft: "8px" }}
+                          >
+                            {/* Black Circle */}
+                            <circle cx="250" cy="250" r="250" fill="black" />
+
+                            {/* White "i" icon */}
+                            <path
+                              fill="white"
+                              d="M256 128c-13.255 0-24 10.745-24 24s10.745 24 24 24 24-10.745 24-24-10.745-24-24-24zm16 80h-32c-8.837 0-16 7.163-16 16v160c0 8.837 7.163 16 16 16h32c8.837 0 16-7.163 16-16V224c0-8.837-7.163-16-16-16z"
+                            />
+                          </svg>
                         </label>
 
                         {/* <select
@@ -1627,6 +1723,22 @@ const SectionReKYCDetails = () => {
                           title={tooltipMessages.city_name}
                         >
                           City <span>*</span>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="18"
+                            height="18"
+                            viewBox="0 0 512 512"
+                            style={{ marginLeft: "8px" }}
+                          >
+                            {/* Black Circle */}
+                            <circle cx="250" cy="250" r="250" fill="black" />
+
+                            {/* White "i" icon */}
+                            <path
+                              fill="white"
+                              d="M256 128c-13.255 0-24 10.745-24 24s10.745 24 24 24 24-10.745 24-24-10.745-24-24-24zm16 80h-32c-8.837 0-16 7.163-16 16v160c0 8.837 7.163 16 16 16h32c8.837 0 16-7.163 16-16V224c0-8.837-7.163-16-16-16z"
+                            />
+                          </svg>
                         </label>
                         <input
                           className="form-control"
@@ -1654,6 +1766,22 @@ const SectionReKYCDetails = () => {
                           title={tooltipMessages.pincode}
                         >
                           Pin Code <span>*</span>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="18"
+                            height="18"
+                            viewBox="0 0 512 512"
+                            style={{ marginLeft: "8px" }}
+                          >
+                            {/* Black Circle */}
+                            <circle cx="250" cy="250" r="250" fill="black" />
+
+                            {/* White "i" icon */}
+                            <path
+                              fill="white"
+                              d="M256 128c-13.255 0-24 10.745-24 24s10.745 24 24 24 24-10.745 24-24-10.745-24-24-24zm16 80h-32c-8.837 0-16 7.163-16 16v160c0 8.837 7.163 16 16 16h32c8.837 0 16-7.163 16-16V224c0-8.837-7.163-16-16-16z"
+                            />
+                          </svg>
                         </label>
                         <input
                           className="form-control"
@@ -1681,6 +1809,22 @@ const SectionReKYCDetails = () => {
                           title={tooltipMessages.accountType}
                         >
                           Account Type <span>*</span>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="18"
+                            height="18"
+                            viewBox="0 0 512 512"
+                            style={{ marginLeft: "8px" }}
+                          >
+                            {/* Black Circle */}
+                            <circle cx="250" cy="250" r="250" fill="black" />
+
+                            {/* White "i" icon */}
+                            <path
+                              fill="white"
+                              d="M256 128c-13.255 0-24 10.745-24 24s10.745 24 24 24 24-10.745 24-24-10.745-24-24-24zm16 80h-32c-8.837 0-16 7.163-16 16v160c0 8.837 7.163 16 16 16h32c8.837 0 16-7.163 16-16V224c0-8.837-7.163-16-16-16z"
+                            />
+                          </svg>
                         </label>
                         <input
                           className="form-control"
@@ -1708,6 +1852,22 @@ const SectionReKYCDetails = () => {
                           title={tooltipMessages.accountNumber}
                         >
                           Account Number <span>*</span>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="18"
+                            height="18"
+                            viewBox="0 0 512 512"
+                            style={{ marginLeft: "8px" }}
+                          >
+                            {/* Black Circle */}
+                            <circle cx="250" cy="250" r="250" fill="black" />
+
+                            {/* White "i" icon */}
+                            <path
+                              fill="white"
+                              d="M256 128c-13.255 0-24 10.745-24 24s10.745 24 24 24 24-10.745 24-24-10.745-24-24-24zm16 80h-32c-8.837 0-16 7.163-16 16v160c0 8.837 7.163 16 16 16h32c8.837 0 16-7.163 16-16V224c0-8.837-7.163-16-16-16z"
+                            />
+                          </svg>
                         </label>
                         <input
                           className="form-control"
@@ -1740,6 +1900,22 @@ const SectionReKYCDetails = () => {
                           title={tooltipMessages.confirmAccountNumber}
                         >
                           Confirm Account Number <span>*</span>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="18"
+                            height="18"
+                            viewBox="0 0 512 512"
+                            style={{ marginLeft: "8px" }}
+                          >
+                            {/* Black Circle */}
+                            <circle cx="250" cy="250" r="250" fill="black" />
+
+                            {/* White "i" icon */}
+                            <path
+                              fill="white"
+                              d="M256 128c-13.255 0-24 10.745-24 24s10.745 24 24 24 24-10.745 24-24-10.745-24-24-24zm16 80h-32c-8.837 0-16 7.163-16 16v160c0 8.837 7.163 16 16 16h32c8.837 0 16-7.163 16-16V224c0-8.837-7.163-16-16-16z"
+                            />
+                          </svg>
                         </label>
                         <input
                           className="form-control"
@@ -1776,6 +1952,22 @@ const SectionReKYCDetails = () => {
                           title={tooltipMessages.branchName}
                         >
                           Branch Name <span>*</span>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="18"
+                            height="18"
+                            viewBox="0 0 512 512"
+                            style={{ marginLeft: "8px" }}
+                          >
+                            {/* Black Circle */}
+                            <circle cx="250" cy="250" r="250" fill="black" />
+
+                            {/* White "i" icon */}
+                            <path
+                              fill="white"
+                              d="M256 128c-13.255 0-24 10.745-24 24s10.745 24 24 24 24-10.745 24-24-10.745-24-24-24zm16 80h-32c-8.837 0-16 7.163-16 16v160c0 8.837 7.163 16 16 16h32c8.837 0 16-7.163 16-16V224c0-8.837-7.163-16-16-16z"
+                            />
+                          </svg>
                         </label>
                         <input
                           className="form-control"
@@ -1803,6 +1995,22 @@ const SectionReKYCDetails = () => {
                           title={tooltipMessages.MICR}
                         >
                           MICR No. <span>*</span>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="18"
+                            height="18"
+                            viewBox="0 0 512 512"
+                            style={{ marginLeft: "8px" }}
+                          >
+                            {/* Black Circle */}
+                            <circle cx="250" cy="250" r="250" fill="black" />
+
+                            {/* White "i" icon */}
+                            <path
+                              fill="white"
+                              d="M256 128c-13.255 0-24 10.745-24 24s10.745 24 24 24 24-10.745 24-24-10.745-24-24-24zm16 80h-32c-8.837 0-16 7.163-16 16v160c0 8.837 7.163 16 16 16h32c8.837 0 16-7.163 16-16V224c0-8.837-7.163-16-16-16z"
+                            />
+                          </svg>
                         </label>
                         <input
                           className="form-control"
@@ -1830,6 +2038,22 @@ const SectionReKYCDetails = () => {
                           title={tooltipMessages.IFSCCode}
                         >
                           IFSC Code <span>*</span>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="18"
+                            height="18"
+                            viewBox="0 0 512 512"
+                            style={{ marginLeft: "8px" }}
+                          >
+                            {/* Black Circle */}
+                            <circle cx="250" cy="250" r="250" fill="black" />
+
+                            {/* White "i" icon */}
+                            <path
+                              fill="white"
+                              d="M256 128c-13.255 0-24 10.745-24 24s10.745 24 24 24 24-10.745 24-24-10.745-24-24-24zm16 80h-32c-8.837 0-16 7.163-16 16v160c0 8.837 7.163 16 16 16h32c8.837 0 16-7.163 16-16V224c0-8.837-7.163-16-16-16z"
+                            />
+                          </svg>
                         </label>
                         <input
                           className="form-control"
@@ -1857,6 +2081,22 @@ const SectionReKYCDetails = () => {
                           title={tooltipMessages.beneficiaryName}
                         >
                           Beneficiary Name <span>*</span>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="18"
+                            height="18"
+                            viewBox="0 0 512 512"
+                            style={{ marginLeft: "8px" }}
+                          >
+                            {/* Black Circle */}
+                            <circle cx="250" cy="250" r="250" fill="black" />
+
+                            {/* White "i" icon */}
+                            <path
+                              fill="white"
+                              d="M256 128c-13.255 0-24 10.745-24 24s10.745 24 24 24 24-10.745 24-24-10.745-24-24-24zm16 80h-32c-8.837 0-16 7.163-16 16v160c0 8.837 7.163 16 16 16h32c8.837 0 16-7.163 16-16V224c0-8.837-7.163-16-16-16z"
+                            />
+                          </svg>
                         </label>
                         <input
                           className="form-control"
@@ -1889,6 +2129,22 @@ const SectionReKYCDetails = () => {
                           title={tooltipMessages.cancelledCheque}
                         >
                           Cancelled Cheque / Bank Copy <span>*</span>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="18"
+                            height="18"
+                            viewBox="0 0 512 512"
+                            style={{ marginLeft: "8px" }}
+                          >
+                            {/* Black Circle */}
+                            <circle cx="250" cy="250" r="250" fill="black" />
+
+                            {/* White "i" icon */}
+                            <path
+                              fill="white"
+                              d="M256 128c-13.255 0-24 10.745-24 24s10.745 24 24 24 24-10.745 24-24-10.745-24-24-24zm16 80h-32c-8.837 0-16 7.163-16 16v160c0 8.837 7.163 16 16 16h32c8.837 0 16-7.163 16-16V224c0-8.837-7.163-16-16-16z"
+                            />
+                          </svg>
                         </label>
 
                         {/* Conditionally Render Existing File Download Link */}
@@ -1991,6 +2247,22 @@ const SectionReKYCDetails = () => {
                         title={tooltipMessages.MSMEUdyamNumberApplicable}
                       >
                         MSME/Udyam Number Applicable <span>*</span>
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="18"
+                          height="18"
+                          viewBox="0 0 512 512"
+                          style={{ marginLeft: "8px" }}
+                        >
+                          {/* Black Circle */}
+                          <circle cx="250" cy="250" r="250" fill="black" />
+
+                          {/* White "i" icon */}
+                          <path
+                            fill="white"
+                            d="M256 128c-13.255 0-24 10.745-24 24s10.745 24 24 24 24-10.745 24-24-10.745-24-24-24zm16 80h-32c-8.837 0-16 7.163-16 16v160c0 8.837 7.163 16 16 16h32c8.837 0 16-7.163 16-16V224c0-8.837-7.163-16-16-16z"
+                          />
+                        </svg>
                       </label>
                       <select
                         value={msmeUdyamApplicable}
@@ -2014,9 +2286,9 @@ const SectionReKYCDetails = () => {
                     <div className="col-md-4 mt-2">
                       <div className="form-group">
                         <label
-                          data-bs-toggle="tooltip"
-                          data-bs-placement="top"
-                          title={tooltipMessages.MSMEEnterpriseType}
+                        // data-bs-toggle="tooltip"
+                        // data-bs-placement="top"
+                        // title={tooltipMessages.MSMEEnterpriseType}
                         >
                           Major Activity <span>*</span>
                         </label>
@@ -2050,15 +2322,27 @@ const SectionReKYCDetails = () => {
                     <div className="col-md-4 mt-2">
                       <div className="form-group">
                         <label
-                          //  data-bs-toggle="tooltip"
-                          //  data-bs-placement="top"
-                          //  title={tooltipMessages.MSMEUdyamNumber}
-
                           data-bs-toggle="tooltip"
                           data-bs-placement="top"
                           title={tooltipMessages.MSMEUdyamNumber}
                         >
                           MSME/Udyam Number <span>*</span>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="18"
+                            height="18"
+                            viewBox="0 0 512 512"
+                            style={{ marginLeft: "8px" }}
+                          >
+                            {/* Black Circle */}
+                            <circle cx="250" cy="250" r="250" fill="black" />
+
+                            {/* White "i" icon */}
+                            <path
+                              fill="white"
+                              d="M256 128c-13.255 0-24 10.745-24 24s10.745 24 24 24 24-10.745 24-24-10.745-24-24-24zm16 80h-32c-8.837 0-16 7.163-16 16v160c0 8.837 7.163 16 16 16h32c8.837 0 16-7.163 16-16V224c0-8.837-7.163-16-16-16z"
+                            />
+                          </svg>
                         </label>
                         <input
                           className="form-control"
@@ -2067,7 +2351,7 @@ const SectionReKYCDetails = () => {
                           placeholder=""
                           value={msmeNo}
                           onChange={handleMsmeNoChange} // Add onChange handler here
-                          // value={supplierData?.msme_details?.msme_no}
+                        // value={supplierData?.msme_details?.msme_no}
                         />
                         {errors.msmeNo && (
                           <div className="ValidationColor">{errors.msmeNo}</div>
@@ -2081,9 +2365,9 @@ const SectionReKYCDetails = () => {
                     <div className="col-md-4 mt-2">
                       <div className="form-group">
                         <label
-                          data-bs-toggle="tooltip"
-                          data-bs-placement="top"
-                          title={tooltipMessages.MSMEEnterpriseType}
+                        // data-bs-toggle="tooltip"
+                        // data-bs-placement="top"
+                        // title={tooltipMessages.MSMEEnterpriseType}
                         >
                           Classifiction Year <span>*</span>
                         </label>
@@ -2122,6 +2406,22 @@ const SectionReKYCDetails = () => {
                           title={tooltipMessages.MSMEUdyamValidFrom}
                         >
                           MSME/Udyam Valid From <span>*</span>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="18"
+                            height="18"
+                            viewBox="0 0 512 512"
+                            style={{ marginLeft: "8px" }}
+                          >
+                            {/* Black Circle */}
+                            <circle cx="250" cy="250" r="250" fill="black" />
+
+                            {/* White "i" icon */}
+                            <path
+                              fill="white"
+                              d="M256 128c-13.255 0-24 10.745-24 24s10.745 24 24 24 24-10.745 24-24-10.745-24-24-24zm16 80h-32c-8.837 0-16 7.163-16 16v160c0 8.837 7.163 16 16 16h32c8.837 0 16-7.163 16-16V224c0-8.837-7.163-16-16-16z"
+                            />
+                          </svg>
                         </label>
                         <input
                           className="form-control"
@@ -2131,7 +2431,7 @@ const SectionReKYCDetails = () => {
                           value={validFrom}
                           disabled={!!classificationYear} // Disable when classification year is selected
                           onChange={handleValidFromChange} // Add onChange handler here
-                          // value={supplierData?.msme_details?.valid_from}
+                        // value={supplierData?.msme_details?.valid_from}
                         />
                         {errors.validFrom && (
                           <div className="ValidationColor">
@@ -2153,6 +2453,22 @@ const SectionReKYCDetails = () => {
                           title={tooltipMessages.MSMEUdyamValidTill}
                         >
                           MSME/Udyam Valid Till <span>*</span>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="18"
+                            height="18"
+                            viewBox="0 0 512 512"
+                            style={{ marginLeft: "8px" }}
+                          >
+                            {/* Black Circle */}
+                            <circle cx="250" cy="250" r="250" fill="black" />
+
+                            {/* White "i" icon */}
+                            <path
+                              fill="white"
+                              d="M256 128c-13.255 0-24 10.745-24 24s10.745 24 24 24 24-10.745 24-24-10.745-24-24-24zm16 80h-32c-8.837 0-16 7.163-16 16v160c0 8.837 7.163 16 16 16h32c8.837 0 16-7.163 16-16V224c0-8.837-7.163-16-16-16z"
+                            />
+                          </svg>
                         </label>
                         <input
                           className="form-control"
@@ -2162,7 +2478,7 @@ const SectionReKYCDetails = () => {
                           value={validTill}
                           disabled={!!classificationYear} // Disable when classification year is selected
                           onChange={handleValidTillChange}
-                          // value={supplierData?.msme_details?.valid_till}
+                        // value={supplierData?.msme_details?.valid_till}
                         />
                         {errors.validTill && (
                           <div className="ValidationColor">
@@ -2184,6 +2500,22 @@ const SectionReKYCDetails = () => {
                           title={tooltipMessages.MSMEEnterpriseType}
                         >
                           MSME Enterprise Type <span>*</span>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="18"
+                            height="18"
+                            viewBox="0 0 512 512"
+                            style={{ marginLeft: "8px" }}
+                          >
+                            {/* Black Circle */}
+                            <circle cx="250" cy="250" r="250" fill="black" />
+
+                            {/* White "i" icon */}
+                            <path
+                              fill="white"
+                              d="M256 128c-13.255 0-24 10.745-24 24s10.745 24 24 24 24-10.745 24-24-10.745-24-24-24zm16 80h-32c-8.837 0-16 7.163-16 16v160c0 8.837 7.163 16 16 16h32c8.837 0 16-7.163 16-16V224c0-8.837-7.163-16-16-16z"
+                            />
+                          </svg>
                         </label>
                         <select
                           // className="form-control"
@@ -2213,9 +2545,9 @@ const SectionReKYCDetails = () => {
                     <div className="col-md-4 mt-2">
                       <div className="form-group">
                         <label
-                          data-bs-toggle="tooltip"
-                          data-bs-placement="top"
-                          title={tooltipMessages.MSMEEnterpriseType}
+                        // data-bs-toggle="tooltip"
+                        // data-bs-placement="top"
+                        // title={tooltipMessages.MSMEEnterpriseType}
                         >
                           Classifiction Date <span>*</span>
                         </label>
@@ -2295,45 +2627,61 @@ const SectionReKYCDetails = () => {
                           title={tooltipMessages.MSMEUdyamAttachment}
                         >
                           MSME/Udyam Attachment <span>*</span>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="18"
+                            height="18"
+                            viewBox="0 0 512 512"
+                            style={{ marginLeft: "8px" }}
+                          >
+                            {/* Black Circle */}
+                            <circle cx="250" cy="250" r="250" fill="black" />
+
+                            {/* White "i" icon */}
+                            <path
+                              fill="white"
+                              d="M256 128c-13.255 0-24 10.745-24 24s10.745 24 24 24 24-10.745 24-24-10.745-24-24-24zm16 80h-32c-8.837 0-16 7.163-16 16v160c0 8.837 7.163 16 16 16h32c8.837 0 16-7.163 16-16V224c0-8.837-7.163-16-16-16z"
+                            />
+                          </svg>
                         </label>
 
                         {supplierData?.msme_details?.msme_attachments?.length >
                           0 && (
-                          <span className="ms-2">
-                            <a
-                              href={`${baseURL}${supplierData?.msme_details?.msme_attachments[0]?.file_url}`} // Append base URL
-                              download // Ensure it prompts download
-                              className="text-primary d-flex align-items-center"
-                            >
-                              <span className="me-2">Existing Files:</span>
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width={24}
-                                height={24}
-                                fill="#DE7008"
-                                className="bi bi-download"
-                                viewBox="0 0 16 16"
+                            <span className="ms-2">
+                              <a
+                                href={`${baseURL}${supplierData?.msme_details?.msme_attachments[0]?.file_url}`} // Append base URL
+                                download // Ensure it prompts download
+                                className="text-primary d-flex align-items-center"
                               >
-                                <path
-                                  d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
+                                <span className="me-2">Existing Files:</span>
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width={24}
+                                  height={24}
+                                  fill="#DE7008"
+                                  className="bi bi-download"
+                                  viewBox="0 0 16 16"
+                                >
+                                  <path
+                                    d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
                                   // style={{ fill: "#de7008!important" }}
-                                />
-                                <path
-                                  d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
+                                  />
+                                  <path
+                                    d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
                                   // style={{ fill: "#de7008!important" }}
-                                />
-                              </svg>
+                                  />
+                                </svg>
 
-                              {supplierData?.msme_details?.msme_attachments
-                                ?.length > 0
-                                ? // Display the document name of the first attachment
+                                {supplierData?.msme_details?.msme_attachments
+                                  ?.length > 0
+                                  ? // Display the document name of the first attachment
                                   supplierData?.msme_details
                                     ?.msme_attachments[0]?.document_name
-                                : // If no attachment is present, show a default message
+                                  : // If no attachment is present, show a default message
                                   "No Document Available"}
-                            </a>
-                          </span>
-                        )}
+                              </a>
+                            </span>
+                          )}
                         {/* <input className="form-control" type="file" name="" onChange={handleFileChange} /> */}
                         <input
                           className="form-control mt-2"
@@ -2427,21 +2775,21 @@ const SectionReKYCDetails = () => {
                           >
                             <path
                               d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
-                              // style={{ fill: "#de7008!important" }}
+                            // style={{ fill: "#de7008!important" }}
                             />
                             <path
                               d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
-                              // style={{ fill: "#de7008!important" }}
+                            // style={{ fill: "#de7008!important" }}
                             />
                           </svg>
 
                           {supplierData?.msme_details?.msme_attachments
                             ?.length > 0
                             ? // Display the document name of the first attachment
-                              supplierData?.msme_details?.msme_attachments[0]
-                                ?.document_name
+                            supplierData?.msme_details?.msme_attachments[0]
+                              ?.document_name
                             : // If no attachment is present, show a default message
-                              "No Document Available"}
+                            "No Document Available"}
                         </a>
                       </span>
                       <input
@@ -2613,7 +2961,7 @@ const SectionReKYCDetails = () => {
           <div className="row mt-4 mx-3">
             <div className="col-md-12">
               <h5 className=" ">
-                Declaration <span>*</span>
+                Declaration <span style={{ color: " #DE7008" }}>*</span>
               </h5>
               <p>
                 <span className="me-2 mt-2">
