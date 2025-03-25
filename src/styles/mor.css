@@ -5741,6 +5741,49 @@ ul.pagination.justify-content-center {
 
 
 
+.custom-tooltip {
+  position: absolute;
+  background-color: white !important;
+  color: var(--red) !important; 
+  font-size: 14px !important; 
+  padding: 8px !important;
+  box-shadow: 0px 0px 8px 2px rgba(255, 0, 0, 0.3) !important;
+  border-radius: 5px !important;
+  min-width: 400px !important;
+  max-width: 450px !important; /* Ensure the tooltip doesn’t get too wide */
+  top: -50px;
+  left:  max(10px, 50%); /* Ensures tooltip does not go too far left */
+  transform: translateX(-50%);
+  white-space: normal; /* Allow text to wrap */
+  word-wrap: break-word; /* Ensure long words break properly */
+  text-align: center; /* Center align text */
+  z-index: 1000;
+  border: 1px solid rgba(255, 0, 0, 0.3) !important;
+}
+
+/* Custom arrow styling */
+/* .custom-tooltip::after {
+  content: "";
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 8px;
+  border-style: solid;
+  border-color: rgba(255, 0, 0, 0.3) transparent transparent transparent;
+} */
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .custom-tooltip {
+    min-width: 150px !important;
+    max-width: 200px !important; /* Reduce max width for smaller screens */
+    left: max(10px, 50%);
+  }
+}
+
+
+
 .ValidationColor{
   color: var(--red) !important; /* White text */
 }

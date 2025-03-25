@@ -11,6 +11,9 @@ import { error } from "jquery";
 import { useNavigate } from "react-router-dom"; // Import useNavigate
 import CryptoJS from "crypto-js"; // Import crypto-js for encryption
 import { baseURL } from "../../../confi/apiDomain";
+import "bootstrap/dist/js/bootstrap.bundle.min.js";
+import TooltipIcon from "../../../components/common/Icon/TooltipIcon";
+
 // import ReactTooltip from "react-tooltip";
 
 const SectionReKYCDetails = () => {
@@ -51,60 +54,60 @@ const SectionReKYCDetails = () => {
   console.log(" re kyc type:", rekycType);
 
   // Example state to hold dynamic tooltip messages
-  const [tooltipMessages, setTooltipMessages] = useState({
-    bankName:
-      "Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes. ",
-    address:
-      "Please provide the complete address of your bank branch,including the street address,city and postal code. ",
-    country: "Please choose your country from the list.",
-    state: "Please choose your state from the list.",
-    city_name: "Enter the city where your bank branch is located",
-    pincode: "Enter the postal code (Pin Code) for the bank branch location",
-    accountType:
-      "Select the type of bank account your organization holds,such as Savings,Current,or any other relevant type.",
-    accountNumber:
-      "Please provide your organization's bank account number.Make sure it is correct and matches the details at your bank.",
-    confirmAccountNumber:
-      "Re-enter the  bank account number to confirm accuracy.Ensure it matches the original account number entered above.",
-    branchName:
-      "Enter the name of the bank branch where your organization's account is held. ",
-    MICR: "Enter the MICR (Magnetic Ink Character Recognition) number of your  bank branch. This number is typically found on your cheque leaf. ",
-    IFSCCode:
-      "Enter the IFSC (Indian Financial System Code) of your bank branch. This is required for electronic fund transfers like NEFT and RTGS  ",
-    beneficiaryName: "Enter the full legel name of the beneficiary.",
-    cancelledCheque:
-      "Provide a cancelled cheque or a bank statement copy that clearly displays your bank account details.This helps verify your account information. The document must be uploaded in PDF format.",
-    MSMEUdyamNumberApplicable:
-      "Select whether your organization is registered under the MSME (Micro, Small, and Medium Enterprises) or Udyam scheme. Choose 'Yes' if applicable, otherwise select 'No.' By selecting 'No, you confirm that your organization does not hold a valid MSME/Udyam registration number. A declaration is required, and this response will be timestamped to record the submission date and time.",
-    MSMEUdyamNumber:
-      "Enter your organization's valid MSME or Udyam registration number. This number is issued by the Ministry of Micro, Small, and Medium Enterprises (MSME) under the Udyam registration scheme.",
-    MSMEUdyamValidFrom:
-      "Enter the date when your MSME/Udyam registration became valid. This is the start date mentioned on your MSME/Udyam registration certificate for the financial year.",
-    MSMEUdyamValidTill:
-      "Enter the date when your MSME/Udyam registration became valid. This is the end date mentioned on your MSME/Udyam registration certificate for the financial year.",
-    MSMEEnterpriseType:
-      "elect the type of your organization under the MSME (Micro, Small, and Medium Enterprises) scheme. Choose from 'Micro,'Small,' or 'Medium' based on your organization's annual turnover and investment in plant and machinery.",
-    MSMEUdyamAttachment:
-      "Attach a clear, scanned copy or digital image of your MSME/Udyam registration certificate to verify your organization's classification under the MSME scheme. The document must be uploaded in PDF format.",
-    DownloadSpecimen:
-      "If you choose 'No' for e-invoicing, a specimen format will be available for download. This is for businesses not subject to e-invoicing under GST regulations. Please upload a signed declaration stating that your organization is not registered.The document must be uploaded in PDF format.",
-    UploadDeclaration:
-      "If you choose E-Invoice applicable 'No', please upload a signed declaration document to verify the details you have submitted. The document must be uploaded in PDF format.Ensure that the document is clear, legible, and properly signed.",
-    GSTINApplicable:
-      "Indicate whether your organization is registered under the Goods and Services Tax (GST) Act. Select 'Yes' if GSTIN is applicable to your organization.",
-    GSTINAttachment:
-      "Upload a digital copy of the official GSTIN certificate or document showing your GST registration number. Ensure the document is legible and valid.",
-  });
+  // const [tooltipMessages, setTooltipMessages] = useState({
+  //   bankName:
+  //     "Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes. ",
+  //   address:
+  //     "Please provide the complete address of your bank branch,including the street address,city and postal code. ",
+  //   country: "Please choose your country from the list.",
+  //   state: "Please choose your state from the list.",
+  //   city_name: "Enter the city where your bank branch is located",
+  //   pincode: "Enter the postal code (Pin Code) for the bank branch location",
+  //   accountType:
+  //     "Select the type of bank account your organization holds,such as Savings,Current,or any other relevant type.",
+  //   accountNumber:
+  //     "Please provide your organization's bank account number.Make sure it is correct and matches the details at your bank.",
+  //   confirmAccountNumber:
+  //     "Re-enter the  bank account number to confirm accuracy.Ensure it matches the original account number entered above.",
+  //   branchName:
+  //     "Enter the name of the bank branch where your organization's account is held. ",
+  //   MICR: "Enter the MICR (Magnetic Ink Character Recognition) number of your  bank branch. This number is typically found on your cheque leaf. ",
+  //   IFSCCode:
+  //     "Enter the IFSC (Indian Financial System Code) of your bank branch. This is required for electronic fund transfers like NEFT and RTGS  ",
+  //   beneficiaryName: "Enter the full legel name of the beneficiary.",
+  //   cancelledCheque:
+  //     "Provide a cancelled cheque or a bank statement copy that clearly displays your bank account details.This helps verify your account information. The document must be uploaded in PDF format.",
+  //   MSMEUdyamNumberApplicable:
+  //     "Select whether your organization is registered under the MSME (Micro, Small, and Medium Enterprises) or Udyam scheme. Choose 'Yes' if applicable, otherwise select 'No.' By selecting 'No, you confirm that your organization does not hold a valid MSME/Udyam registration number. A declaration is required, and this response will be timestamped to record the submission date and time.",
+  //   MSMEUdyamNumber:
+  //     "Enter your organization's valid MSME or Udyam registration number. This number is issued by the Ministry of Micro, Small, and Medium Enterprises (MSME) under the Udyam registration scheme.",
+  //   MSMEUdyamValidFrom:
+  //     "Enter the date when your MSME/Udyam registration became valid. This is the start date mentioned on your MSME/Udyam registration certificate for the financial year.",
+  //   MSMEUdyamValidTill:
+  //     "Enter the date when your MSME/Udyam registration became valid. This is the end date mentioned on your MSME/Udyam registration certificate for the financial year.",
+  //   MSMEEnterpriseType:
+  //     "elect the type of your organization under the MSME (Micro, Small, and Medium Enterprises) scheme. Choose from 'Micro,'Small,' or 'Medium' based on your organization's annual turnover and investment in plant and machinery.",
+  //   MSMEUdyamAttachment:
+  //     "Attach a clear, scanned copy or digital image of your MSME/Udyam registration certificate to verify your organization's classification under the MSME scheme. The document must be uploaded in PDF format.",
+  //   DownloadSpecimen:
+  //     "If you choose 'No' for e-invoicing, a specimen format will be available for download. This is for businesses not subject to e-invoicing under GST regulations. Please upload a signed declaration stating that your organization is not registered.The document must be uploaded in PDF format.",
+  //   UploadDeclaration:
+  //     "If you choose E-Invoice applicable 'No', please upload a signed declaration document to verify the details you have submitted. The document must be uploaded in PDF format.Ensure that the document is clear, legible, and properly signed.",
+  //   GSTINApplicable:
+  //     "Indicate whether your organization is registered under the Goods and Services Tax (GST) Act. Select 'Yes' if GSTIN is applicable to your organization.",
+  //   GSTINAttachment:
+  //     "Upload a digital copy of the official GSTIN certificate or document showing your GST registration number. Ensure the document is legible and valid.",
+  // });
 
-  useEffect(() => {
-    // Initialize all tooltips after component mounts
-    const tooltipTriggerList = document.querySelectorAll(
-      '[data-bs-toggle="tooltip"]'
-    );
-    tooltipTriggerList.forEach((tooltipTriggerEl) => {
-      new window.bootstrap.Tooltip(tooltipTriggerEl);
-    });
-  }, []);
+  // useEffect(() => {
+  //   // Initialize all tooltips after component mounts
+  //   const tooltipTriggerList = document.querySelectorAll(
+  //     '[data-bs-toggle="tooltip"]'
+  //   );
+  //   tooltipTriggerList.forEach((tooltipTriggerEl) => {
+  //     new window.bootstrap.Tooltip(tooltipTriggerEl);
+  //   });
+  // }, []);
 
   const encryptFileContent = (file) => {
     return new Promise((resolve, reject) => {
@@ -1322,10 +1325,10 @@ console.log("payload submition with conditions:", payload);
                       {supplierData?.basic_information?.pan_attachments
                         ?.length > 0
                         ? // Display the document name of the first attachment
-                        supplierData?.basic_information?.pan_attachments[0]
-                          ?.document_name
+                          supplierData?.basic_information?.pan_attachments[0]
+                            ?.document_name
                         : // If no attachment is present, show a default message
-                        "No Document Available"}
+                          "No Document Available"}
                     </label>
                   </div>
                 </div>
@@ -1408,10 +1411,10 @@ console.log("payload submition with conditions:", payload);
                       {supplierData?.basic_information?.gstin_attachments
                         ?.length > 0
                         ? // Display the document name of the first attachment
-                        supplierData?.basic_information?.gstin_attachments[0]
-                          ?.document_name || "No Document Available"
+                          supplierData?.basic_information?.gstin_attachments[0]
+                            ?.document_name || "No Document Available"
                         : // If no attachment is present, show a default message
-                        "No Document Available"}
+                          "No Document Available"}
                     </label>
                   </div>
                 </div>
@@ -1432,25 +1435,10 @@ console.log("payload submition with conditions:", payload);
                       <label
                         data-bs-toggle="tooltip"
                         data-bs-placement="top"
-                        title={tooltipMessages.GSTINApplicable}
+                        // title={tooltipMessages.GSTINApplicable}
                       >
                         GSTIN Applicable<span></span>
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="18"
-                          height="18"
-                          viewBox="0 0 512 512"
-                          style={{ marginLeft: "8px" }}
-                        >
-                          {/* Black Circle */}
-                          <circle cx="250" cy="250" r="250" fill="black" />
-
-                          {/* White "i" icon */}
-                          <path
-                            fill="white"
-                            d="M256 128c-13.255 0-24 10.745-24 24s10.745 24 24 24 24-10.745 24-24-10.745-24-24-24zm16 80h-32c-8.837 0-16 7.163-16 16v160c0 8.837 7.163 16 16 16h32c8.837 0 16-7.163 16-16V224c0-8.837-7.163-16-16-16z"
-                          />
-                        </svg>
+                        <TooltipIcon message="Indicate whether your organization is registered under the Goods and Services Tax (GST) Act." />
                       </label>
                       <SingleSelector
                         options={[
@@ -1541,27 +1529,12 @@ console.log("payload submition with conditions:", payload);
                       <div className="col-md-4 mt-2">
                         <div className="form-group">
                           <label
-                            data-bs-toggle="tooltip"
-                            data-bs-placement="top"
-                            title={tooltipMessages.GSTINAttachment}
+                          // data-bs-toggle="tooltip"
+                          // data-bs-placement="top"
+                          // title={tooltipMessages.GSTINAttachment}
                           >
                             GSTIN Attachment<span>*</span>
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="18"
-                              height="18"
-                              viewBox="0 0 512 512"
-                              style={{ marginLeft: "8px" }}
-                            >
-                              {/* Black Circle */}
-                              <circle cx="250" cy="250" r="250" fill="black" />
-
-                              {/* White "i" icon */}
-                              <path
-                                fill="white"
-                                d="M256 128c-13.255 0-24 10.745-24 24s10.745 24 24 24 24-10.745 24-24-10.745-24-24-24zm16 80h-32c-8.837 0-16 7.163-16 16v160c0 8.837 7.163 16 16 16h32c8.837 0 16-7.163 16-16V224c0-8.837-7.163-16-16-16z"
-                              />
-                            </svg>
+                            <TooltipIcon message="Upload a digital copy of the official GSTIN certificate or document showing your GST registration number. Ensure the document is legible and valid." />
                           </label>
 
                           {/* Display existing attachments dynamically */}
@@ -1637,27 +1610,12 @@ console.log("payload submition with conditions:", payload);
                     <div className="col-md-4">
                       <div className="form-group">
                         <label
-                          data-bs-toggle="tooltip"
-                          data-bs-placement="top"
-                          title={tooltipMessages.bankName}
+                        // data-bs-toggle="tooltip"
+                        // data-bs-placement="top"
+                        // title={tooltipMessages.bankName}
                         >
                           Bank Name <span>*</span>
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="18"
-                            height="18"
-                            viewBox="0 0 512 512"
-                            style={{ marginLeft: "8px" }}
-                          >
-                            {/* Black Circle */}
-                            <circle cx="250" cy="250" r="250" fill="black" />
-
-                            {/* White "i" icon */}
-                            <path
-                              fill="white"
-                              d="M256 128c-13.255 0-24 10.745-24 24s10.745 24 24 24 24-10.745 24-24-10.745-24-24-24zm16 80h-32c-8.837 0-16 7.163-16 16v160c0 8.837 7.163 16 16 16h32c8.837 0 16-7.163 16-16V224c0-8.837-7.163-16-16-16z"
-                            />
-                          </svg>
+                          <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
                         </label>
                         <input
                           className="form-control"
@@ -1683,27 +1641,12 @@ console.log("payload submition with conditions:", payload);
                     <div className="col-md-4">
                       <div className="form-group">
                         <label
-                          data-bs-toggle="tooltip"
-                          data-bs-placement="top"
-                          title={tooltipMessages.address}
+                        // data-bs-toggle="tooltip"
+                        // data-bs-placement="top"
+                        // title={tooltipMessages.address}
                         >
                           Address <span>*</span>
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="18"
-                            height="18"
-                            viewBox="0 0 512 512"
-                            style={{ marginLeft: "8px" }}
-                          >
-                            {/* Black Circle */}
-                            <circle cx="250" cy="250" r="250" fill="black" />
-
-                            {/* White "i" icon */}
-                            <path
-                              fill="white"
-                              d="M256 128c-13.255 0-24 10.745-24 24s10.745 24 24 24 24-10.745 24-24-10.745-24-24-24zm16 80h-32c-8.837 0-16 7.163-16 16v160c0 8.837 7.163 16 16 16h32c8.837 0 16-7.163 16-16V224c0-8.837-7.163-16-16-16z"
-                            />
-                          </svg>
+                          <TooltipIcon message="Please provide the complete address of your bank branch,including the street address,city and postal code." />
                         </label>
                         <input
                           className="form-control"
@@ -1727,27 +1670,12 @@ console.log("payload submition with conditions:", payload);
                       <div className="form-group">
                         {/* Label with Tooltip */}
                         <label
-                          data-bs-toggle="tooltip"
-                          data-bs-placement="top"
-                          title={tooltipMessages.country}
+                        // data-bs-toggle="tooltip"
+                        // data-bs-placement="top"
+                        // title={tooltipMessages.country}
                         >
                           Country <span>*</span>
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="18"
-                            height="18"
-                            viewBox="0 0 512 512"
-                            style={{ marginLeft: "8px" }}
-                          >
-                            {/* Black Circle */}
-                            <circle cx="250" cy="250" r="250" fill="black" />
-
-                            {/* White "i" icon */}
-                            <path
-                              fill="white"
-                              d="M256 128c-13.255 0-24 10.745-24 24s10.745 24 24 24 24-10.745 24-24-10.745-24-24-24zm16 80h-32c-8.837 0-16 7.163-16 16v160c0 8.837 7.163 16 16 16h32c8.837 0 16-7.163 16-16V224c0-8.837-7.163-16-16-16z"
-                            />
-                          </svg>
+                          <TooltipIcon message="Please choose your country from the list" />
                         </label>
 
                         {/* Country Dropdown */}
@@ -1799,27 +1727,12 @@ console.log("payload submition with conditions:", payload);
                     <div className="col-md-4">
                       <div className="form-group">
                         <label
-                          data-bs-toggle="tooltip"
-                          data-bs-placement="top"
-                          title={tooltipMessages.state}
+                        // data-bs-toggle="tooltip"
+                        // data-bs-placement="top"
+                        // title={tooltipMessages.state}
                         >
                           State <span>*</span>
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="18"
-                            height="18"
-                            viewBox="0 0 512 512"
-                            style={{ marginLeft: "8px" }}
-                          >
-                            {/* Black Circle */}
-                            <circle cx="250" cy="250" r="250" fill="black" />
-
-                            {/* White "i" icon */}
-                            <path
-                              fill="white"
-                              d="M256 128c-13.255 0-24 10.745-24 24s10.745 24 24 24 24-10.745 24-24-10.745-24-24-24zm16 80h-32c-8.837 0-16 7.163-16 16v160c0 8.837 7.163 16 16 16h32c8.837 0 16-7.163 16-16V224c0-8.837-7.163-16-16-16z"
-                            />
-                          </svg>
+                          <TooltipIcon message="Please choose your State from the list" />
                         </label>
 
                         {/* <select
@@ -1860,27 +1773,12 @@ console.log("payload submition with conditions:", payload);
                     <div className="col-md-4 mt-2">
                       <div className="form-group">
                         <label
-                          data-bs-toggle="tooltip"
-                          data-bs-placement="top"
-                          title={tooltipMessages.city_name}
+                        // data-bs-toggle="tooltip"
+                        // data-bs-placement="top"
+                        // title={tooltipMessages.city_name}
                         >
                           City <span>*</span>
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="18"
-                            height="18"
-                            viewBox="0 0 512 512"
-                            style={{ marginLeft: "8px" }}
-                          >
-                            {/* Black Circle */}
-                            <circle cx="250" cy="250" r="250" fill="black" />
-
-                            {/* White "i" icon */}
-                            <path
-                              fill="white"
-                              d="M256 128c-13.255 0-24 10.745-24 24s10.745 24 24 24 24-10.745 24-24-10.745-24-24-24zm16 80h-32c-8.837 0-16 7.163-16 16v160c0 8.837 7.163 16 16 16h32c8.837 0 16-7.163 16-16V224c0-8.837-7.163-16-16-16z"
-                            />
-                          </svg>
+                          <TooltipIcon message="Enter the city where your bank branch is located" />
                         </label>
                         <input
                           className="form-control"
@@ -1903,27 +1801,12 @@ console.log("payload submition with conditions:", payload);
                     <div className="col-md-4 mt-2">
                       <div className="form-group">
                         <label
-                          data-bs-toggle="tooltip"
-                          data-bs-placement="top"
-                          title={tooltipMessages.pincode}
+                        // data-bs-toggle="tooltip"
+                        // data-bs-placement="top"
+                        // title={tooltipMessages.pincode}
                         >
                           Pin Code <span>*</span>
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="18"
-                            height="18"
-                            viewBox="0 0 512 512"
-                            style={{ marginLeft: "8px" }}
-                          >
-                            {/* Black Circle */}
-                            <circle cx="250" cy="250" r="250" fill="black" />
-
-                            {/* White "i" icon */}
-                            <path
-                              fill="white"
-                              d="M256 128c-13.255 0-24 10.745-24 24s10.745 24 24 24 24-10.745 24-24-10.745-24-24-24zm16 80h-32c-8.837 0-16 7.163-16 16v160c0 8.837 7.163 16 16 16h32c8.837 0 16-7.163 16-16V224c0-8.837-7.163-16-16-16z"
-                            />
-                          </svg>
+                          <TooltipIcon message="Enter the postal code (Pin Code) for the bank branch location" />
                         </label>
                         <input
                           className="form-control"
@@ -1946,27 +1829,12 @@ console.log("payload submition with conditions:", payload);
                     <div className="col-md-4 mt-2">
                       <div className="form-group">
                         <label
-                          data-bs-toggle="tooltip"
-                          data-bs-placement="top"
-                          title={tooltipMessages.accountType}
+                        // data-bs-toggle="tooltip"
+                        // data-bs-placement="top"
+                        // title={tooltipMessages.accountType}
                         >
                           Account Type <span>*</span>
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="18"
-                            height="18"
-                            viewBox="0 0 512 512"
-                            style={{ marginLeft: "8px" }}
-                          >
-                            {/* Black Circle */}
-                            <circle cx="250" cy="250" r="250" fill="black" />
-
-                            {/* White "i" icon */}
-                            <path
-                              fill="white"
-                              d="M256 128c-13.255 0-24 10.745-24 24s10.745 24 24 24 24-10.745 24-24-10.745-24-24-24zm16 80h-32c-8.837 0-16 7.163-16 16v160c0 8.837 7.163 16 16 16h32c8.837 0 16-7.163 16-16V224c0-8.837-7.163-16-16-16z"
-                            />
-                          </svg>
+                          <TooltipIcon message="Select the type of bank account your organization holds,such as Savings,Current,or any other relevant type" />
                         </label>
                         <input
                           className="form-control"
@@ -1989,27 +1857,12 @@ console.log("payload submition with conditions:", payload);
                     <div className="col-md-4 mt-2">
                       <div className="form-group">
                         <label
-                          data-bs-toggle="tooltip"
-                          data-bs-placement="top"
-                          title={tooltipMessages.accountNumber}
+                        // data-bs-toggle="tooltip"
+                        // data-bs-placement="top"
+                        // title={tooltipMessages.accountNumber}
                         >
                           Account Number <span>*</span>
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="18"
-                            height="18"
-                            viewBox="0 0 512 512"
-                            style={{ marginLeft: "8px" }}
-                          >
-                            {/* Black Circle */}
-                            <circle cx="250" cy="250" r="250" fill="black" />
-
-                            {/* White "i" icon */}
-                            <path
-                              fill="white"
-                              d="M256 128c-13.255 0-24 10.745-24 24s10.745 24 24 24 24-10.745 24-24-10.745-24-24-24zm16 80h-32c-8.837 0-16 7.163-16 16v160c0 8.837 7.163 16 16 16h32c8.837 0 16-7.163 16-16V224c0-8.837-7.163-16-16-16z"
-                            />
-                          </svg>
+                          <TooltipIcon message="Please provide your organization's bank account number.Make sure it is correct and matches the details at your bank" />
                         </label>
                         <input
                           className="form-control"
@@ -2037,27 +1890,12 @@ console.log("payload submition with conditions:", payload);
                     <div className="col-md-4 mt-2">
                       <div className="form-group">
                         <label
-                          data-bs-toggle="tooltip"
-                          data-bs-placement="top"
-                          title={tooltipMessages.confirmAccountNumber}
+                        // data-bs-toggle="tooltip"
+                        // data-bs-placement="top"
+                        // title={tooltipMessages.confirmAccountNumber}
                         >
                           Confirm Account Number <span>*</span>
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="18"
-                            height="18"
-                            viewBox="0 0 512 512"
-                            style={{ marginLeft: "8px" }}
-                          >
-                            {/* Black Circle */}
-                            <circle cx="250" cy="250" r="250" fill="black" />
-
-                            {/* White "i" icon */}
-                            <path
-                              fill="white"
-                              d="M256 128c-13.255 0-24 10.745-24 24s10.745 24 24 24 24-10.745 24-24-10.745-24-24-24zm16 80h-32c-8.837 0-16 7.163-16 16v160c0 8.837 7.163 16 16 16h32c8.837 0 16-7.163 16-16V224c0-8.837-7.163-16-16-16z"
-                            />
-                          </svg>
+                          <TooltipIcon message="Re-enter the  bank account number to confirm accuracy.Ensure it matches the original account number entered above." />
                         </label>
                         <input
                           className="form-control"
@@ -2089,27 +1927,12 @@ console.log("payload submition with conditions:", payload);
                     <div className="col-md-4 mt-2">
                       <div className="form-group">
                         <label
-                          data-bs-toggle="tooltip"
-                          data-bs-placement="top"
-                          title={tooltipMessages.branchName}
+                        // data-bs-toggle="tooltip"
+                        // data-bs-placement="top"
+                        // title={tooltipMessages.branchName}
                         >
                           Branch Name <span>*</span>
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="18"
-                            height="18"
-                            viewBox="0 0 512 512"
-                            style={{ marginLeft: "8px" }}
-                          >
-                            {/* Black Circle */}
-                            <circle cx="250" cy="250" r="250" fill="black" />
-
-                            {/* White "i" icon */}
-                            <path
-                              fill="white"
-                              d="M256 128c-13.255 0-24 10.745-24 24s10.745 24 24 24 24-10.745 24-24-10.745-24-24-24zm16 80h-32c-8.837 0-16 7.163-16 16v160c0 8.837 7.163 16 16 16h32c8.837 0 16-7.163 16-16V224c0-8.837-7.163-16-16-16z"
-                            />
-                          </svg>
+                          <TooltipIcon message="Enter the name of the bank branch where your organization's account is held. " />
                         </label>
                         <input
                           className="form-control"
@@ -2132,27 +1955,12 @@ console.log("payload submition with conditions:", payload);
                     <div className="col-md-4 mt-2">
                       <div className="form-group">
                         <label
-                          data-bs-toggle="tooltip"
-                          data-bs-placement="top"
-                          title={tooltipMessages.MICR}
+                        // data-bs-toggle="tooltip"
+                        // data-bs-placement="top"
+                        // title={tooltipMessages.MICR}
                         >
                           MICR No. <span>*</span>
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="18"
-                            height="18"
-                            viewBox="0 0 512 512"
-                            style={{ marginLeft: "8px" }}
-                          >
-                            {/* Black Circle */}
-                            <circle cx="250" cy="250" r="250" fill="black" />
-
-                            {/* White "i" icon */}
-                            <path
-                              fill="white"
-                              d="M256 128c-13.255 0-24 10.745-24 24s10.745 24 24 24 24-10.745 24-24-10.745-24-24-24zm16 80h-32c-8.837 0-16 7.163-16 16v160c0 8.837 7.163 16 16 16h32c8.837 0 16-7.163 16-16V224c0-8.837-7.163-16-16-16z"
-                            />
-                          </svg>
+                          <TooltipIcon message="MICR: Enter the MICR (Magnetic Ink Character Recognition) number of your  bank branch. This number is typically found on your cheque leaf" />
                         </label>
                         <input
                           className="form-control"
@@ -2175,27 +1983,12 @@ console.log("payload submition with conditions:", payload);
                     <div className="col-md-4 mt-2">
                       <div className="form-group">
                         <label
-                          data-bs-toggle="tooltip"
-                          data-bs-placement="top"
-                          title={tooltipMessages.IFSCCode}
+                        // data-bs-toggle="tooltip"
+                        // data-bs-placement="top"
+                        // title={tooltipMessages.IFSCCode}
                         >
                           IFSC Code <span>*</span>
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="18"
-                            height="18"
-                            viewBox="0 0 512 512"
-                            style={{ marginLeft: "8px" }}
-                          >
-                            {/* Black Circle */}
-                            <circle cx="250" cy="250" r="250" fill="black" />
-
-                            {/* White "i" icon */}
-                            <path
-                              fill="white"
-                              d="M256 128c-13.255 0-24 10.745-24 24s10.745 24 24 24 24-10.745 24-24-10.745-24-24-24zm16 80h-32c-8.837 0-16 7.163-16 16v160c0 8.837 7.163 16 16 16h32c8.837 0 16-7.163 16-16V224c0-8.837-7.163-16-16-16z"
-                            />
-                          </svg>
+                          <TooltipIcon message="Enter the IFSC (Indian Financial System Code) of your bank branch. This is required for electronic fund transfers like NEFT and RTGS" />
                         </label>
                         <input
                           className="form-control"
@@ -2218,27 +2011,12 @@ console.log("payload submition with conditions:", payload);
                     <div className="col-md-4 mt-2">
                       <div className="form-group">
                         <label
-                          data-bs-toggle="tooltip"
-                          data-bs-placement="top"
-                          title={tooltipMessages.beneficiaryName}
+                        // data-bs-toggle="tooltip"
+                        // data-bs-placement="top"
+                        // title={tooltipMessages.beneficiaryName}
                         >
                           Beneficiary Name <span>*</span>
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="18"
-                            height="18"
-                            viewBox="0 0 512 512"
-                            style={{ marginLeft: "8px" }}
-                          >
-                            {/* Black Circle */}
-                            <circle cx="250" cy="250" r="250" fill="black" />
-
-                            {/* White "i" icon */}
-                            <path
-                              fill="white"
-                              d="M256 128c-13.255 0-24 10.745-24 24s10.745 24 24 24 24-10.745 24-24-10.745-24-24-24zm16 80h-32c-8.837 0-16 7.163-16 16v160c0 8.837 7.163 16 16 16h32c8.837 0 16-7.163 16-16V224c0-8.837-7.163-16-16-16z"
-                            />
-                          </svg>
+                          <TooltipIcon message="Enter the full legel name of the beneficiary." />
                         </label>
                         <input
                           className="form-control"
@@ -2266,27 +2044,12 @@ console.log("payload submition with conditions:", payload);
                     <div className="col-md-4 mt-2">
                       <div className="form-group">
                         <label
-                          data-bs-toggle="tooltip"
-                          data-bs-placement="top"
-                          title={tooltipMessages.cancelledCheque}
+                        // data-bs-toggle="tooltip"
+                        // data-bs-placement="top"
+                        // title={tooltipMessages.cancelledCheque}
                         >
                           Cancelled Cheque / Bank Copy <span>*</span>
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="18"
-                            height="18"
-                            viewBox="0 0 512 512"
-                            style={{ marginLeft: "8px" }}
-                          >
-                            {/* Black Circle */}
-                            <circle cx="250" cy="250" r="250" fill="black" />
-
-                            {/* White "i" icon */}
-                            <path
-                              fill="white"
-                              d="M256 128c-13.255 0-24 10.745-24 24s10.745 24 24 24 24-10.745 24-24-10.745-24-24-24zm16 80h-32c-8.837 0-16 7.163-16 16v160c0 8.837 7.163 16 16 16h32c8.837 0 16-7.163 16-16V224c0-8.837-7.163-16-16-16z"
-                            />
-                          </svg>
+                          <TooltipIcon message="Provide a cancelled cheque or a bank statement copy that clearly displays your bank account details.This helps verify your account information. The document must be uploaded in PDF format" />
                         </label>
 
                         {/* Conditionally Render Existing File Download Link */}
@@ -2298,17 +2061,8 @@ console.log("payload submition with conditions:", payload);
                               className="text-primary d-flex align-items-center"
                             >
                               <span className="me-2">Existing File:</span>
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width={24}
-                                height={24}
-                                fill="#DE7008"
-                                className="bi bi-download"
-                                viewBox="0 0 16 16"
-                              >
-                                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
-                                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
-                              </svg>
+                              {/* <TooltipIcon message="Indicate whether your organization is registered under the Goods and Services Tax (GST) Act."
+                               /> */}
                             </a>
                           </span>
                         )}
@@ -2384,27 +2138,12 @@ console.log("payload submition with conditions:", payload);
                   <div className="col-md-4 mt-2">
                     <div className="form-group">
                       <label
-                        data-bs-toggle="tooltip"
-                        data-bs-placement="top"
-                        title={tooltipMessages.MSMEUdyamNumberApplicable}
+                      // data-bs-toggle="tooltip"
+                      // data-bs-placement="top"
+                      // title={tooltipMessages.MSMEUdyamNumberApplicable}
                       >
                         MSME/Udyam Number Applicable <span>*</span>
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="18"
-                          height="18"
-                          viewBox="0 0 512 512"
-                          style={{ marginLeft: "8px" }}
-                        >
-                          {/* Black Circle */}
-                          <circle cx="250" cy="250" r="250" fill="black" />
-
-                          {/* White "i" icon */}
-                          <path
-                            fill="white"
-                            d="M256 128c-13.255 0-24 10.745-24 24s10.745 24 24 24 24-10.745 24-24-10.745-24-24-24zm16 80h-32c-8.837 0-16 7.163-16 16v160c0 8.837 7.163 16 16 16h32c8.837 0 16-7.163 16-16V224c0-8.837-7.163-16-16-16z"
-                          />
-                        </svg>
+                        <TooltipIcon message="Select whether your organization is registered under the MSME (Micro, Small, and Medium Enterprises) or Udyam scheme. Choose 'Yes' if applicable, otherwise select 'No.' By selecting 'No, you confirm that your organization does not hold a valid MSME/Udyam registration number. A declaration is required, and this response will be timestamped to record the submission date and time." />
                       </label>
                       <select
                         value={msmeUdyamApplicable}
@@ -2464,27 +2203,12 @@ console.log("payload submition with conditions:", payload);
                     <div className="col-md-4 mt-2">
                       <div className="form-group">
                         <label
-                          data-bs-toggle="tooltip"
-                          data-bs-placement="top"
-                          title={tooltipMessages.MSMEUdyamNumber}
+                        // data-bs-toggle="tooltip"
+                        // data-bs-placement="top"
+                        // title={tooltipMessages.MSMEUdyamNumber}
                         >
                           MSME/Udyam Number <span>*</span>
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="18"
-                            height="18"
-                            viewBox="0 0 512 512"
-                            style={{ marginLeft: "8px" }}
-                          >
-                            {/* Black Circle */}
-                            <circle cx="250" cy="250" r="250" fill="black" />
-
-                            {/* White "i" icon */}
-                            <path
-                              fill="white"
-                              d="M256 128c-13.255 0-24 10.745-24 24s10.745 24 24 24 24-10.745 24-24-10.745-24-24-24zm16 80h-32c-8.837 0-16 7.163-16 16v160c0 8.837 7.163 16 16 16h32c8.837 0 16-7.163 16-16V224c0-8.837-7.163-16-16-16z"
-                            />
-                          </svg>
+                          <TooltipIcon message="Enter your organization's valid MSME or Udyam registration number. This number is issued by the Ministry of Micro, Small, and Medium Enterprises (MSME) under the Udyam registration scheme" />
                         </label>
                         <input
                           className="form-control"
@@ -2493,7 +2217,7 @@ console.log("payload submition with conditions:", payload);
                           placeholder=""
                           value={msmeNo}
                           onChange={handleMsmeNoChange} // Add onChange handler here
-                        // value={supplierData?.msme_details?.msme_no}
+                          // value={supplierData?.msme_details?.msme_no}
                         />
                         {errors.msmeNo && (
                           <div className="ValidationColor">{errors.msmeNo}</div>
@@ -2543,27 +2267,12 @@ console.log("payload submition with conditions:", payload);
                     <div className="col-md-4 mt-2">
                       <div className="form-group">
                         <label
-                          data-bs-toggle="tooltip"
-                          data-bs-placement="top"
-                          title={tooltipMessages.MSMEUdyamValidFrom}
+                        // data-bs-toggle="tooltip"
+                        // data-bs-placement="top"
+                        // title={tooltipMessages.MSMEUdyamValidFrom}
                         >
                           MSME/Udyam Valid From <span>*</span>
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="18"
-                            height="18"
-                            viewBox="0 0 512 512"
-                            style={{ marginLeft: "8px" }}
-                          >
-                            {/* Black Circle */}
-                            <circle cx="250" cy="250" r="250" fill="black" />
-
-                            {/* White "i" icon */}
-                            <path
-                              fill="white"
-                              d="M256 128c-13.255 0-24 10.745-24 24s10.745 24 24 24 24-10.745 24-24-10.745-24-24-24zm16 80h-32c-8.837 0-16 7.163-16 16v160c0 8.837 7.163 16 16 16h32c8.837 0 16-7.163 16-16V224c0-8.837-7.163-16-16-16z"
-                            />
-                          </svg>
+                          <TooltipIcon message="Enter the date when your MSME/Udyam registration became valid. This is the start date mentioned on your MSME/Udyam registration certificate for the financial year." />
                         </label>
                         <input
                           className="form-control"
@@ -2573,7 +2282,7 @@ console.log("payload submition with conditions:", payload);
                           value={validFrom}
                           disabled={!!classificationYear} // Disable when classification year is selected
                           onChange={handleValidFromChange} // Add onChange handler here
-                        // value={supplierData?.msme_details?.valid_from}
+                          // value={supplierData?.msme_details?.valid_from}
                         />
                         {errors.validFrom && (
                           <div className="ValidationColor">
@@ -2590,27 +2299,12 @@ console.log("payload submition with conditions:", payload);
                     <div className="col-md-4 mt-2">
                       <div className="form-group">
                         <label
-                          data-bs-toggle="tooltip"
-                          data-bs-placement="top"
-                          title={tooltipMessages.MSMEUdyamValidTill}
+                        // data-bs-toggle="tooltip"
+                        // data-bs-placement="top"
+                        // title={tooltipMessages.MSMEUdyamValidTill}
                         >
                           MSME/Udyam Valid Till <span>*</span>
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="18"
-                            height="18"
-                            viewBox="0 0 512 512"
-                            style={{ marginLeft: "8px" }}
-                          >
-                            {/* Black Circle */}
-                            <circle cx="250" cy="250" r="250" fill="black" />
-
-                            {/* White "i" icon */}
-                            <path
-                              fill="white"
-                              d="M256 128c-13.255 0-24 10.745-24 24s10.745 24 24 24 24-10.745 24-24-10.745-24-24-24zm16 80h-32c-8.837 0-16 7.163-16 16v160c0 8.837 7.163 16 16 16h32c8.837 0 16-7.163 16-16V224c0-8.837-7.163-16-16-16z"
-                            />
-                          </svg>
+                          <TooltipIcon message="Enter the date when your MSME/Udyam registration became valid. This is the end date mentioned on your MSME/Udyam registration certificate for the financial year." />
                         </label>
                         <input
                           className="form-control"
@@ -2620,7 +2314,7 @@ console.log("payload submition with conditions:", payload);
                           value={validTill}
                           disabled={!!classificationYear} // Disable when classification year is selected
                           onChange={handleValidTillChange}
-                        // value={supplierData?.msme_details?.valid_till}
+                          // value={supplierData?.msme_details?.valid_till}
                         />
                         {errors.validTill && (
                           <div className="ValidationColor">
@@ -2637,27 +2331,12 @@ console.log("payload submition with conditions:", payload);
                     <div className="col-md-4 mt-2">
                       <div className="form-group">
                         <label
-                          data-bs-toggle="tooltip"
-                          data-bs-placement="top"
-                          title={tooltipMessages.MSMEEnterpriseType}
+                        // data-bs-toggle="tooltip"
+                        // data-bs-placement="top"
+                        // title={tooltipMessages.MSMEEnterpriseType}
                         >
                           MSME Enterprise Type <span>*</span>
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="18"
-                            height="18"
-                            viewBox="0 0 512 512"
-                            style={{ marginLeft: "8px" }}
-                          >
-                            {/* Black Circle */}
-                            <circle cx="250" cy="250" r="250" fill="black" />
-
-                            {/* White "i" icon */}
-                            <path
-                              fill="white"
-                              d="M256 128c-13.255 0-24 10.745-24 24s10.745 24 24 24 24-10.745 24-24-10.745-24-24-24zm16 80h-32c-8.837 0-16 7.163-16 16v160c0 8.837 7.163 16 16 16h32c8.837 0 16-7.163 16-16V224c0-8.837-7.163-16-16-16z"
-                            />
-                          </svg>
+                          <TooltipIcon message="Select the type of your organization under the MSME (Micro, Small, and Medium Enterprises) scheme. Choose from 'Micro,'Small,' or 'Medium' based on your organization's annual turnover and investment in plant and machinery." />
                         </label>
                         <select
                           // className="form-control"
@@ -2764,66 +2443,51 @@ console.log("payload submition with conditions:", payload);
                     <div className="col-md-4 mt-2">
                       <div className="form-group">
                         <label
-                          data-bs-toggle="tooltip"
-                          data-bs-placement="top"
-                          title={tooltipMessages.MSMEUdyamAttachment}
+                        // data-bs-toggle="tooltip"
+                        // data-bs-placement="top"
+                        // title={tooltipMessages.MSMEUdyamAttachment}
                         >
                           MSME/Udyam Attachment <span>*</span>
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="18"
-                            height="18"
-                            viewBox="0 0 512 512"
-                            style={{ marginLeft: "8px" }}
-                          >
-                            {/* Black Circle */}
-                            <circle cx="250" cy="250" r="250" fill="black" />
-
-                            {/* White "i" icon */}
-                            <path
-                              fill="white"
-                              d="M256 128c-13.255 0-24 10.745-24 24s10.745 24 24 24 24-10.745 24-24-10.745-24-24-24zm16 80h-32c-8.837 0-16 7.163-16 16v160c0 8.837 7.163 16 16 16h32c8.837 0 16-7.163 16-16V224c0-8.837-7.163-16-16-16z"
-                            />
-                          </svg>
+                          <TooltipIcon message="Attach a clear, scanned copy or digital image of your MSME/Udyam registration certificate to verify your organization's classification under the MSME scheme. The document must be uploaded in PDF format." />
                         </label>
 
                         {supplierData?.msme_details?.msme_attachments?.length >
                           0 && (
-                            <span className="ms-2">
-                              <a
-                                href={`${baseURL}${supplierData?.msme_details?.msme_attachments[0]?.file_url}`} // Append base URL
-                                download // Ensure it prompts download
-                                className="text-primary d-flex align-items-center"
+                          <span className="ms-2">
+                            <a
+                              href={`${baseURL}${supplierData?.msme_details?.msme_attachments[0]?.file_url}`} // Append base URL
+                              download // Ensure it prompts download
+                              className="text-primary d-flex align-items-center"
+                            >
+                              <span className="me-2">Existing Files:</span>
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width={24}
+                                height={24}
+                                fill="#DE7008"
+                                className="bi bi-download"
+                                viewBox="0 0 16 16"
                               >
-                                <span className="me-2">Existing Files:</span>
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  width={24}
-                                  height={24}
-                                  fill="#DE7008"
-                                  className="bi bi-download"
-                                  viewBox="0 0 16 16"
-                                >
-                                  <path
-                                    d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
+                                <path
+                                  d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
                                   // style={{ fill: "#de7008!important" }}
-                                  />
-                                  <path
-                                    d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
+                                />
+                                <path
+                                  d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
                                   // style={{ fill: "#de7008!important" }}
-                                  />
-                                </svg>
+                                />
+                              </svg>
 
-                                {supplierData?.msme_details?.msme_attachments
-                                  ?.length > 0
-                                  ? // Display the document name of the first attachment
+                              {supplierData?.msme_details?.msme_attachments
+                                ?.length > 0
+                                ? // Display the document name of the first attachment
                                   supplierData?.msme_details
                                     ?.msme_attachments[0]?.document_name
-                                  : // If no attachment is present, show a default message
+                                : // If no attachment is present, show a default message
                                   "No Document Available"}
-                              </a>
-                            </span>
-                          )}
+                            </a>
+                          </span>
+                        )}
                         {/* <input className="form-control" type="file" name="" onChange={handleFileChange} /> */}
                         <input
                           className="form-control mt-2"
@@ -2850,12 +2514,13 @@ console.log("payload submition with conditions:", payload);
                   <div className="col-md-4 mt-2 ms-3">
                     <div className="form-group">
                       <label
-                        data-bs-toggle="tooltip"
-                        data-bs-placement="top"
-                        title={tooltipMessages.DownloadSpecimen}
+                      // data-bs-toggle="tooltip"
+                      // data-bs-placement="top"
+                      // title={tooltipMessages.DownloadSpecimen}
                       >
                         Download Specimen <span>*</span>
                       </label>
+                      <TooltipIcon message="If you choose 'No' for e-invoicing, a specimen format will be available for download. This is for businesses not subject to e-invoicing under GST regulations. Please upload a signed declaration stating that your organization is not registered.The document must be uploaded in PDF format" />
                       <a
                         download="Specimen_E-Invoicing_Declaration.docx"
                         className="text-primary d-flex align-items-center"
@@ -2878,6 +2543,7 @@ console.log("payload submition with conditions:", payload);
                             style={{ fill: "#de7008!important" }}
                           />
                         </svg>
+
                         <span className="mt-2 ms-2">
                           Specimen For No Msme.pdf
                         </span>
@@ -2890,9 +2556,9 @@ console.log("payload submition with conditions:", payload);
                   <div className="col-md-4 mt-2">
                     <div className="form-group">
                       <label
-                        data-bs-toggle="tooltip"
-                        data-bs-placement="top"
-                        title={tooltipMessages.UploadDeclaration}
+                      // data-bs-toggle="tooltip"
+                      // data-bs-placement="top"
+                      // title={tooltipMessages.UploadDeclaration}
                       >
                         Upload Declaration <span>*</span>
                       </label>
@@ -2907,31 +2573,15 @@ console.log("payload submition with conditions:", payload);
                           className="text-primary d-flex align-items-center"
                         >
                           <span className="me-2">Existing Files:</span>
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width={24}
-                            height={24}
-                            fill="#DE7008"
-                            className="bi bi-download"
-                            viewBox="0 0 16 16"
-                          >
-                            <path
-                              d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
-                            // style={{ fill: "#de7008!important" }}
-                            />
-                            <path
-                              d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
-                            // style={{ fill: "#de7008!important" }}
-                            />
-                          </svg>
+                          <TooltipIcon message="If you choose E-Invoice applicable 'No', please upload a signed declaration document to verify the details you have submitted. The document must be uploaded in PDF format.Ensure that the document is clear, legible, and properly signed." />
 
                           {supplierData?.msme_details?.msme_attachments
                             ?.length > 0
                             ? // Display the document name of the first attachment
-                            supplierData?.msme_details?.msme_attachments[0]
-                              ?.document_name
+                              supplierData?.msme_details?.msme_attachments[0]
+                                ?.document_name
                             : // If no attachment is present, show a default message
-                            "No Document Available"}
+                              "No Document Available"}
                         </a>
                       </span>
                       <input
