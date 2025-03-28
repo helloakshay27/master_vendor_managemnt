@@ -377,6 +377,76 @@ const SectionReKYCDetails = () => {
 
   console.log("supplier data:", supplierData);
 
+  const checkGstinExists = async (gstin) => {
+    try {
+      console.log(`Checking GSTIN: ${gstin}`);
+
+      const response = await fetch(
+        `https://vendors.lockated.com/pms/suppliers/check_existing_pan_gstin?gstin=${gstin}`,
+        {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log("API Response:", data);
+
+      if (data.exists) {
+        console.log("GSTIN already exists:", gstin);
+        setErrors((prevErrors) => ({
+          ...prevErrors,
+          gstinNumber: "GSTIN already exists!",
+        }));
+      } else {
+        console.log("GSTIN is available:", gstin);
+        setErrors((prevErrors) => {
+          const newErrors = { ...prevErrors };
+          delete newErrors.gstinNumber;
+          return newErrors;
+        });
+      }
+    } catch (error) {
+      console.error("Error checking GSTIN:", error);
+    }
+  };
+
+  // Debounce effect to check GSTIN after user stops typing
+  useEffect(() => {
+    if (gstinNumber.length === 15) {
+      const timer = setTimeout(() => {
+        checkGstinExists(gstinNumber);
+      }, 500); // 500ms delay
+
+      return () => clearTimeout(timer);
+    }
+  }, [gstinNumber]);
+
+  const handleGstinChange = (e) => {
+    const value = e.target.value;
+    setGstinNumber(value);
+
+    if (value.length !== 15) {
+      setErrors((prevErrors) => ({
+        ...prevErrors,
+        gstinNumber: "Enter a valid 15-character GSTIN!",
+      }));
+    } else {
+      setErrors((prevErrors) => {
+        const newErrors = { ...prevErrors };
+        delete newErrors.gstinNumber;
+        return newErrors;
+      });
+    }
+  };
+
   // country and state
 
   const [countries, setCountries] = useState([]);
@@ -691,64 +761,63 @@ const SectionReKYCDetails = () => {
   };
 
   // If the condition is met, include only GSTN-related fields
-if (isRekycTypeEmpty || isGstinRekyc) {
-  payloadCondition.pms_supplier = {
-    ...payloadCondition.pms_supplier, // Keep existing keys
-    gstin_applicable: gstApplicable || null,
-    ...(gstApplicable === "Yes" && {
-      gst_classification_id: gstClassification?.value || null,
-      gstin: gstinNumber || "",
-      gstin_attachments: gstinAttachments || [],
-    }),
-  };
-}
+  if (isRekycTypeEmpty || isGstinRekyc) {
+    payloadCondition.pms_supplier = {
+      ...payloadCondition.pms_supplier, // Keep existing keys
+      gstin_applicable: gstApplicable || null,
+      ...(gstApplicable === "Yes" && {
+        gst_classification_id: gstClassification?.value || null,
+        gstin: gstinNumber || "",
+        gstin_attachments: gstinAttachments || [],
+      }),
+    };
+  }
 
+  // If the condition is met, include only Bank Details
+  if (isRekycTypeEmpty || isBankRekyc) {
+    payloadCondition.pms_supplier = {
+      ...payloadCondition.pms_supplier, // Keep existing keys
+      bank_details_attributes: bankDetailsList.map((item) => ({
+        ...item,
+        id: item.isNew ? null : item.id,
 
-// If the condition is met, include only Bank Details
-if (isRekycTypeEmpty || isBankRekyc) {
-  payloadCondition.pms_supplier = {
-    ...payloadCondition.pms_supplier, // Keep existing keys
-    bank_details_attributes: bankDetailsList.map((item) => ({
-      ...item,
-      id: item.isNew ? null : item.id,
+        attachment: item.isNew
+          ? bankAttachments[item.id] || null // If new attachment exists, pass it; otherwise, null
+          : bankAttachments[item.id] || (item.attachment ? null : null), // If existing, only pass null if no new file is uploaded
+      })),
 
-      attachment: item.isNew
-        ? bankAttachments[item.id] || null // If new attachment exists, pass it; otherwise, null
-        : bankAttachments[item.id] || (item.attachment ? null : null), // If existing, only pass null if no new file is uploaded
-    })),
+      deletedBankDetails: deletedBankDetails || [], // Deleted bank details, if any
+    };
+  }
 
-    deletedBankDetails: deletedBankDetails || [], // Deleted bank details, if any
-  };
-}
+  // If the condition is met, include only MSME-related fields
+  if (isRekycTypeEmpty || isMsmeRekyc) {
+    payloadCondition.pms_supplier = {
+      ...payloadCondition.pms_supplier, // Keep existing keys
+      msme: msmeUdyamApplicable || "",
+      msme_no: msmeUdyamApplicable === "No" ? "" : msmeNo || null,
+      valid_from: msmeUdyamApplicable === "No" ? "" : validFrom || null,
+      valid_till: msmeUdyamApplicable === "No" ? "" : validTill || null,
+      enterprise:
+        msmeUdyamApplicable === "No" ? "" : msmeEnterpriseType || null,
+      major_activity: msmeUdyamApplicable === "No" ? "" : majorActivity || null,
+      classification_year:
+        msmeUdyamApplicable === "No" ? "" : classificationYear || null,
+      classification_date:
+        msmeUdyamApplicable === "No" ? "" : classificationDate || null,
+      msme_attachments: msmeUdyamApplicable === "No" ? [] : msmeAttachments,
+    };
+  }
 
-// If the condition is met, include only MSME-related fields
-if (isRekycTypeEmpty || isMsmeRekyc) {
-  payloadCondition.pms_supplier = {
-    ...payloadCondition.pms_supplier, // Keep existing keys
-    msme: msmeUdyamApplicable || "",
-    msme_no: msmeUdyamApplicable === "No" ? "" : msmeNo || null,
-    valid_from: msmeUdyamApplicable === "No" ? "" : validFrom || null,
-    valid_till: msmeUdyamApplicable === "No" ? "" : validTill || null,
-    enterprise: msmeUdyamApplicable === "No" ? "" : msmeEnterpriseType || null,
-    major_activity:
-      msmeUdyamApplicable === "No" ? "" : majorActivity || null,
-    classification_year:
-      msmeUdyamApplicable === "No" ? "" : classificationYear || null,
-    classification_date:
-      msmeUdyamApplicable === "No" ? "" : classificationDate || null,
-    msme_attachments: msmeUdyamApplicable === "No" ? [] : msmeAttachments,
-  };
-}
-
-// If the condition is met, include only E-Invoicing-related fields
-if (isRekycTypeEmpty || isEnvoiceRekyc) {
-  payloadCondition.pms_supplier = {
-    ...payloadCondition.pms_supplier, // Keep existing keys
-    einvoicing: eInvoicingApplicable || "",
-    einvoicing_attachments:
-      eInvoicingApplicable === "No" ? einvoicingAttachments || [] : [] ,
-  };
-}
+  // If the condition is met, include only E-Invoicing-related fields
+  if (isRekycTypeEmpty || isEnvoiceRekyc) {
+    payloadCondition.pms_supplier = {
+      ...payloadCondition.pms_supplier, // Keep existing keys
+      einvoicing: eInvoicingApplicable || "",
+      einvoicing_attachments:
+        eInvoicingApplicable === "No" ? einvoicingAttachments || [] : [],
+    };
+  }
 
   console.log("payload:", payload);
   console.log("payload condition:", payloadCondition);
@@ -998,65 +1067,66 @@ if (isRekycTypeEmpty || isEnvoiceRekyc) {
         },
       };
       // If the condition is met, include only GSTN-related fields
-if (isRekycTypeEmpty || isGstinRekyc) {
-  payload.pms_supplier = {
-    ...payload.pms_supplier, // Keep existing keys
-    gstin_applicable: gstApplicable || null,
-    ...(gstApplicable === "Yes" && {
-      gst_classification_id: gstClassification?.value || null,
-      gstin: gstinNumber || "",
-      gstin_attachments: gstinAttachments || [],
-    }),
-  };
-}
+      if (isRekycTypeEmpty || isGstinRekyc) {
+        payload.pms_supplier = {
+          ...payload.pms_supplier, // Keep existing keys
+          gstin_applicable: gstApplicable || null,
+          ...(gstApplicable === "Yes" && {
+            gst_classification_id: gstClassification?.value || null,
+            gstin: gstinNumber || "",
+            gstin_attachments: gstinAttachments || [],
+          }),
+        };
+      }
 
-// If the condition is met, include only Bank Details
-if (isRekycTypeEmpty || isBankRekyc) {
-  payload.pms_supplier = {
-    ...payload.pms_supplier, // Keep existing keys
-    bank_details_attributes: bankDetailsList.map((item) => ({
-      ...item,
-      id: item.isNew ? null : item.id,
+      // If the condition is met, include only Bank Details
+      if (isRekycTypeEmpty || isBankRekyc) {
+        payload.pms_supplier = {
+          ...payload.pms_supplier, // Keep existing keys
+          bank_details_attributes: bankDetailsList.map((item) => ({
+            ...item,
+            id: item.isNew ? null : item.id,
 
-      attachment: item.isNew
-        ? bankAttachments[item.id] || null // If new attachment exists, pass it; otherwise, null
-        : bankAttachments[item.id] || (item.attachment ? null : null), // If existing, only pass null if no new file is uploaded
-    })),
+            attachment: item.isNew
+              ? bankAttachments[item.id] || null // If new attachment exists, pass it; otherwise, null
+              : bankAttachments[item.id] || (item.attachment ? null : null), // If existing, only pass null if no new file is uploaded
+          })),
 
-    deletedBankDetails: deletedBankDetails || [], // Deleted bank details, if any
-  };
-}
+          deletedBankDetails: deletedBankDetails || [], // Deleted bank details, if any
+        };
+      }
 
-// If the condition is met, include only MSME-related fields
-if (isRekycTypeEmpty || isMsmeRekyc) {
-  payload.pms_supplier = {
-    ...payload.pms_supplier, // Keep existing keys
-    msme: msmeUdyamApplicable || "",
-    msme_no: msmeUdyamApplicable === "No" ? "" : msmeNo || null,
-    valid_from: msmeUdyamApplicable === "No" ? "" : validFrom || null,
-    valid_till: msmeUdyamApplicable === "No" ? "" : validTill || null,
-    enterprise: msmeUdyamApplicable === "No" ? "" : msmeEnterpriseType || null,
-    major_activity:
-      msmeUdyamApplicable === "No" ? "" : majorActivity || null,
-    classification_year:
-      msmeUdyamApplicable === "No" ? "" : classificationYear || null,
-    classification_date:
-      msmeUdyamApplicable === "No" ? "" : classificationDate || null,
-    msme_attachments: msmeUdyamApplicable === "No" ? [] : msmeAttachments,
-  };
-}
+      // If the condition is met, include only MSME-related fields
+      if (isRekycTypeEmpty || isMsmeRekyc) {
+        payload.pms_supplier = {
+          ...payload.pms_supplier, // Keep existing keys
+          msme: msmeUdyamApplicable || "",
+          msme_no: msmeUdyamApplicable === "No" ? "" : msmeNo || null,
+          valid_from: msmeUdyamApplicable === "No" ? "" : validFrom || null,
+          valid_till: msmeUdyamApplicable === "No" ? "" : validTill || null,
+          enterprise:
+            msmeUdyamApplicable === "No" ? "" : msmeEnterpriseType || null,
+          major_activity:
+            msmeUdyamApplicable === "No" ? "" : majorActivity || null,
+          classification_year:
+            msmeUdyamApplicable === "No" ? "" : classificationYear || null,
+          classification_date:
+            msmeUdyamApplicable === "No" ? "" : classificationDate || null,
+          msme_attachments: msmeUdyamApplicable === "No" ? [] : msmeAttachments,
+        };
+      }
 
-// If the condition is met, include only E-Invoicing-related fields
-if (isRekycTypeEmpty || isEnvoiceRekyc) {
-  payload.pms_supplier = {
-    ...payload.pms_supplier, // Keep existing keys
-    einvoicing: eInvoicingApplicable || "",
-    einvoicing_attachments:
-      eInvoicingApplicable === "No" ? einvoicingAttachments || [] : [],
-  };
-}
+      // If the condition is met, include only E-Invoicing-related fields
+      if (isRekycTypeEmpty || isEnvoiceRekyc) {
+        payload.pms_supplier = {
+          ...payload.pms_supplier, // Keep existing keys
+          einvoicing: eInvoicingApplicable || "",
+          einvoicing_attachments:
+            eInvoicingApplicable === "No" ? einvoicingAttachments || [] : [],
+        };
+      }
 
-console.log("payload submition with conditions:", payload);
+      console.log("payload submition with conditions:", payload);
 
       try {
         const response = await axios.patch(
@@ -1509,13 +1579,15 @@ console.log("payload submition with conditions:", payload);
                           // title={tooltipMessages.MSMEEnterpriseType}
                           >
                             GSTIN No.<span>*</span>
+                            <TooltipIcon message="Enter a valid 15-character GSTIN (numbers and uppercase letters only, e.g., 29ABCDE1234F1Z5)" />
                           </label>
                           <input
                             className="form-control"
                             type="text"
                             name="gstin_no"
                             value={gstinNumber}
-                            onChange={(e) => setGstinNumber(e.target.value)}
+                            // onChange={(e) => setGstinNumber(e.target.value)}
+                            onChange={handleGstinChange}
                           />
                           {errors.gstinNumber && (
                             <div className="ValidationColor">
