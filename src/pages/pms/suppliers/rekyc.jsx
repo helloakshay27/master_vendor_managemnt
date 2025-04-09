@@ -563,8 +563,8 @@ const SectionReKYCDetails = () => {
         address: null,
         country_id: null,
         state_id: null,
-        city_name: null,
-        pincode: null,
+        city: null,
+        pin_code: null,
         account_type: null,
         account_number: null,
         confirm_account_number: null,
@@ -648,8 +648,34 @@ const SectionReKYCDetails = () => {
     setMsmeNo(e.target.value);
   };
 
-  const handleClassificationYearChange = (e) => {
-    const selectedYear = e.target.value;
+  // const handleClassificationYearChange = (e) => {
+  //   const selectedYear = e.target.value;
+  //   setClassificationYear(selectedYear);
+
+  //   let validFromDate = "";
+  //   let validTillDate = "";
+
+  //   if (selectedYear) {
+  //     const [startYear, endYear] = selectedYear.split("-");
+  //     validFromDate = `${startYear}-04-01`;
+  //     validTillDate = `20${endYear}-03-31`;
+  //   }
+
+  //   setValidFrom(validFromDate);
+  //   setValidTill(validTillDate);
+  // };
+
+  // Handler for Valid From date
+
+  const handleClassificationYearChange = (selectedOption) => {
+    if (!selectedOption) {
+      setClassificationYear("");
+      setValidFrom("");
+      setValidTill("");
+      return;
+    }
+
+    const selectedYear = selectedOption.value; // ✅ Correct way to get value
     setClassificationYear(selectedYear);
 
     let validFromDate = "";
@@ -665,7 +691,6 @@ const SectionReKYCDetails = () => {
     setValidTill(validTillDate);
   };
 
-  // Handler for Valid From date
   const handleValidFromChange = (e) => {
     setValidFrom(e.target.value);
   };
@@ -841,60 +866,60 @@ const SectionReKYCDetails = () => {
     let validationErrors = {};
     // if (isRekycTypeEmpty || isBankRekyc ) {
     bankDetailsList.forEach((bankDetail) => {
-      if (bankDetail.isNew) {
-        // Only validate if it's a new entry
-        if (!bankDetail.bank_name) {
-          validationErrors.bank_name = "Bank Name is required.";
-        }
-        if (!bankDetail.address) {
-          validationErrors.address = "Address is required.";
-        }
-        if (!bankDetail.country_id) {
-          validationErrors.country_id = "Country is required.";
-        }
-        if (!bankDetail.state_id) {
-          validationErrors.state_id = "State is required.";
-        }
-        if (!bankDetail.city_name) {
-          validationErrors.city_name = "City is required.";
-        }
-        // {
-        // }
-
-        if (!bankDetail.pincode || isNaN(bankDetail.pincode)) {
-          validationErrors.pincode = "Valid Pin Code is required.";
-        }
-
-        if (!bankDetail.account_type) {
-          validationErrors.account_type = "Account Type is required.";
-        }
-        if (!bankDetail.account_number) {
-          validationErrors.account_number = "Account Number is required.";
-        }
-        if (!bankDetail.confirm_account_number) {
-          validationErrors.confirm_account_number =
-            "Confirm Account Number is required.";
-        }
-        if (bankDetail.account_number !== bankDetail.confirm_account_number) {
-          validationErrors.account_match =
-            "Account Number and Confirm Account Number must match.";
-        }
-        if (!bankDetail.branch_name) {
-          validationErrors.branch_name = "Branch Name is required.";
-        }
-        if (!bankDetail.micr_number) {
-          validationErrors.micr_number = "MICR Number is required.";
-        }
-        if (!bankDetail.ifsc_code) {
-          validationErrors.ifsc_code = "IFSC Code is required.";
-        }
-        if (!bankDetail.benficary_name) {
-          validationErrors.benficary_name = "Beneficiary Name is required.";
-        }
-        // if (!bankDetail.cancelled_cheque) { validationErrors.cancelled_cheque = "Cancelled Cheque / Bank Copy is required." };
-
-        // Add other validation checks here
+      // if (bankDetail.isNew) {
+      // Only validate if it's a new entry
+      if (!bankDetail.bank_name) {
+        validationErrors.bank_name = "Bank Name is required.";
       }
+      if (!bankDetail.address) {
+        validationErrors.address = "Address is required.";
+      }
+      if (!bankDetail.country_id) {
+        validationErrors.country_id = "Country is required.";
+      }
+      if (!bankDetail.state_id) {
+        validationErrors.state_id = "State is required.";
+      }
+      if (!bankDetail.city) {
+        validationErrors.city = "City is required.";
+      }
+      // {
+      // }
+
+      if (!bankDetail.pin_code || isNaN(bankDetail.pin_code)) {
+        validationErrors.pin_code = "Valid Pin Code is required.";
+      }
+
+      if (!bankDetail.account_type) {
+        validationErrors.account_type = "Account Type is required.";
+      }
+      if (!bankDetail.account_number) {
+        validationErrors.account_number = "Account Number is required.";
+      }
+      if (!bankDetail.confirm_account_number) {
+        validationErrors.confirm_account_number =
+          "Confirm Account Number is required.";
+      }
+      if (bankDetail.account_number !== bankDetail.confirm_account_number) {
+        validationErrors.account_match =
+          "Account Number and Confirm Account Number must match.";
+      }
+      if (!bankDetail.branch_name) {
+        validationErrors.branch_name = "Branch Name is required.";
+      }
+      if (!bankDetail.micr_number) {
+        validationErrors.micr_number = "MICR Number is required.";
+      }
+      if (!bankDetail.ifsc_code) {
+        validationErrors.ifsc_code = "IFSC Code is required.";
+      }
+      if (!bankDetail.benficary_name) {
+        validationErrors.benficary_name = "Beneficiary Name is required.";
+      }
+      // if (!bankDetail.cancelled_cheque) { validationErrors.cancelled_cheque = "Cancelled Cheque / Bank Copy is required." };
+
+      // Add other validation checks here
+      // }
     });
     // }
 
@@ -937,6 +962,23 @@ const SectionReKYCDetails = () => {
       // ) {
       //   validationErrors.msmeAttachments = "MSME/Udyam Attachment is required.";
       // }
+
+      // Validate Major Activity
+      if (msmeUdyamApplicable === "Yes" && !majorActivity) {
+        validationErrors.majorActivity = "Major Activity is required.";
+      }
+
+      if (msmeUdyamApplicable === "Yes" && !classificationYear) {
+        validationErrors.classificationYear =
+          "Classification Year is required.";
+      }
+
+      // Validate Classification Date
+      if (msmeUdyamApplicable === "Yes" && !classificationDate) {
+        validationErrors.classificationDate =
+          "Classification Date is required.";
+      }
+
       if (
         msmeUdyamApplicable === "Yes" &&
         supplierData?.msme_details?.msme_attachments?.length === 0 &&
@@ -1164,6 +1206,36 @@ const SectionReKYCDetails = () => {
       }
     }
   };
+
+  const options = [
+    { value: "", label: "Select" },
+    { value: "Yes", label: "Yes" },
+    { value: "No", label: "No" },
+  ];
+
+  const optionsEnterPrise = [
+    { value: "", label: "Select option" },
+    { value: "Micro", label: "Micro" },
+    { value: "Small", label: "Small" },
+    { value: "Medium", label: "Medium" },
+    { value: "Not_applicable", label: "Not Applicable" },
+  ];
+
+  const optionsMajorActivity = [
+    { value: "", label: "Select option" },
+    { value: "services", label: "Services" },
+    { value: "trader", label: "Trader" },
+    { value: "manufacture", label: "Manufacture" },
+    { value: "others", label: "Others" },
+  ];
+
+  const optionsClassificationYear = [
+    { value: "", label: "Select Option" },
+    { value: "2021-22", label: "2021-22" },
+    { value: "2022-23", label: "2022-23" },
+    { value: "2023-24", label: "2023-24" },
+    { value: "2024-25", label: "2024-25" },
+  ];
 
   return (
     <>
@@ -1698,10 +1770,10 @@ const SectionReKYCDetails = () => {
                             handleInputChange(e, bankDetail.id, "bank_name")
                           }
                         />
-                        {bankDetail.isNew && errors.bank_name && (
-                          <span className="ValidationColor">
+                        {errors.bank_name && !bankDetail.bank_name && (
+                          <div className="ValidationColor">
                             {errors.bank_name}
-                          </span>
+                          </div>
                         )}
 
                         {/* {errors.bank_name && <div className="invalid-feedback">{errors.bank_name}</div>} */}
@@ -1729,7 +1801,12 @@ const SectionReKYCDetails = () => {
                             handleInputChange(e, bankDetail.id, "address")
                           }
                         />
-                        {bankDetail.isNew && errors.address && (
+                        {/* {bankDetail.isNew && errors.address && (
+                          <div className="ValidationColor">
+                            {errors.address}
+                          </div>
+                        )} */}
+                        {errors.address && !bankDetail.address && (
                           <div className="ValidationColor">
                             {errors.address}
                           </div>
@@ -1788,7 +1865,12 @@ const SectionReKYCDetails = () => {
                         />
 
                         {/* Validation Error Message */}
-                        {bankDetail.isNew && errors.country_id && (
+                        {/* {bankDetail.isNew && errors.country_id && (
+                          <div className="ValidationColor">
+                            {errors.country_id}
+                          </div>
+                        )} */}
+                        {errors.country_id && !bankDetail.country_id && (
                           <div className="ValidationColor">
                             {errors.country_id}
                           </div>
@@ -1833,7 +1915,7 @@ const SectionReKYCDetails = () => {
                           placeholder="Select State"
                           isDisabled={!bankDetail.country_id} // Disable if no country selected
                         />
-                        {bankDetail.isNew && errors.state_id && (
+                        {errors.state_id && !bankDetail.state_id && (
                           <div className="ValidationColor">
                             {errors.state_id}
                           </div>
@@ -1856,15 +1938,13 @@ const SectionReKYCDetails = () => {
                           className="form-control"
                           type="text"
                           placeholder="Enter City Name"
-                          value={bankDetail.city_name}
+                          value={bankDetail.city}
                           onChange={(e) =>
-                            handleInputChange(e, bankDetail.id, "city_name")
+                            handleInputChange(e, bankDetail.id, "city")
                           }
                         />
-                        {bankDetail.isNew && errors.city_name && (
-                          <div className="ValidationColor">
-                            {errors.city_name}
-                          </div>
+                        {errors.city && !bankDetail.city && (
+                          <div className="ValidationColor">{errors.city}</div>
                         )}
                       </div>
                     </div>
@@ -1884,14 +1964,14 @@ const SectionReKYCDetails = () => {
                           className="form-control"
                           type="number"
                           placeholder="Enter Pin Code"
-                          value={bankDetail.pincode}
+                          value={bankDetail.pin_code}
                           onChange={(e) =>
-                            handleInputChange(e, bankDetail.id, "pincode")
+                            handleInputChange(e, bankDetail.id, "pin_code")
                           }
                         />
-                        {bankDetail.isNew && errors.pincode && (
+                        {errors.pin_code && !bankDetail.pin_code && (
                           <div className="ValidationColor">
-                            {errors.pincode}
+                            {errors.pin_code}
                           </div>
                         )}
                       </div>
@@ -1917,11 +1997,12 @@ const SectionReKYCDetails = () => {
                             handleInputChange(e, bankDetail.id, "account_type")
                           }
                         />
-                        {bankDetail.isNew && errors.account_type && (
-                          <div className="ValidationColor">
-                            {errors.account_type}
-                          </div>
-                        )}
+                        {errors.account_number &&
+                          !bankDetail.account_number && (
+                            <div className="ValidationColor">
+                              {errors.account_number}
+                            </div>
+                          )}
                       </div>
                     </div>
 
@@ -1950,16 +2031,21 @@ const SectionReKYCDetails = () => {
                           }
                         />
 
-                        {bankDetail.isNew && errors.account_number && (
-                          <div className="ValidationColor">
-                            {errors.account_number}
-                          </div>
-                        )}
+                        {
+                          // bankDetail.isNew &&
+
+                          errors.account_number &&
+                            !bankDetail.account_number && (
+                              <div className="ValidationColor">
+                                {errors.account_number}
+                              </div>
+                            )
+                        }
                       </div>
                     </div>
 
                     {/* Confirm Account Number */}
-                    <div className="col-md-4 mt-2">
+                    {/* <div className="col-md-4 mt-2">
                       <div className="form-group">
                         <label
                         // data-bs-toggle="tooltip"
@@ -1982,7 +2068,7 @@ const SectionReKYCDetails = () => {
                             )
                           }
                         />
-                        {bankDetail.isNew && errors.confirm_account_number && (
+                        {/* {bankDetail.isNew && errors.confirm_account_number && (
                           <div className="ValidationColor">
                             {errors.confirm_account_number}
                           </div>
@@ -1990,6 +2076,60 @@ const SectionReKYCDetails = () => {
                         {bankDetail.isNew && errors.account_match && (
                           <div className="ValidationColor">
                             {errors.account_match}
+                          </div>
+                        )} */}
+
+                    {/* {errors.confirm_account_number &&
+                          !bankDetail.confirm_account_number && (
+                            <div className="ValidationColor">
+                              {errors.confirm_account_number}
+                            </div>
+                          )}
+                        {errors.account_match &&
+                          bankDetail.account_number !==
+                            bankDetail.confirm_account_number && (
+                            <div className="ValidationColor">
+                              {errors.account_match}
+                            </div>
+                          )}
+                      </div>
+                    </div> */}
+                    <div className="col-md-4 mt-2">
+                      <div className="form-group">
+                        <label>
+                          Confirm Account Number <span>*</span>
+                          <TooltipIcon message="Re-enter the bank account number to confirm accuracy. Ensure it matches the original account number entered above." />
+                        </label>
+                        <input
+                          className="form-control"
+                          type="text"
+                          placeholder="Enter Confirm Account Number"
+                          value={bankDetail.confirm_account_number}
+                          onChange={(e) => {
+                            handleInputChange(
+                              e,
+                              bankDetail.id,
+                              "confirm_account_number"
+                            );
+                            // Trigger validation when the user starts typing
+                            if (e.target.value !== bankDetail.account_number) {
+                              setErrors((prevErrors) => ({
+                                ...prevErrors,
+                                confirm_account_number:
+                                  "Confirm Account Number must match Account Number.",
+                              }));
+                            } else {
+                              setErrors((prevErrors) => {
+                                const newErrors = { ...prevErrors };
+                                delete newErrors.confirm_account_number;
+                                return newErrors;
+                              });
+                            }
+                          }}
+                        />
+                        {errors.confirm_account_number && (
+                          <div className="ValidationColor">
+                            {errors.confirm_account_number}
                           </div>
                         )}
                       </div>
@@ -2015,7 +2155,7 @@ const SectionReKYCDetails = () => {
                             handleInputChange(e, bankDetail.id, "branch_name")
                           }
                         />
-                        {bankDetail.isNew && errors.branch_name && (
+                        {errors.branch_name && !bankDetail.branch_name && (
                           <div className="ValidationColor">
                             {errors.branch_name}
                           </div>
@@ -2043,7 +2183,7 @@ const SectionReKYCDetails = () => {
                             handleInputChange(e, bankDetail.id, "micr_number")
                           }
                         />
-                        {bankDetail.isNew && errors.micr_number && (
+                        {errors.micr_number && !bankDetail.micr_number && (
                           <div className="ValidationColor">
                             {errors.micr_number}
                           </div>
@@ -2071,7 +2211,7 @@ const SectionReKYCDetails = () => {
                             handleInputChange(e, bankDetail.id, "ifsc_code")
                           }
                         />
-                        {bankDetail.isNew && errors.ifsc_code && (
+                        {errors.ifsc_code && !bankDetail.ifsc_code && (
                           <div className="ValidationColor">
                             {errors.ifsc_code}
                           </div>
@@ -2104,11 +2244,12 @@ const SectionReKYCDetails = () => {
                             )
                           }
                         />
-                        {bankDetail.isNew && errors.benficary_name && (
-                          <div className="ValidationColor">
-                            {errors.benficary_name}
-                          </div>
-                        )}
+                        {errors.benficary_name &&
+                          !bankDetail.benficary_name && (
+                            <div className="ValidationColor">
+                              {errors.benficary_name}
+                            </div>
+                          )}
                       </div>
                     </div>
 
@@ -2135,6 +2276,23 @@ const SectionReKYCDetails = () => {
                               <span className="me-2">Existing File:</span>
                               {/* <TooltipIcon message="Indicate whether your organization is registered under the Goods and Services Tax (GST) Act."
                                /> */}
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width={24}
+                                height={24}
+                                fill="#DE7008"
+                                className="bi bi-download"
+                                viewBox="0 0 16 16"
+                              >
+                                <path
+                                  d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
+                                  // style={{ fill: "#de7008!important" }}
+                                />
+                                <path
+                                  d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
+                                  // style={{ fill: "#de7008!important" }}
+                                />
+                              </svg>
                             </a>
                           </span>
                         )}
@@ -2155,7 +2313,12 @@ const SectionReKYCDetails = () => {
                         />
 
                         {/* Validation Message */}
-                        {bankDetail.isNew && errors.cancelled_cheque && (
+                        {/* {bankDetail.isNew && errors.cancelled_cheque && (
+                          <div className="ValidationColor">
+                            {errors.cancelled_cheque}
+                          </div>
+                        )} */}
+                        {errors.cancelled_cheque && !bankDetail.attachment && (
                           <div className="ValidationColor">
                             {errors.cancelled_cheque}
                           </div>
@@ -2217,7 +2380,7 @@ const SectionReKYCDetails = () => {
                         MSME/Udyam Number Applicable <span>*</span>
                         <TooltipIcon message="Select whether your organization is registered under the MSME (Micro, Small, and Medium Enterprises) or Udyam scheme. Choose 'Yes' if applicable, otherwise select 'No.' By selecting 'No, you confirm that your organization does not hold a valid MSME/Udyam registration number. A declaration is required, and this response will be timestamped to record the submission date and time." />
                       </label>
-                      <select
+                      {/* <select
                         value={msmeUdyamApplicable}
                         onChange={handleMsmeUdyamChange}
                         className="form-control"
@@ -2225,7 +2388,20 @@ const SectionReKYCDetails = () => {
                         <option value="">select</option>
                         <option value="Yes">Yes</option>
                         <option value="No">No</option>
-                      </select>
+                      </select> */}
+                      <SingleSelector
+                        value={options.find(
+                          (option) => option.value === msmeUdyamApplicable
+                        )}
+                        onChange={(selected) =>
+                          handleMsmeUdyamChange({
+                            target: { value: selected.value },
+                          })
+                        }
+                        options={options}
+                        className="form-control"
+                        placeholder="Select..."
+                      />
                       {errors.msmeUdyamApplicable && (
                         <div className="ValidationColor">
                           {errors.msmeUdyamApplicable}
@@ -2245,7 +2421,7 @@ const SectionReKYCDetails = () => {
                         >
                           Major Activity <span>*</span>
                         </label>
-                        <select
+                        {/* <select
                           // className="form-control"
                           // value={supplierData?.msme_details?.enterprise}
 
@@ -2258,13 +2434,32 @@ const SectionReKYCDetails = () => {
                           <option value="trader">Trader</option>
                           <option value="manufacture">manufacture</option>
                           <option value="others">Others</option>
-                        </select>
+                        </select> */}
                         {/* {errors.msmeEnterpriseType && (
                           <div className="ValidationColor">
                             {errors.msmeEnterpriseType}
                           </div>
-                        )}{" "} */}
+                        )}{" "}
                         {/* Show error */}
+
+                        <SingleSelector
+                          value={optionsMajorActivity.find(
+                            (option) => option.value === majorActivity
+                          )}
+                          onChange={(selected) =>
+                            setMajorActivity(selected.value)
+                          }
+                          options={optionsMajorActivity}
+                          className="form-control"
+                          placeholder="Select Major Activity"
+                        />
+                        {console.log("majorActivity", majorActivity)}
+
+                        {errors.majorActivity && (
+                          <div className="ValidationColor">
+                            {errors.majorActivity}
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}
@@ -2309,7 +2504,7 @@ const SectionReKYCDetails = () => {
                         >
                           Classifiction Year <span>*</span>
                         </label>
-                        <select
+                        {/* <select
                           // onChange={(e) =>
                           //   setClassificationYear(e.target.value)
                           // }
@@ -2322,7 +2517,16 @@ const SectionReKYCDetails = () => {
                           <option value="2022-23">2022-23</option>
                           <option value="2023-24">2023-24</option>
                           <option value="2024-25">2024-25</option>
-                        </select>
+                        </select> */}
+                        <SingleSelector
+                          value={optionsClassificationYear.find(
+                            (option) => option.value === classificationYear
+                          )}
+                          onChange={handleClassificationYearChange}
+                          options={optionsClassificationYear}
+                          className="form-control"
+                          placeholder="Select Classification Year"
+                        />
 
                         {/* {errors.msmeEnterpriseType && (
                           <div className="ValidationColor">
@@ -2330,6 +2534,11 @@ const SectionReKYCDetails = () => {
                           </div>
                         )}{" "} */}
                         {/* Show error */}
+                        {errors.classificationYear && (
+                          <div className="ValidationColor">
+                            {errors.classificationYear}
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}
@@ -2410,7 +2619,7 @@ const SectionReKYCDetails = () => {
                           MSME Enterprise Type <span>*</span>
                           <TooltipIcon message="Select the type of your organization under the MSME (Micro, Small, and Medium Enterprises) scheme. Choose from 'Micro,'Small,' or 'Medium' based on your organization's annual turnover and investment in plant and machinery." />
                         </label>
-                        <select
+                        {/* <select
                           // className="form-control"
                           // value={supplierData?.msme_details?.enterprise}
 
@@ -2423,7 +2632,20 @@ const SectionReKYCDetails = () => {
                           <option value="Small">Small</option>
                           <option value="Medium">Medium</option>
                           <option value="Not_applicable">Not Applicable</option>
-                        </select>
+                        </select> */}
+                        <SingleSelector
+                          value={optionsEnterPrise.find(
+                            (option) => option.value === msmeEnterpriseType
+                          )}
+                          onChange={(selected) =>
+                            handleMsmeEnterpriseChange({
+                              target: { value: selected.value },
+                            })
+                          }
+                          options={optionsEnterPrise}
+                          className="form-control"
+                          placeholder="Select option..."
+                        />
                         {errors.msmeEnterpriseType && (
                           <div className="ValidationColor">
                             {errors.msmeEnterpriseType}
@@ -2470,6 +2692,11 @@ const SectionReKYCDetails = () => {
                           </div>
                         )}{" "} */}
                         {/* Show error */}
+                        {errors.classificationDate && (
+                          <div className="ValidationColor">
+                            {errors.classificationDate}
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}
@@ -2751,7 +2978,6 @@ const SectionReKYCDetails = () => {
                           name=""
                           onChange={handleEinvoicingFileChange}
                         /> */}
-
                         <input
                           className="form-control mt-2"
                           type="file"
@@ -2760,6 +2986,7 @@ const SectionReKYCDetails = () => {
                           multiple
                           accept=".xlsx,.csv,.pdf,.docx,.doc,.xls,.txt,.png,.jpg,.jpeg,.zip,.rar,.jfif,.svg,.mp4,.mp3,.avi,.flv,.wmv"
                         />
+                        Major Activity *
                       </div>
                     </div>
                   </div>
