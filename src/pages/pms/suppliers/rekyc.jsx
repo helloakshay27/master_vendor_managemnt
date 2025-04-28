@@ -29,6 +29,8 @@ const SectionReKYCDetails = () => {
   const [rekycId, setRekycId] = useState(null);
   const [rekycType, setRekycType] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [contactNumber, setContactNumber] = useState("");
+  const [emailAddress, setEmailAddress] = useState("");
 
   // Check if the rekycType array is null or empty
   const isRekycTypeEmpty = !rekycType || rekycType.length === 0;
@@ -326,6 +328,8 @@ const SectionReKYCDetails = () => {
       // setGstinAttachments(
       //   response.data?.basic_information?.gstin_attachments || []
       // );
+      setContactNumber(response.data?.mobile || ""); // Set Contact Number
+      setEmailAddress(response.data?.email || ""); // Set Email Address
 
       setGstApplicable(
         response.data?.gstin_applicable === "Yes" ? "Yes" : "No"
@@ -725,6 +729,8 @@ const SectionReKYCDetails = () => {
     },
     pms_supplier: {
       rekyc_id: rekyc_id,
+      contact_number: contactNumber, // Add Contact Number
+      email: emailAddress,
       msme: msmeUdyamApplicable || "",
       msme_no: msmeUdyamApplicable === "No" ? "" : msmeNo || null,
       valid_from: msmeUdyamApplicable === "No" ? "" : validFrom || null,
@@ -923,6 +929,20 @@ const SectionReKYCDetails = () => {
     });
     // }
 
+    // if (!contactNumber) {
+    //   validationErrors.contactNumber = "Contact Number is required.";
+    // } else if (!/^\d{10}$/.test(contactNumber)) {
+    //   validationErrors.contactNumber = "Enter a valid 10-digit Contact Number.";
+    // }
+
+    // if (!emailAddress) {
+    //   validationErrors.emailAddress = "Email Address is required.";
+    // } else if (
+    //   !/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(emailAddress)
+    // ) {
+    //   validationErrors.emailAddress = "Enter a valid Email Address.";
+    // }
+
     if (isRekycTypeEmpty || isMsmeRekyc) {
       // Validate MSME/Udyam Number Applicable
       if (!msmeUdyamApplicable) {
@@ -1106,6 +1126,8 @@ const SectionReKYCDetails = () => {
         },
         pms_supplier: {
           rekyc_id: rekyc_id,
+          contact_number: contactNumber, // Add Contact Number
+          email: emailAddress, // Add Email Address
         },
       };
       // If the condition is met, include only GSTN-related fields
@@ -1563,6 +1585,70 @@ const SectionReKYCDetails = () => {
               </div>
             </div>
           </div>
+
+          <div className="card mx-4 pb-4 mt-4">
+            <div className="card-header3">
+              <h3 className="card-title">Contact Imformation</h3>
+            </div>
+            <div className="card-body mt-0">
+              <div className="row ">
+                {/* <div className="col-lg-6 col-md-6 col-sm-12 row px-3 "> */}
+                <div className="col-md-4 mt-2">
+                  <div className="form-group">
+                    <label
+                    // data-bs-toggle="tooltip"
+                    // data-bs-placement="top"
+                    // title={tooltipMessages.branchName}
+                    >
+                      Contact Number
+                      {/* <span>*</span> */}
+                      {/* <TooltipIcon message="Enter the name of the bank branch where your organization's account is held. " /> */}
+                    </label>
+                    <input
+                      className="form-control"
+                      type="text"
+                      placeholder="Enter Contact Number"
+                      value={contactNumber}
+                      onChange={(e) => setContactNumber(e.target.value)}
+                    />
+                    {/* {errors.branch_name && !bankDetail.branch_name && (
+                          <div className="ValidationColor">
+                            {errors.branch_name}
+                          </div>
+                        )} */}
+                    {/* {errors.contactNumber && (
+      <div className="ValidationColor">{errors.contactNumber}</div>
+    )} */}
+                  </div>
+                </div>
+                <div className="col-md-4 mt-2 ms-2">
+                  <div className="form-group">
+                    <label>
+                      Email Address
+                      {/* <span>*</span> */}
+                      {/* <TooltipIcon message="Enter the name of the bank branch where your organization's account is held. " /> */}
+                    </label>
+                    <input
+                      className="form-control"
+                      type="text"
+                      placeholder="Email Address"
+                      value={emailAddress}
+                      onChange={(e) => setEmailAddress(e.target.value)}
+                    />
+                    {/* {errors.branch_name && !bankDetail.branch_name && (
+                          <div className="ValidationColor">
+                            {errors.branch_name}
+                          </div>
+                        )} */}
+                  </div>
+                </div>
+              </div>
+
+              {/*               
+              </div> */}
+            </div>
+          </div>
+
           {(isRekycTypeEmpty || isGstinRekyc) && (
             <div className="card mx-3 pb-4 mt-4">
               <div className="card-header3">
