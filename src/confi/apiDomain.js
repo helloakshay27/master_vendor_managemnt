@@ -1,5 +1,9 @@
 // Define the baseURL directly in the code
-const baseURL = "https://vendor.panchshil.com/";
+const baseURL = 
+
+// "https://vendor.panchshil.com/";
+"https://vendors.lockated.com/"
+
 const testbaseURL = "https://vendors.lockated.com/";
 
 // Retrieve the token dynamically from session storage

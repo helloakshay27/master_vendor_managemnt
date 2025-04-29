@@ -55,62 +55,6 @@ const SectionReKYCDetails = () => {
 
   console.log(" re kyc type:", rekycType);
 
-  // Example state to hold dynamic tooltip messages
-  // const [tooltipMessages, setTooltipMessages] = useState({
-  //   bankName:
-  //     "Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes. ",
-  //   address:
-  //     "Please provide the complete address of your bank branch,including the street address,city and postal code. ",
-  //   country: "Please choose your country from the list.",
-  //   state: "Please choose your state from the list.",
-  //   city_name: "Enter the city where your bank branch is located",
-  //   pincode: "Enter the postal code (Pin Code) for the bank branch location",
-  //   accountType:
-  //     "Select the type of bank account your organization holds,such as Savings,Current,or any other relevant type.",
-  //   accountNumber:
-  //     "Please provide your organization's bank account number.Make sure it is correct and matches the details at your bank.",
-  //   confirmAccountNumber:
-  //     "Re-enter the  bank account number to confirm accuracy.Ensure it matches the original account number entered above.",
-  //   branchName:
-  //     "Enter the name of the bank branch where your organization's account is held. ",
-  //   MICR: "Enter the MICR (Magnetic Ink Character Recognition) number of your  bank branch. This number is typically found on your cheque leaf. ",
-  //   IFSCCode:
-  //     "Enter the IFSC (Indian Financial System Code) of your bank branch. This is required for electronic fund transfers like NEFT and RTGS  ",
-  //   beneficiaryName: "Enter the full legel name of the beneficiary.",
-  //   cancelledCheque:
-  //     "Provide a cancelled cheque or a bank statement copy that clearly displays your bank account details.This helps verify your account information. The document must be uploaded in PDF format.",
-  //   MSMEUdyamNumberApplicable:
-  //     "Select whether your organization is registered under the MSME (Micro, Small, and Medium Enterprises) or Udyam scheme. Choose 'Yes' if applicable, otherwise select 'No.' By selecting 'No, you confirm that your organization does not hold a valid MSME/Udyam registration number. A declaration is required, and this response will be timestamped to record the submission date and time.",
-  //   MSMEUdyamNumber:
-  //     "Enter your organization's valid MSME or Udyam registration number. This number is issued by the Ministry of Micro, Small, and Medium Enterprises (MSME) under the Udyam registration scheme.",
-  //   MSMEUdyamValidFrom:
-  //     "Enter the date when your MSME/Udyam registration became valid. This is the start date mentioned on your MSME/Udyam registration certificate for the financial year.",
-  //   MSMEUdyamValidTill:
-  //     "Enter the date when your MSME/Udyam registration became valid. This is the end date mentioned on your MSME/Udyam registration certificate for the financial year.",
-  //   MSMEEnterpriseType:
-  //     "elect the type of your organization under the MSME (Micro, Small, and Medium Enterprises) scheme. Choose from 'Micro,'Small,' or 'Medium' based on your organization's annual turnover and investment in plant and machinery.",
-  //   MSMEUdyamAttachment:
-  //     "Attach a clear, scanned copy or digital image of your MSME/Udyam registration certificate to verify your organization's classification under the MSME scheme. The document must be uploaded in PDF format.",
-  //   DownloadSpecimen:
-  //     "If you choose 'No' for e-invoicing, a specimen format will be available for download. This is for businesses not subject to e-invoicing under GST regulations. Please upload a signed declaration stating that your organization is not registered.The document must be uploaded in PDF format.",
-  //   UploadDeclaration:
-  //     "If you choose E-Invoice applicable 'No', please upload a signed declaration document to verify the details you have submitted. The document must be uploaded in PDF format.Ensure that the document is clear, legible, and properly signed.",
-  //   GSTINApplicable:
-  //     "Indicate whether your organization is registered under the Goods and Services Tax (GST) Act. Select 'Yes' if GSTIN is applicable to your organization.",
-  //   GSTINAttachment:
-  //     "Upload a digital copy of the official GSTIN certificate or document showing your GST registration number. Ensure the document is legible and valid.",
-  // });
-
-  // useEffect(() => {
-  //   // Initialize all tooltips after component mounts
-  //   const tooltipTriggerList = document.querySelectorAll(
-  //     '[data-bs-toggle="tooltip"]'
-  //   );
-  //   tooltipTriggerList.forEach((tooltipTriggerEl) => {
-  //     new window.bootstrap.Tooltip(tooltipTriggerEl);
-  //   });
-  // }, []);
-
   const encryptFileContent = (file) => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -136,21 +80,6 @@ const SectionReKYCDetails = () => {
       };
     });
   };
-
-  // For handling MSME attachments (storing encrypted files)
-  // const handleFileChange = (file) => {
-  //   const reader = new FileReader();
-  //   reader.onloadend = () => {
-  //     const base64String = reader.result.split(",")[1];
-  //     const attachment = {
-  //       filename: file.name,
-  //       content: base64String,
-  //       content_type: file.type,
-  //     };
-  //     setMsmeAttachments([...msmeAttachments, attachment]);
-  //   };
-  //   reader.readAsDataURL(file);
-  // };
 
   const handleFileChange = (file) => {
     const reader = new FileReader();
@@ -184,64 +113,6 @@ const SectionReKYCDetails = () => {
     };
     reader.readAsDataURL(file);
   };
-
-  // const handleFileChangegst = (event) => {
-  //   const files = event.target.files;
-  //   if (!files.length) return;
-
-  //   const newAttachments = [];
-  //   Array.from(files).forEach((file) => {
-  //     if (file.type !== "application/pdf") {
-  //       alert("Only PDF files are allowed.");
-  //       return;
-  //     }
-
-  //     const reader = new FileReader();
-  //     reader.onloadend = () => {
-  //       const base64String = reader.result.split(",")[1];
-  //       newAttachments.push({
-  //         filename: file.name,
-  //         content: base64String,
-  //         content_type: file.type,
-  //       });
-
-  //       // Ensure all files are processed before updating state
-  //       if (newAttachments.length === files.length) {
-  //         setGstinAttachments([...gstinAttachments, ...newAttachments]);
-  //       }
-  //     };
-
-  //     reader.readAsDataURL(file);
-  //   });
-  // };
-
-  // const handleFileChangegst = (event) => {
-  //   const files = event.target.files;
-  //   if (!files.length) return;
-
-  //   const newAttachments = [];
-  //   Array.from(files).forEach((file) => {
-  //     const reader = new FileReader();
-  //     reader.onloadend = () => {
-  //       const base64String = reader.result.split(",")[1];
-  //       newAttachments.push({
-  //         filename: file.name,
-  //         content: base64String,
-  //         content_type: file.type,
-  //       });
-
-  //       // Ensure all files are processed before updating state
-  //       if (newAttachments.length === files.length) {
-  //         setGstinAttachments((prevAttachments) => [
-  //           ...prevAttachments,
-  //           ...newAttachments,
-  //         ]);
-  //       }
-  //     };
-
-  //     reader.readAsDataURL(file);
-  //   });
-  // };
 
   const handleFileChangegst = (event) => {
     const files = event.target.files;
@@ -505,20 +376,6 @@ const SectionReKYCDetails = () => {
     }
   }, [bankDetailsList]);
 
-  // const handleCountryChange = (e, bankId) => {
-  //   const selectedCountryId = e.target.value;
-  //   setSelectedCountry(selectedCountryId);
-  //   fetchStates(selectedCountryId);
-
-  //   setBankDetailsList(
-  //     bankDetailsList.map((bank) =>
-  //       bank.id === bankId
-  //         ? { ...bank, country: selectedCountryId, state: null }
-  //         : bank
-  //     )
-  //   );
-  // };
-
   const handleCountryChange = (selectedOption, bankId) => {
     setBankDetailsList((prevList) =>
       prevList.map((bankDetail) =>
@@ -588,19 +445,6 @@ const SectionReKYCDetails = () => {
   // Function to delete bank details
   const deleteBankDetails = (id) => {
     setBankDetailsList(bankDetailsList.filter((item) => item.id !== id));
-    // // setFormSubmitted(false)
-
-    // setBankDetailsList(bankDetailsList.map((item) =>
-    //   item.id === id
-    //     ? { ...item, _destroy: true } // Mark this bank detail as deleted
-    //     : item
-    // ));
-
-    // setBankDetailsList(bankDetailsList.map((item) =>
-    //   item.id === id
-    //     ? { ...item, _destroy: true } // Mark this bank detail as deleted
-    //     : item
-    // ));
 
     // Store deleted bank details separately
     const deletedItem = bankDetailsList.find((item) => item.id === id);
@@ -652,25 +496,6 @@ const SectionReKYCDetails = () => {
     setMsmeNo(e.target.value);
   };
 
-  // const handleClassificationYearChange = (e) => {
-  //   const selectedYear = e.target.value;
-  //   setClassificationYear(selectedYear);
-
-  //   let validFromDate = "";
-  //   let validTillDate = "";
-
-  //   if (selectedYear) {
-  //     const [startYear, endYear] = selectedYear.split("-");
-  //     validFromDate = `${startYear}-04-01`;
-  //     validTillDate = `20${endYear}-03-31`;
-  //   }
-
-  //   setValidFrom(validFromDate);
-  //   setValidTill(validTillDate);
-  // };
-
-  // Handler for Valid From date
-
   const handleClassificationYearChange = (selectedOption) => {
     if (!selectedOption) {
       setClassificationYear("");
@@ -704,24 +529,6 @@ const SectionReKYCDetails = () => {
     setValidTill(e.target.value);
   };
 
-  // Handle eInvoicing File Change
-  // const handleEinvoicingFileChange = (event) => {
-  //   const file = event.target.files[0]; // Get the selected file
-
-  //   if (file) {
-  //     const attachment = {
-  //       content_type: file.type, // Content type (e.g., "application/pdf")
-  //       contect: file, // The file object itself
-  //       filename: file.name, // File name
-  //     };
-
-  //     // Update the eInvoicing attachments state
-  //     setEinvoicingAttachments([...einvoicingAttachments, attachment]);
-  //   }
-  // };
-
-  // edit pay load
-
   const payload = {
     authenticity_token: "[FILTERED]", // No quotes for the token value, but the key is a string
     vendor_re_kyc: {
@@ -729,7 +536,7 @@ const SectionReKYCDetails = () => {
     },
     pms_supplier: {
       rekyc_id: rekyc_id,
-      contact_number: contactNumber, // Add Contact Number
+      mobile: contactNumber, // Add Contact Number
       email: emailAddress,
       msme: msmeUdyamApplicable || "",
       msme_no: msmeUdyamApplicable === "No" ? "" : msmeNo || null,
@@ -929,19 +736,19 @@ const SectionReKYCDetails = () => {
     });
     // }
 
-    // if (!contactNumber) {
-    //   validationErrors.contactNumber = "Contact Number is required.";
-    // } else if (!/^\d{10}$/.test(contactNumber)) {
-    //   validationErrors.contactNumber = "Enter a valid 10-digit Contact Number.";
-    // }
+    if (!contactNumber) {
+      validationErrors.contactNumber = "Contact Number is required.";
+    } else if (!/^\d{10}$/.test(contactNumber)) {
+      validationErrors.contactNumber = "Enter a valid 10-digit Contact Number.";
+    }
 
-    // if (!emailAddress) {
-    //   validationErrors.emailAddress = "Email Address is required.";
-    // } else if (
-    //   !/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(emailAddress)
-    // ) {
-    //   validationErrors.emailAddress = "Enter a valid Email Address.";
-    // }
+    if (!emailAddress) {
+      validationErrors.emailAddress = "Email Address is required.";
+    } else if (
+      !/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(emailAddress)
+    ) {
+      validationErrors.emailAddress = "Enter a valid Email Address.";
+    }
 
     if (isRekycTypeEmpty || isMsmeRekyc) {
       // Validate MSME/Udyam Number Applicable
@@ -1032,91 +839,11 @@ const SectionReKYCDetails = () => {
     // setErrors(validationErrors);
     if (Object.keys(validationErrors).length > 0) {
       // return false; // Return false if there are validation errors
+      console.log("Validation Errors:", validationErrors);
       return setErrors(validationErrors);
     } else {
-      // const payload = {
-      //   authenticity_token: "[FILTERED]", // Add your actual token or logic to get it
-      //   vendor_re_kyc: {
-      //     status: "details_submitted_by_vendor",
-      //   },
-      //   pms_supplier: {
-      //     rekyc_id: rekycId,
-      //     msme: msmeUdyamApplicable || "",
-      //     msme_no: msmeUdyamApplicable === "No" ? "" : msmeNo || "",
-      //     valid_from: msmeUdyamApplicable === "No" ? "" : validFrom || "",
-      //     valid_till: msmeUdyamApplicable === "No" ? "" : validTill || "",
-      //     enterprise:
-      //       msmeUdyamApplicable === "No" ? "" : msmeEnterpriseType || "",
-      //     msme_attachments: msmeUdyamApplicable === "No" ? [] : msmeAttachments,
-      //     einvoicing: eInvoicingApplicable || "",
-      //     einvoicing_attachments:
-      //       eInvoicingApplicable === "No" ? einvoicingAttachments : [],
-      //     bank_details_attributes: bankDetailsList,
-
-      //     gstin_applicable: gstApplicable || "",
-      //     gst_classification_id: gstClassification?.value || "",
-      //     gstin: gstApplicable === "No" ? "" : gstinNumber || "",
-      //     gstin_attachments:
-      //       gstApplicable === "No" ? [] : gstinAttachments || [],
-      //   },
-      // };
-
       setLoading(true);
-
-      // const payload = {
-      //   authenticity_token: "[FILTERED]", // No quotes for the token value, but the key is a string
-      //   vendor_re_kyc: {
-      //     status: "details_submitted_by_vendor",
-      //   },
-      //   pms_supplier: {
-      //     rekyc_id: rekyc_id,
-      //     msme: msmeUdyamApplicable || "",
-      //     msme_no: msmeUdyamApplicable === "No" ? "" : msmeNo || null,
-      //     valid_from: msmeUdyamApplicable === "No" ? "" : validFrom || null,
-      //     valid_till: msmeUdyamApplicable === "No" ? "" : validTill || null,
-      //     enterprise:
-      //       msmeUdyamApplicable === "No" ? "" : msmeEnterpriseType || null,
-      //     major_activity:
-      //       msmeUdyamApplicable === "No" ? "" : majorActivity || null,
-      //     classification_year:
-      //       msmeUdyamApplicable === "No" ? "" : classificationYear || null,
-      //     classification_date:
-      //       msmeUdyamApplicable === "No" ? "" : classificationDate || null,
-
-      //     msme_attachments: msmeUdyamApplicable === "No" ? [] : msmeAttachments,
-      //     einvoicing: eInvoicingApplicable || "",
-      //     einvoicing_attachments:
-      //       eInvoicingApplicable === "No" ? einvoicingAttachments : [], //added
-      //     // bank_details_attributes: bankDetailsList,
-      //     bank_details_attributes: bankDetailsList.map((item) => ({
-      //       ...item,
-      //       id: item.isNew ? null : item.id, // Set id to null if it's a new entry
-
-      //       // attachment: item.isNew ? bankAttachments : null,
-      //       // _destroy: item._destroy ? true : null, // Convert _destroy to boolean or null
-
-      //       attachment: item.isNew
-      //         ? bankAttachments[item.id] || null // If new attachment exists, pass it; otherwise, null
-      //         : bankAttachments[item.id] || (item.attachment ? null : null), // If existing, only pass null if no new file is uploaded
-      //     })),
-
-      //     deletedBankDetails: deletedBankDetails, //deleted details
-
-      //     gstin_applicable: gstApplicable || null,
-      //     gst_classification_id: gstClassification?.value || null,
-      //     gstin: gstinNumber || "",
-      //     // gstin_attachments: gstinAttachments || [],
-      //     gstin_attachments: gstinAttachments,
-      //     // gstinAttachments.length > 0
-      //     //   ? gstinAttachments // If new files are uploaded, send them
-      //     //   : supplierData?.basic_information?.gstin_attachments?.length > 0
-      //     //     ? null // If existing files are present, pass null
-      //     //     : [], // Otherwise, send an empty array
-      //   },
-      // };
-
-      // console.log("payload submition", payload);
-      // console.log("rekyc id")
+      console.log("Validation passed. Sending API request...");
 
       // condition wise payload
       const payload = {
@@ -1126,7 +853,7 @@ const SectionReKYCDetails = () => {
         },
         pms_supplier: {
           rekyc_id: rekyc_id,
-          contact_number: contactNumber, // Add Contact Number
+          mobile: contactNumber, // Add Contact Number
           email: emailAddress, // Add Email Address
         },
       };
@@ -1196,14 +923,6 @@ const SectionReKYCDetails = () => {
         const response = await axios.patch(
           `${baseURL}/pms/suppliers/${id}/update_rekyc_by_sections.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&rekyc_id=${rekyc_id}`,
           payload
-          // {
-          //   headers: {
-          //     // 'Accept': 'application/json',
-          //     // 'Content-Type': 'application/json',
-          //     'token': 'bfa5004e7b0175622be8f7e69b37d01290b737f82e078414', // Token should be valid
-          //      // Replace with the actual session ID
-          //   }
-          // }
         );
 
         console.log("Response:", response.data); // Check the response data
@@ -1616,18 +1335,16 @@ const SectionReKYCDetails = () => {
                             {errors.branch_name}
                           </div>
                         )} */}
-                    {/* {errors.contactNumber && (
-      <div className="ValidationColor">{errors.contactNumber}</div>
-    )} */}
+                    {errors.contactNumber && (
+                      <div className="ValidationColor">
+                        {errors.contactNumber}
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div className="col-md-4 mt-2 ms-2">
                   <div className="form-group">
-                    <label>
-                      Email Address
-                      {/* <span>*</span> */}
-                      {/* <TooltipIcon message="Enter the name of the bank branch where your organization's account is held. " /> */}
-                    </label>
+                    <label>Email Address</label>
                     <input
                       className="form-control"
                       type="text"
@@ -1635,11 +1352,11 @@ const SectionReKYCDetails = () => {
                       value={emailAddress}
                       onChange={(e) => setEmailAddress(e.target.value)}
                     />
-                    {/* {errors.branch_name && !bankDetail.branch_name && (
-                          <div className="ValidationColor">
-                            {errors.branch_name}
-                          </div>
-                        )} */}
+                    {errors.emailAddress && (
+                      <div className="ValidationColor">
+                        {errors.emailAddress}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
