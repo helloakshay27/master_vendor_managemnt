@@ -1,8 +1,8 @@
 // Define the baseURL directly in the code
 const baseURL = 
 
-// "https://vendor.panchshil.com/";
-"https://vendors.lockated.com/"
+"https://vendor.panchshil.com/";
+// "https://vendors.lockated.com/"
 
 const testbaseURL = "https://vendors.lockated.com/";
 
