@@ -671,70 +671,70 @@ const SectionReKYCDetails = () => {
   };
 
   // Handle the Update Button Click
-  const handleUpdate = async (bankDetail) => {
-    console.log("bank details:", bankDetail);
+  const handleUpdate = async () => {
+    console.log("rekyc_type:", rekycType);
 
     // console.log('formSubmitted:', formSubmitted);
 
     let validationErrors = {};
-    // if (isRekycTypeEmpty || isBankRekyc ) {
-    bankDetailsList.forEach((bankDetail) => {
-      // if (bankDetail.isNew) {
-      // Only validate if it's a new entry
-      if (!bankDetail.bank_name) {
-        validationErrors.bank_name = "Bank Name is required.";
-      }
-      if (!bankDetail.address) {
-        validationErrors.address = "Address is required.";
-      }
-      if (!bankDetail.country_id) {
-        validationErrors.country_id = "Country is required.";
-      }
-      if (!bankDetail.state_id) {
-        validationErrors.state_id = "State is required.";
-      }
-      if (!bankDetail.city) {
-        validationErrors.city = "City is required.";
-      }
-      // {
-      // }
+    if (isRekycTypeEmpty || isBankRekyc) {
+      bankDetailsList.forEach((bankDetail) => {
+        // if (bankDetail.isNew) {
+        // Only validate if it's a new entry
+        if (!bankDetail.bank_name) {
+          validationErrors.bank_name = "Bank Name is required.";
+        }
+        if (!bankDetail.address) {
+          validationErrors.address = "Address is required.";
+        }
+        if (!bankDetail.country_id) {
+          validationErrors.country_id = "Country is required.";
+        }
+        if (!bankDetail.state_id) {
+          validationErrors.state_id = "State is required.";
+        }
+        if (!bankDetail.city) {
+          validationErrors.city = "City is required.";
+        }
+        // {
+        // }
 
-      if (!bankDetail.pin_code || isNaN(bankDetail.pin_code)) {
-        validationErrors.pin_code = "Valid Pin Code is required.";
-      }
+        if (!bankDetail.pin_code || isNaN(bankDetail.pin_code)) {
+          validationErrors.pin_code = "Valid Pin Code is required.";
+        }
 
-      if (!bankDetail.account_type) {
-        validationErrors.account_type = "Account Type is required.";
-      }
-      if (!bankDetail.account_number) {
-        validationErrors.account_number = "Account Number is required.";
-      }
-      if (!bankDetail.confirm_account_number) {
-        validationErrors.confirm_account_number =
-          "Confirm Account Number is required.";
-      }
-      if (bankDetail.account_number !== bankDetail.confirm_account_number) {
-        validationErrors.account_match =
-          "Account Number and Confirm Account Number must match.";
-      }
-      if (!bankDetail.branch_name) {
-        validationErrors.branch_name = "Branch Name is required.";
-      }
-      if (!bankDetail.micr_number) {
-        validationErrors.micr_number = "MICR Number is required.";
-      }
-      if (!bankDetail.ifsc_code) {
-        validationErrors.ifsc_code = "IFSC Code is required.";
-      }
-      if (!bankDetail.benficary_name) {
-        validationErrors.benficary_name = "Beneficiary Name is required.";
-      }
-      // if (!bankDetail.cancelled_cheque) { validationErrors.cancelled_cheque = "Cancelled Cheque / Bank Copy is required." };
+        if (!bankDetail.account_type) {
+          validationErrors.account_type = "Account Type is required.";
+        }
+        if (!bankDetail.account_number) {
+          validationErrors.account_number = "Account Number is required.";
+        }
+        if (!bankDetail.confirm_account_number) {
+          validationErrors.confirm_account_number =
+            "Confirm Account Number is required.";
+        }
+        if (bankDetail.account_number !== bankDetail.confirm_account_number) {
+          validationErrors.account_match =
+            "Account Number and Confirm Account Number must match.";
+        }
+        if (!bankDetail.branch_name) {
+          validationErrors.branch_name = "Branch Name is required.";
+        }
+        if (!bankDetail.micr_number) {
+          validationErrors.micr_number = "MICR Number is required.";
+        }
+        if (!bankDetail.ifsc_code) {
+          validationErrors.ifsc_code = "IFSC Code is required.";
+        }
+        if (!bankDetail.benficary_name) {
+          validationErrors.benficary_name = "Beneficiary Name is required.";
+        }
+        // if (!bankDetail.cancelled_cheque) { validationErrors.cancelled_cheque = "Cancelled Cheque / Bank Copy is required." };
 
-      // Add other validation checks here
-      // }
-    });
-    // }
+        // Add other validation checks here
+        // }
+      });
+    }
 
     if (!contactNumber) {
       validationErrors.contactNumber = "Contact Number is required.";
@@ -777,18 +777,6 @@ const SectionReKYCDetails = () => {
         validationErrors.msmeEnterpriseType =
           "MSME Enterprise Type is required.";
       }
-
-      // // Validate MSME/Udyam Attachment if MSME/Udyam is applicable
-      // if (msmeUdyamApplicable === "Yes" && supplierData?.msme_details?.msme_attachments?.length ===0) {
-      //   validationErrors.msmeAttachments = "MSME/Udyam Attachment is required.";
-      // }
-
-      // if (
-      //   msmeUdyamApplicable === "Yes" &&
-      //   supplierData?.msme_details?.msme_attachments?.length === 0
-      // ) {
-      //   validationErrors.msmeAttachments = "MSME/Udyam Attachment is required.";
-      // }
 
       // Validate Major Activity
       if (msmeUdyamApplicable === "Yes" && !majorActivity) {
@@ -1320,7 +1308,7 @@ const SectionReKYCDetails = () => {
                     // title={tooltipMessages.branchName}
                     >
                       Contact Number
-                      {/* <span>*</span> */}
+                      <span> *</span>
                       {/* <TooltipIcon message="Enter the name of the bank branch where your organization's account is held. " /> */}
                     </label>
                     <input
@@ -1345,6 +1333,7 @@ const SectionReKYCDetails = () => {
                 <div className="col-md-4 mt-2 ms-2">
                   <div className="form-group">
                     <label>Email Address</label>
+                    <span style={{ color: "#DE7008" }}> *</span>
                     <input
                       className="form-control"
                       type="text"
@@ -2627,6 +2616,7 @@ const SectionReKYCDetails = () => {
                         download="Specimen_E-Invoicing_Declaration.docx"
                         className="text-primary d-flex align-items-center"
                         href={`${baseURL}/assets/NO_%20MSME.pdf`}
+                        target="_self" // Ensure it doesn't open in a new tab
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -2666,11 +2656,14 @@ const SectionReKYCDetails = () => {
                       </label>
 
                       <span className="ms-2">
-                        <a
+                        {/* <a
                           href={
                             supplierData?.msme_details?.msme_attachments[0]
                               ?.file_url
-                          } // PDF file URL
+                          } // PDF file URL */}
+
+                        <a
+                          href={`${baseURL}${supplierData?.msme_details?.msme_attachments[0]?.file_url}`} // Prepend baseURL to the file URL
                           download // Trigger download when clicked
                           className="text-primary d-flex align-items-center"
                         >
