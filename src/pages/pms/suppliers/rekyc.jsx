@@ -810,13 +810,20 @@ const SectionReKYCDetails = () => {
       if (!gstApplicable) {
         validationErrors.gstApplicable = "GST Applicable is required.";
       } else if (gstApplicable === "Yes") {
-        if (!gstClassification?.value)
-          validationErrors.gstClassification =
-            "GST Classification is required.";
+        // if (!gstClassification?.value)
+        //   validationErrors.gstClassification =
+        //     "GST Classification is required.";
         if (!gstinNumber)
           validationErrors.gstinNumber = "GSTIN Number is required.";
-        if (supplierData?.basic_information?.gstin_attachments.length === 0)
+        // if (supplierData?.basic_information?.gstin_attachments.length === 0)
+        //   validationErrors.gstinAttachments = "GSTIN Attachment is required.";
+        if (
+          (supplierData?.basic_information?.gstin_attachments.length === 0 ||
+            !supplierData?.basic_information?.gstin_attachments) &&
+          gstinAttachments.length === 0
+        ) {
           validationErrors.gstinAttachments = "GSTIN Attachment is required.";
+        }
       }
     }
 
