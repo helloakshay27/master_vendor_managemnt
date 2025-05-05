@@ -679,60 +679,63 @@ const SectionReKYCDetails = () => {
     let validationErrors = {};
     if (isRekycTypeEmpty || isBankRekyc) {
       bankDetailsList.forEach((bankDetail) => {
-        // if (bankDetail.isNew) {
-        // Only validate if it's a new entry
-        if (!bankDetail.bank_name) {
-          validationErrors.bank_name = "Bank Name is required.";
-        }
-        if (!bankDetail.address) {
-          validationErrors.address = "Address is required.";
-        }
-        if (!bankDetail.country_id) {
-          validationErrors.country_id = "Country is required.";
-        }
-        if (!bankDetail.state_id) {
-          validationErrors.state_id = "State is required.";
-        }
-        if (!bankDetail.city) {
-          validationErrors.city = "City is required.";
-        }
-        // {
-        // }
+        if (bankDetail.isNew) {
+          // Only validate if it's a new entry
+          if (!bankDetail.bank_name) {
+            validationErrors.bank_name = "Bank Name is required.";
+          }
+          if (!bankDetail.address) {
+            validationErrors.address = "Address is required.";
+          }
+          if (!bankDetail.country_id) {
+            validationErrors.country_id = "Country is required.";
+          }
+          if (!bankDetail.state_id) {
+            validationErrors.state_id = "State is required.";
+          }
+          if (!bankDetail.city) {
+            validationErrors.city = "City is required.";
+          }
+          // {
+          // }
 
-        if (!bankDetail.pin_code || isNaN(bankDetail.pin_code)) {
-          validationErrors.pin_code = "Valid Pin Code is required.";
-        }
+          if (!bankDetail.pin_code || isNaN(bankDetail.pin_code)) {
+            validationErrors.pin_code = "Valid Pin Code is required.";
+          }
 
-        if (!bankDetail.account_type) {
-          validationErrors.account_type = "Account Type is required.";
-        }
-        if (!bankDetail.account_number) {
-          validationErrors.account_number = "Account Number is required.";
-        }
-        if (!bankDetail.confirm_account_number) {
-          validationErrors.confirm_account_number =
-            "Confirm Account Number is required.";
-        }
-        if (bankDetail.account_number !== bankDetail.confirm_account_number) {
-          validationErrors.account_match =
-            "Account Number and Confirm Account Number must match.";
-        }
-        if (!bankDetail.branch_name) {
-          validationErrors.branch_name = "Branch Name is required.";
-        }
-        if (!bankDetail.micr_number) {
-          validationErrors.micr_number = "MICR Number is required.";
-        }
-        if (!bankDetail.ifsc_code) {
-          validationErrors.ifsc_code = "IFSC Code is required.";
-        }
-        if (!bankDetail.benficary_name) {
-          validationErrors.benficary_name = "Beneficiary Name is required.";
-        }
-        // if (!bankDetail.cancelled_cheque) { validationErrors.cancelled_cheque = "Cancelled Cheque / Bank Copy is required." };
+          if (!bankDetail.account_type) {
+            validationErrors.account_type = "Account Type is required.";
+          }
+          if (!bankDetail.account_number) {
+            validationErrors.account_number = "Account Number is required.";
+          }
+          if (!bankDetail.confirm_account_number) {
+            validationErrors.confirm_account_number =
+              "Confirm Account Number is required.";
+          }
+          if (bankDetail.account_number !== bankDetail.confirm_account_number) {
+            validationErrors.account_match =
+              "Account Number and Confirm Account Number must match.";
+          }
+          if (!bankDetail.branch_name) {
+            validationErrors.branch_name = "Branch Name is required.";
+          }
+          if (!bankDetail.micr_number) {
+            validationErrors.micr_number = "MICR Number is required.";
+          }
+          if (!bankDetail.ifsc_code) {
+            validationErrors.ifsc_code = "IFSC Code is required.";
+          }
+          if (!bankDetail.benficary_name) {
+            validationErrors.benficary_name = "Beneficiary Name is required.";
+          }
+          if (!bankDetail.cancelled_cheque) {
+            validationErrors.cancelled_cheque =
+              "Cancelled Cheque / Bank Copy is required.";
+          }
 
-        // Add other validation checks here
-        // }
+          // Add other validation checks here
+        }
       });
     }
 
@@ -1561,12 +1564,20 @@ const SectionReKYCDetails = () => {
                           onChange={(e) =>
                             handleInputChange(e, bankDetail.id, "bank_name")
                           }
+                          disabled={!bankDetail.isNew}
                         />
-                        {errors.bank_name && !bankDetail.bank_name && (
+                        {/* {errors.bank_name && !bankDetail.bank_name && (
                           <div className="ValidationColor">
                             {errors.bank_name}
                           </div>
-                        )}
+                        )} */}
+                        {bankDetail.isNew &&
+                          errors.bank_name &&
+                          !bankDetail.bank_name && (
+                            <div className="ValidationColor">
+                              {errors.bank_name}
+                            </div>
+                          )}
 
                         {/* {errors.bank_name && <div className="invalid-feedback">{errors.bank_name}</div>} */}
                         {/* {console.log(errors.bank_name)} */}
@@ -1592,17 +1603,18 @@ const SectionReKYCDetails = () => {
                           onChange={(e) =>
                             handleInputChange(e, bankDetail.id, "address")
                           }
+                          disabled={!bankDetail.isNew}
                         />
-                        {/* {bankDetail.isNew && errors.address && (
-                          <div className="ValidationColor">
-                            {errors.address}
-                          </div>
-                        )} */}
-                        {errors.address && !bankDetail.address && (
+                        {bankDetail.isNew && errors.address && (
                           <div className="ValidationColor">
                             {errors.address}
                           </div>
                         )}
+                        {/* {errors.address && !bankDetail.address && (
+                          <div className="ValidationColor">
+                            {errors.address}
+                          </div>
+                        )} */}
                       </div>
                     </div>
 
@@ -1653,20 +1665,22 @@ const SectionReKYCDetails = () => {
                           onChange={(selectedOption) =>
                             handleCountryChange(selectedOption, bankDetail.id)
                           }
+                          // disabled={!bankDetail.isNew}
                           placeholder="Select Country"
+                          isDisabled={!bankDetail.isNew}
                         />
 
                         {/* Validation Error Message */}
-                        {/* {bankDetail.isNew && errors.country_id && (
-                          <div className="ValidationColor">
-                            {errors.country_id}
-                          </div>
-                        )} */}
-                        {errors.country_id && !bankDetail.country_id && (
+                        {bankDetail.isNew && errors.country_id && (
                           <div className="ValidationColor">
                             {errors.country_id}
                           </div>
                         )}
+                        {/* {errors.country_id && !bankDetail.country_id && (
+                          <div className="ValidationColor">
+                            {errors.country_id}
+                          </div>
+                        )} */}
                       </div>
                     </div>
 
@@ -1705,13 +1719,21 @@ const SectionReKYCDetails = () => {
                             handleStateChange(selectedOption, bankDetail.id)
                           }
                           placeholder="Select State"
-                          isDisabled={!bankDetail.country_id} // Disable if no country selected
+                          // isDisabled={!bankDetail.country_id},
+                          isDisabled={!bankDetail.isNew}
                         />
-                        {errors.state_id && !bankDetail.state_id && (
+                        {/* {errors.state_id && !bankDetail.state_id && (
                           <div className="ValidationColor">
                             {errors.state_id}
                           </div>
-                        )}
+                        )} */}
+                        {bankDetail.isNew &&
+                          errors.state_id &&
+                          !bankDetail.state_id && (
+                            <div className="ValidationColor">
+                              {errors.state_id}
+                            </div>
+                          )}
                       </div>
                     </div>
 
@@ -1734,10 +1756,13 @@ const SectionReKYCDetails = () => {
                           onChange={(e) =>
                             handleInputChange(e, bankDetail.id, "city")
                           }
+                          disabled={!bankDetail.isNew}
                         />
-                        {errors.city && !bankDetail.city && (
-                          <div className="ValidationColor">{errors.city}</div>
-                        )}
+                        {bankDetail.isNew &&
+                          errors.city &&
+                          !bankDetail.city && (
+                            <div className="ValidationColor">{errors.city}</div>
+                          )}
                       </div>
                     </div>
 
@@ -1760,12 +1785,20 @@ const SectionReKYCDetails = () => {
                           onChange={(e) =>
                             handleInputChange(e, bankDetail.id, "pin_code")
                           }
+                          disabled={!bankDetail.isNew}
                         />
-                        {errors.pin_code && !bankDetail.pin_code && (
+                        {/* {errors.pin_code && !bankDetail.pin_code && (
                           <div className="ValidationColor">
                             {errors.pin_code}
                           </div>
-                        )}
+                        )} */}
+                        {bankDetail.isNew &&
+                          errors.pin_code &&
+                          !bankDetail.pin_code && (
+                            <div className="ValidationColor">
+                              {errors.pin_code}
+                            </div>
+                          )}
                       </div>
                     </div>
 
@@ -1788,8 +1821,11 @@ const SectionReKYCDetails = () => {
                           onChange={(e) =>
                             handleInputChange(e, bankDetail.id, "account_type")
                           }
+                          disabled={!bankDetail.isNew}
                         />
-                        {errors.account_number &&
+
+                        {bankDetail.isNew &&
+                          errors.account_number &&
                           !bankDetail.account_number && (
                             <div className="ValidationColor">
                               {errors.account_number}
@@ -1821,18 +1857,16 @@ const SectionReKYCDetails = () => {
                               "account_number"
                             )
                           }
+                          disabled={!bankDetail.isNew}
                         />
 
-                        {
-                          // bankDetail.isNew &&
-
+                        {bankDetail.isNew &&
                           errors.account_number &&
-                            !bankDetail.account_number && (
-                              <div className="ValidationColor">
-                                {errors.account_number}
-                              </div>
-                            )
-                        }
+                          !bankDetail.account_number && (
+                            <div className="ValidationColor">
+                              {errors.account_number}
+                            </div>
+                          )}
                       </div>
                     </div>
 
@@ -1918,8 +1952,9 @@ const SectionReKYCDetails = () => {
                               });
                             }
                           }}
+                          disabled={!bankDetail.isNew}
                         />
-                        {errors.confirm_account_number && (
+                        {bankDetail.isNew && errors.confirm_account_number && (
                           <div className="ValidationColor">
                             {errors.confirm_account_number}
                           </div>
@@ -1946,12 +1981,15 @@ const SectionReKYCDetails = () => {
                           onChange={(e) =>
                             handleInputChange(e, bankDetail.id, "branch_name")
                           }
+                          disabled={!bankDetail.isNew}
                         />
-                        {errors.branch_name && !bankDetail.branch_name && (
-                          <div className="ValidationColor">
-                            {errors.branch_name}
-                          </div>
-                        )}
+                        {bankDetail.isNew &&
+                          errors.branch_name &&
+                          !bankDetail.branch_name && (
+                            <div className="ValidationColor">
+                              {errors.branch_name}
+                            </div>
+                          )}
                       </div>
                     </div>
 
@@ -1974,6 +2012,7 @@ const SectionReKYCDetails = () => {
                           onChange={(e) =>
                             handleInputChange(e, bankDetail.id, "micr_number")
                           }
+                          disabled={!bankDetail.isNew}
                         />
                         {errors.micr_number && !bankDetail.micr_number && (
                           <div className="ValidationColor">
@@ -2002,12 +2041,15 @@ const SectionReKYCDetails = () => {
                           onChange={(e) =>
                             handleInputChange(e, bankDetail.id, "ifsc_code")
                           }
+                          disabled={!bankDetail.isNew}
                         />
-                        {errors.ifsc_code && !bankDetail.ifsc_code && (
-                          <div className="ValidationColor">
-                            {errors.ifsc_code}
-                          </div>
-                        )}
+                        {bankDetail.isNew &&
+                          errors.ifsc_code &&
+                          !bankDetail.ifsc_code && (
+                            <div className="ValidationColor">
+                              {errors.ifsc_code}
+                            </div>
+                          )}
                       </div>
                     </div>
 
@@ -2035,8 +2077,10 @@ const SectionReKYCDetails = () => {
                               "benficary_name"
                             )
                           }
+                          disabled={!bankDetail.isNew}
                         />
-                        {errors.benficary_name &&
+                        {bankDetail.isNew &&
+                          errors.benficary_name &&
                           !bankDetail.benficary_name && (
                             <div className="ValidationColor">
                               {errors.benficary_name}
@@ -2102,6 +2146,7 @@ const SectionReKYCDetails = () => {
                           ref={fileInputRef}
                           multiple
                           accept=".xlsx,.csv,.pdf,.docx,.doc,.xls,.txt,.png,.jpg,.jpeg,.zip,.rar,.jfif,.svg,.mp4,.mp3,.avi,.flv,.wmv"
+                          disabled={!bankDetail.isNew}
                         />
 
                         {/* Validation Message */}
@@ -2110,11 +2155,13 @@ const SectionReKYCDetails = () => {
                             {errors.cancelled_cheque}
                           </div>
                         )} */}
-                        {errors.cancelled_cheque && !bankDetail.attachment && (
-                          <div className="ValidationColor">
-                            {errors.cancelled_cheque}
-                          </div>
-                        )}
+                        {bankDetail.isNew &&
+                          errors.cancelled_cheque &&
+                          !bankDetail.attachment && (
+                            <div className="ValidationColor">
+                              {errors.cancelled_cheque}
+                            </div>
+                          )}
                       </div>
                     </div>
 
@@ -2133,6 +2180,7 @@ const SectionReKYCDetails = () => {
                           onChange={(e) =>
                             handleInputChange(e, bankDetail.id, "remark")
                           }
+                          disabled={!bankDetail.isNew}
                         />
                       </div>
                     </div>
