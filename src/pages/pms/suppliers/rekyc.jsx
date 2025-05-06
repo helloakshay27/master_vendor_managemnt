@@ -1416,11 +1416,9 @@ const SectionReKYCDetails = () => {
                     <>
                       {/* GSTIN Classification */}
                       <div className="col-md-4 mt-2">
-                        <div className="form-group">
+                        {/* <div className="form-group">
                           <label
-                          // data-bs-toggle="tooltip"
-                          // data-bs-placement="top"
-                          // title={tooltipMessages.MSMEUdyamNumber}
+
                           >
                             GSTIN Classification<span></span>
                           </label>
@@ -1445,6 +1443,37 @@ const SectionReKYCDetails = () => {
                               </option>
                             ))}
                           </select>
+                        </div> */}
+                        <div className="form-group">
+                          <label>
+                            GSTIN Classification<span></span>
+                          </label>
+                          <div style={{ position: "relative" }}>
+                            <select
+                              className="form-control"
+                              style={{ width: "100%", appearance: "menulist" }}
+                              value={gstClassification?.value || ""}
+                              onChange={(e) => {
+                                const selectedValue = parseInt(
+                                  e.target.value,
+                                  10
+                                );
+                                const selectedOption = gstClassifications.find(
+                                  (item) => item.value === selectedValue
+                                );
+                                setGstClassification(selectedOption || null);
+                              }}
+                            >
+                              <option value="">
+                                Select GST Classification
+                              </option>
+                              {gstClassifications.map((item) => (
+                                <option key={item.value} value={item.value}>
+                                  {item.name}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
                         </div>
                       </div>
 
@@ -2767,7 +2796,7 @@ const SectionReKYCDetails = () => {
                       <label>
                         E-invoicing Applicable <span>*</span>
                       </label>
-                      <select
+                      {/* <select
                         // value={eInvoicingApplicable}
                         // onChange={handleEInvoicingChange}
                         // className="form-control"
@@ -2779,7 +2808,25 @@ const SectionReKYCDetails = () => {
                       >
                         <option value="Yes">Yes</option>
                         <option value="No">No</option>
-                      </select>
+                      </select> */}
+                      <SingleSelector
+                        options={[
+                          { value: "Yes", label: "Yes" },
+                          { value: "No", label: "No" },
+                        ]}
+                        value={
+                          eInvoicingApplicable
+                            ? {
+                                value: eInvoicingApplicable,
+                                label: eInvoicingApplicable,
+                              }
+                            : null
+                        }
+                        onChange={(selected) =>
+                          setEInvoicingApplicable(selected?.value || "")
+                        }
+                        className="form-control"
+                      />
                     </div>
                   </div>
                 </div>
@@ -2931,9 +2978,9 @@ const SectionReKYCDetails = () => {
               {errors.declaration && (
                 <div className="ValidationColor">{errors.declaration}</div>
               )}
-              {/* <div id="checkboxError" style={{ color: "red", display: "none" }}>
+              <div id="checkboxError" style={{ color: "red", display: "none" }}>
                 Please check this box to proceed.
-              </div> */}
+              </div>
             </div>
           </div>
         </div>
