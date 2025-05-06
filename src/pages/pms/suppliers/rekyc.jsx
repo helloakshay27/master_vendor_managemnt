@@ -729,7 +729,11 @@ const SectionReKYCDetails = () => {
           if (!bankDetail.benficary_name) {
             validationErrors.benficary_name = "Beneficiary Name is required.";
           }
-          if (!bankDetail.cancelled_cheque) {
+          // if (!bankDetail.cancelled_cheque) {
+          //   validationErrors.cancelled_cheque =
+          //     "Cancelled Cheque / Bank Copy is required.";
+          // }
+          if (!bankAttachments[bankDetail.id]) {
             validationErrors.cancelled_cheque =
               "Cancelled Cheque / Bank Copy is required.";
           }
