@@ -1559,6 +1559,7 @@ const SectionReKYCDetails = () => {
                             className="form-control mt-2"
                             // multiple
                             type="file"
+                            accept=".pdf"
                             name="pms_supplier[gstin_attachments][]"
                             onChange={handleFileChangegst}
                           />
@@ -2185,7 +2186,7 @@ const SectionReKYCDetails = () => {
                           }
                           ref={fileInputRef}
                           multiple
-                          accept=".xlsx,.csv,.pdf,.docx,.doc,.xls,.txt,.png,.jpg,.jpeg,.zip,.rar,.jfif,.svg,.mp4,.mp3,.avi,.flv,.wmv"
+                          accept=".pdf"
                           disabled={!bankDetail.isNew}
                         />
 
@@ -2674,7 +2675,7 @@ const SectionReKYCDetails = () => {
                           onChange={(e) => handleFileChange(e.target.files[0])}
                           ref={fileInputRef}
                           multiple
-                          accept=".xlsx,.csv,.pdf,.docx,.doc,.xls,.txt,.png,.jpg,.jpeg,.zip,.rar,.jfif,.svg,.mp4,.mp3,.avi,.flv,.wmv"
+                          accept=".pdf"
                         />
                         {errors.msmeAttachments && (
                           <div className="ValidationColor">
@@ -2770,6 +2771,7 @@ const SectionReKYCDetails = () => {
                       <input
                         className="form-control"
                         type="file"
+                        accept=".pdf"
                         name=""
                         onChange={handleFileChange}
                       />
@@ -2886,7 +2888,7 @@ const SectionReKYCDetails = () => {
                           onChange={(e) => handleFileChange2(e.target.files[0])}
                           ref={fileInputRef}
                           multiple
-                          accept=".xlsx,.csv,.pdf,.docx,.doc,.xls,.txt,.png,.jpg,.jpeg,.zip,.rar,.jfif,.svg,.mp4,.mp3,.avi,.flv,.wmv"
+                          accept=".pdf"
                         />
                         Major Activity *
                       </div>
@@ -2978,9 +2980,9 @@ const SectionReKYCDetails = () => {
               {errors.declaration && (
                 <div className="ValidationColor">{errors.declaration}</div>
               )}
-              <div id="checkboxError" style={{ color: "red", display: "none" }}>
+              {/* <div id="checkboxError" style={{ color: "red", display: "none" }}>
                 Please check this box to proceed.
-              </div>
+              </div> */}
             </div>
           </div>
         </div>
