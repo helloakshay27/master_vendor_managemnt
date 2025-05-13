@@ -2512,6 +2512,8 @@ const SectionReKYCDetails = () => {
                           Download Specimen <span>*</span>
                         </label>
                         <a
+                          target="_blank"
+                          rel="noopener noreferrer"
                           download="Specimen_E-Invoicing_Declaration.docx"
                           className="text-primary d-flex align-items-center"
                           href={`${baseURL}/assets/Yes%20_%20msme.pdf`}
@@ -2624,6 +2626,8 @@ const SectionReKYCDetails = () => {
                       </label>
                       <TooltipIcon message="If you choose 'No' for e-invoicing, a specimen format will be available for download. This is for businesses not subject to e-invoicing under GST regulations. Please upload a signed declaration stating that your organization is not registered.The document must be uploaded in PDF format" />
                       <a
+                        target="_blank"
+                        rel="noopener noreferrer"
                         download="Specimen_E-Invoicing_Declaration.docx"
                         className="text-primary d-flex align-items-center"
                         href={`${baseURL}/assets/NO_%20MSME.pdf`}
@@ -2741,6 +2745,8 @@ const SectionReKYCDetails = () => {
                           Download Specimen <span>*</span>
                         </label>
                         <a
+                         target="_blank"
+                          rel="noopener noreferrer"
                           download="Specimen_E-Invoicing_Declaration.docx"
                           className="text-primary d-flex align-items-center"
                           href="/assets/Specimen_E-Invoicing_Declaration.docx"
