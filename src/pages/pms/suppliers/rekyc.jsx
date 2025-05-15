@@ -187,7 +187,12 @@ const SectionReKYCDetails = () => {
       setValidTill(response.data?.msme_details?.valid_till);
       setMajorActivity(response.data?.msme_details?.major_activity);
       setClassificationYear(response.data?.msme_details?.classification_year);
-      setClassificationDate(response.data?.msme_details?.classification_date);
+      // setClassificationDate(response.data?.msme_details?.classification_date);
+      setClassificationDate(
+        response.data?.msme_details?.classification_date
+          ? response.data.msme_details.classification_date.split("T")[0]
+          : ""
+      );
 
       setRekycId(response.data?.id);
       setRekycType(response.data?.rekyc_type);
