@@ -17,12 +17,16 @@ const ApprovalList = () => {
   // const [companies, setCompanies] = useState([]);
   const [departments, setDepartments] = useState([]);
 
+  const [kycTypes, setKycTypes] = useState([]);
+
   // const [selectedCompany, setSelectedCompany] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const [selectedSite, setSelectedSite] = useState(null);
 
   const [selectedDepartment, setSelectedDepartment] = useState(null);
+
+  const [selectedRekycType, setSelectedRekycType] = useState(null);
 
   const [filterOptions, setFilterOptions] = useState({
     companies: [],
@@ -53,23 +57,78 @@ const ApprovalList = () => {
     department: null,
     modules: null,
   });
+  // useEffect(() => {
+  //   const fetchApprovals = async () => {
+  //     setLoading(true);
+  //     try {
+  //            let queryParams = new URLSearchParams();
+  //     queryParams.append("q[approval_type_eq]", "vendor_rekyc"); // <-- This line ensures the filter is always sent
+
+  //     if (filters.department)
+  //       queryParams.append("q[department_id_eq]", filters.department);
+
+  //     queryParams.append("page", pagination.current_page);
+  //     queryParams.append("page_size", 10);
+
+  //       // let queryParams = new URLSearchParams();
+  //       // queryParams.append("q[approval_type_eq]", "vendor_rekyc");
+
+  //       // Preserve filters when paginating
+  //       // if (filters.company)
+  //       //   queryParams.append("q[company_id_eq]", filters.company);
+
+  //       // if (filters.department)
+  //         // queryParams.append("q[department_id_eq]", filters.department);
+
+  //       // Add pagination params
+  //       // queryParams.append("page", pagination.current_page);
+  //       // queryParams.append("page_size", 10); // Use API per_page value
+
+  //       const apiUrl = `${baseURL}/pms/admin/invoice_approvals.json?${queryParams.toString()}&token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`;
+
+  //       console.log("API URL (Pagination):", apiUrl);
+
+  //       const response = await fetch(apiUrl);
+  //       if (!response.ok) throw new Error("Failed to fetch page data");
+
+  //       const data = await response.json();
+  //       setApprovals(data.invoice_approvals || []);
+
+  //       // Update pagination from API response
+  //       setPagination({
+  //         current_page: data.pagination.current_page || 1,
+  //         total_pages: data.pagination.total_pages || 1,
+  //         total_count: data.pagination.total_records || 10,
+  //       });
+  //     } catch (error) {
+  //       console.error("Error fetching page data:", error);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+
+  //   fetchApprovals();
+  // }, [pagination.current_page]); // Added `filters`
+  // const handleEditClick = () => {
+  //   navigate("/approval_edit");
+  // };
+
   useEffect(() => {
     const fetchApprovals = async () => {
       setLoading(true);
       try {
         let queryParams = new URLSearchParams();
-        queryParams.append("q[approval_type_eq]", "vendor_rekyc");
+        queryParams.append("q[approval_type_eq]", "vendor_rekyc"); // Always include this
 
-        // Preserve filters when paginating
-        // if (filters.company)
-        //   queryParams.append("q[company_id_eq]", filters.company);
-
+        // if (filters.department)
+        //   queryParams.append("q[department_id_eq]", filters.department);
         if (filters.department)
           queryParams.append("q[department_id_eq]", filters.department);
+        if (filters.rekycType)
+          queryParams.append("q[approval_function_eq]", filters.rekycType);
 
-        // Add pagination params
         queryParams.append("page", pagination.current_page);
-        queryParams.append("page_size", 10); // Use API per_page value
+        queryParams.append("page_size", pagination.per_page || 10); // Always send a valid page_size
 
         const apiUrl = `${baseURL}/pms/admin/invoice_approvals.json?${queryParams.toString()}&token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`;
 
@@ -80,12 +139,20 @@ const ApprovalList = () => {
 
         const data = await response.json();
         setApprovals(data.invoice_approvals || []);
+        const allFunction = data.invoice_approvals
+          .map((type) => type.approval_function)
+          .filter(
+            (value, index, self) => value && self.indexOf(value) === index
+          );
+        setKycTypes(allFunction.map((type) => ({ value: type, label: type })));
 
-        // Update pagination from API response
+        console.log("All Function Types:", allFunction);
+
         setPagination({
           current_page: data.pagination.current_page || 1,
           total_pages: data.pagination.total_pages || 1,
           total_count: data.pagination.total_records || 10,
+          per_page: data.pagination.per_page || pagination.per_page || 10, // keep per_page in sync
         });
       } catch (error) {
         console.error("Error fetching page data:", error);
@@ -95,10 +162,7 @@ const ApprovalList = () => {
     };
 
     fetchApprovals();
-  }, [pagination.current_page]); // Added `filters`
-  // const handleEditClick = () => {
-  //   navigate("/approval_edit");
-  // };
+  }, [pagination.current_page, filters.department]);
 
   const handleEditClick = (id) => {
     navigate(`/approval-edit/${id}`);
@@ -154,17 +218,58 @@ const ApprovalList = () => {
       [field]: value, // Update filter but don't fetch data yet
     }));
   };
+  // const handleFilterSubmit = async (e) => {
+  //   e.preventDefault();
+
+  //   let queryParams = new URLSearchParams();
+  //   // if (filters.company)
+  //   //   queryParams.append("q[company_id_eq]", filters.company);
+  //   if (filters.department)
+  //     queryParams.append("q[department_id_eq]", filters.department);
+
+  //   queryParams.append("page", 1);
+  //   queryParams.append("page_size", pagination.per_page); // Ensure correct page size
+
+  //   const apiUrl = `${baseURL}/pms/admin/invoice_approvals.json?${queryParams.toString()}&token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`;
+
+  //   try {
+  //     const response = await fetch(apiUrl);
+  //     if (!response.ok) throw new Error("Failed to fetch filtered data");
+
+  //     const data = await response.json();
+
+  //     setApprovals(data.invoice_approvals || []);
+
+  //     if (data.pagination) {
+  //       setPagination({
+  //         current_page: data.pagination.current_page || 1,
+  //         total_pages: data.pagination.total_pages || 0,
+  //         total_count: data.pagination.total_records || 0,
+  //         per_page: data.pagination.per_page || 10, // Ensure per_page is set
+  //       });
+  //     }
+  //   } catch (error) {
+  //     console.error("Error fetching filtered data:", error);
+  //   }
+  // };
+
   const handleFilterSubmit = async (e) => {
     e.preventDefault();
 
     let queryParams = new URLSearchParams();
-    // if (filters.company)
-    //   queryParams.append("q[company_id_eq]", filters.company);
+    queryParams.append("q[approval_type_eq]", "vendor_rekyc"); // Always include this
+
+    // if (filters.department)
+    //   queryParams.append("q[department_id_eq]", filters.department);
     if (filters.department)
-      queryParams.append("q[department_id_eq]", filters.department);
+  queryParams.append("q[department_id_eq]", filters.department);
+if (filters.rekycType)
+  queryParams.append("q[approval_function_eq]", filters.rekycType);
 
     queryParams.append("page", 1);
-    queryParams.append("page_size", pagination.per_page); // Ensure correct page size
+    queryParams.append("page_size", pagination.per_page || 10);
+
+    
 
     const apiUrl = `${baseURL}/pms/admin/invoice_approvals.json?${queryParams.toString()}&token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`;
 
@@ -181,22 +286,26 @@ const ApprovalList = () => {
           current_page: data.pagination.current_page || 1,
           total_pages: data.pagination.total_pages || 0,
           total_count: data.pagination.total_records || 0,
-          per_page: data.pagination.per_page || 10, // Ensure per_page is set
+          per_page: data.pagination.per_page || pagination.per_page || 10,
         });
       }
     } catch (error) {
       console.error("Error fetching filtered data:", error);
     }
   };
-
   const handleResetFilters = async () => {
     setFilters({
       // company: null,
       department: null,
+      rekycType: null,
     });
+
+    let queryParams = new URLSearchParams();
+    queryParams.append("q[approval_type_eq]", "vendor_rekyc"); // Always include this
 
     // setSelectedCompany(null);
     setSelectedDepartment(null);
+    setSelectedRekycType(null);
 
     // Reset Pagination to Page 1
     setPagination({
@@ -207,7 +316,9 @@ const ApprovalList = () => {
     });
 
     try {
-      const apiUrl = `${baseURL}/pms/admin/invoice_approvals.json?page=1&page_size=${pageSize}&token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`;
+        const apiUrl = `${baseURL}/pms/admin/invoice_approvals.json?${queryParams.toString()}&token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`;
+
+      // const apiUrl = `${baseURL}/pms/admin/invoice_approvals.json?page=1&page_size=${pageSize}&token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`;
 
       const response = await fetch(apiUrl);
       if (!response.ok) throw new Error("Failed to fetch initial data");
@@ -283,7 +394,7 @@ const ApprovalList = () => {
 
     try {
       const response = await axios.post(
-        (`${baseURL}/pms/admin/invoice_approvals/import_rekyc?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`),
+        `${baseURL}/pms/admin/invoice_approvals/import_rekyc?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`,
         formData,
         {
           headers: {
@@ -419,6 +530,29 @@ const ApprovalList = () => {
                       />
                     </div>
 
+                    <div className="col-md-3">
+                      <label htmlFor="event-no-select">ReKyc Type</label>
+                      <SingleSelector
+                        options={kycTypes}
+                        value={
+                          kycTypes.find((k) => k.value === selectedRekycType) ||
+                          null
+                        }
+                        onChange={(selectedOption) => {
+                          setSelectedRekycType(
+                            selectedOption ? selectedOption.value : null
+                          );
+                          setFilters((prevFilters) => ({
+                            ...prevFilters,
+                            rekycType: selectedOption
+                              ? selectedOption.value
+                              : null,
+                          }));
+                        }}
+                        placeholder="Select ReKyc Type"
+                      />
+                    </div>
+
                     {/* Created By */}
 
                     <button
@@ -537,7 +671,6 @@ const ApprovalList = () => {
                       </button>
                     </li>
                   ))}
-
                   {/* Next Button */}
                   <li
                     className={`page-item ${
