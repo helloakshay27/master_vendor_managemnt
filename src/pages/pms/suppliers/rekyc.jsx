@@ -262,7 +262,7 @@ const SectionReKYCDetails = () => {
       console.log(`Checking GSTIN: ${gstin}`);
 
       const response = await fetch(
-        `https://vendors.lockated.com/pms/suppliers/check_existing_pan_gstin?gstin=${gstin}`,
+        `${baseURL}/pms/suppliers/check_existing_pan_gstin?gstin=${gstin}`,
         {
           method: "GET",
           headers: {
