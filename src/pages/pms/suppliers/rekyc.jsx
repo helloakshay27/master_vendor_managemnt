@@ -732,6 +732,9 @@ const SectionReKYCDetails = () => {
           }
           if (!bankDetail.ifsc_code) {
             validationErrors.ifsc_code = "IFSC Code is required.";
+          } else if (bankDetail.ifsc_code.length > 11) {
+            validationErrors.ifsc_code =
+              "IFSC Code cannot be longer than 11 characters.";
           }
           if (!bankDetail.benficary_name) {
             validationErrors.benficary_name = "Beneficiary Name is required.";
@@ -2088,6 +2091,7 @@ const SectionReKYCDetails = () => {
                           type="text"
                           placeholder="Enter IFSC Code"
                           value={bankDetail.ifsc_code}
+                          maxLength={11}
                           onChange={(e) =>
                             handleInputChange(e, bankDetail.id, "ifsc_code")
                           }
