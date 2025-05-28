@@ -716,10 +716,22 @@ const SectionReKYCDetails = () => {
           if (!bankDetail.account_number) {
             validationErrors.account_number = "Account Number is required.";
           }
+          // if (!bankDetail.confirm_account_number) {
+          //   validationErrors.confirm_account_number =
+          //     "Confirm Account Number is required.";
+          // }
           if (!bankDetail.confirm_account_number) {
             validationErrors.confirm_account_number =
               "Confirm Account Number is required.";
+          } else if (
+            bankDetail.account_number !== bankDetail.confirm_account_number
+          ) {
+            validationErrors.confirm_account_number =
+              "Account numbers must match";
+            // Show popup alert
+            alert("Account Number and Confirm Account Number must match!");
           }
+
           if (bankDetail.account_number !== bankDetail.confirm_account_number) {
             validationErrors.account_match =
               "Account Number and Confirm Account Number must match.";
@@ -1634,7 +1646,6 @@ const SectionReKYCDetails = () => {
                         {/* {console.log(errors.bank_name)} */}
                       </div>
                     </div>
-
                     {/* Address */}
                     <div className="col-md-4">
                       <div className="form-group">
@@ -1656,11 +1667,13 @@ const SectionReKYCDetails = () => {
                           }
                           disabled={!bankDetail.isNew}
                         />
-                        {bankDetail.isNew && errors.address && (
-                          <div className="ValidationColor">
-                            {errors.address}
-                          </div>
-                        )}
+                        {bankDetail.isNew &&
+                          errors.address &&
+                          !bankDetail.address && (
+                            <div className="ValidationColor">
+                              {errors.address}
+                            </div>
+                          )}
                         {/* {errors.address && !bankDetail.address && (
                           <div className="ValidationColor">
                             {errors.address}
@@ -1668,7 +1681,6 @@ const SectionReKYCDetails = () => {
                         )} */}
                       </div>
                     </div>
-
                     {/* Country */}
                     <div className="col-md-4">
                       <div className="form-group">
@@ -1722,11 +1734,13 @@ const SectionReKYCDetails = () => {
                         />
 
                         {/* Validation Error Message */}
-                        {bankDetail.isNew && errors.country_id && (
-                          <div className="ValidationColor">
-                            {errors.country_id}
-                          </div>
-                        )}
+                        {bankDetail.isNew &&
+                          errors.country_id &&
+                          !bankDetail.country_id && (
+                            <div className="ValidationColor">
+                              {errors.country_id}
+                            </div>
+                          )}
                         {/* {errors.country_id && !bankDetail.country_id && (
                           <div className="ValidationColor">
                             {errors.country_id}
@@ -1734,7 +1748,6 @@ const SectionReKYCDetails = () => {
                         )} */}
                       </div>
                     </div>
-
                     <div className="col-md-4">
                       <div className="form-group">
                         <label
@@ -1787,7 +1800,6 @@ const SectionReKYCDetails = () => {
                           )}
                       </div>
                     </div>
-
                     {/* City */}
                     <div className="col-md-4 mt-2">
                       <div className="form-group">
@@ -1818,7 +1830,6 @@ const SectionReKYCDetails = () => {
                           )}
                       </div>
                     </div>
-
                     {/* Pin Code */}
                     <div className="col-md-4 mt-2">
                       <div className="form-group">
@@ -1854,7 +1865,6 @@ const SectionReKYCDetails = () => {
                           )}
                       </div>
                     </div>
-
                     {/* Account Type */}
                     <div className="col-md-4 mt-2">
                       <div className="form-group">
@@ -1878,15 +1888,14 @@ const SectionReKYCDetails = () => {
                         />
 
                         {bankDetail.isNew &&
-                          errors.account_number &&
-                          !bankDetail.account_number && (
+                          errors.account_type &&
+                          !bankDetail.account_type && (
                             <div className="ValidationColor">
-                              {errors.account_number}
+                              {errors.account_type}
                             </div>
                           )}
                       </div>
                     </div>
-
                     {/* Account Number */}
                     <div className="col-md-4 mt-2">
                       <div className="form-group">
@@ -1922,7 +1931,6 @@ const SectionReKYCDetails = () => {
                           )}
                       </div>
                     </div>
-
                     {/* Confirm Account Number */}
                     {/* <div className="col-md-4 mt-2">
                       <div className="form-group">
@@ -1957,7 +1965,6 @@ const SectionReKYCDetails = () => {
                             {errors.account_match}
                           </div>
                         )} */}
-
                     {/* {errors.confirm_account_number &&
                           !bankDetail.confirm_account_number && (
                             <div className="ValidationColor">
@@ -1973,7 +1980,7 @@ const SectionReKYCDetails = () => {
                           )}
                       </div>
                     </div> */}
-                    <div className="col-md-4 mt-2">
+                    {/* <div className="col-md-4 mt-2">
                       <div className="form-group">
                         <label>
                           Confirm Account Number <span>*</span>
@@ -2013,8 +2020,58 @@ const SectionReKYCDetails = () => {
                           </div>
                         )}
                       </div>
-                    </div>
+                    </div> */}
+                    {/* // Add this to your component's return JSX where the confirm
+                    account number input is */}
+                    <div className="col-md-4 mt-2">
+                      <div className="form-group">
+                        <label>
+                          Confirm Account Number <span>*</span>
+                          <TooltipIcon message="Re-enter the bank account number to confirm accuracy. Ensure it matches the original account number entered above." />
+                        </label>
+                        <input
+                          className="form-control"
+                          type="text"
+                          placeholder="Enter Confirm Account Number"
+                          value={bankDetail.confirm_account_number}
+                          onChange={(e) => {
+                            const newValue = e.target.value;
+                            handleInputChange(
+                              e,
+                              bankDetail.id,
+                              "confirm_account_number"
+                            );
 
+                            // Validate on change
+                            if (newValue !== bankDetail.account_number) {
+                              setErrors((prev) => ({
+                                ...prev,
+                                confirm_account_number:
+                                  "Account numbers must match",
+                              }));
+                            } else {
+                              setErrors((prev) => {
+                                const newErrors = { ...prev };
+                                delete newErrors.confirm_account_number;
+                                return newErrors;
+                              });
+                            }
+                          }}
+                          onPaste={(e) => {
+                            e.preventDefault();
+                            alert(
+                              "Pasting is not allowed for security reasons. Please type the account number."
+                            );
+                          }}
+                          disabled={!bankDetail.isNew}
+                        />
+                        {bankDetail.isNew && errors.confirm_account_number && (
+                          <div className="ValidationColor">
+                            {errors.confirm_account_number}
+                          </div>
+                        )}
+                      </div>
+                    </div>
                     {/* Branch Name */}
                     <div className="col-md-4 mt-2">
                       <div className="form-group">
@@ -2045,7 +2102,6 @@ const SectionReKYCDetails = () => {
                           )}
                       </div>
                     </div>
-
                     {/* MICR No. */}
                     <div className="col-md-4 mt-2">
                       <div className="form-group">
@@ -2074,7 +2130,6 @@ const SectionReKYCDetails = () => {
                         )}
                       </div>
                     </div>
-
                     {/* IFSC Code */}
                     <div className="col-md-4 mt-2">
                       <div className="form-group">
@@ -2106,7 +2161,6 @@ const SectionReKYCDetails = () => {
                           )}
                       </div>
                     </div>
-
                     {/* Beneficiary Name */}
                     <div className="col-md-4 mt-2">
                       <div className="form-group">
@@ -2142,7 +2196,6 @@ const SectionReKYCDetails = () => {
                           )}
                       </div>
                     </div>
-
                     {/* Cancelled Cheque / Bank Copy */}
                     <div className="col-md-4 mt-2">
                       <div className="form-group">
@@ -2209,6 +2262,13 @@ const SectionReKYCDetails = () => {
                             {errors.cancelled_cheque}
                           </div>
                         )} */}
+                        {/* {bankDetail.isNew &&
+                          errors.cancelled_cheque &&
+                          !bankDetail.attachment && (
+                            <div className="ValidationColor">
+                              {errors.cancelled_cheque}
+                            </div>
+                          )} */}
                         {bankDetail.isNew &&
                           errors.cancelled_cheque &&
                           !bankDetail.attachment && (
@@ -2218,7 +2278,6 @@ const SectionReKYCDetails = () => {
                           )}
                       </div>
                     </div>
-
                     {/* Remark */}
                     <div className="col-md-4 mt-2">
                       <div className="form-group">
