@@ -410,13 +410,149 @@ const SectionReKYCDetails = () => {
 
   // Function to handle field changes
 
+  // const handleInputChange = (e, id, field) => {
+  //   const { value } = e.target;
+  //   setBankDetailsList((prevDetails) =>
+  //     prevDetails.map((bankDetail) =>
+  //       bankDetail.id === id ? { ...bankDetail, [field]: value } : bankDetail
+  //     )
+  //   );
+  // };
+  // Add these to your state declarations
+
+  // Add near the top of your component with other constants
+  const accountTypeOptions = [
+    { value: "", label: "Select Account Type" },
+    { value: "Saving Account", label: "Saving Account" },
+    { value: "Current Account", label: "Current Account" },
+    { value: "Overdraft Account", label: "Overdraft Account" },
+  ];
+  const [inputErrors, setInputErrors] = useState({});
+
   const handleInputChange = (e, id, field) => {
     const { value } = e.target;
-    setBankDetailsList((prevDetails) =>
-      prevDetails.map((bankDetail) =>
-        bankDetail.id === id ? { ...bankDetail, [field]: value } : bankDetail
-      )
-    );
+
+    if (field === "pincode") {
+      // Remove non-numeric characters
+      const numericValue = value.replace(/\D/g, "").slice(0, 6);
+
+      // Update bank details list first
+      setBankDetailsList((prevDetails) =>
+        prevDetails.map((bankDetail) =>
+          bankDetail.id === id
+            ? { ...bankDetail, pincode: numericValue }
+            : bankDetail
+        )
+      );
+
+      // Only set input errors if it's a new bank detail
+      const bankDetail = bankDetailsList.find((detail) => detail.id === id);
+      if (bankDetail?.isNew) {
+        if (!numericValue) {
+          setInputErrors((prev) => ({
+            ...prev,
+            [id]: { ...prev[id], pincode: "Pincode is required." },
+          }));
+          // Clear the validation error since we're handling it with input error
+          setErrors((prev) => {
+            const newErrors = { ...prev };
+            delete newErrors.pincode;
+            return newErrors;
+          });
+        } else if (numericValue.length < 6) {
+          setInputErrors((prev) => ({
+            ...prev,
+            [id]: { ...prev[id], pincode: "Pincode must be 6 digits" },
+          }));
+          // Clear the validation error
+          setErrors((prev) => {
+            const newErrors = { ...prev };
+            delete newErrors.pincode;
+            return newErrors;
+          });
+        } else {
+          setInputErrors((prev) => {
+            const newErrors = { ...prev };
+            if (newErrors[id]) {
+              delete newErrors[id].pincode;
+            }
+            return newErrors;
+          });
+        }
+      }
+    } else if (field === "ifsc_code") {
+      // Convert to uppercase
+      const upperValue = value.toUpperCase();
+
+      // IFSC validation regex: First 4 letters + 0 + 6 alphanumeric
+      const ifscRegex = /^[A-Z]{4}[0-9]{1}[A-Z0-9]{6}$/;
+
+      // Update bank details list first
+      setBankDetailsList((prevDetails) =>
+        prevDetails.map((bankDetail) =>
+          bankDetail.id === id
+            ? { ...bankDetail, ifsc_code: upperValue }
+            : bankDetail
+        )
+      );
+
+      // Only set input errors if it's a new bank detail
+      const bankDetail = bankDetailsList.find((detail) => detail.id === id);
+      if (bankDetail?.isNew) {
+        if (!upperValue) {
+          setInputErrors((prev) => ({
+            ...prev,
+            [id]: { ...prev[id], ifsc: "IFSC Code is required." },
+          }));
+          // Clear the validation error
+          setErrors((prev) => {
+            const newErrors = { ...prev };
+            delete newErrors.ifsc_code;
+            return newErrors;
+          });
+        } else if (upperValue.length < 11) {
+          setInputErrors((prev) => ({
+            ...prev,
+            [id]: { ...prev[id], ifsc: "IFSC code must be 11 characters" },
+          }));
+          // Clear the validation error
+          setErrors((prev) => {
+            const newErrors = { ...prev };
+            delete newErrors.ifsc_code;
+            return newErrors;
+          });
+        } else if (!ifscRegex.test(upperValue)) {
+          setInputErrors((prev) => ({
+            ...prev,
+            [id]: {
+              ...prev[id],
+              ifsc: "Invalid IFSC format. First 4 characters must be capital letters, followed by  6 alphanumeric characters",
+            },
+          }));
+          // Clear the validation error
+          setErrors((prev) => {
+            const newErrors = { ...prev };
+            delete newErrors.ifsc_code;
+            return newErrors;
+          });
+        } else {
+          setInputErrors((prev) => {
+            const newErrors = { ...prev };
+            if (newErrors[id]) {
+              delete newErrors[id].ifsc;
+            }
+            return newErrors;
+          });
+        }
+      }
+    } else {
+      // Handle other fields normally
+      setBankDetailsList((prevDetails) =>
+        prevDetails.map((bankDetail) =>
+          bankDetail.id === id ? { ...bankDetail, [field]: value } : bankDetail
+        )
+      );
+    }
   };
 
   // Function to add a new bank detail
@@ -433,7 +569,8 @@ const SectionReKYCDetails = () => {
         city_name: null,
         // pin_code: null,
         pincode: null,
-        account_type: null,
+        // account_type: null,
+        account_type: "", // Initialize with empty string for dropdown
         account_number: null,
         confirm_account_number: null,
         branch_name: null,
@@ -684,10 +821,111 @@ const SectionReKYCDetails = () => {
     // console.log('formSubmitted:', formSubmitted);
 
     let validationErrors = {};
+    // if (isRekycTypeEmpty || isBankRekyc) {
+    //   bankDetailsList.forEach((bankDetail) => {
+    //     if (bankDetail.isNew) {
+    //       // Only validate if it's a new entry
+    //       if (!bankDetail.bank_name) {
+    //         validationErrors.bank_name = "Bank Name is required.";
+    //       }
+    //       if (!bankDetail.address) {
+    //         validationErrors.address = "Address is required.";
+    //       }
+    //       if (!bankDetail.country_id) {
+    //         validationErrors.country_id = "Country is required.";
+    //       }
+    //       if (!bankDetail.state_id) {
+    //         validationErrors.state_id = "State is required.";
+    //       }
+    //       if (!bankDetail.city_name) {
+    //         validationErrors.city_name = "City is required.";
+    //       }
+    //       // {
+    //       // }
+
+    //       // if (!bankDetail.pincode || isNaN(bankDetail.pincode)) {
+    //       //   validationErrors.pincode = "Valid Pin Code is required.";
+    //       // }
+    //       // For pincode, only validate if there's no input error
+    //       if (!bankDetail.pincode || isNaN(bankDetail.pincode)) {
+    //         if (!inputErrors[bankDetail.id]?.pincode) {
+    //           validationErrors.pincode = "Valid Pin Code is required.";
+    //         }
+    //       }
+
+    //       // if (!bankDetail.account_type) {
+    //       //   validationErrors.account_type = "Account Type is required.";
+    //       // }
+    //       // In your validation section within handleUpdate
+    //       if (!bankDetail.account_type || bankDetail.account_type === "") {
+    //         validationErrors.account_type = "Account Type is required.";
+    //       }
+    //       if (!bankDetail.account_number) {
+    //         validationErrors.account_number = "Account Number is required.";
+    //       }
+    //       // if (!bankDetail.confirm_account_number) {
+    //       //   validationErrors.confirm_account_number =
+    //       //     "Confirm Account Number is required.";
+    //       // }
+    //       if (!bankDetail.confirm_account_number) {
+    //         validationErrors.confirm_account_number =
+    //           "Confirm Account Number is required.";
+    //       } else if (
+    //         bankDetail.account_number !== bankDetail.confirm_account_number
+    //       ) {
+    //         validationErrors.confirm_account_number =
+    //           "Account numbers must match";
+    //         // Show popup alert
+    //         alert("Account Number and Confirm Account Number must match!");
+    //       }
+
+    //       if (bankDetail.account_number !== bankDetail.confirm_account_number) {
+    //         validationErrors.account_match =
+    //           "Account Number and Confirm Account Number must match.";
+    //       }
+    //       if (!bankDetail.branch_name) {
+    //         validationErrors.branch_name = "Branch Name is required.";
+    //       }
+    //       if (!bankDetail.micr_number) {
+    //         validationErrors.micr_number = "MICR Number is required.";
+    //       }
+    //       // if (!bankDetail.ifsc_code) {
+    //       //   validationErrors.ifsc_code = "IFSC Code is required.";
+    //       // } else if (bankDetail.ifsc_code.length > 11) {
+    //       //   validationErrors.ifsc_code =
+    //       //     "IFSC Code cannot be longer than 11 characters.";
+    //       // }
+    //       if (!bankDetail.ifsc_code) {
+    //         if (!inputErrors[bankDetail.id]?.ifsc) {
+    //           validationErrors.ifsc_code = "IFSC Code is required.";
+    //         }
+    //       }
+
+    //       if (!bankDetail.benficary_name) {
+    //         validationErrors.benficary_name = "Beneficiary Name is required.";
+    //       }
+    //       // if (!bankDetail.cancelled_cheque) {
+    //       //   validationErrors.cancelled_cheque =
+    //       //     "Cancelled Cheque / Bank Copy is required.";
+    //       // }
+    //       if (!bankAttachments[bankDetail.id]) {
+    //         validationErrors.cancelled_cheque =
+    //           "Cancelled Cheque / Bank Copy is required.";
+    //       }
+
+    //       // Add other validation checks here
+    //     }
+    //   });
+    // }
+    // In handleUpdate function, modify the bank details validation:
     if (isRekycTypeEmpty || isBankRekyc) {
+      let hasNewBankDetails = false;
+
       bankDetailsList.forEach((bankDetail) => {
+        // Only validate if it's a new entry
         if (bankDetail.isNew) {
-          // Only validate if it's a new entry
+          hasNewBankDetails = true;
+
           if (!bankDetail.bank_name) {
             validationErrors.bank_name = "Bank Name is required.";
           }
@@ -703,23 +941,20 @@ const SectionReKYCDetails = () => {
           if (!bankDetail.city_name) {
             validationErrors.city_name = "City is required.";
           }
-          // {
-          // }
 
+          // For pincode, only validate if it's a new entry and there's no input error
           if (!bankDetail.pincode || isNaN(bankDetail.pincode)) {
-            validationErrors.pincode = "Valid Pin Code is required.";
+            if (!inputErrors[bankDetail.id]?.pincode) {
+              validationErrors.pincode = "Valid Pin Code is required.";
+            }
           }
 
-          if (!bankDetail.account_type) {
+          if (!bankDetail.account_type || bankDetail.account_type === "") {
             validationErrors.account_type = "Account Type is required.";
           }
           if (!bankDetail.account_number) {
             validationErrors.account_number = "Account Number is required.";
           }
-          // if (!bankDetail.confirm_account_number) {
-          //   validationErrors.confirm_account_number =
-          //     "Confirm Account Number is required.";
-          // }
           if (!bankDetail.confirm_account_number) {
             validationErrors.confirm_account_number =
               "Confirm Account Number is required.";
@@ -728,41 +963,37 @@ const SectionReKYCDetails = () => {
           ) {
             validationErrors.confirm_account_number =
               "Account numbers must match";
-            // Show popup alert
-            alert("Account Number and Confirm Account Number must match!");
           }
 
-          if (bankDetail.account_number !== bankDetail.confirm_account_number) {
-            validationErrors.account_match =
-              "Account Number and Confirm Account Number must match.";
-          }
           if (!bankDetail.branch_name) {
             validationErrors.branch_name = "Branch Name is required.";
           }
           if (!bankDetail.micr_number) {
             validationErrors.micr_number = "MICR Number is required.";
           }
+
+          // For IFSC code, only validate if it's a new entry and there's no input error
           if (!bankDetail.ifsc_code) {
-            validationErrors.ifsc_code = "IFSC Code is required.";
-          } else if (bankDetail.ifsc_code.length > 11) {
-            validationErrors.ifsc_code =
-              "IFSC Code cannot be longer than 11 characters.";
+            if (!inputErrors[bankDetail.id]?.ifsc) {
+              validationErrors.ifsc_code = "IFSC Code is required.";
+            }
           }
+
           if (!bankDetail.benficary_name) {
             validationErrors.benficary_name = "Beneficiary Name is required.";
           }
-          // if (!bankDetail.cancelled_cheque) {
-          //   validationErrors.cancelled_cheque =
-          //     "Cancelled Cheque / Bank Copy is required.";
-          // }
+
           if (!bankAttachments[bankDetail.id]) {
             validationErrors.cancelled_cheque =
               "Cancelled Cheque / Bank Copy is required.";
           }
-
-          // Add other validation checks here
         }
       });
+
+      // If there are no new bank details, don't show validation errors
+      if (!hasNewBankDetails) {
+        validationErrors = {};
+      }
     }
 
     if (!contactNumber) {
@@ -901,6 +1132,7 @@ const SectionReKYCDetails = () => {
           bank_details_attributes: bankDetailsList.map((item) => ({
             ...item,
             id: item.isNew ? null : item.id,
+            account_type: item.account_type || "", // Ensure account_type is included
 
             attachment: item.isNew
               ? bankAttachments[item.id] || null // If new attachment exists, pass it; otherwise, null
@@ -1749,7 +1981,7 @@ const SectionReKYCDetails = () => {
                       </div>
                     </div>
                     <div className="col-md-4">
-                      <div className="form-group">
+                      <div className="form-group mt-2">
                         <label
                         // data-bs-toggle="tooltip"
                         // data-bs-placement="top"
@@ -1856,13 +2088,27 @@ const SectionReKYCDetails = () => {
                             {errors.pin_code}
                           </div>
                         )} */}
-                        {bankDetail.isNew &&
+                        {/* {bankDetail.isNew &&
                           errors.pincode &&
                           !bankDetail.pincode && (
                             <div className="ValidationColor">
                               {errors.pincode}
                             </div>
-                          )}
+                          )} */}
+                        {bankDetail.isNew && (
+                          <>
+                            {inputErrors[bankDetail.id]?.pincode && (
+                              <div className="ValidationColor">
+                                {inputErrors[bankDetail.id].pincode}
+                              </div>
+                            )}
+                            {errors.pincode && !bankDetail.pincode && (
+                              <div className="ValidationColor">
+                                {errors.pincode}
+                              </div>
+                            )}
+                          </>
+                        )}
                       </div>
                     </div>
                     {/* Account Type */}
@@ -1876,7 +2122,7 @@ const SectionReKYCDetails = () => {
                           Account Type <span>*</span>
                           <TooltipIcon message="Select the type of bank account your organization holds,such as Savings,Current,or any other relevant type" />
                         </label>
-                        <input
+                        {/* <input
                           className="form-control"
                           type="text"
                           placeholder="Enter Account Type"
@@ -1885,8 +2131,26 @@ const SectionReKYCDetails = () => {
                             handleInputChange(e, bankDetail.id, "account_type")
                           }
                           disabled={!bankDetail.isNew}
-                        />
+                        /> */}
 
+                        <SingleSelector
+                          options={accountTypeOptions}
+                          value={
+                            accountTypeOptions.find(
+                              (option) =>
+                                option.value === bankDetail.account_type
+                            ) || null
+                          }
+                          onChange={(selected) =>
+                            handleInputChange(
+                              { target: { value: selected?.value || "" } },
+                              bankDetail.id,
+                              "account_type"
+                            )
+                          }
+                          placeholder="Select Account Type"
+                          isDisabled={!bankDetail.isNew}
+                        />
                         {bankDetail.isNew &&
                           errors.account_type &&
                           !bankDetail.account_type && (
@@ -2152,13 +2416,27 @@ const SectionReKYCDetails = () => {
                           }
                           disabled={!bankDetail.isNew}
                         />
-                        {bankDetail.isNew &&
+                        {/* {bankDetail.isNew &&
                           errors.ifsc_code &&
                           !bankDetail.ifsc_code && (
                             <div className="ValidationColor">
                               {errors.ifsc_code}
                             </div>
-                          )}
+                          )} */}
+                        {bankDetail.isNew && (
+                          <>
+                            {inputErrors[bankDetail.id]?.ifsc && (
+                              <div className="ValidationColor">
+                                {inputErrors[bankDetail.id].ifsc}
+                              </div>
+                            )}
+                            {errors.ifsc_code && !bankDetail.ifsc_code && (
+                              <div className="ValidationColor">
+                                {errors.ifsc_code}
+                              </div>
+                            )}
+                          </>
+                        )}
                       </div>
                     </div>
                     {/* Beneficiary Name */}
