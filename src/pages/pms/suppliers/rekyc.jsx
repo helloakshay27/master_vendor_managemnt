@@ -485,7 +485,8 @@ const SectionReKYCDetails = () => {
       const upperValue = value.toUpperCase();
 
       // IFSC validation regex: First 4 letters + 0 + 6 alphanumeric
-      const ifscRegex = /^[A-Z]{4}[0-9]{1}[A-Z0-9]{6}$/;
+      // const ifscRegex = /^[A-Z]{4}[0-9]{1}[A-Z0-9]{6}$/;
+      const ifscRegex = /^[A-Z]{4}0[A-Z0-9]{6}$/;
 
       // Update bank details list first
       setBankDetailsList((prevDetails) =>
@@ -526,7 +527,7 @@ const SectionReKYCDetails = () => {
             ...prev,
             [id]: {
               ...prev[id],
-              ifsc: "Invalid IFSC format. First 4 characters must be capital letters, followed by  6 alphanumeric characters",
+              ifsc: "Invalid IFSC format. First 4 characters must be capital letters, followed by '0' and 6 alphanumeric characters",
             },
           }));
           // Clear the validation error
