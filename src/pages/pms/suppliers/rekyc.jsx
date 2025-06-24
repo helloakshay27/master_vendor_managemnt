@@ -21,7 +21,7 @@ const SectionReKYCDetails = () => {
   const fileInputRef = useRef(null);
 
   const { id } = useParams();
-  console.log("id:", id);
+  // console.log("id:", id);
   const [supplierData, setSupplierData] = useState({});
   const [eInvoicingApplicable, setEInvoicingApplicable] = useState("");
   const [searchParams] = useSearchParams(); // Access query parameters
@@ -31,6 +31,7 @@ const SectionReKYCDetails = () => {
   const [loading, setLoading] = useState(false);
   const [contactNumber, setContactNumber] = useState("");
   const [emailAddress, setEmailAddress] = useState("");
+  const [organizationName, setOrganizationName] = useState(""); // Pre-fill this from API on load
 
   // Check if the rekycType array is null or empty
   const isRekycTypeEmpty = !rekycType || rekycType.length === 0;
@@ -48,12 +49,14 @@ const SectionReKYCDetails = () => {
 
   // Check if 'Bank Rekyc' is in the rekycType array
   const isBankRekyc = rekycType && rekycType.includes("Bank Rekyc");
-  console.log("bank re:", isBankRekyc);
+  // console.log("bank re:", isBankRekyc);
   const isGstinRekyc = rekycType && rekycType.includes("GSTIN Rekyc");
+  // new option name 
+  const isNameRekyc = rekycType && rekycType.includes("Name Rekyc");
 
   // !rekycType ||
 
-  console.log(" re kyc type:", rekycType);
+  // console.log(" re kyc type:", rekycType);
 
   const encryptFileContent = (file) => {
     return new Promise((resolve, reject) => {
@@ -156,7 +159,7 @@ const SectionReKYCDetails = () => {
     setMsmeEnterpriseType(newValue);
   };
 
-  console.log("msme type", msmeEnterpriseType);
+  // console.log("msme type", msmeEnterpriseType);
   // api details
 
   const [gstClassification, setGstClassification] = useState("");
@@ -216,7 +219,7 @@ const SectionReKYCDetails = () => {
       );
 
       setGstClassification(selectedClassification || null);
-
+      setOrganizationName(supplierData?.basic_information?.vendor_organization_name)
       console.log("enterprise:", response.data?.msme_details?.enterprise);
     } catch (error) {
       console.error("There was an error fetching the data!", error);
@@ -255,7 +258,7 @@ const SectionReKYCDetails = () => {
     }
   }, [gstClassifications, id]);
 
-  console.log("supplier data:", supplierData);
+  // console.log("supplier data:", supplierData);
 
   const checkGstinExists = async (gstin) => {
     try {
@@ -623,7 +626,7 @@ const SectionReKYCDetails = () => {
     reader.readAsDataURL(file);
   };
 
-  console.log("banck details :", bankDetailsList);
+  // console.log("banck details :", bankDetailsList);
 
   // Define state for form fields
   //  const [msmeUdyamApplicable, setMsmeUdyamApplicable] = useState("No");
@@ -672,6 +675,45 @@ const SectionReKYCDetails = () => {
   // Handler for Valid Till date
   const handleValidTillChange = (e) => {
     setValidTill(e.target.value);
+  };
+
+  // name rekyc attachments 
+  const [panAttachments, setPanAttachments] = useState([]);
+  const [msmeAttachments2, setMsmeAttachments2] = useState([]);
+  const [cinAttachments, setCinAttachments] = useState([]);
+  const [gstinAttachments2, setGstinAttachments2] = useState([]);
+  const [bankChequeAttachments, setBankChequeAttachments] = useState([]);
+  const handleFileUpload = (file, setAttachmentState, currentAttachments) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64String = reader.result.split(",")[1];
+      const attachment = {
+        filename: file.name,
+        content: base64String,
+        content_type: file.type,
+      };
+      setAttachmentState([...currentAttachments, attachment]);
+    };
+    reader.readAsDataURL(file);
+  };
+  const handlePanUpload = (file) => {
+    handleFileUpload(file, setPanAttachments, panAttachments);
+  };
+
+  const handleMsmeUpload = (file) => {
+    handleFileUpload(file, setMsmeAttachments2, msmeAttachments2);
+  };
+
+  const handleCinUpload = (file) => {
+    handleFileUpload(file, setCinAttachments, cinAttachments);
+  };
+
+  const handleGstinUpload = (file) => {
+    handleFileUpload(file, setGstinAttachments2, gstinAttachments2);
+  };
+
+  const handleBankChequeUpload = (file) => {
+    handleFileUpload(file, setBankChequeAttachments, bankChequeAttachments);
   };
 
   const payload = {
@@ -730,6 +772,12 @@ const SectionReKYCDetails = () => {
         gstin: gstinNumber || "",
         gstin_attachments: gstinAttachments,
       }),
+      organization_name: organizationName,
+      pan_attachement: panAttachments,
+      msme_attachement: msmeAttachments2,
+      cin_attachement: cinAttachments,
+      gstin_attachement: gstinAttachments2,
+      cheque_attachement: bankChequeAttachments,
     },
   };
 
@@ -802,8 +850,22 @@ const SectionReKYCDetails = () => {
     };
   }
 
+  // for name rekyc
+  if (isRekycTypeEmpty || isNameRekyc) {
+    payloadCondition.pms_supplier = {
+      ...payloadCondition.pms_supplier,
+
+      // Add only Name Rekyc related fields
+      organization_name: organizationName || "",
+      pan_attachement: panAttachments || [],
+      msme_attachement: msmeAttachments2 || [],
+      cin_attachement: cinAttachments || [],
+      gstin_attachement: gstinAttachments2 || [],
+      cheque_attachement: bankChequeAttachments || [],
+    };
+  }
   console.log("payload:", payload);
-  console.log("payload condition:", payloadCondition);
+  // console.log("payload condition:", payloadCondition);
 
   // update api
 
@@ -1084,6 +1146,54 @@ const SectionReKYCDetails = () => {
         }
       }
     }
+
+    // name ekyc
+    if (isRekycTypeEmpty || isNameRekyc) {
+      if (!organizationName?.trim()) {
+        validationErrors.organizationName = "Organization Name is required.";
+      }
+
+      // PAN Attachment
+      if (
+        (!supplierData?.basic_information?.pan_attachement?.length || supplierData.basic_information.pan_attachement.length === 0) &&
+        panAttachments.length === 0
+      ) {
+        validationErrors.panAttachments = "PAN Attachment is required.";
+      }
+
+      // MSME Attachment
+      if (
+        (!supplierData?.basic_information?.msme_attachement?.length || supplierData.basic_information.msme_attachement.length === 0) &&
+        msmeAttachments2.length === 0
+      ) {
+        validationErrors.msmeAttachments2 = "MSME Attachment is required.";
+      }
+
+      // CIN Attachment
+      if (
+        (!supplierData?.basic_information?.cin_attachement?.length || supplierData.basic_information.cin_attachement.length === 0) &&
+        cinAttachments.length === 0
+      ) {
+        validationErrors.cinAttachments = "CIN Attachment is required.";
+      }
+
+      // GSTIN Attachment (Name Rekyc)
+      if (
+        (!supplierData?.basic_information?.gstin_attachement?.length || supplierData.basic_information.gstin_attachement.length === 0) &&
+        gstinAttachments2.length === 0
+      ) {
+        validationErrors.gstinAttachments2 = "GSTIN Attachment is required.";
+      }
+
+      // Bank Cheque Attachment
+      if (
+        (!supplierData?.basic_information?.cheque_attachement?.length || supplierData.basic_information.cheque_attachement.length === 0) &&
+        bankChequeAttachments.length === 0
+      ) {
+        validationErrors.bankChequeAttachments = "Bank Cheque Attachment is required.";
+      }
+    }
+
 
     // Add this inside your validation logic
     if (!isChecked) {
@@ -1465,10 +1575,10 @@ const SectionReKYCDetails = () => {
                       {supplierData?.basic_information?.pan_attachments
                         ?.length > 0
                         ? // Display the document name of the first attachment
-                          supplierData?.basic_information?.pan_attachments[0]
-                            ?.document_name
+                        supplierData?.basic_information?.pan_attachments[0]
+                          ?.document_name
                         : // If no attachment is present, show a default message
-                          "No Document Available"}
+                        "No Document Available"}
                     </label>
                   </div>
                 </div>
@@ -1551,10 +1661,10 @@ const SectionReKYCDetails = () => {
                       {supplierData?.basic_information?.gstin_attachments
                         ?.length > 0
                         ? // Display the document name of the first attachment
-                          supplierData?.basic_information?.gstin_attachments[0]
-                            ?.document_name || "No Document Available"
+                        supplierData?.basic_information?.gstin_attachments[0]
+                          ?.document_name || "No Document Available"
                         : // If no attachment is present, show a default message
-                          "No Document Available"}
+                        "No Document Available"}
                     </label>
                   </div>
                 </div>
@@ -1638,7 +1748,7 @@ const SectionReKYCDetails = () => {
                       <label
                         data-bs-toggle="tooltip"
                         data-bs-placement="top"
-                        // title={tooltipMessages.GSTINApplicable}
+                      // title={tooltipMessages.GSTINApplicable}
                       >
                         GSTIN Applicable<span></span>
                         <TooltipIcon message="Indicate whether your organization is registered under the Goods and Services Tax (GST) Act." />
@@ -2508,11 +2618,11 @@ const SectionReKYCDetails = () => {
                               >
                                 <path
                                   d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
-                                  // style={{ fill: "#de7008!important" }}
+                                // style={{ fill: "#de7008!important" }}
                                 />
                                 <path
                                   d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
-                                  // style={{ fill: "#de7008!important" }}
+                                // style={{ fill: "#de7008!important" }}
                                 />
                               </svg>
                             </a>
@@ -2716,7 +2826,7 @@ const SectionReKYCDetails = () => {
                           placeholder=""
                           value={msmeNo}
                           onChange={handleMsmeNoChange} // Add onChange handler here
-                          // value={supplierData?.msme_details?.msme_no}
+                        // value={supplierData?.msme_details?.msme_no}
                         />
                         {errors.msmeNo && (
                           <div className="ValidationColor">{errors.msmeNo}</div>
@@ -2795,7 +2905,7 @@ const SectionReKYCDetails = () => {
                           value={validFrom}
                           disabled={!!classificationYear} // Disable when classification year is selected
                           onChange={handleValidFromChange} // Add onChange handler here
-                          // value={supplierData?.msme_details?.valid_from}
+                        // value={supplierData?.msme_details?.valid_from}
                         />
                         {errors.validFrom && (
                           <div className="ValidationColor">
@@ -2827,7 +2937,7 @@ const SectionReKYCDetails = () => {
                           value={validTill}
                           disabled={!!classificationYear} // Disable when classification year is selected
                           onChange={handleValidTillChange}
-                          // value={supplierData?.msme_details?.valid_till}
+                        // value={supplierData?.msme_details?.valid_till}
                         />
                         {errors.validTill && (
                           <div className="ValidationColor">
@@ -2984,41 +3094,41 @@ const SectionReKYCDetails = () => {
 
                         {supplierData?.msme_details?.msme_attachments?.length >
                           0 && (
-                          <span className="ms-2">
-                            <a
-                              href={`${baseURL}${supplierData?.msme_details?.msme_attachments[0]?.file_url}`} // Append base URL
-                              download // Ensure it prompts download
-                              className="text-primary d-flex align-items-center"
-                            >
-                              <span className="me-2">Existing Files:</span>
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width={24}
-                                height={24}
-                                fill="#DE7008"
-                                className="bi bi-download"
-                                viewBox="0 0 16 16"
+                            <span className="ms-2">
+                              <a
+                                href={`${baseURL}${supplierData?.msme_details?.msme_attachments[0]?.file_url}`} // Append base URL
+                                download // Ensure it prompts download
+                                className="text-primary d-flex align-items-center"
                               >
-                                <path
-                                  d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
+                                <span className="me-2">Existing Files:</span>
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width={24}
+                                  height={24}
+                                  fill="#DE7008"
+                                  className="bi bi-download"
+                                  viewBox="0 0 16 16"
+                                >
+                                  <path
+                                    d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
                                   // style={{ fill: "#de7008!important" }}
-                                />
-                                <path
-                                  d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
+                                  />
+                                  <path
+                                    d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
                                   // style={{ fill: "#de7008!important" }}
-                                />
-                              </svg>
+                                  />
+                                </svg>
 
-                              {supplierData?.msme_details?.msme_attachments
-                                ?.length > 0
-                                ? // Display the document name of the first attachment
+                                {supplierData?.msme_details?.msme_attachments
+                                  ?.length > 0
+                                  ? // Display the document name of the first attachment
                                   supplierData?.msme_details
                                     ?.msme_attachments[0]?.document_name
-                                : // If no attachment is present, show a default message
+                                  : // If no attachment is present, show a default message
                                   "No Document Available"}
-                            </a>
-                          </span>
-                        )}
+                              </a>
+                            </span>
+                          )}
                         {/* <input className="form-control" type="file" name="" onChange={handleFileChange} /> */}
                         <input
                           className="form-control mt-2"
@@ -3113,10 +3223,10 @@ const SectionReKYCDetails = () => {
                           {supplierData?.msme_details?.msme_attachments
                             ?.length > 0
                             ? // Display the document name of the first attachment
-                              supplierData?.msme_details?.msme_attachments[0]
-                                ?.document_name
+                            supplierData?.msme_details?.msme_attachments[0]
+                              ?.document_name
                             : // If no attachment is present, show a default message
-                              "No Document Available"}
+                            "No Document Available"}
                         </a>
                       </span>
                       <input
@@ -3170,9 +3280,9 @@ const SectionReKYCDetails = () => {
                         value={
                           eInvoicingApplicable
                             ? {
-                                value: eInvoicingApplicable,
-                                label: eInvoicingApplicable,
-                              }
+                              value: eInvoicingApplicable,
+                              label: eInvoicingApplicable,
+                            }
                             : null
                         }
                         onChange={(selected) =>
@@ -3303,6 +3413,489 @@ const SectionReKYCDetails = () => {
               </div>
             </div>
           )}
+
+          {/* name rekyc */}
+          {(isRekycTypeEmpty || isNameRekyc) && (
+            <div className="card mx-3 pb-4 mt-4">
+              <div className="card-header3">
+                <h3 className="card-title">Name Rekyc</h3>
+              </div>
+
+              <div className="card-body mt-0">
+                {/* Name Rekyc Applicable */}
+                <div className="row">
+                  <div className="col-md-4 mt-2">
+                    <div className="form-group">
+                      <label>Organization Name <span>*</span></label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        value={organizationName}
+                        onChange={(e) => setOrganizationName(e.target.value)}
+                        placeholder="Enter Organization Name"
+                      />
+                      {errors.organizationName && (
+                        <div className="ValidationColor">
+                          {errors.organizationName}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  {/* PAN Upload */}
+                  <div className="col-md-4 mt-2">
+                    <div className="form-group">
+                      <label>PAN Attachment <span>*</span></label>
+                      <input
+                        type="file"
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        className="form-control"
+                        onChange={(e) => handlePanUpload(e.target.files[0])}
+                      />
+                      {errors.panAttachments && (
+                        <div className="ValidationColor">{errors.panAttachments}</div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* MSME Upload */}
+                  <div className="col-md-4 mt-2">
+                    <div className="form-group">
+                      <label>MSME Attachment <span>*</span></label>
+                      <input
+                        type="file"
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        className="form-control"
+                        onChange={(e) => handleMsmeUpload(e.target.files[0])}
+                      />
+                      {errors.msmeAttachments2 && (
+                        <div className="ValidationColor">{errors.msmeAttachments2}</div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* CIN Upload */}
+                  <div className="col-md-4 mt-2">
+                    <div className="form-group">
+                      <label>CIN Attachment <span>*</span></label>
+                      <input
+                        type="file"
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        className="form-control"
+                        onChange={(e) => handleCinUpload(e.target.files[0])}
+                      />
+                      {errors.cinAttachments && (
+                        <div className="ValidationColor">{errors.cinAttachments}</div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* GSTIN Upload */}
+                  <div className="col-md-4 mt-2">
+                    <div className="form-group">
+                      <label>GSTIN Attachment <span>*</span></label>
+                      <input
+                        type="file"
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        className="form-control"
+                        onChange={(e) => handleGstinUpload(e.target.files[0])}
+                      />
+                      {errors.gstinAttachments2 && (
+                        <div className="ValidationColor">{errors.gstinAttachments2}</div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Checkbox */}
+                  {/* Bank Cheque Upload */}
+                  <div className="col-md-4 mt-2">
+                    <div className="form-group">
+                      <label>Cheque Attachment <span>*</span></label>
+                      <input
+                        type="file"
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        className="form-control"
+                        onChange={(e) => handleBankChequeUpload(e.target.files[0])}
+                      />
+                      {errors.bankChequeAttachments && (
+                        <div className="ValidationColor">{errors.bankChequeAttachments}</div>
+                      )}
+                    </div>
+                  </div>
+
+                </div>
+
+                {/* Other Statutory Details */}
+                <div className="row mt-5">
+                  <div className="col-md-12">
+                    <h5 className="mb-3">Other Statutory Details</h5>
+                  </div>
+
+                  <div className="col-md-6 mt-3">
+                    <div className="form-group">
+                      <label>Aadhar Card Number</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        // value={pfNumber}
+                        // onChange={(e) => setPfNumber(e.target.value)}
+                        placeholder="Enter PF Number"
+                      />
+                    </div>
+                  </div>
+                  <div className="col-md-6 mt-3">
+                    <div className="form-group">
+                      <label>Attachment</label>
+                      <input
+                        type="file"
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        className="form-control"
+                      // onChange={(e) => handlePfAttachmentUpload(e.target.files[0])}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="col-md-6 mt-3">
+                    <div className="form-group">
+                      <label>Building & Construction Workers Regulation of Employment No.</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        // value={esicNumber}
+                        // onChange={(e) => setEsicNumber(e.target.value)}
+                        placeholder="Enter ESIC Number"
+                      />
+                    </div>
+                  </div>
+                  <div className="col-md-6 mt-3">
+                    <div className="form-group">
+                      <label>Attachment</label>
+                      <input
+                        type="file"
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        className="form-control"
+                      // onChange={(e) => handlePfAttachmentUpload(e.target.files[0])}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="col-md-6 mt-3">
+                    <div className="form-group">
+                      <label>Shop Act License Number</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        // value={ptNumber}
+                        // onChange={(e) => setPtNumber(e.target.value)}
+                        placeholder="Enter PT Number"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="col-md-6 mt-3">
+                    <div className="form-group">
+                      <label>Attachment</label>
+                      <input
+                        type="file"
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        className="form-control"
+                      // onChange={(e) => handlePfAttachmentUpload(e.target.files[0])}
+                      />
+                    </div>
+                  </div>
+                  <div className="col-md-6 mt-3">
+                    <div className="form-group">
+                      <label>ESIC Number</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        // value={ptNumber}
+                        // onChange={(e) => setPtNumber(e.target.value)}
+                        placeholder="Enter PT Number"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="col-md-6 mt-3">
+                    <div className="form-group">
+                      <label>Attachment</label>
+                      <input
+                        type="file"
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        className="form-control"
+                      // onChange={(e) => handlePfAttachmentUpload(e.target.files[0])}
+                      />
+                    </div>
+                  </div>
+                  <div className="col-md-6 mt-3">
+                    <div className="form-group">
+                      <label>The Maharashtra Labor Welfare Fund Regn No.</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        // value={ptNumber}
+                        // onChange={(e) => setPtNumber(e.target.value)}
+                        placeholder="Enter PT Number"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="col-md-6 mt-3">
+                    <div className="form-group">
+                      <label>Attachment</label>
+                      <input
+                        type="file"
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        className="form-control"
+                      // onChange={(e) => handlePfAttachmentUpload(e.target.files[0])}
+                      />
+                    </div>
+                  </div>
+                  <div className="col-md-6 mt-3">
+                    <div className="form-group">
+                      <label>Provident Fund Number</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        // value={ptNumber}
+                        // onChange={(e) => setPtNumber(e.target.value)}
+                        placeholder="Enter PT Number"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="col-md-6 mt-3">
+                    <div className="form-group">
+                      <label>Attachment</label>
+                      <input
+                        type="file"
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        className="form-control"
+                      // onChange={(e) => handlePfAttachmentUpload(e.target.files[0])}
+                      />
+                    </div>
+                  </div>
+                  <div className="col-md-6 mt-3">
+                    <div className="form-group">
+                      <label>Professional Tax Number</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        // value={ptNumber}
+                        // onChange={(e) => setPtNumber(e.target.value)}
+                        placeholder="Enter PT Number"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="col-md-6 mt-3">
+                    <div className="form-group">
+                      <label>Attachment</label>
+                      <input
+                        type="file"
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        className="form-control"
+                      // onChange={(e) => handlePfAttachmentUpload(e.target.files[0])}
+                      />
+                    </div>
+                  </div>
+                  <div className="col-md-6 mt-3">
+                    <div className="form-group">
+                      <label>Tax Deduction and Collection Account Number (TAN )</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        // value={ptNumber}
+                        // onChange={(e) => setPtNumber(e.target.value)}
+                        placeholder="Enter PT Number"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="col-md-6 mt-3">
+                    <div className="form-group">
+                      <label>Attachment</label>
+                      <input
+                        type="file"
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        className="form-control"
+                      // onChange={(e) => handlePfAttachmentUpload(e.target.files[0])}
+                      />
+                    </div>
+                  </div>
+                  <div className="col-md-6 mt-3">
+                    <div className="form-group">
+                      <label>Import Export Code Certificate</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        // value={ptNumber}
+                        // onChange={(e) => setPtNumber(e.target.value)}
+                        placeholder="Enter PT Number"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="col-md-6 mt-3">
+                    <div className="form-group">
+                      <label>Attachment</label>
+                      <input
+                        type="file"
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        className="form-control"
+                      // onChange={(e) => handlePfAttachmentUpload(e.target.files[0])}
+                      />
+                    </div>
+                  </div>
+                  <div className="col-md-6 mt-3">
+                    <div className="form-group">
+                      <label>Labour License Number</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        // value={ptNumber}
+                        // onChange={(e) => setPtNumber(e.target.value)}
+                        placeholder="Enter PT Number"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="col-md-6 mt-3">
+                    <div className="form-group">
+                      <label>Attachment</label>
+                      <input
+                        type="file"
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        className="form-control"
+                      // onChange={(e) => handlePfAttachmentUpload(e.target.files[0])}
+                      />
+                    </div>
+                  </div>
+                  <div className="col-md-6 mt-3">
+                    <div className="form-group">
+                      <label>Private Security Act</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        // value={ptNumber}
+                        // onChange={(e) => setPtNumber(e.target.value)}
+                        placeholder="Enter PT Number"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="col-md-6 mt-3">
+                    <div className="form-group">
+                      <label>Attachment</label>
+                      <input
+                        type="file"
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        className="form-control"
+                      // onChange={(e) => handlePfAttachmentUpload(e.target.files[0])}
+                      />
+                    </div>
+                  </div>
+                  <div className="col-md-6 mt-3">
+                    <div className="form-group">
+                      <label>ISO 9001: 2000 - QMS</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        // value={ptNumber}
+                        // onChange={(e) => setPtNumber(e.target.value)}
+                        placeholder="Enter PT Number"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="col-md-6 mt-3">
+                    <div className="form-group">
+                      <label>Attachment</label>
+                      <input
+                        type="file"
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        className="form-control"
+                      // onChange={(e) => handlePfAttachmentUpload(e.target.files[0])}
+                      />
+                    </div>
+                  </div>
+                  <div className="col-md-6 mt-3">
+                    <div className="form-group">
+                      <label>ISO 14001: 2004 - EHS Compliance</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        // value={ptNumber}
+                        // onChange={(e) => setPtNumber(e.target.value)}
+                        placeholder="Enter PT Number"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="col-md-6 mt-3">
+                    <div className="form-group">
+                      <label>Attachment</label>
+                      <input
+                        type="file"
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        className="form-control"
+                      // onChange={(e) => handlePfAttachmentUpload(e.target.files[0])}
+                      />
+                    </div>
+                  </div>
+                  <div className="col-md-6 mt-3">
+                    <div className="form-group">
+                      <label>ISO 18001: 2007 - OHSAS</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        // value={ptNumber}
+                        // onChange={(e) => setPtNumber(e.target.value)}
+                        placeholder="Enter PT Number"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="col-md-6 mt-3">
+                    <div className="form-group">
+                      <label>Attachment</label>
+                      <input
+                        type="file"
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        className="form-control"
+                      // onChange={(e) => handlePfAttachmentUpload(e.target.files[0])}
+                      />
+                    </div>
+                  </div>
+                  <div className="col-md-6 mt-3">
+                    <div className="form-group">
+                      <label>Udyog Aadhar Certificate No</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        // value={ptNumber}
+                        // onChange={(e) => setPtNumber(e.target.value)}
+                        placeholder="Enter PT Number"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="col-md-6 mt-3">
+                    <div className="form-group">
+                      <label>Attachment</label>
+                      <input
+                        type="file"
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        className="form-control"
+                      // onChange={(e) => handlePfAttachmentUpload(e.target.files[0])}
+                      />
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+          )}
+
 
           <div className="row mt-4 mx-3">
             <div className="col-md-12">
