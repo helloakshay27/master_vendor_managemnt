@@ -32,6 +32,11 @@ const SectionReKYCDetails = () => {
   const [contactNumber, setContactNumber] = useState("");
   const [emailAddress, setEmailAddress] = useState("");
   const [organizationName, setOrganizationName] = useState(""); // Pre-fill this from API on load
+  const [statutoryDetails, setStatutoryDetails] = useState(null);
+  const [rekycStatus, setRekycStatus] = useState(null);
+
+  const [statutoryInputs, setStatutoryInputs] = useState({});
+  const [statutoryErrors, setStatutoryErrors] = useState({});
 
   // Check if the rekycType array is null or empty
   const isRekycTypeEmpty = !rekycType || rekycType.length === 0;
@@ -190,6 +195,8 @@ const SectionReKYCDetails = () => {
       setValidTill(response.data?.msme_details?.valid_till);
       setMajorActivity(response.data?.msme_details?.major_activity);
       setClassificationYear(response.data?.msme_details?.classification_year);
+      setRekycStatus(response.data?.rekyc_status);
+      // setStatutoryDetails(response.data.statutory_details)
       // setClassificationDate(response.data?.msme_details?.classification_date);
       setClassificationDate(
         response.data?.msme_details?.classification_date
@@ -220,7 +227,7 @@ const SectionReKYCDetails = () => {
 
       setGstClassification(selectedClassification || null);
       setOrganizationName(supplierData?.basic_information?.vendor_organization_name)
-      console.log("enterprise:", response.data?.msme_details?.enterprise);
+      // console.log("enterprise:", response.data?.msme_details?.enterprise);
     } catch (error) {
       console.error("There was an error fetching the data!", error);
     }
@@ -228,10 +235,53 @@ const SectionReKYCDetails = () => {
 
   useEffect(() => {
     // Fetch data from the API
-    console.log("fetch.........");
+    // console.log("fetch.........");
 
     fetchSupplierData(id);
   }, [id]);
+
+
+   useEffect(() => {
+    const fetchStatutoryData = async () => {
+      try {
+        const response = await axios.get(
+          `${baseURL}/pms/suppliers/${supplierData?.id}/statutory_detail_by_supplier.json`,
+          {
+            params: {
+              token: "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414",
+              rekyc_id: rekycId,
+            },
+          }
+        );
+
+        const data = response.data || {};
+        console.log("data api...",data)
+
+        // Transform API response into statutoryInputs format
+        const inputs = {};
+
+        Object.entries(data).forEach(([id, detail]) => {
+          inputs[detail.code] = {
+            input: detail.statutory_detail_value || "",
+            file: detail.statutory_detail_attachment || null,
+            id: parseInt(id),
+          };
+        });
+
+        // setStatutoryInputs(inputs);
+        setLoading(false);
+
+        setStatutoryDetails(data.other_statutory_details)
+      } catch (error) {
+        console.error("Failed to fetch statutory details:", error);
+        setLoading(false);
+      }
+    };
+
+    fetchStatutoryData();
+  }, [supplierData?.id]);
+
+  console.log("statutory details:",statutoryDetails)
 
   // Empty dependency array ensures this runs once on mount
 
@@ -262,7 +312,7 @@ const SectionReKYCDetails = () => {
 
   const checkGstinExists = async (gstin) => {
     try {
-      console.log(`Checking GSTIN: ${gstin}`);
+      // console.log(`Checking GSTIN: ${gstin}`);
 
       const response = await fetch(
         `${baseURL}/pms/suppliers/check_existing_pan_gstin?gstin=${gstin}`,
@@ -280,10 +330,10 @@ const SectionReKYCDetails = () => {
       }
 
       const data = await response.json();
-      console.log("API Response:", data);
+      // console.log("API Response:", data);
 
       if (data.exists) {
-        console.log("GSTIN already exists:", gstin);
+        // console.log("GSTIN already exists:", gstin);
         setErrors((prevErrors) => ({
           ...prevErrors,
           gstinNumber: "GSTIN already exists!",
@@ -716,6 +766,90 @@ const SectionReKYCDetails = () => {
     handleFileUpload(file, setBankChequeAttachments, bankChequeAttachments);
   };
 
+  
+  const handleStatutoryInputChange = (code, value,id,name) => {
+  setStatutoryInputs(prev => ({
+    ...prev,
+    [code]: {
+      ...prev[code],
+      input: value || name,
+      id: id,
+    },
+  }));
+};
+
+const handleStatutoryFileChange = (code, file,id,name) => {
+  const reader = new FileReader();
+
+  reader.onloadend = () => {
+    const base64String = reader.result.split(",")[1];
+
+    const attachment = {
+      filename: file.name,
+      content: base64String,
+      content_type: file.type,
+    };
+
+    // Update the statutoryInputs state with attachment
+    setStatutoryInputs((prev) => ({
+      ...prev,
+      [code]: {
+        ...prev[code],
+        file: attachment, // Save attachment object instead of raw File
+        id: id,
+         input: name
+      },
+    }));
+  };
+
+  if (file) {
+    reader.readAsDataURL(file);
+  }
+};
+
+
+
+
+
+const statutoryPayload = Object.entries(statutoryInputs).map(
+    ([code, { input, file,id }]) => ({
+       id,                
+      // code,
+      statutory_detail_value: input || null,
+      statutory_detail_attachment: file || [],
+    })
+  );
+
+//   const validateStatutoryAttachments = () => {
+//   const errors = {};
+
+//   statutoryDetails.forEach((field) => {
+//     const { code, name, attachment_required } = field;
+//     const fileData = statutoryInputs[code]?.file;
+
+//     if (attachment_required && !fileData) {
+//       errors[code] = `Attachment is required for ${name}`;
+//     }
+//   });
+
+//   setStatutoryErrors(errors);
+//   return Object.keys(errors).length === 0;
+// };
+  const validateStatutoryPayload = () => {
+  const errors = {};
+
+  Object.entries(statutoryInputs).forEach(([code, { file, id }]) => {
+    if (!file) {
+      errors[code] = "Attachment is required.";
+    }
+  });
+
+  return errors;
+};
+
+// console.log("statutory details error:",statutoryErrors)
+  // console.log("Payload to send:", statutoryPayload);
+
   const payload = {
     authenticity_token: "[FILTERED]", // No quotes for the token value, but the key is a string
     vendor_re_kyc: {
@@ -773,11 +907,12 @@ const SectionReKYCDetails = () => {
         gstin_attachments: gstinAttachments,
       }),
       organization_name: organizationName,
-      pan_attachement: panAttachments,
-      msme_attachement: msmeAttachments2,
-      cin_attachement: cinAttachments,
-      gstin_attachement: gstinAttachments2,
-      cheque_attachement: bankChequeAttachments,
+      pan_attachments: panAttachments,
+      msme_attachments: msmeAttachments2,
+      cin_attachments: cinAttachments,
+      gstin_attachments: gstinAttachments2,
+      bank_attachments_attachments: bankChequeAttachments,
+      statutory_details:statutoryPayload
     },
   };
 
@@ -856,16 +991,24 @@ const SectionReKYCDetails = () => {
       ...payloadCondition.pms_supplier,
 
       // Add only Name Rekyc related fields
-      organization_name: organizationName || "",
-      pan_attachement: panAttachments || [],
-      msme_attachement: msmeAttachments2 || [],
-      cin_attachement: cinAttachments || [],
-      gstin_attachement: gstinAttachments2 || [],
-      cheque_attachement: bankChequeAttachments || [],
+      // organization_name: organizationName || "",
+      // pan_attachement: panAttachments || [],
+      // msme_attachement: msmeAttachments2 || [],
+      // cin_attachement: cinAttachments || [],
+      // gstin_attachement: gstinAttachments2 || [],
+      // cheque_attachement: bankChequeAttachments || [],
+
+       organization_name: organizationName || "",
+      pan_attachments: panAttachments || [],
+      msme_attachments: msmeAttachments2 || [],
+      cin_attachments: cinAttachments || [],
+      gstin_attachments: gstinAttachments2 || [],
+      bank_attachments_attachments: bankChequeAttachments || [],
+      statutory_details:statutoryPayload || []
     };
   }
-  console.log("payload:", payload);
-  // console.log("payload condition:", payloadCondition);
+  // console.log("payload:", payload);
+  console.log("payload condition:", payloadCondition);
 
   // update api
 
@@ -1149,21 +1292,47 @@ const SectionReKYCDetails = () => {
 
     // name ekyc
     if (isRekycTypeEmpty || isNameRekyc) {
+
+      //  const isValid = validateStatutoryAttachments();
+
+       const errors = validateStatutoryPayload();
+       setStatutoryErrors(errors); // updates state asynchronously
+console.log("statutory details error:", statutoryErrors); // ❌ will log old value
+
+  // if (Object.keys(errors).length > 0) {
+  //   setStatutoryErrors(errors); // set errors to show in UI
+  //   return; // stop submission
+  // }
+
+  // if (!isValid) {
+  //   return; // Stop submit if validation failed
+  // }
       if (!organizationName?.trim()) {
         validationErrors.organizationName = "Organization Name is required.";
       }
 
       // PAN Attachment
-      if (
-        (!supplierData?.basic_information?.pan_attachement?.length || supplierData.basic_information.pan_attachement.length === 0) &&
-        panAttachments.length === 0
-      ) {
-        validationErrors.panAttachments = "PAN Attachment is required.";
-      }
+      const hasExistingPan = supplierData?.basic_information?.pan_attachments?.length > 0;
+const hasNewPan = panAttachments.length > 0;
+if (!hasExistingPan && !hasNewPan) {
+  validationErrors.panAttachments = "PAN Attachment is required.**************";
+}
 
+console.log("existingPan:", supplierData?.basic_information?.pan_attachments);
+console.log("newPan:", panAttachments);
+console.log("hasExistingPan:", hasExistingPan);
+console.log("hasNewPan:", hasNewPan);
+      // if (
+      //   (!supplierData?.basic_information?.pan_attachements?.length || supplierData.basic_information.pan_attachements.length === 0) &&
+      //   panAttachments.length === 0
+      // ) {
+      //   validationErrors.panAttachments = "PAN Attachment is required.";
+      // }
+
+     
       // MSME Attachment
       if (
-        (!supplierData?.basic_information?.msme_attachement?.length || supplierData.basic_information.msme_attachement.length === 0) &&
+        (!supplierData?.basic_information?.msme_attachments?.length || supplierData.basic_information.msme_attachments.length === 0) &&
         msmeAttachments2.length === 0
       ) {
         validationErrors.msmeAttachments2 = "MSME Attachment is required.";
@@ -1171,7 +1340,7 @@ const SectionReKYCDetails = () => {
 
       // CIN Attachment
       if (
-        (!supplierData?.basic_information?.cin_attachement?.length || supplierData.basic_information.cin_attachement.length === 0) &&
+        (!supplierData?.basic_information?.cin_number_attachments?.length || supplierData?.basic_information?.cin_number_attachments.length === 0) &&
         cinAttachments.length === 0
       ) {
         validationErrors.cinAttachments = "CIN Attachment is required.";
@@ -1179,7 +1348,7 @@ const SectionReKYCDetails = () => {
 
       // GSTIN Attachment (Name Rekyc)
       if (
-        (!supplierData?.basic_information?.gstin_attachement?.length || supplierData.basic_information.gstin_attachement.length === 0) &&
+        (!supplierData?.basic_information?.gstin_attachments?.length || supplierData.basic_information.gstin_attachments.length === 0) &&
         gstinAttachments2.length === 0
       ) {
         validationErrors.gstinAttachments2 = "GSTIN Attachment is required.";
@@ -1187,11 +1356,13 @@ const SectionReKYCDetails = () => {
 
       // Bank Cheque Attachment
       if (
-        (!supplierData?.basic_information?.cheque_attachement?.length || supplierData.basic_information.cheque_attachement.length === 0) &&
+        (!supplierData?.basic_information?.bank_attachments_attachments?.length || supplierData.basic_information.bank_attachments_attachments.length === 0) &&
         bankChequeAttachments.length === 0
       ) {
         validationErrors.bankChequeAttachments = "Bank Cheque Attachment is required.";
       }
+
+     
     }
 
 
@@ -1284,6 +1455,21 @@ const SectionReKYCDetails = () => {
         };
       }
 
+
+       // for name rekyc
+  if (isRekycTypeEmpty || isNameRekyc) {
+    payload.pms_supplier = {
+      ...payload.pms_supplier,
+       organization_name: organizationName || "",
+      pan_attachments: panAttachments || [],
+      msme_attachments: msmeAttachments2 || [],
+      cin_attachments: cinAttachments || [],
+      gstin_attachments: gstinAttachments2 || [],
+      bank_attachments_attachments: bankChequeAttachments || [],
+      statutory_details:statutoryPayload || []
+    };
+  }
+
       console.log("payload submition with conditions:", payload);
 
       try {
@@ -1345,8 +1531,13 @@ const SectionReKYCDetails = () => {
     { value: "2024-25", label: "2024-25" },
   ];
 
+
+
+
+
   return (
     <>
+    {rekycStatus === "pending" ? (
       <div className="website-content overflowY-auto">
         <div className="card mx-4 pb-4 mt-4">
           <div className="card-header3">
@@ -3433,6 +3624,7 @@ const SectionReKYCDetails = () => {
                         value={organizationName}
                         onChange={(e) => setOrganizationName(e.target.value)}
                         placeholder="Enter Organization Name"
+                        disabled
                       />
                       {errors.organizationName && (
                         <div className="ValidationColor">
@@ -3445,10 +3637,47 @@ const SectionReKYCDetails = () => {
                   <div className="col-md-4 mt-2">
                     <div className="form-group">
                       <label>PAN Attachment <span>*</span></label>
+                      
+                    {supplierData?.basic_information?.pan_attachments?.length >
+                          0 && (
+                            <span className="ms-2">
+                              <a
+                                href={`${baseURL}${supplierData?.basic_information?.pan_attachments[0]?.file_url}`} // Append base URL
+                                download // Ensure it prompts download
+                                className="text-primary d-flex align-items-center"
+                              >
+                                <span className="me-2">Existing Files:</span>
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width={24}
+                                  height={24}
+                                  fill="#DE7008"
+                                  className="bi bi-download"
+                                  viewBox="0 0 16 16"
+                                >
+                                  <path
+                                    d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
+                                  // style={{ fill: "#de7008!important" }}
+                                  />
+                                  <path
+                                    d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
+                                  // style={{ fill: "#de7008!important" }}
+                                  />
+                                </svg>
+
+                                {supplierData?.basic_information?.pan_attachments
+                                  ?.length > 0
+                                  ? // Display the document name of the first attachment
+                                  supplierData?.basic_information?.pan_attachments[0]?.document_name
+                                  : // If no attachment is present, show a default message
+                                  "No Document Available"}
+                              </a>
+                            </span>
+                          )}
                       <input
                         type="file"
                         accept=".pdf,.jpg,.jpeg,.png"
-                        className="form-control"
+                        className="form-control mt-2"
                         onChange={(e) => handlePanUpload(e.target.files[0])}
                       />
                       {errors.panAttachments && (
@@ -3461,10 +3690,46 @@ const SectionReKYCDetails = () => {
                   <div className="col-md-4 mt-2">
                     <div className="form-group">
                       <label>MSME Attachment <span>*</span></label>
+                      {supplierData?.basic_information?.msme_attachments?.length >
+                          0 && (
+                            <span className="ms-2">
+                              <a
+                                href={`${baseURL}${supplierData?.basic_information?.msme_attachments[0]?.file_url}`} // Append base URL
+                                download // Ensure it prompts download
+                                className="text-primary d-flex align-items-center"
+                              >
+                                <span className="me-2">Existing Files:</span>
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width={24}
+                                  height={24}
+                                  fill="#DE7008"
+                                  className="bi bi-download"
+                                  viewBox="0 0 16 16"
+                                >
+                                  <path
+                                    d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
+                                  // style={{ fill: "#de7008!important" }}
+                                  />
+                                  <path
+                                    d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
+                                  // style={{ fill: "#de7008!important" }}
+                                  />
+                                </svg>
+
+                                {supplierData?.basic_information?.msme_attachments
+                                  ?.length > 0
+                                  ? // Display the document name of the first attachment
+                                  supplierData?.basic_information?.msme_attachments[0]?.document_name
+                                  : // If no attachment is present, show a default message
+                                  "No Document Available"}
+                              </a>
+                            </span>
+                          )}
                       <input
                         type="file"
                         accept=".pdf,.jpg,.jpeg,.png"
-                        className="form-control"
+                        className="form-control mt-2"
                         onChange={(e) => handleMsmeUpload(e.target.files[0])}
                       />
                       {errors.msmeAttachments2 && (
@@ -3474,13 +3739,49 @@ const SectionReKYCDetails = () => {
                   </div>
 
                   {/* CIN Upload */}
-                  <div className="col-md-4 mt-2">
+                  <div className="col-md-4 mt-4">
                     <div className="form-group">
                       <label>CIN Attachment <span>*</span></label>
+                       {supplierData?.basic_information?.cin_number_attachments?.length >
+                          0 && (
+                            <span className="ms-2">
+                              <a
+                                href={`${baseURL}${supplierData?.basic_information?.cin_number_attachments[0]?.file_url}`} // Append base URL
+                                download // Ensure it prompts download
+                                className="text-primary d-flex align-items-center"
+                              >
+                                <span className="me-2">Existing Files:</span>
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width={24}
+                                  height={24}
+                                  fill="#DE7008"
+                                  className="bi bi-download"
+                                  viewBox="0 0 16 16"
+                                >
+                                  <path
+                                    d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
+                                  // style={{ fill: "#de7008!important" }}
+                                  />
+                                  <path
+                                    d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
+                                  // style={{ fill: "#de7008!important" }}
+                                  />
+                                </svg>
+
+                                {supplierData?.basic_information?.cin_number_attachments
+                                  ?.length > 0
+                                  ? // Display the document name of the first attachment
+                                  supplierData?.basic_information?.cin_number_attachments[0]?.document_name
+                                  : // If no attachment is present, show a default message
+                                  "No Document Available"}
+                              </a>
+                            </span>
+                          )}
                       <input
                         type="file"
                         accept=".pdf,.jpg,.jpeg,.png"
-                        className="form-control"
+                        className="form-control mt-2"
                         onChange={(e) => handleCinUpload(e.target.files[0])}
                       />
                       {errors.cinAttachments && (
@@ -3490,13 +3791,49 @@ const SectionReKYCDetails = () => {
                   </div>
 
                   {/* GSTIN Upload */}
-                  <div className="col-md-4 mt-2">
+                  <div className="col-md-4 mt-4">
                     <div className="form-group">
                       <label>GSTIN Attachment <span>*</span></label>
+                       {supplierData?.basic_information?.gstin_attachments?.length >
+                          0 && (
+                            <span className="ms-2">
+                              <a
+                                href={`${baseURL}${supplierData?.basic_information?.gstin_attachments[0]?.file_url}`} // Append base URL
+                                download // Ensure it prompts download
+                                className="text-primary d-flex align-items-center"
+                              >
+                                <span className="me-2">Existing Files:</span>
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width={24}
+                                  height={24}
+                                  fill="#DE7008"
+                                  className="bi bi-download"
+                                  viewBox="0 0 16 16"
+                                >
+                                  <path
+                                    d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
+                                  // style={{ fill: "#de7008!important" }}
+                                  />
+                                  <path
+                                    d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
+                                  // style={{ fill: "#de7008!important" }}
+                                  />
+                                </svg>
+
+                                {supplierData?.basic_information?.gstin_attachments
+                                  ?.length > 0
+                                  ? // Display the document name of the first attachment
+                                  supplierData?.basic_information?.gstin_attachments[0]?.document_name
+                                  : // If no attachment is present, show a default message
+                                  "No Document Available"}
+                              </a>
+                            </span>
+                          )}
                       <input
                         type="file"
                         accept=".pdf,.jpg,.jpeg,.png"
-                        className="form-control"
+                        className="form-control mt-2"
                         onChange={(e) => handleGstinUpload(e.target.files[0])}
                       />
                       {errors.gstinAttachments2 && (
@@ -3507,9 +3844,45 @@ const SectionReKYCDetails = () => {
 
                   {/* Checkbox */}
                   {/* Bank Cheque Upload */}
-                  <div className="col-md-4 mt-2">
+                  <div className="col-md-4 mt-4">
                     <div className="form-group">
                       <label>Cheque Attachment <span>*</span></label>
+                       {supplierData?.basic_information?.bank_attachments_attachments?.length >
+                          0 && (
+                            <span className="ms-2">
+                              <a
+                                href={`${baseURL}${supplierData?.basic_information?.bank_attachments_attachments[0]?.file_url}`} // Append base URL
+                                download // Ensure it prompts download
+                                className="text-primary d-flex align-items-center"
+                              >
+                                <span className="me-2">Existing Files:</span>
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width={24}
+                                  height={24}
+                                  fill="#DE7008"
+                                  className="bi bi-download"
+                                  viewBox="0 0 16 16"
+                                >
+                                  <path
+                                    d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
+                                  // style={{ fill: "#de7008!important" }}
+                                  />
+                                  <path
+                                    d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
+                                  // style={{ fill: "#de7008!important" }}
+                                  />
+                                </svg>
+
+                                {supplierData?.basic_information?.bank_attachments_attachments
+                                  ?.length > 0
+                                  ? // Display the document name of the first attachment
+                                  supplierData?.basic_information?.bank_attachments_attachments[0]?.document_name
+                                  : // If no attachment is present, show a default message
+                                  "No Document Available"}
+                              </a>
+                            </span>
+                          )}
                       <input
                         type="file"
                         accept=".pdf,.jpg,.jpeg,.png"
@@ -3530,367 +3903,46 @@ const SectionReKYCDetails = () => {
                     <h5 className="mb-3">Other Statutory Details</h5>
                   </div>
 
-                  <div className="col-md-6 mt-3">
-                    <div className="form-group">
-                      <label>Aadhar Card Number</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        // value={pfNumber}
-                        // onChange={(e) => setPfNumber(e.target.value)}
-                        placeholder="Enter PF Number"
-                      />
-                    </div>
-                  </div>
-                  <div className="col-md-6 mt-3">
-                    <div className="form-group">
-                      <label>Attachment</label>
-                      <input
-                        type="file"
-                        accept=".pdf,.jpg,.jpeg,.png"
-                        className="form-control"
-                      // onChange={(e) => handlePfAttachmentUpload(e.target.files[0])}
-                      />
-                    </div>
-                  </div>
+                
+{/* <div>{"*********************************************************"} </div> */}
 
-                  <div className="col-md-6 mt-3">
-                    <div className="form-group">
-                      <label>Building & Construction Workers Regulation of Employment No.</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        // value={esicNumber}
-                        // onChange={(e) => setEsicNumber(e.target.value)}
-                        placeholder="Enter ESIC Number"
-                      />
-                    </div>
-                  </div>
-                  <div className="col-md-6 mt-3">
-                    <div className="form-group">
-                      <label>Attachment</label>
-                      <input
-                        type="file"
-                        accept=".pdf,.jpg,.jpeg,.png"
-                        className="form-control"
-                      // onChange={(e) => handlePfAttachmentUpload(e.target.files[0])}
-                      />
-                    </div>
-                  </div>
+{statutoryDetails?.map((field,index) => (
+  <div className="row" key={`${field.id}-${index}`}>
+    <div className="col-md-6 mt-3">
+      <div className="form-group">
+        <label>{field.name}</label>
+        <input
+          type="text"
+          className="form-control"
+          placeholder={`Enter ${field.name}`}
+          value={statutoryInputs[field.code]?.input || field.name}
+          onChange={(e) =>
+            handleStatutoryInputChange(field.code, e.target.value,field.id,field.name)
+          }
+        />
+      </div>
+    </div>
 
-                  <div className="col-md-6 mt-3">
-                    <div className="form-group">
-                      <label>Shop Act License Number</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        // value={ptNumber}
-                        // onChange={(e) => setPtNumber(e.target.value)}
-                        placeholder="Enter PT Number"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="col-md-6 mt-3">
-                    <div className="form-group">
-                      <label>Attachment</label>
-                      <input
-                        type="file"
-                        accept=".pdf,.jpg,.jpeg,.png"
-                        className="form-control"
-                      // onChange={(e) => handlePfAttachmentUpload(e.target.files[0])}
-                      />
-                    </div>
-                  </div>
-                  <div className="col-md-6 mt-3">
-                    <div className="form-group">
-                      <label>ESIC Number</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        // value={ptNumber}
-                        // onChange={(e) => setPtNumber(e.target.value)}
-                        placeholder="Enter PT Number"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="col-md-6 mt-3">
-                    <div className="form-group">
-                      <label>Attachment</label>
-                      <input
-                        type="file"
-                        accept=".pdf,.jpg,.jpeg,.png"
-                        className="form-control"
-                      // onChange={(e) => handlePfAttachmentUpload(e.target.files[0])}
-                      />
-                    </div>
-                  </div>
-                  <div className="col-md-6 mt-3">
-                    <div className="form-group">
-                      <label>The Maharashtra Labor Welfare Fund Regn No.</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        // value={ptNumber}
-                        // onChange={(e) => setPtNumber(e.target.value)}
-                        placeholder="Enter PT Number"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="col-md-6 mt-3">
-                    <div className="form-group">
-                      <label>Attachment</label>
-                      <input
-                        type="file"
-                        accept=".pdf,.jpg,.jpeg,.png"
-                        className="form-control"
-                      // onChange={(e) => handlePfAttachmentUpload(e.target.files[0])}
-                      />
-                    </div>
-                  </div>
-                  <div className="col-md-6 mt-3">
-                    <div className="form-group">
-                      <label>Provident Fund Number</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        // value={ptNumber}
-                        // onChange={(e) => setPtNumber(e.target.value)}
-                        placeholder="Enter PT Number"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="col-md-6 mt-3">
-                    <div className="form-group">
-                      <label>Attachment</label>
-                      <input
-                        type="file"
-                        accept=".pdf,.jpg,.jpeg,.png"
-                        className="form-control"
-                      // onChange={(e) => handlePfAttachmentUpload(e.target.files[0])}
-                      />
-                    </div>
-                  </div>
-                  <div className="col-md-6 mt-3">
-                    <div className="form-group">
-                      <label>Professional Tax Number</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        // value={ptNumber}
-                        // onChange={(e) => setPtNumber(e.target.value)}
-                        placeholder="Enter PT Number"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="col-md-6 mt-3">
-                    <div className="form-group">
-                      <label>Attachment</label>
-                      <input
-                        type="file"
-                        accept=".pdf,.jpg,.jpeg,.png"
-                        className="form-control"
-                      // onChange={(e) => handlePfAttachmentUpload(e.target.files[0])}
-                      />
-                    </div>
-                  </div>
-                  <div className="col-md-6 mt-3">
-                    <div className="form-group">
-                      <label>Tax Deduction and Collection Account Number (TAN )</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        // value={ptNumber}
-                        // onChange={(e) => setPtNumber(e.target.value)}
-                        placeholder="Enter PT Number"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="col-md-6 mt-3">
-                    <div className="form-group">
-                      <label>Attachment</label>
-                      <input
-                        type="file"
-                        accept=".pdf,.jpg,.jpeg,.png"
-                        className="form-control"
-                      // onChange={(e) => handlePfAttachmentUpload(e.target.files[0])}
-                      />
-                    </div>
-                  </div>
-                  <div className="col-md-6 mt-3">
-                    <div className="form-group">
-                      <label>Import Export Code Certificate</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        // value={ptNumber}
-                        // onChange={(e) => setPtNumber(e.target.value)}
-                        placeholder="Enter PT Number"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="col-md-6 mt-3">
-                    <div className="form-group">
-                      <label>Attachment</label>
-                      <input
-                        type="file"
-                        accept=".pdf,.jpg,.jpeg,.png"
-                        className="form-control"
-                      // onChange={(e) => handlePfAttachmentUpload(e.target.files[0])}
-                      />
-                    </div>
-                  </div>
-                  <div className="col-md-6 mt-3">
-                    <div className="form-group">
-                      <label>Labour License Number</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        // value={ptNumber}
-                        // onChange={(e) => setPtNumber(e.target.value)}
-                        placeholder="Enter PT Number"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="col-md-6 mt-3">
-                    <div className="form-group">
-                      <label>Attachment</label>
-                      <input
-                        type="file"
-                        accept=".pdf,.jpg,.jpeg,.png"
-                        className="form-control"
-                      // onChange={(e) => handlePfAttachmentUpload(e.target.files[0])}
-                      />
-                    </div>
-                  </div>
-                  <div className="col-md-6 mt-3">
-                    <div className="form-group">
-                      <label>Private Security Act</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        // value={ptNumber}
-                        // onChange={(e) => setPtNumber(e.target.value)}
-                        placeholder="Enter PT Number"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="col-md-6 mt-3">
-                    <div className="form-group">
-                      <label>Attachment</label>
-                      <input
-                        type="file"
-                        accept=".pdf,.jpg,.jpeg,.png"
-                        className="form-control"
-                      // onChange={(e) => handlePfAttachmentUpload(e.target.files[0])}
-                      />
-                    </div>
-                  </div>
-                  <div className="col-md-6 mt-3">
-                    <div className="form-group">
-                      <label>ISO 9001: 2000 - QMS</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        // value={ptNumber}
-                        // onChange={(e) => setPtNumber(e.target.value)}
-                        placeholder="Enter PT Number"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="col-md-6 mt-3">
-                    <div className="form-group">
-                      <label>Attachment</label>
-                      <input
-                        type="file"
-                        accept=".pdf,.jpg,.jpeg,.png"
-                        className="form-control"
-                      // onChange={(e) => handlePfAttachmentUpload(e.target.files[0])}
-                      />
-                    </div>
-                  </div>
-                  <div className="col-md-6 mt-3">
-                    <div className="form-group">
-                      <label>ISO 14001: 2004 - EHS Compliance</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        // value={ptNumber}
-                        // onChange={(e) => setPtNumber(e.target.value)}
-                        placeholder="Enter PT Number"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="col-md-6 mt-3">
-                    <div className="form-group">
-                      <label>Attachment</label>
-                      <input
-                        type="file"
-                        accept=".pdf,.jpg,.jpeg,.png"
-                        className="form-control"
-                      // onChange={(e) => handlePfAttachmentUpload(e.target.files[0])}
-                      />
-                    </div>
-                  </div>
-                  <div className="col-md-6 mt-3">
-                    <div className="form-group">
-                      <label>ISO 18001: 2007 - OHSAS</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        // value={ptNumber}
-                        // onChange={(e) => setPtNumber(e.target.value)}
-                        placeholder="Enter PT Number"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="col-md-6 mt-3">
-                    <div className="form-group">
-                      <label>Attachment</label>
-                      <input
-                        type="file"
-                        accept=".pdf,.jpg,.jpeg,.png"
-                        className="form-control"
-                      // onChange={(e) => handlePfAttachmentUpload(e.target.files[0])}
-                      />
-                    </div>
-                  </div>
-                  <div className="col-md-6 mt-3">
-                    <div className="form-group">
-                      <label>Udyog Aadhar Certificate No</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        // value={ptNumber}
-                        // onChange={(e) => setPtNumber(e.target.value)}
-                        placeholder="Enter PT Number"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="col-md-6 mt-3">
-                    <div className="form-group">
-                      <label>Attachment</label>
-                      <input
-                        type="file"
-                        accept=".pdf,.jpg,.jpeg,.png"
-                        className="form-control"
-                      // onChange={(e) => handlePfAttachmentUpload(e.target.files[0])}
-                      />
-                    </div>
-                  </div>
-
+    <div className="col-md-6 mt-3">
+      <div className="form-group">
+        <label>Attachment</label>
+        <input
+          type="file"
+          className="form-control"
+          accept=".pdf,.jpg,.jpeg,.png"
+          onChange={(e) =>
+            handleStatutoryFileChange(field.code, e.target.files[0],field.id,field.name)
+          }
+        />
+        {statutoryErrors[field.code] && (
+          <div className="text-danger mt-1">
+            {statutoryErrors[field.code]}
+          </div>
+        )}
+      </div>
+    </div>
+  </div>
+))}
                 </div>
               </div>
             </div>
@@ -3953,6 +4005,17 @@ const SectionReKYCDetails = () => {
           </div>
         </div>
       </div>
+
+      ) : (
+        <div className="card shadow-sm p-5">
+    <div className="card-header text-white mb-3"></div>
+    <div className="card-body">
+      <div className="alert alert-info" role="alert">
+        Thank you for submitting your details. We have successfully received your information, and it is now under review by our team. The review process ensures all the submitted details meet our requirements and comply with our standards. Once the review is complete, you will receive further communication regarding the status of your application or any additional steps required. We appreciate your patience and look forward to working with you.
+      </div>
+    </div>
+  </div>
+)}
     </>
   );
 };
