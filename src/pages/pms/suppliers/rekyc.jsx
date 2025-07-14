@@ -29,6 +29,7 @@ const SectionReKYCDetails = () => {
   const [rekycId, setRekycId] = useState(null);
   const [rekycType, setRekycType] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [loading2, setLoading2] = useState(true);
   const [contactNumber, setContactNumber] = useState("");
   const [emailAddress, setEmailAddress] = useState("");
   const [organizationName, setOrganizationName] = useState(""); // Pre-fill this from API on load
@@ -179,6 +180,7 @@ const SectionReKYCDetails = () => {
 
   // Function to fetch supplier data
   const fetchSupplierData = async () => {
+    // setLoading2(true);
     try {
       const response = await axios.get(
         `${baseURL}/pms/suppliers/${id}/rekyc_by_sections.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&rekyc_id=${rekyc_id}`
@@ -228,8 +230,10 @@ const SectionReKYCDetails = () => {
       setGstClassification(selectedClassification || null);
       setOrganizationName(supplierData?.basic_information?.vendor_organization_name)
       // console.log("enterprise:", response.data?.msme_details?.enterprise);
+      setLoading2(false);
     } catch (error) {
       console.error("There was an error fetching the data!", error);
+      setLoading2(false);
     }
   };
 
@@ -241,7 +245,7 @@ const SectionReKYCDetails = () => {
   }, [id]);
 
 
-   useEffect(() => {
+  useEffect(() => {
     const fetchStatutoryData = async () => {
       try {
         const response = await axios.get(
@@ -255,23 +259,34 @@ const SectionReKYCDetails = () => {
         );
 
         const data = response.data || {};
-        console.log("data api...",data)
+        setStatutoryDetails(data.additional_statutory_details)
+        console.log("data api...", data)
 
         // Transform API response into statutoryInputs format
         const inputs = {};
 
-        Object.entries(data).forEach(([id, detail]) => {
+        // Object.entries(data).forEach(([id, detail]) => {
+        //   inputs[detail.code] = {
+        //     input: detail.statutory_detail_value || "",
+        //     file: detail.statutory_detail_attachment || null,
+        //     id: parseInt(id),
+        //   };
+        // });
+
+        (data.additional_statutory_details || []).forEach((detail) => {
           inputs[detail.code] = {
             input: detail.statutory_detail_value || "",
             file: detail.statutory_detail_attachment || null,
-            id: parseInt(id),
+            id: detail.id,
           };
         });
+
+        setStatutoryInputs(inputs); // ✅ now safe to set
 
         // setStatutoryInputs(inputs);
         setLoading(false);
 
-        setStatutoryDetails(data.other_statutory_details)
+
       } catch (error) {
         console.error("Failed to fetch statutory details:", error);
         setLoading(false);
@@ -281,7 +296,7 @@ const SectionReKYCDetails = () => {
     fetchStatutoryData();
   }, [supplierData?.id]);
 
-  console.log("statutory details:",statutoryDetails)
+  // console.log("statutory details:",statutoryDetails)
 
   // Empty dependency array ensures this runs once on mount
 
@@ -766,89 +781,96 @@ const SectionReKYCDetails = () => {
     handleFileUpload(file, setBankChequeAttachments, bankChequeAttachments);
   };
 
-  
-  const handleStatutoryInputChange = (code, value,id,name) => {
-  setStatutoryInputs(prev => ({
-    ...prev,
-    [code]: {
-      ...prev[code],
-      input: value || name,
-      id: id,
-    },
-  }));
-};
 
-const handleStatutoryFileChange = (code, file,id,name) => {
-  const reader = new FileReader();
-
-  reader.onloadend = () => {
-    const base64String = reader.result.split(",")[1];
-
-    const attachment = {
-      filename: file.name,
-      content: base64String,
-      content_type: file.type,
-    };
-
-    // Update the statutoryInputs state with attachment
-    setStatutoryInputs((prev) => ({
+  const handleStatutoryInputChange = (code, value, id, statutory_detail_value) => {
+    setStatutoryInputs(prev => ({
       ...prev,
       [code]: {
         ...prev[code],
-        file: attachment, // Save attachment object instead of raw File
+        input: value ,
         id: id,
-         input: name
       },
     }));
   };
 
-  if (file) {
-    reader.readAsDataURL(file);
-  }
-};
+  const handleStatutoryFileChange = (code, file, id, statutory_detail_value) => {
+    const reader = new FileReader();
+
+    reader.onloadend = () => {
+      const base64String = reader.result.split(",")[1];
+
+      const attachment = {
+        filename: file.name,
+        content: base64String,
+        content_type: file.type,
+      };
+
+      // Update the statutoryInputs state with attachment
+      setStatutoryInputs((prev) => ({
+        ...prev,
+        [code]: {
+          ...prev[code],
+          file: attachment, // Save attachment object instead of raw File
+          id: id,
+          // input: statutory_detail_value
+        },
+      }));
+    };
+
+    if (file) {
+      reader.readAsDataURL(file);
+    }
+  };
 
 
 
 
 
-const statutoryPayload = Object.entries(statutoryInputs).map(
-    ([code, { input, file,id }]) => ({
-       id,                
+  const statutoryPayload = Object.entries(statutoryInputs).map(
+    ([code, { input, file, id }]) => ({
+      id,
       // code,
       statutory_detail_value: input || null,
-      statutory_detail_attachment: file || [],
+      statutory_detail_attachment: file || null,
     })
   );
 
-//   const validateStatutoryAttachments = () => {
-//   const errors = {};
+  //   const validateStatutoryAttachments = () => {
+  //   const errors = {};
 
-//   statutoryDetails.forEach((field) => {
-//     const { code, name, attachment_required } = field;
-//     const fileData = statutoryInputs[code]?.file;
+  //   statutoryDetails.forEach((field) => {
+  //     const { code, name, attachment_required } = field;
+  //     const fileData = statutoryInputs[code]?.file;
 
-//     if (attachment_required && !fileData) {
-//       errors[code] = `Attachment is required for ${name}`;
-//     }
-//   });
+  //     if (attachment_required && !fileData) {
+  //       errors[code] = `Attachment is required for ${name}`;
+  //     }
+  //   });
 
-//   setStatutoryErrors(errors);
-//   return Object.keys(errors).length === 0;
-// };
-  const validateStatutoryPayload = () => {
-  const errors = {};
+  //   setStatutoryErrors(errors);
+  //   return Object.keys(errors).length === 0;
+  // };
+  const validateStatutoryInputs = () => {
+    const errors = {};
 
-  Object.entries(statutoryInputs).forEach(([code, { file, id }]) => {
-    if (!file) {
-      errors[code] = "Attachment is required.";
-    }
-  });
+    // Object.entries(statutoryInputs).forEach(([code, { file, id }]) => {
+    //   if (!file) {
+    //     errors[code] = "Attachment is required.";
+    //   }
+    // });
 
-  return errors;
-};
+    Object.entries(statutoryInputs).forEach(([code, { input, file }]) => {
+      if (input && !file) {
+        errors[code] = "Attachment is required.";
+      }
+    });
 
-// console.log("statutory details error:",statutoryErrors)
-  // console.log("Payload to send:", statutoryPayload);
+    return errors;
+  };
+
+
+  // console.log("statutory details error:",statutoryErrors)
+  console.log("Payload to send:", statutoryPayload);
 
   const payload = {
     authenticity_token: "[FILTERED]", // No quotes for the token value, but the key is a string
@@ -912,7 +934,7 @@ const statutoryPayload = Object.entries(statutoryInputs).map(
       cin_attachments: cinAttachments,
       gstin_attachments: gstinAttachments2,
       bank_attachments_attachments: bankChequeAttachments,
-      statutory_details:statutoryPayload
+      statutory_details: statutoryPayload
     },
   };
 
@@ -998,17 +1020,17 @@ const statutoryPayload = Object.entries(statutoryInputs).map(
       // gstin_attachement: gstinAttachments2 || [],
       // cheque_attachement: bankChequeAttachments || [],
 
-       organization_name: organizationName || "",
+      organization_name: organizationName || "",
       pan_attachments: panAttachments || [],
       msme_attachments: msmeAttachments2 || [],
       cin_attachments: cinAttachments || [],
       gstin_attachments: gstinAttachments2 || [],
       bank_attachments_attachments: bankChequeAttachments || [],
-      statutory_details:statutoryPayload || []
+      statutory_details: statutoryPayload || []
     };
   }
   // console.log("payload:", payload);
-  console.log("payload condition:", payloadCondition);
+  console.log("payload condition for new rekyc edit:", payloadCondition);
 
   // update api
 
@@ -1293,35 +1315,37 @@ const statutoryPayload = Object.entries(statutoryInputs).map(
     // name ekyc
     if (isRekycTypeEmpty || isNameRekyc) {
 
-      //  const isValid = validateStatutoryAttachments();
 
-       const errors = validateStatutoryPayload();
-       setStatutoryErrors(errors); // updates state asynchronously
-console.log("statutory details error:", statutoryErrors); // ❌ will log old value
 
-  // if (Object.keys(errors).length > 0) {
-  //   setStatutoryErrors(errors); // set errors to show in UI
-  //   return; // stop submission
-  // }
 
-  // if (!isValid) {
-  //   return; // Stop submit if validation failed
-  // }
+      const statutoryErrors = validateStatutoryInputs();
+
+      if (Object.keys(statutoryErrors).length > 0) {
+        setStatutoryErrors(statutoryErrors); // show inline errors if needed
+        return; // stop submission
+      }
+
+
+
+
+      // if (!isValid) {
+      //   return; // Stop submit if validation failed
+      // }
       if (!organizationName?.trim()) {
         validationErrors.organizationName = "Organization Name is required.";
       }
 
       // PAN Attachment
       const hasExistingPan = supplierData?.basic_information?.pan_attachments?.length > 0;
-const hasNewPan = panAttachments.length > 0;
-if (!hasExistingPan && !hasNewPan) {
-  validationErrors.panAttachments = "PAN Attachment is required.**************";
-}
+      const hasNewPan = panAttachments.length > 0;
+      if (!hasExistingPan && !hasNewPan) {
+        validationErrors.panAttachments = "PAN Attachment is required.**************";
+      }
 
-console.log("existingPan:", supplierData?.basic_information?.pan_attachments);
-console.log("newPan:", panAttachments);
-console.log("hasExistingPan:", hasExistingPan);
-console.log("hasNewPan:", hasNewPan);
+      console.log("existingPan:", supplierData?.basic_information?.pan_attachments);
+      console.log("newPan:", panAttachments);
+      console.log("hasExistingPan:", hasExistingPan);
+      console.log("hasNewPan:", hasNewPan);
       // if (
       //   (!supplierData?.basic_information?.pan_attachements?.length || supplierData.basic_information.pan_attachements.length === 0) &&
       //   panAttachments.length === 0
@@ -1329,7 +1353,7 @@ console.log("hasNewPan:", hasNewPan);
       //   validationErrors.panAttachments = "PAN Attachment is required.";
       // }
 
-     
+
       // MSME Attachment
       if (
         (!supplierData?.basic_information?.msme_attachments?.length || supplierData.basic_information.msme_attachments.length === 0) &&
@@ -1362,7 +1386,7 @@ console.log("hasNewPan:", hasNewPan);
         validationErrors.bankChequeAttachments = "Bank Cheque Attachment is required.";
       }
 
-     
+
     }
 
 
@@ -1456,19 +1480,19 @@ console.log("hasNewPan:", hasNewPan);
       }
 
 
-       // for name rekyc
-  if (isRekycTypeEmpty || isNameRekyc) {
-    payload.pms_supplier = {
-      ...payload.pms_supplier,
-       organization_name: organizationName || "",
-      pan_attachments: panAttachments || [],
-      msme_attachments: msmeAttachments2 || [],
-      cin_attachments: cinAttachments || [],
-      gstin_attachments: gstinAttachments2 || [],
-      bank_attachments_attachments: bankChequeAttachments || [],
-      statutory_details:statutoryPayload || []
-    };
-  }
+      // for name rekyc
+      if (isRekycTypeEmpty || isNameRekyc) {
+        payload.pms_supplier = {
+          ...payload.pms_supplier,
+          organization_name: organizationName || "",
+          pan_attachments: panAttachments || [],
+          msme_attachments: msmeAttachments2 || [],
+          cin_attachments: cinAttachments || [],
+          gstin_attachments: gstinAttachments2 || [],
+          bank_attachments_attachments: bankChequeAttachments || [],
+          statutory_details: statutoryPayload || []
+        };
+      }
 
       console.log("payload submition with conditions:", payload);
 
@@ -1537,442 +1561,442 @@ console.log("hasNewPan:", hasNewPan);
 
   return (
     <>
-    {rekycStatus === "pending" ? (
-      <div className="website-content overflowY-auto">
-        <div className="card mx-4 pb-4 mt-4">
-          <div className="card-header3">
-            <h3 className="card-title">Organization Details</h3>
-          </div>
-          <div className="card-body mt-0">
-            <div className="row px-3">
-              <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
-                <div className="col-6 ">
-                  <label>Company</label>
-                </div>
-                <div className="col-6">
-                  <label className="text">
-                    <span className="me-3">
-                      <span className="text-dark">:</span>
-                    </span>
-                    {supplierData?.organization_details?.company || ""}
-                  </label>
-                </div>
-              </div>
-              <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
-                <div className="col-6 ">
-                  <label>Certifying Company GSTIN</label>
-                </div>
-                <div className="col-6">
-                  <label className="text">
-                    <span className="me-3">
-                      <span className="text-dark">:</span>
-                    </span>
-                    {supplierData?.organization_details
-                      ?.certifying_company_gstin || ""}
-                  </label>
-                </div>
-              </div>
-              <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
-                <div className="col-6 ">
-                  <label>Site</label>
-                </div>
-                <div className="col-6">
-                  <label className="text">
-                    <span className="me-3">
-                      <span className="text-dark">:</span>
-                    </span>
-                    {supplierData?.organization_details?.site || ""}
-                  </label>
-                </div>
-              </div>
-              <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
-                <div className="col-6 ">
-                  <label>Department</label>
-                </div>
-                <div className="col-6">
-                  <label className="text">
-                    <span className="me-3">
-                      <span className="text-dark">:</span>
-                    </span>
-                    {supplierData?.organization_details?.department || ""}
-                  </label>
-                </div>
-              </div>
-              <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
-                <div className="col-6 ">
-                  <label>Invited By</label>
-                </div>
-                <div className="col-6">
-                  <label className="text">
-                    <span className="me-3">
-                      <span className="text-dark">:</span>
-                    </span>
-                    {supplierData?.organization_details?.invited_by || ""}
-                  </label>
-                </div>
-              </div>
-              <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
-                <div className="col-6 ">
-                  <label>Contact Number</label>
-                </div>
-                <div className="col-6">
-                  <label className="text">
-                    <span className="me-3">
-                      <span className="text-dark">:</span>
-                    </span>
-                    {supplierData?.organization_details?.contact_number || ""}
-                  </label>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="card mx-4 pb-4 mt-4">
-          <div className="card mx-3 pb-4 mt-4">
-            <div className="card-header3">
-              <h3 className="card-title">Basic Information</h3>
-            </div>
-            <div className="card-body mt-0">
-              <div className="row">
-                <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
-                  <div className="col-6 ">
-                    <label>Vendor Organization Name</label>
-                  </div>
-                  <div className="col-6">
-                    <label className="text">
-                      <span className="me-3">
-                        <span className="text-dark">:</span>
-                      </span>
-                      {supplierData?.basic_information
-                        ?.vendor_organization_name || ""}
-                    </label>
-                  </div>
-                </div>
-                <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
-                  <div className="col-6 ">
-                    <label>Type of Organization</label>
-                  </div>
-                  <div className="col-6">
-                    <label className="text">
-                      <span className="me-3">
-                        <span className="text-dark">:</span>
-                      </span>
-                      {supplierData?.basic_information?.type_of_organization ||
-                        ""}
-                    </label>
-                  </div>
-                </div>
-                <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
-                  <div className="col-6 ">
-                    <label>Nature of Business</label>
-                  </div>
-                  <div className="col-6">
-                    <label className="text">
-                      <span className="me-3">
-                        <span className="text-dark">:</span>
-                      </span>
-                      {supplierData?.basic_information?.nature_of_business ||
-                        ""}
-                    </label>
-                  </div>
-                </div>
-                <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
-                  <div className="col-6 ">
-                    <label>Vendor Type</label>
-                  </div>
-                  <div className="col-6">
-                    <label className="text">
-                      <span className="me-3">
-                        <span className="text-dark">:</span>
-                      </span>
-                      {supplierData?.basic_information?.vendor_type || ""}
-                    </label>
-                  </div>
-                </div>
-                <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
-                  <div className="col-6 ">
-                    <label>Type of Industry</label>
-                  </div>
-                  <div className="col-6">
-                    <label className="text">
-                      <span className="me-3">
-                        <span className="text-dark">:</span>
-                      </span>
-                      {supplierData?.basic_information?.type_of_industry || ""}
-                    </label>
-                  </div>
-                </div>
-                <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
-                  <div className="col-6 ">
-                    <label>Full Name</label>
-                  </div>
-                  <div className="col-6">
-                    <label className="text">
-                      <span className="me-3">
-                        <span className="text-dark">:</span>
-                      </span>
-                      {supplierData?.basic_information?.full_name || ""}
-                    </label>
-                  </div>
-                </div>
-                <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
-                  <div className="col-6 ">
-                    <label>Email</label>
-                  </div>
-                  <div className="col-6">
-                    <label className="text">
-                      <span className="me-3">
-                        <span className="text-dark">:</span>
-                      </span>
-                      {supplierData?.basic_information?.email || ""}
-                    </label>
-                  </div>
-                </div>
-                <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
-                  <div className="col-6 ">
-                    <label>Mobile </label>
-                  </div>
-                  <div className="col-6">
-                    <label className="text">
-                      <span className="me-3">
-                        <span className="text-dark">:</span>
-                      </span>
-                      {supplierData?.basic_information?.mobile || ""}
-                    </label>
-                  </div>
-                </div>
-                <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
-                  <div className="col-6 ">
-                    <label>PAN No.</label>
-                  </div>
-                  <div className="col-6">
-                    <label className="text">
-                      <span className="me-3">
-                        <span className="text-dark">:</span>
-                      </span>
-                      {supplierData?.basic_information?.pan_number || ""}
-                    </label>
-                  </div>
-                </div>
-                <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
-                  <div className="col-6 ">
-                    <label>PAN Attachment</label>
-                  </div>
-                  <div className="col-6">
-                    <label className="text">
-                      <span className="me-3">
-                        <span className="text-dark">:</span>
-                      </span>
-                      {supplierData?.basic_information?.pan_attachments
-                        ?.length > 0
-                        ? // Display the document name of the first attachment
-                        supplierData?.basic_information?.pan_attachments[0]
-                          ?.document_name
-                        : // If no attachment is present, show a default message
-                        "No Document Available"}
-                    </label>
-                  </div>
-                </div>
-                <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
-                  <div className="col-6 ">
-                    <label>Schema Group</label>
-                  </div>
-                  <div className="col-6">
-                    <label className="text">
-                      <span className="me-3">
-                        <span className="text-dark">:</span>
-                      </span>
-                      {supplierData?.schema_group || ""}
-                    </label>
-                  </div>
-                </div>
-                <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
-                  <div className="col-6 ">
-                    <label>Date of Incorporation</label>
-                  </div>
-                  <div className="col-6">
-                    <label className="text">
-                      <span className="me-3">
-                        <span className="text-dark">:</span>
-                      </span>
-                      {supplierData?.basic_information?.date_of_incorporation ||
-                        ""}
-                    </label>
-                  </div>
-                </div>
-                <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
-                  <div className="col-6 ">
-                    <label>GSTIN Applicable</label>
-                  </div>
-                  <div className="col-6">
-                    <label className="text">
-                      <span className="me-3">
-                        <span className="text-dark">:</span>
-                      </span>
-                      {supplierData?.gstin_applicable || ""}
-                    </label>
-                  </div>
-                </div>
-                <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
-                  <div className="col-6 ">
-                    <label>GSTIN Classification</label>
-                  </div>
-                  <div className="col-6">
-                    <label className="text">
-                      <span className="me-3">
-                        <span className="text-dark">:</span>
-                      </span>
-                      {supplierData?.gst_classification || ""}
-                    </label>
-                  </div>
-                </div>
-                <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
-                  <div className="col-6 ">
-                    <label>GSTIN No.</label>
-                  </div>
-                  <div className="col-6">
-                    <label className="text">
-                      <span className="me-3">
-                        <span className="text-dark">:</span>
-                      </span>
-                      {supplierData?.basic_information?.gstin || ""}
-                    </label>
-                  </div>
-                </div>
-                <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
-                  <div className="col-6 ">
-                    <label>GSTIN Attachment</label>
-                  </div>
-                  <div className="col-6">
-                    <label className="text">
-                      <span className="me-3">
-                        <span className="text-dark">:</span>
-                      </span>
-
-                      {supplierData?.basic_information?.gstin_attachments
-                        ?.length > 0
-                        ? // Display the document name of the first attachment
-                        supplierData?.basic_information?.gstin_attachments[0]
-                          ?.document_name || "No Document Available"
-                        : // If no attachment is present, show a default message
-                        "No Document Available"}
-                    </label>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
+      {rekycStatus === "pending" ? (
+        <div className="website-content overflowY-auto">
           <div className="card mx-4 pb-4 mt-4">
             <div className="card-header3">
-              <h3 className="card-title">Contact Imformation</h3>
+              <h3 className="card-title">Organization Details</h3>
             </div>
             <div className="card-body mt-0">
-              <div className="row ">
-                {/* <div className="col-lg-6 col-md-6 col-sm-12 row px-3 "> */}
-                <div className="col-md-4 mt-2">
-                  <div className="form-group">
-                    <label
-                    // data-bs-toggle="tooltip"
-                    // data-bs-placement="top"
-                    // title={tooltipMessages.branchName}
-                    >
-                      Contact Number
-                      <span> *</span>
-                      {/* <TooltipIcon message="Enter the name of the bank branch where your organization's account is held. " /> */}
+              <div className="row px-3">
+                <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
+                  <div className="col-6 ">
+                    <label>Company</label>
+                  </div>
+                  <div className="col-6">
+                    <label className="text">
+                      <span className="me-3">
+                        <span className="text-dark">:</span>
+                      </span>
+                      {supplierData?.organization_details?.company || ""}
                     </label>
-                    <input
-                      className="form-control"
-                      type="text"
-                      placeholder="Enter Contact Number"
-                      value={contactNumber}
-                      onChange={(e) => setContactNumber(e.target.value)}
-                    />
-                    {/* {errors.branch_name && !bankDetail.branch_name && (
+                  </div>
+                </div>
+                <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
+                  <div className="col-6 ">
+                    <label>Certifying Company GSTIN</label>
+                  </div>
+                  <div className="col-6">
+                    <label className="text">
+                      <span className="me-3">
+                        <span className="text-dark">:</span>
+                      </span>
+                      {supplierData?.organization_details
+                        ?.certifying_company_gstin || ""}
+                    </label>
+                  </div>
+                </div>
+                <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
+                  <div className="col-6 ">
+                    <label>Site</label>
+                  </div>
+                  <div className="col-6">
+                    <label className="text">
+                      <span className="me-3">
+                        <span className="text-dark">:</span>
+                      </span>
+                      {supplierData?.organization_details?.site || ""}
+                    </label>
+                  </div>
+                </div>
+                <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
+                  <div className="col-6 ">
+                    <label>Department</label>
+                  </div>
+                  <div className="col-6">
+                    <label className="text">
+                      <span className="me-3">
+                        <span className="text-dark">:</span>
+                      </span>
+                      {supplierData?.organization_details?.department || ""}
+                    </label>
+                  </div>
+                </div>
+                <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
+                  <div className="col-6 ">
+                    <label>Invited By</label>
+                  </div>
+                  <div className="col-6">
+                    <label className="text">
+                      <span className="me-3">
+                        <span className="text-dark">:</span>
+                      </span>
+                      {supplierData?.organization_details?.invited_by || ""}
+                    </label>
+                  </div>
+                </div>
+                <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
+                  <div className="col-6 ">
+                    <label>Contact Number</label>
+                  </div>
+                  <div className="col-6">
+                    <label className="text">
+                      <span className="me-3">
+                        <span className="text-dark">:</span>
+                      </span>
+                      {supplierData?.organization_details?.contact_number || ""}
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="card mx-4 pb-4 mt-4">
+            <div className="card mx-3 pb-4 mt-4">
+              <div className="card-header3">
+                <h3 className="card-title">Basic Information</h3>
+              </div>
+              <div className="card-body mt-0">
+                <div className="row">
+                  <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
+                    <div className="col-6 ">
+                      <label>Vendor Organization Name</label>
+                    </div>
+                    <div className="col-6">
+                      <label className="text">
+                        <span className="me-3">
+                          <span className="text-dark">:</span>
+                        </span>
+                        {supplierData?.basic_information
+                          ?.vendor_organization_name || ""}
+                      </label>
+                    </div>
+                  </div>
+                  <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
+                    <div className="col-6 ">
+                      <label>Type of Organization</label>
+                    </div>
+                    <div className="col-6">
+                      <label className="text">
+                        <span className="me-3">
+                          <span className="text-dark">:</span>
+                        </span>
+                        {supplierData?.basic_information?.type_of_organization ||
+                          ""}
+                      </label>
+                    </div>
+                  </div>
+                  <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
+                    <div className="col-6 ">
+                      <label>Nature of Business</label>
+                    </div>
+                    <div className="col-6">
+                      <label className="text">
+                        <span className="me-3">
+                          <span className="text-dark">:</span>
+                        </span>
+                        {supplierData?.basic_information?.nature_of_business ||
+                          ""}
+                      </label>
+                    </div>
+                  </div>
+                  <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
+                    <div className="col-6 ">
+                      <label>Vendor Type</label>
+                    </div>
+                    <div className="col-6">
+                      <label className="text">
+                        <span className="me-3">
+                          <span className="text-dark">:</span>
+                        </span>
+                        {supplierData?.basic_information?.vendor_type || ""}
+                      </label>
+                    </div>
+                  </div>
+                  <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
+                    <div className="col-6 ">
+                      <label>Type of Industry</label>
+                    </div>
+                    <div className="col-6">
+                      <label className="text">
+                        <span className="me-3">
+                          <span className="text-dark">:</span>
+                        </span>
+                        {supplierData?.basic_information?.type_of_industry || ""}
+                      </label>
+                    </div>
+                  </div>
+                  <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
+                    <div className="col-6 ">
+                      <label>Full Name</label>
+                    </div>
+                    <div className="col-6">
+                      <label className="text">
+                        <span className="me-3">
+                          <span className="text-dark">:</span>
+                        </span>
+                        {supplierData?.basic_information?.full_name || ""}
+                      </label>
+                    </div>
+                  </div>
+                  <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
+                    <div className="col-6 ">
+                      <label>Email</label>
+                    </div>
+                    <div className="col-6">
+                      <label className="text">
+                        <span className="me-3">
+                          <span className="text-dark">:</span>
+                        </span>
+                        {supplierData?.basic_information?.email || ""}
+                      </label>
+                    </div>
+                  </div>
+                  <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
+                    <div className="col-6 ">
+                      <label>Mobile </label>
+                    </div>
+                    <div className="col-6">
+                      <label className="text">
+                        <span className="me-3">
+                          <span className="text-dark">:</span>
+                        </span>
+                        {supplierData?.basic_information?.mobile || ""}
+                      </label>
+                    </div>
+                  </div>
+                  <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
+                    <div className="col-6 ">
+                      <label>PAN No.</label>
+                    </div>
+                    <div className="col-6">
+                      <label className="text">
+                        <span className="me-3">
+                          <span className="text-dark">:</span>
+                        </span>
+                        {supplierData?.basic_information?.pan_number || ""}
+                      </label>
+                    </div>
+                  </div>
+                  <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
+                    <div className="col-6 ">
+                      <label>PAN Attachment</label>
+                    </div>
+                    <div className="col-6">
+                      <label className="text">
+                        <span className="me-3">
+                          <span className="text-dark">:</span>
+                        </span>
+                        {supplierData?.basic_information?.pan_attachments
+                          ?.length > 0
+                          ? // Display the document name of the first attachment
+                          supplierData?.basic_information?.pan_attachments[0]
+                            ?.document_name
+                          : // If no attachment is present, show a default message
+                          "No Document Available"}
+                      </label>
+                    </div>
+                  </div>
+                  <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
+                    <div className="col-6 ">
+                      <label>Schema Group</label>
+                    </div>
+                    <div className="col-6">
+                      <label className="text">
+                        <span className="me-3">
+                          <span className="text-dark">:</span>
+                        </span>
+                        {supplierData?.schema_group || ""}
+                      </label>
+                    </div>
+                  </div>
+                  <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
+                    <div className="col-6 ">
+                      <label>Date of Incorporation</label>
+                    </div>
+                    <div className="col-6">
+                      <label className="text">
+                        <span className="me-3">
+                          <span className="text-dark">:</span>
+                        </span>
+                        {supplierData?.basic_information?.date_of_incorporation ||
+                          ""}
+                      </label>
+                    </div>
+                  </div>
+                  <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
+                    <div className="col-6 ">
+                      <label>GSTIN Applicable</label>
+                    </div>
+                    <div className="col-6">
+                      <label className="text">
+                        <span className="me-3">
+                          <span className="text-dark">:</span>
+                        </span>
+                        {supplierData?.gstin_applicable || ""}
+                      </label>
+                    </div>
+                  </div>
+                  <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
+                    <div className="col-6 ">
+                      <label>GSTIN Classification</label>
+                    </div>
+                    <div className="col-6">
+                      <label className="text">
+                        <span className="me-3">
+                          <span className="text-dark">:</span>
+                        </span>
+                        {supplierData?.gst_classification || ""}
+                      </label>
+                    </div>
+                  </div>
+                  <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
+                    <div className="col-6 ">
+                      <label>GSTIN No.</label>
+                    </div>
+                    <div className="col-6">
+                      <label className="text">
+                        <span className="me-3">
+                          <span className="text-dark">:</span>
+                        </span>
+                        {supplierData?.basic_information?.gstin || ""}
+                      </label>
+                    </div>
+                  </div>
+                  <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
+                    <div className="col-6 ">
+                      <label>GSTIN Attachment</label>
+                    </div>
+                    <div className="col-6">
+                      <label className="text">
+                        <span className="me-3">
+                          <span className="text-dark">:</span>
+                        </span>
+
+                        {supplierData?.basic_information?.gstin_attachments
+                          ?.length > 0
+                          ? // Display the document name of the first attachment
+                          supplierData?.basic_information?.gstin_attachments[0]
+                            ?.document_name || "No Document Available"
+                          : // If no attachment is present, show a default message
+                          "No Document Available"}
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="card mx-4 pb-4 mt-4">
+              <div className="card-header3">
+                <h3 className="card-title">Contact Imformation</h3>
+              </div>
+              <div className="card-body mt-0">
+                <div className="row ">
+                  {/* <div className="col-lg-6 col-md-6 col-sm-12 row px-3 "> */}
+                  <div className="col-md-4 mt-2">
+                    <div className="form-group">
+                      <label
+                      // data-bs-toggle="tooltip"
+                      // data-bs-placement="top"
+                      // title={tooltipMessages.branchName}
+                      >
+                        Contact Number
+                        <span> *</span>
+                        {/* <TooltipIcon message="Enter the name of the bank branch where your organization's account is held. " /> */}
+                      </label>
+                      <input
+                        className="form-control"
+                        type="text"
+                        placeholder="Enter Contact Number"
+                        value={contactNumber}
+                        onChange={(e) => setContactNumber(e.target.value)}
+                      />
+                      {/* {errors.branch_name && !bankDetail.branch_name && (
                           <div className="ValidationColor">
                             {errors.branch_name}
                           </div>
                         )} */}
-                    {errors.contactNumber && (
-                      <div className="ValidationColor">
-                        {errors.contactNumber}
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <div className="col-md-4 mt-2 ms-2">
-                  <div className="form-group">
-                    <label>Email Address</label>
-                    <span style={{ color: "#DE7008" }}> *</span>
-                    <input
-                      className="form-control"
-                      type="text"
-                      placeholder="Email Address"
-                      value={emailAddress}
-                      onChange={(e) => setEmailAddress(e.target.value)}
-                    />
-                    {errors.emailAddress && (
-                      <div className="ValidationColor">
-                        {errors.emailAddress}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/*               
-              </div> */}
-            </div>
-          </div>
-
-          {(isRekycTypeEmpty || isGstinRekyc) && (
-            <div className="card mx-3 pb-4 mt-4">
-              <div className="card-header3">
-                <h3 className="card-title">GST Details</h3>
-              </div>
-
-              <div className="card-body mt-0">
-                <div className="row">
-                  {/* GSTIN Applicable - Using SingleSelector */}
-                  <div className="col-md-4 mt-2">
-                    <div className="form-group">
-                      <label
-                        data-bs-toggle="tooltip"
-                        data-bs-placement="top"
-                      // title={tooltipMessages.GSTINApplicable}
-                      >
-                        GSTIN Applicable<span></span>
-                        <TooltipIcon message="Indicate whether your organization is registered under the Goods and Services Tax (GST) Act." />
-                      </label>
-                      <SingleSelector
-                        options={[
-                          { value: "Yes", label: "Yes" },
-                          { value: "No", label: "No" },
-                        ]}
-                        value={
-                          gstApplicable
-                            ? { value: gstApplicable, label: gstApplicable }
-                            : { value: "No", label: "No" }
-                        }
-                        onChange={(selected) => {
-                          setGstApplicable(selected?.value || "No"); // Ensure it always has a string
-                        }}
-                      />
-
-                      {errors.gstApplicable && (
+                      {errors.contactNumber && (
                         <div className="ValidationColor">
-                          {errors.gstApplicable}
+                          {errors.contactNumber}
                         </div>
                       )}
                     </div>
                   </div>
+                  <div className="col-md-4 mt-2 ms-2">
+                    <div className="form-group">
+                      <label>Email Address</label>
+                      <span style={{ color: "#DE7008" }}> *</span>
+                      <input
+                        className="form-control"
+                        type="text"
+                        placeholder="Email Address"
+                        value={emailAddress}
+                        onChange={(e) => setEmailAddress(e.target.value)}
+                      />
+                      {errors.emailAddress && (
+                        <div className="ValidationColor">
+                          {errors.emailAddress}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
 
-                  {/* Conditionally render fields only if GSTIN Applicable is Yes */}
-                  {gstApplicable === "Yes" && (
-                    <>
-                      {/* GSTIN Classification */}
-                      <div className="col-md-4 mt-2">
-                        {/* <div className="form-group">
+                {/*               
+              </div> */}
+              </div>
+            </div>
+
+            {(isRekycTypeEmpty || isGstinRekyc) && (
+              <div className="card mx-3 pb-4 mt-4">
+                <div className="card-header3">
+                  <h3 className="card-title">GST Details</h3>
+                </div>
+
+                <div className="card-body mt-0">
+                  <div className="row">
+                    {/* GSTIN Applicable - Using SingleSelector */}
+                    <div className="col-md-4 mt-2">
+                      <div className="form-group">
+                        <label
+                          data-bs-toggle="tooltip"
+                          data-bs-placement="top"
+                        // title={tooltipMessages.GSTINApplicable}
+                        >
+                          GSTIN Applicable<span></span>
+                          <TooltipIcon message="Indicate whether your organization is registered under the Goods and Services Tax (GST) Act." />
+                        </label>
+                        <SingleSelector
+                          options={[
+                            { value: "Yes", label: "Yes" },
+                            { value: "No", label: "No" },
+                          ]}
+                          value={
+                            gstApplicable
+                              ? { value: gstApplicable, label: gstApplicable }
+                              : { value: "No", label: "No" }
+                          }
+                          onChange={(selected) => {
+                            setGstApplicable(selected?.value || "No"); // Ensure it always has a string
+                          }}
+                        />
+
+                        {errors.gstApplicable && (
+                          <div className="ValidationColor">
+                            {errors.gstApplicable}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Conditionally render fields only if GSTIN Applicable is Yes */}
+                    {gstApplicable === "Yes" && (
+                      <>
+                        {/* GSTIN Classification */}
+                        <div className="col-md-4 mt-2">
+                          {/* <div className="form-group">
                           <label
 
                           >
@@ -2000,236 +2024,236 @@ console.log("hasNewPan:", hasNewPan);
                             ))}
                           </select>
                         </div> */}
-                        <div className="form-group">
-                          <label>
-                            GSTIN Classification<span></span>
-                          </label>
-                          <div style={{ position: "relative" }}>
-                            <select
-                              className="form-control"
-                              style={{ width: "100%", appearance: "menulist" }}
-                              value={gstClassification?.value || ""}
-                              onChange={(e) => {
-                                const selectedValue = parseInt(
-                                  e.target.value,
-                                  10
-                                );
-                                const selectedOption = gstClassifications.find(
-                                  (item) => item.value === selectedValue
-                                );
-                                setGstClassification(selectedOption || null);
-                              }}
-                            >
-                              <option value="">
-                                Select GST Classification
-                              </option>
-                              {gstClassifications.map((item) => (
-                                <option key={item.value} value={item.value}>
-                                  {item.name}
+                          <div className="form-group">
+                            <label>
+                              GSTIN Classification<span></span>
+                            </label>
+                            <div style={{ position: "relative" }}>
+                              <select
+                                className="form-control"
+                                style={{ width: "100%", appearance: "menulist" }}
+                                value={gstClassification?.value || ""}
+                                onChange={(e) => {
+                                  const selectedValue = parseInt(
+                                    e.target.value,
+                                    10
+                                  );
+                                  const selectedOption = gstClassifications.find(
+                                    (item) => item.value === selectedValue
+                                  );
+                                  setGstClassification(selectedOption || null);
+                                }}
+                              >
+                                <option value="">
+                                  Select GST Classification
                                 </option>
-                              ))}
-                            </select>
+                                {gstClassifications.map((item) => (
+                                  <option key={item.value} value={item.value}>
+                                    {item.name}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
                           </div>
                         </div>
-                      </div>
 
-                      {/* GSTIN No. */}
-                      <div className="col-md-4 mt-2">
+                        {/* GSTIN No. */}
+                        <div className="col-md-4 mt-2">
+                          <div className="form-group">
+                            <label
+                            // data-bs-toggle="tooltip"
+                            // data-bs-placement="top"
+                            // title={tooltipMessages.MSMEEnterpriseType}
+                            >
+                              GSTIN No.<span>*</span>
+                              <TooltipIcon message="Enter a valid 15-character GSTIN (numbers and uppercase letters only, e.g., 29ABCDE1234F1Z5)" />
+                            </label>
+                            <input
+                              className="form-control"
+                              type="text"
+                              name="gstin_no"
+                              value={gstinNumber}
+                              // onChange={(e) => setGstinNumber(e.target.value)}
+                              onChange={handleGstinChange}
+                            />
+                            {errors.gstinNumber && (
+                              <div className="ValidationColor">
+                                {errors.gstinNumber}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* GSTIN Attachment */}
+                        <div className="col-md-4 mt-2">
+                          <div className="form-group">
+                            <label
+                            // data-bs-toggle="tooltip"
+                            // data-bs-placement="top"
+                            // title={tooltipMessages.GSTINAttachment}
+                            >
+                              GSTIN Attachment<span>*</span>
+                              <TooltipIcon message="Upload a digital copy of the official GSTIN certificate or document showing your GST registration number. Ensure the document is legible and valid." />
+                            </label>
+
+                            {/* Display existing attachments dynamically */}
+                            <div className="existing-files d-flex align-items-center">
+                              <p className="mb-0 me-2">Existing Files:</p>
+                              {supplierData?.basic_information?.gstin_attachments
+                                .length > 0 ? (
+                                supplierData?.basic_information?.gstin_attachments.map(
+                                  (file, index) => (
+                                    <a
+                                      key={index}
+                                      href={`${baseURL}${file.file_url}`}
+                                      download
+                                      className="text-primary d-flex align-items-center"
+                                    >
+                                      <span className="me-2">
+                                        {file.document_name}
+                                      </span>{" "}
+                                      {/* Show file name */}
+                                      <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width={20}
+                                        height={20}
+                                        fill="#DE7008"
+                                        className="bi bi-download"
+                                        viewBox="0 0 16 16"
+                                      >
+                                        <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                                        <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                                      </svg>
+                                    </a>
+                                  )
+                                )
+                              ) : (
+                                <p className="mb-0">No attachments found</p>
+                              )}
+                            </div>
+
+                            {/* File upload input */}
+                            <input
+                              id="attachment"
+                              // accept="application/pdf"
+                              className="form-control mt-2"
+                              // multiple
+                              type="file"
+                              accept=".pdf"
+                              name="pms_supplier[gstin_attachments][]"
+                              onChange={handleFileChangegst}
+                            />
+                            {errors.gstinAttachments && (
+                              <div className="ValidationColor">
+                                {errors.gstinAttachments}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {(isRekycTypeEmpty || isBankRekyc) && (
+              <div>
+                {bankDetailsList?.map((bankDetail) => (
+                  <CollapsedCardKYC
+                    key={bankDetail.id}
+                    title="Bank Details"
+                    onDelete={() => deleteBankDetails(bankDetail.id)}
+                  >
+                    <div className="row">
+                      {/* Bank Name */}
+                      <div className="col-md-4">
                         <div className="form-group">
                           <label
                           // data-bs-toggle="tooltip"
                           // data-bs-placement="top"
-                          // title={tooltipMessages.MSMEEnterpriseType}
+                          // title={tooltipMessages.bankName}
                           >
-                            GSTIN No.<span>*</span>
-                            <TooltipIcon message="Enter a valid 15-character GSTIN (numbers and uppercase letters only, e.g., 29ABCDE1234F1Z5)" />
+                            Bank Name <span>*</span>
+                            <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
                           </label>
                           <input
                             className="form-control"
                             type="text"
-                            name="gstin_no"
-                            value={gstinNumber}
-                            // onChange={(e) => setGstinNumber(e.target.value)}
-                            onChange={handleGstinChange}
+                            placeholder="Enter Bank name"
+                            value={bankDetail.bank_name}
+                            onChange={(e) =>
+                              handleInputChange(e, bankDetail.id, "bank_name")
+                            }
+                            disabled={!bankDetail.isNew}
                           />
-                          {errors.gstinNumber && (
-                            <div className="ValidationColor">
-                              {errors.gstinNumber}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* GSTIN Attachment */}
-                      <div className="col-md-4 mt-2">
-                        <div className="form-group">
-                          <label
-                          // data-bs-toggle="tooltip"
-                          // data-bs-placement="top"
-                          // title={tooltipMessages.GSTINAttachment}
-                          >
-                            GSTIN Attachment<span>*</span>
-                            <TooltipIcon message="Upload a digital copy of the official GSTIN certificate or document showing your GST registration number. Ensure the document is legible and valid." />
-                          </label>
-
-                          {/* Display existing attachments dynamically */}
-                          <div className="existing-files d-flex align-items-center">
-                            <p className="mb-0 me-2">Existing Files:</p>
-                            {supplierData?.basic_information?.gstin_attachments
-                              .length > 0 ? (
-                              supplierData?.basic_information?.gstin_attachments.map(
-                                (file, index) => (
-                                  <a
-                                    key={index}
-                                    href={`${baseURL}${file.file_url}`}
-                                    download
-                                    className="text-primary d-flex align-items-center"
-                                  >
-                                    <span className="me-2">
-                                      {file.document_name}
-                                    </span>{" "}
-                                    {/* Show file name */}
-                                    <svg
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      width={20}
-                                      height={20}
-                                      fill="#DE7008"
-                                      className="bi bi-download"
-                                      viewBox="0 0 16 16"
-                                    >
-                                      <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
-                                      <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
-                                    </svg>
-                                  </a>
-                                )
-                              )
-                            ) : (
-                              <p className="mb-0">No attachments found</p>
-                            )}
-                          </div>
-
-                          {/* File upload input */}
-                          <input
-                            id="attachment"
-                            // accept="application/pdf"
-                            className="form-control mt-2"
-                            // multiple
-                            type="file"
-                            accept=".pdf"
-                            name="pms_supplier[gstin_attachments][]"
-                            onChange={handleFileChangegst}
-                          />
-                          {errors.gstinAttachments && (
-                            <div className="ValidationColor">
-                              {errors.gstinAttachments}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {(isRekycTypeEmpty || isBankRekyc) && (
-            <div>
-              {bankDetailsList?.map((bankDetail) => (
-                <CollapsedCardKYC
-                  key={bankDetail.id}
-                  title="Bank Details"
-                  onDelete={() => deleteBankDetails(bankDetail.id)}
-                >
-                  <div className="row">
-                    {/* Bank Name */}
-                    <div className="col-md-4">
-                      <div className="form-group">
-                        <label
-                        // data-bs-toggle="tooltip"
-                        // data-bs-placement="top"
-                        // title={tooltipMessages.bankName}
-                        >
-                          Bank Name <span>*</span>
-                          <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
-                        </label>
-                        <input
-                          className="form-control"
-                          type="text"
-                          placeholder="Enter Bank name"
-                          value={bankDetail.bank_name}
-                          onChange={(e) =>
-                            handleInputChange(e, bankDetail.id, "bank_name")
-                          }
-                          disabled={!bankDetail.isNew}
-                        />
-                        {/* {errors.bank_name && !bankDetail.bank_name && (
+                          {/* {errors.bank_name && !bankDetail.bank_name && (
                           <div className="ValidationColor">
                             {errors.bank_name}
                           </div>
                         )} */}
-                        {bankDetail.isNew &&
-                          errors.bank_name &&
-                          !bankDetail.bank_name && (
-                            <div className="ValidationColor">
-                              {errors.bank_name}
-                            </div>
-                          )}
+                          {bankDetail.isNew &&
+                            errors.bank_name &&
+                            !bankDetail.bank_name && (
+                              <div className="ValidationColor">
+                                {errors.bank_name}
+                              </div>
+                            )}
 
-                        {/* {errors.bank_name && <div className="invalid-feedback">{errors.bank_name}</div>} */}
-                        {/* {console.log(errors.bank_name)} */}
+                          {/* {errors.bank_name && <div className="invalid-feedback">{errors.bank_name}</div>} */}
+                          {/* {console.log(errors.bank_name)} */}
+                        </div>
                       </div>
-                    </div>
-                    {/* Address */}
-                    <div className="col-md-4">
-                      <div className="form-group">
-                        <label
-                        // data-bs-toggle="tooltip"
-                        // data-bs-placement="top"
-                        // title={tooltipMessages.address}
-                        >
-                          Address <span>*</span>
-                          <TooltipIcon message="Please provide the complete address of your bank branch,including the street address,city and postal code." />
-                        </label>
-                        <input
-                          className="form-control"
-                          type="text"
-                          placeholder="Enter Address"
-                          value={bankDetail.address}
-                          onChange={(e) =>
-                            handleInputChange(e, bankDetail.id, "address")
-                          }
-                          disabled={!bankDetail.isNew}
-                        />
-                        {bankDetail.isNew &&
-                          errors.address &&
-                          !bankDetail.address && (
-                            <div className="ValidationColor">
-                              {errors.address}
-                            </div>
-                          )}
-                        {/* {errors.address && !bankDetail.address && (
+                      {/* Address */}
+                      <div className="col-md-4">
+                        <div className="form-group">
+                          <label
+                          // data-bs-toggle="tooltip"
+                          // data-bs-placement="top"
+                          // title={tooltipMessages.address}
+                          >
+                            Address <span>*</span>
+                            <TooltipIcon message="Please provide the complete address of your bank branch,including the street address,city and postal code." />
+                          </label>
+                          <input
+                            className="form-control"
+                            type="text"
+                            placeholder="Enter Address"
+                            value={bankDetail.address}
+                            onChange={(e) =>
+                              handleInputChange(e, bankDetail.id, "address")
+                            }
+                            disabled={!bankDetail.isNew}
+                          />
+                          {bankDetail.isNew &&
+                            errors.address &&
+                            !bankDetail.address && (
+                              <div className="ValidationColor">
+                                {errors.address}
+                              </div>
+                            )}
+                          {/* {errors.address && !bankDetail.address && (
                           <div className="ValidationColor">
                             {errors.address}
                           </div>
                         )} */}
+                        </div>
                       </div>
-                    </div>
-                    {/* Country */}
-                    <div className="col-md-4">
-                      <div className="form-group">
-                        {/* Label with Tooltip */}
-                        <label
-                        // data-bs-toggle="tooltip"
-                        // data-bs-placement="top"
-                        // title={tooltipMessages.country}
-                        >
-                          Country <span>*</span>
-                          <TooltipIcon message="Please choose your country from the list" />
-                        </label>
+                      {/* Country */}
+                      <div className="col-md-4">
+                        <div className="form-group">
+                          {/* Label with Tooltip */}
+                          <label
+                          // data-bs-toggle="tooltip"
+                          // data-bs-placement="top"
+                          // title={tooltipMessages.country}
+                          >
+                            Country <span>*</span>
+                            <TooltipIcon message="Please choose your country from the list" />
+                          </label>
 
-                        {/* Country Dropdown */}
-                        {/* <SingleSelector
+                          {/* Country Dropdown */}
+                          {/* <SingleSelector
                           options={countries}
                           value={bankDetail.selectedCountry}
                           onChange={(selectedOption) =>
@@ -2237,7 +2261,7 @@ console.log("hasNewPan:", hasNewPan);
                           } // Properly handling onChange
                         /> */}
 
-                        {/* <select
+                          {/* <select
                           className="form-control"
                           value={bankDetail.country || ""}
                           onChange={(e) =>
@@ -2252,48 +2276,48 @@ console.log("hasNewPan:", hasNewPan);
                           ))}
                         </select> */}
 
-                        <SingleSelector
-                          options={countries}
-                          value={
-                            countries.find(
-                              (c) => c.value === bankDetail.country_id
-                            ) || null
-                          }
-                          onChange={(selectedOption) =>
-                            handleCountryChange(selectedOption, bankDetail.id)
-                          }
-                          // disabled={!bankDetail.isNew}
-                          placeholder="Select Country"
-                          isDisabled={!bankDetail.isNew}
-                        />
+                          <SingleSelector
+                            options={countries}
+                            value={
+                              countries.find(
+                                (c) => c.value === bankDetail.country_id
+                              ) || null
+                            }
+                            onChange={(selectedOption) =>
+                              handleCountryChange(selectedOption, bankDetail.id)
+                            }
+                            // disabled={!bankDetail.isNew}
+                            placeholder="Select Country"
+                            isDisabled={!bankDetail.isNew}
+                          />
 
-                        {/* Validation Error Message */}
-                        {bankDetail.isNew &&
-                          errors.country_id &&
-                          !bankDetail.country_id && (
-                            <div className="ValidationColor">
-                              {errors.country_id}
-                            </div>
-                          )}
-                        {/* {errors.country_id && !bankDetail.country_id && (
+                          {/* Validation Error Message */}
+                          {bankDetail.isNew &&
+                            errors.country_id &&
+                            !bankDetail.country_id && (
+                              <div className="ValidationColor">
+                                {errors.country_id}
+                              </div>
+                            )}
+                          {/* {errors.country_id && !bankDetail.country_id && (
                           <div className="ValidationColor">
                             {errors.country_id}
                           </div>
                         )} */}
+                        </div>
                       </div>
-                    </div>
-                    <div className="col-md-4">
-                      <div className="form-group mt-2">
-                        <label
-                        // data-bs-toggle="tooltip"
-                        // data-bs-placement="top"
-                        // title={tooltipMessages.state}
-                        >
-                          State <span>*</span>
-                          <TooltipIcon message="Please choose your State from the list" />
-                        </label>
+                      <div className="col-md-4">
+                        <div className="form-group mt-2">
+                          <label
+                          // data-bs-toggle="tooltip"
+                          // data-bs-placement="top"
+                          // title={tooltipMessages.state}
+                          >
+                            State <span>*</span>
+                            <TooltipIcon message="Please choose your State from the list" />
+                          </label>
 
-                        {/* <select
+                          {/* <select
                           className="form-control"
                           value={bankDetail.state || ""}
                           onChange={(e) => handleStateChange(e, bankDetail.id)}
@@ -2306,125 +2330,125 @@ console.log("hasNewPan:", hasNewPan);
                           ))}
                         </select> */}
 
-                        <SingleSelector
-                          options={states}
-                          value={
-                            states.find(
-                              (s) => s.value === bankDetail.state_id
-                            ) || null
-                          }
-                          onChange={(selectedOption) =>
-                            handleStateChange(selectedOption, bankDetail.id)
-                          }
-                          placeholder="Select State"
-                          // isDisabled={!bankDetail.country_id},
-                          isDisabled={!bankDetail.isNew}
-                        />
-                        {/* {errors.state_id && !bankDetail.state_id && (
+                          <SingleSelector
+                            options={states}
+                            value={
+                              states.find(
+                                (s) => s.value === bankDetail.state_id
+                              ) || null
+                            }
+                            onChange={(selectedOption) =>
+                              handleStateChange(selectedOption, bankDetail.id)
+                            }
+                            placeholder="Select State"
+                            // isDisabled={!bankDetail.country_id},
+                            isDisabled={!bankDetail.isNew}
+                          />
+                          {/* {errors.state_id && !bankDetail.state_id && (
                           <div className="ValidationColor">
                             {errors.state_id}
                           </div>
                         )} */}
-                        {bankDetail.isNew &&
-                          errors.state_id &&
-                          !bankDetail.state_id && (
-                            <div className="ValidationColor">
-                              {errors.state_id}
-                            </div>
-                          )}
+                          {bankDetail.isNew &&
+                            errors.state_id &&
+                            !bankDetail.state_id && (
+                              <div className="ValidationColor">
+                                {errors.state_id}
+                              </div>
+                            )}
+                        </div>
                       </div>
-                    </div>
-                    {/* City */}
-                    <div className="col-md-4 mt-2">
-                      <div className="form-group">
-                        <label
-                        // data-bs-toggle="tooltip"
-                        // data-bs-placement="top"
-                        // title={tooltipMessages.city_name}
-                        >
-                          City <span>*</span>
-                          <TooltipIcon message="Enter the city where your bank branch is located" />
-                        </label>
-                        <input
-                          className="form-control"
-                          type="text"
-                          placeholder="Enter City Name"
-                          value={bankDetail.city_name}
-                          onChange={(e) =>
-                            handleInputChange(e, bankDetail.id, "city_name")
-                          }
-                          disabled={!bankDetail.isNew}
-                        />
-                        {bankDetail.isNew &&
-                          errors.city_name &&
-                          !bankDetail.city_name && (
-                            <div className="ValidationColor">
-                              {errors.city_name}
-                            </div>
-                          )}
+                      {/* City */}
+                      <div className="col-md-4 mt-2">
+                        <div className="form-group">
+                          <label
+                          // data-bs-toggle="tooltip"
+                          // data-bs-placement="top"
+                          // title={tooltipMessages.city_name}
+                          >
+                            City <span>*</span>
+                            <TooltipIcon message="Enter the city where your bank branch is located" />
+                          </label>
+                          <input
+                            className="form-control"
+                            type="text"
+                            placeholder="Enter City Name"
+                            value={bankDetail.city_name}
+                            onChange={(e) =>
+                              handleInputChange(e, bankDetail.id, "city_name")
+                            }
+                            disabled={!bankDetail.isNew}
+                          />
+                          {bankDetail.isNew &&
+                            errors.city_name &&
+                            !bankDetail.city_name && (
+                              <div className="ValidationColor">
+                                {errors.city_name}
+                              </div>
+                            )}
+                        </div>
                       </div>
-                    </div>
-                    {/* Pin Code */}
-                    <div className="col-md-4 mt-2">
-                      <div className="form-group">
-                        <label
-                        // data-bs-toggle="tooltip"
-                        // data-bs-placement="top"
-                        // title={tooltipMessages.pincode}
-                        >
-                          Pin Code <span>*</span>
-                          <TooltipIcon message="Enter the postal code (Pin Code) for the bank branch location" />
-                        </label>
-                        <input
-                          className="form-control"
-                          type="number"
-                          placeholder="Enter Pin Code"
-                          value={bankDetail.pincode}
-                          onChange={(e) =>
-                            handleInputChange(e, bankDetail.id, "pincode")
-                          }
-                          disabled={!bankDetail.isNew}
-                        />
-                        {/* {errors.pin_code && !bankDetail.pin_code && (
+                      {/* Pin Code */}
+                      <div className="col-md-4 mt-2">
+                        <div className="form-group">
+                          <label
+                          // data-bs-toggle="tooltip"
+                          // data-bs-placement="top"
+                          // title={tooltipMessages.pincode}
+                          >
+                            Pin Code <span>*</span>
+                            <TooltipIcon message="Enter the postal code (Pin Code) for the bank branch location" />
+                          </label>
+                          <input
+                            className="form-control"
+                            type="number"
+                            placeholder="Enter Pin Code"
+                            value={bankDetail.pincode}
+                            onChange={(e) =>
+                              handleInputChange(e, bankDetail.id, "pincode")
+                            }
+                            disabled={!bankDetail.isNew}
+                          />
+                          {/* {errors.pin_code && !bankDetail.pin_code && (
                           <div className="ValidationColor">
                             {errors.pin_code}
                           </div>
                         )} */}
-                        {/* {bankDetail.isNew &&
+                          {/* {bankDetail.isNew &&
                           errors.pincode &&
                           !bankDetail.pincode && (
                             <div className="ValidationColor">
                               {errors.pincode}
                             </div>
                           )} */}
-                        {bankDetail.isNew && (
-                          <>
-                            {inputErrors[bankDetail.id]?.pincode && (
-                              <div className="ValidationColor">
-                                {inputErrors[bankDetail.id].pincode}
-                              </div>
-                            )}
-                            {errors.pincode && !bankDetail.pincode && (
-                              <div className="ValidationColor">
-                                {errors.pincode}
-                              </div>
-                            )}
-                          </>
-                        )}
+                          {bankDetail.isNew && (
+                            <>
+                              {inputErrors[bankDetail.id]?.pincode && (
+                                <div className="ValidationColor">
+                                  {inputErrors[bankDetail.id].pincode}
+                                </div>
+                              )}
+                              {errors.pincode && !bankDetail.pincode && (
+                                <div className="ValidationColor">
+                                  {errors.pincode}
+                                </div>
+                              )}
+                            </>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                    {/* Account Type */}
-                    <div className="col-md-4 mt-2">
-                      <div className="form-group">
-                        <label
-                        // data-bs-toggle="tooltip"
-                        // data-bs-placement="top"
-                        // title={tooltipMessages.accountType}
-                        >
-                          Account Type <span>*</span>
-                          <TooltipIcon message="Select the type of bank account your organization holds,such as Savings,Current,or any other relevant type" />
-                        </label>
-                        {/* <input
+                      {/* Account Type */}
+                      <div className="col-md-4 mt-2">
+                        <div className="form-group">
+                          <label
+                          // data-bs-toggle="tooltip"
+                          // data-bs-placement="top"
+                          // title={tooltipMessages.accountType}
+                          >
+                            Account Type <span>*</span>
+                            <TooltipIcon message="Select the type of bank account your organization holds,such as Savings,Current,or any other relevant type" />
+                          </label>
+                          {/* <input
                           className="form-control"
                           type="text"
                           placeholder="Enter Account Type"
@@ -2435,70 +2459,70 @@ console.log("hasNewPan:", hasNewPan);
                           disabled={!bankDetail.isNew}
                         /> */}
 
-                        <SingleSelector
-                          options={accountTypeOptions}
-                          value={
-                            accountTypeOptions.find(
-                              (option) =>
-                                option.value === bankDetail.account_type
-                            ) || null
-                          }
-                          onChange={(selected) =>
-                            handleInputChange(
-                              { target: { value: selected?.value || "" } },
-                              bankDetail.id,
-                              "account_type"
-                            )
-                          }
-                          placeholder="Select Account Type"
-                          isDisabled={!bankDetail.isNew}
-                        />
-                        {bankDetail.isNew &&
-                          errors.account_type &&
-                          !bankDetail.account_type && (
-                            <div className="ValidationColor">
-                              {errors.account_type}
-                            </div>
-                          )}
+                          <SingleSelector
+                            options={accountTypeOptions}
+                            value={
+                              accountTypeOptions.find(
+                                (option) =>
+                                  option.value === bankDetail.account_type
+                              ) || null
+                            }
+                            onChange={(selected) =>
+                              handleInputChange(
+                                { target: { value: selected?.value || "" } },
+                                bankDetail.id,
+                                "account_type"
+                              )
+                            }
+                            placeholder="Select Account Type"
+                            isDisabled={!bankDetail.isNew}
+                          />
+                          {bankDetail.isNew &&
+                            errors.account_type &&
+                            !bankDetail.account_type && (
+                              <div className="ValidationColor">
+                                {errors.account_type}
+                              </div>
+                            )}
+                        </div>
                       </div>
-                    </div>
-                    {/* Account Number */}
-                    <div className="col-md-4 mt-2">
-                      <div className="form-group">
-                        <label
-                        // data-bs-toggle="tooltip"
-                        // data-bs-placement="top"
-                        // title={tooltipMessages.accountNumber}
-                        >
-                          Account Number <span>*</span>
-                          <TooltipIcon message="Please provide your organization's bank account number.Make sure it is correct and matches the details at your bank" />
-                        </label>
-                        <input
-                          className="form-control"
-                          type="text"
-                          placeholder="Enter Account Number"
-                          value={bankDetail.account_number}
-                          onChange={(e) =>
-                            handleInputChange(
-                              e,
-                              bankDetail.id,
-                              "account_number"
-                            )
-                          }
-                          disabled={!bankDetail.isNew}
-                        />
+                      {/* Account Number */}
+                      <div className="col-md-4 mt-2">
+                        <div className="form-group">
+                          <label
+                          // data-bs-toggle="tooltip"
+                          // data-bs-placement="top"
+                          // title={tooltipMessages.accountNumber}
+                          >
+                            Account Number <span>*</span>
+                            <TooltipIcon message="Please provide your organization's bank account number.Make sure it is correct and matches the details at your bank" />
+                          </label>
+                          <input
+                            className="form-control"
+                            type="text"
+                            placeholder="Enter Account Number"
+                            value={bankDetail.account_number}
+                            onChange={(e) =>
+                              handleInputChange(
+                                e,
+                                bankDetail.id,
+                                "account_number"
+                              )
+                            }
+                            disabled={!bankDetail.isNew}
+                          />
 
-                        {bankDetail.isNew &&
-                          errors.account_number &&
-                          !bankDetail.account_number && (
-                            <div className="ValidationColor">
-                              {errors.account_number}
-                            </div>
-                          )}
+                          {bankDetail.isNew &&
+                            errors.account_number &&
+                            !bankDetail.account_number && (
+                              <div className="ValidationColor">
+                                {errors.account_number}
+                              </div>
+                            )}
+                        </div>
                       </div>
-                    </div>
-                    {/* Confirm Account Number */}
-                    {/* <div className="col-md-4 mt-2">
+                      {/* Confirm Account Number */}
+                      {/* <div className="col-md-4 mt-2">
                       <div className="form-group">
                         <label
                         // data-bs-toggle="tooltip"
@@ -2531,7 +2555,7 @@ console.log("hasNewPan:", hasNewPan);
                             {errors.account_match}
                           </div>
                         )} */}
-                    {/* {errors.confirm_account_number &&
+                      {/* {errors.confirm_account_number &&
                           !bankDetail.confirm_account_number && (
                             <div className="ValidationColor">
                               {errors.confirm_account_number}
@@ -2546,7 +2570,7 @@ console.log("hasNewPan:", hasNewPan);
                           )}
                       </div>
                     </div> */}
-                    {/* <div className="col-md-4 mt-2">
+                      {/* <div className="col-md-4 mt-2">
                       <div className="form-group">
                         <label>
                           Confirm Account Number <span>*</span>
@@ -2587,711 +2611,218 @@ console.log("hasNewPan:", hasNewPan);
                         )}
                       </div>
                     </div> */}
-                    {/* // Add this to your component's return JSX where the confirm
+                      {/* // Add this to your component's return JSX where the confirm
                     account number input is */}
-                    <div className="col-md-4 mt-2">
-                      <div className="form-group">
-                        <label>
-                          Confirm Account Number <span>*</span>
-                          <TooltipIcon message="Re-enter the bank account number to confirm accuracy. Ensure it matches the original account number entered above." />
-                        </label>
-                        <input
-                          className="form-control"
-                          type="text"
-                          placeholder="Enter Confirm Account Number"
-                          value={bankDetail.confirm_account_number}
-                          onChange={(e) => {
-                            const newValue = e.target.value;
-                            handleInputChange(
-                              e,
-                              bankDetail.id,
-                              "confirm_account_number"
-                            );
+                      <div className="col-md-4 mt-2">
+                        <div className="form-group">
+                          <label>
+                            Confirm Account Number <span>*</span>
+                            <TooltipIcon message="Re-enter the bank account number to confirm accuracy. Ensure it matches the original account number entered above." />
+                          </label>
+                          <input
+                            className="form-control"
+                            type="text"
+                            placeholder="Enter Confirm Account Number"
+                            value={bankDetail.confirm_account_number}
+                            onChange={(e) => {
+                              const newValue = e.target.value;
+                              handleInputChange(
+                                e,
+                                bankDetail.id,
+                                "confirm_account_number"
+                              );
 
-                            // Validate on change
-                            if (newValue !== bankDetail.account_number) {
-                              setErrors((prev) => ({
-                                ...prev,
-                                confirm_account_number:
-                                  "Account numbers must match",
-                              }));
-                            } else {
-                              setErrors((prev) => {
-                                const newErrors = { ...prev };
-                                delete newErrors.confirm_account_number;
-                                return newErrors;
-                              });
-                            }
-                          }}
-                          onPaste={(e) => {
-                            e.preventDefault();
-                            alert(
-                              "Pasting is not allowed for security reasons. Please type the account number."
-                            );
-                          }}
-                          disabled={!bankDetail.isNew}
-                        />
-                        {bankDetail.isNew && errors.confirm_account_number && (
-                          <div className="ValidationColor">
-                            {errors.confirm_account_number}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    {/* Branch Name */}
-                    <div className="col-md-4 mt-2">
-                      <div className="form-group">
-                        <label
-                        // data-bs-toggle="tooltip"
-                        // data-bs-placement="top"
-                        // title={tooltipMessages.branchName}
-                        >
-                          Branch Name <span>*</span>
-                          <TooltipIcon message="Enter the name of the bank branch where your organization's account is held. " />
-                        </label>
-                        <input
-                          className="form-control"
-                          type="text"
-                          placeholder="Enter Branch Name"
-                          value={bankDetail.branch_name}
-                          onChange={(e) =>
-                            handleInputChange(e, bankDetail.id, "branch_name")
-                          }
-                          disabled={!bankDetail.isNew}
-                        />
-                        {bankDetail.isNew &&
-                          errors.branch_name &&
-                          !bankDetail.branch_name && (
+                              // Validate on change
+                              if (newValue !== bankDetail.account_number) {
+                                setErrors((prev) => ({
+                                  ...prev,
+                                  confirm_account_number:
+                                    "Account numbers must match",
+                                }));
+                              } else {
+                                setErrors((prev) => {
+                                  const newErrors = { ...prev };
+                                  delete newErrors.confirm_account_number;
+                                  return newErrors;
+                                });
+                              }
+                            }}
+                            onPaste={(e) => {
+                              e.preventDefault();
+                              alert(
+                                "Pasting is not allowed for security reasons. Please type the account number."
+                              );
+                            }}
+                            disabled={!bankDetail.isNew}
+                          />
+                          {bankDetail.isNew && errors.confirm_account_number && (
                             <div className="ValidationColor">
-                              {errors.branch_name}
+                              {errors.confirm_account_number}
                             </div>
                           )}
+                        </div>
                       </div>
-                    </div>
-                    {/* MICR No. */}
-                    <div className="col-md-4 mt-2">
-                      <div className="form-group">
-                        <label
-                        // data-bs-toggle="tooltip"
-                        // data-bs-placement="top"
-                        // title={tooltipMessages.MICR}
-                        >
-                          MICR No. <span>*</span>
-                          <TooltipIcon message="MICR: Enter the MICR (Magnetic Ink Character Recognition) number of your  bank branch. This number is typically found on your cheque leaf" />
-                        </label>
-                        <input
-                          className="form-control"
-                          type="text"
-                          placeholder="Enter MICR No."
-                          value={bankDetail.micr_number}
-                          onChange={(e) =>
-                            handleInputChange(e, bankDetail.id, "micr_number")
-                          }
-                          disabled={!bankDetail.isNew}
-                        />
-                        {errors.micr_number && !bankDetail.micr_number && (
-                          <div className="ValidationColor">
-                            {errors.micr_number}
-                          </div>
-                        )}
+                      {/* Branch Name */}
+                      <div className="col-md-4 mt-2">
+                        <div className="form-group">
+                          <label
+                          // data-bs-toggle="tooltip"
+                          // data-bs-placement="top"
+                          // title={tooltipMessages.branchName}
+                          >
+                            Branch Name <span>*</span>
+                            <TooltipIcon message="Enter the name of the bank branch where your organization's account is held. " />
+                          </label>
+                          <input
+                            className="form-control"
+                            type="text"
+                            placeholder="Enter Branch Name"
+                            value={bankDetail.branch_name}
+                            onChange={(e) =>
+                              handleInputChange(e, bankDetail.id, "branch_name")
+                            }
+                            disabled={!bankDetail.isNew}
+                          />
+                          {bankDetail.isNew &&
+                            errors.branch_name &&
+                            !bankDetail.branch_name && (
+                              <div className="ValidationColor">
+                                {errors.branch_name}
+                              </div>
+                            )}
+                        </div>
                       </div>
-                    </div>
-                    {/* IFSC Code */}
-                    <div className="col-md-4 mt-2">
-                      <div className="form-group">
-                        <label
-                        // data-bs-toggle="tooltip"
-                        // data-bs-placement="top"
-                        // title={tooltipMessages.IFSCCode}
-                        >
-                          IFSC Code <span>*</span>
-                          <TooltipIcon message="Enter the IFSC (Indian Financial System Code) of your bank branch. This is required for electronic fund transfers like NEFT and RTGS" />
-                        </label>
-                        <input
-                          className="form-control"
-                          type="text"
-                          placeholder="Enter IFSC Code"
-                          value={bankDetail.ifsc_code}
-                          maxLength={11}
-                          onChange={(e) =>
-                            handleInputChange(e, bankDetail.id, "ifsc_code")
-                          }
-                          disabled={!bankDetail.isNew}
-                        />
-                        {/* {bankDetail.isNew &&
+                      {/* MICR No. */}
+                      <div className="col-md-4 mt-2">
+                        <div className="form-group">
+                          <label
+                          // data-bs-toggle="tooltip"
+                          // data-bs-placement="top"
+                          // title={tooltipMessages.MICR}
+                          >
+                            MICR No. <span>*</span>
+                            <TooltipIcon message="MICR: Enter the MICR (Magnetic Ink Character Recognition) number of your  bank branch. This number is typically found on your cheque leaf" />
+                          </label>
+                          <input
+                            className="form-control"
+                            type="text"
+                            placeholder="Enter MICR No."
+                            value={bankDetail.micr_number}
+                            onChange={(e) =>
+                              handleInputChange(e, bankDetail.id, "micr_number")
+                            }
+                            disabled={!bankDetail.isNew}
+                          />
+                          {errors.micr_number && !bankDetail.micr_number && (
+                            <div className="ValidationColor">
+                              {errors.micr_number}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      {/* IFSC Code */}
+                      <div className="col-md-4 mt-2">
+                        <div className="form-group">
+                          <label
+                          // data-bs-toggle="tooltip"
+                          // data-bs-placement="top"
+                          // title={tooltipMessages.IFSCCode}
+                          >
+                            IFSC Code <span>*</span>
+                            <TooltipIcon message="Enter the IFSC (Indian Financial System Code) of your bank branch. This is required for electronic fund transfers like NEFT and RTGS" />
+                          </label>
+                          <input
+                            className="form-control"
+                            type="text"
+                            placeholder="Enter IFSC Code"
+                            value={bankDetail.ifsc_code}
+                            maxLength={11}
+                            onChange={(e) =>
+                              handleInputChange(e, bankDetail.id, "ifsc_code")
+                            }
+                            disabled={!bankDetail.isNew}
+                          />
+                          {/* {bankDetail.isNew &&
                           errors.ifsc_code &&
                           !bankDetail.ifsc_code && (
                             <div className="ValidationColor">
                               {errors.ifsc_code}
                             </div>
                           )} */}
-                        {bankDetail.isNew && (
-                          <>
-                            {inputErrors[bankDetail.id]?.ifsc && (
-                              <div className="ValidationColor">
-                                {inputErrors[bankDetail.id].ifsc}
-                              </div>
-                            )}
-                            {errors.ifsc_code && !bankDetail.ifsc_code && (
-                              <div className="ValidationColor">
-                                {errors.ifsc_code}
-                              </div>
-                            )}
-                          </>
-                        )}
-                      </div>
-                    </div>
-                    {/* Beneficiary Name */}
-                    <div className="col-md-4 mt-2">
-                      <div className="form-group">
-                        <label
-                        // data-bs-toggle="tooltip"
-                        // data-bs-placement="top"
-                        // title={tooltipMessages.beneficiaryName}
-                        >
-                          Beneficiary Name <span>*</span>
-                          <TooltipIcon message="Enter the full legel name of the beneficiary." />
-                        </label>
-                        <input
-                          className="form-control"
-                          type="text"
-                          placeholder="Enter Beneficiary Name"
-                          // value={bankDetail.benficary_name}
-                          value={bankDetail.benficary_name} // Correct key
-                          onChange={(e) =>
-                            handleInputChange(
-                              e,
-                              bankDetail.id,
-                              "benficary_name"
-                            )
-                          }
-                          disabled={!bankDetail.isNew}
-                        />
-                        {bankDetail.isNew &&
-                          errors.benficary_name &&
-                          !bankDetail.benficary_name && (
-                            <div className="ValidationColor">
-                              {errors.benficary_name}
-                            </div>
+                          {bankDetail.isNew && (
+                            <>
+                              {inputErrors[bankDetail.id]?.ifsc && (
+                                <div className="ValidationColor">
+                                  {inputErrors[bankDetail.id].ifsc}
+                                </div>
+                              )}
+                              {errors.ifsc_code && !bankDetail.ifsc_code && (
+                                <div className="ValidationColor">
+                                  {errors.ifsc_code}
+                                </div>
+                              )}
+                            </>
                           )}
-                      </div>
-                    </div>
-                    {/* Cancelled Cheque / Bank Copy */}
-                    <div className="col-md-4 mt-2">
-                      <div className="form-group">
-                        <label
-                        // data-bs-toggle="tooltip"
-                        // data-bs-placement="top"
-                        // title={tooltipMessages.cancelledCheque}
-                        >
-                          Cancelled Cheque / Bank Copy <span>*</span>
-                          <TooltipIcon message="Provide a cancelled cheque or a bank statement copy that clearly displays your bank account details.This helps verify your account information. The document must be uploaded in PDF format" />
-                        </label>
-
-                        {/* Conditionally Render Existing File Download Link */}
-                        {bankDetail?.attachment && (
-                          <span className="ms-2">
-                            <a
-                              href={`${baseURL}${bankDetail.attachment}`} // Ensure URL is correct
-                              download // Forces file download
-                              className="text-primary d-flex align-items-center"
-                            >
-                              <span className="me-2">Existing File:</span>
-                              {/* <TooltipIcon message="Indicate whether your organization is registered under the Goods and Services Tax (GST) Act."
-                               /> */}
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width={24}
-                                height={24}
-                                fill="#DE7008"
-                                className="bi bi-download"
-                                viewBox="0 0 16 16"
-                              >
-                                <path
-                                  d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
-                                // style={{ fill: "#de7008!important" }}
-                                />
-                                <path
-                                  d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
-                                // style={{ fill: "#de7008!important" }}
-                                />
-                              </svg>
-                            </a>
-                          </span>
-                        )}
-
-                        {/* File Input for Uploading New Attachments */}
-                        <input
-                          className="form-control mt-2"
-                          type="file"
-                          onChange={(e) =>
-                            handleFileChangeBank(
-                              e.target.files[0],
-                              bankDetail.id
-                            )
-                          }
-                          ref={fileInputRef}
-                          multiple
-                          accept=".pdf"
-                          disabled={!bankDetail.isNew}
-                        />
-
-                        {/* Validation Message */}
-                        {/* {bankDetail.isNew && errors.cancelled_cheque && (
-                          <div className="ValidationColor">
-                            {errors.cancelled_cheque}
-                          </div>
-                        )} */}
-                        {/* {bankDetail.isNew &&
-                          errors.cancelled_cheque &&
-                          !bankDetail.attachment && (
-                            <div className="ValidationColor">
-                              {errors.cancelled_cheque}
-                            </div>
-                          )} */}
-                        {bankDetail.isNew &&
-                          errors.cancelled_cheque &&
-                          !bankDetail.attachment && (
-                            <div className="ValidationColor">
-                              {errors.cancelled_cheque}
-                            </div>
-                          )}
-                      </div>
-                    </div>
-                    {/* Remark */}
-                    <div className="col-md-4 mt-2">
-                      <div className="form-group">
-                        <label>
-                          Remark
-                          {/* <span>*</span> */}
-                        </label>
-                        <textarea
-                          className="form-control"
-                          rows="3"
-                          placeholder="Enter Remark"
-                          value={bankDetail.remark}
-                          onChange={(e) =>
-                            handleInputChange(e, bankDetail.id, "remark")
-                          }
-                          disabled={!bankDetail.isNew}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </CollapsedCardKYC>
-              ))}
-
-              <div className="row mt-2 ms-2 justify-content-start">
-                <div className="col-md-2">
-                  <button className="purple-btn1" onClick={addBankDetails}>
-                    Add Bank Details
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* rekeyc type present  */}
-
-          {(isRekycTypeEmpty || isMsmeRekyc) && (
-            <div className="card mx-3 pb-4 mt-4">
-              <div className="card-header3">
-                <h3 className="card-title">MSME Details</h3>
-              </div>
-              {/* <CardBodyMsme /> */}
-
-              <div className="card-body mt-0">
-                <div className="row">
-                  {/* MSME/Udyam Number Applicable */}
-                  <div className="col-md-4 mt-2">
-                    <div className="form-group">
-                      <label
-                      // data-bs-toggle="tooltip"
-                      // data-bs-placement="top"
-                      // title={tooltipMessages.MSMEUdyamNumberApplicable}
-                      >
-                        MSME/Udyam Number Applicable <span>*</span>
-                        <TooltipIcon message="Select whether your organization is registered under the MSME (Micro, Small, and Medium Enterprises) or Udyam scheme. Choose 'Yes' if applicable, otherwise select 'No.' By selecting 'No, you confirm that your organization does not hold a valid MSME/Udyam registration number. A declaration is required, and this response will be timestamped to record the submission date and time." />
-                      </label>
-                      {/* <select
-                        value={msmeUdyamApplicable}
-                        onChange={handleMsmeUdyamChange}
-                        className="form-control"
-                      >
-                        <option value="">select</option>
-                        <option value="Yes">Yes</option>
-                        <option value="No">No</option>
-                      </select> */}
-                      <SingleSelector
-                        value={options.find(
-                          (option) => option.value === msmeUdyamApplicable
-                        )}
-                        onChange={(selected) =>
-                          handleMsmeUdyamChange({
-                            target: { value: selected.value },
-                          })
-                        }
-                        options={options}
-                        className="form-control"
-                        placeholder="Select..."
-                      />
-                      {errors.msmeUdyamApplicable && (
-                        <div className="ValidationColor">
-                          {errors.msmeUdyamApplicable}
                         </div>
-                      )}{" "}
-                      {/* Show error */}
-                    </div>
-                  </div>
-
-                  {msmeUdyamApplicable === "Yes" && (
-                    <div className="col-md-4 mt-2">
-                      <div className="form-group">
-                        <label
-                        // data-bs-toggle="tooltip"
-                        // data-bs-placement="top"
-                        // title={tooltipMessages.MSMEEnterpriseType}
-                        >
-                          Major Activity <span>*</span>
-                        </label>
-                        {/* <select
-                          // className="form-control"
-                          // value={supplierData?.msme_details?.enterprise}
-
-                          onChange={(e) => setMajorActivity(e.target.value)}
-                          className="form-control"
-                          value={majorActivity}
-                        >
-                          <option value="">select option</option>
-                          <option value="services">Services</option>
-                          <option value="trader">Trader</option>
-                          <option value="manufacture">manufacture</option>
-                          <option value="others">Others</option>
-                        </select> */}
-                        {/* {errors.msmeEnterpriseType && (
-                          <div className="ValidationColor">
-                            {errors.msmeEnterpriseType}
-                          </div>
-                        )}{" "}
-                        {/* Show error */}
-
-                        <SingleSelector
-                          value={optionsMajorActivity.find(
-                            (option) => option.value === majorActivity
-                          )}
-                          onChange={(selected) =>
-                            setMajorActivity(selected.value)
-                          }
-                          options={optionsMajorActivity}
-                          className="form-control"
-                          placeholder="Select Major Activity"
-                        />
-                        {console.log("majorActivity", majorActivity)}
-
-                        {errors.majorActivity && (
-                          <div className="ValidationColor">
-                            {errors.majorActivity}
-                          </div>
-                        )}
                       </div>
-                    </div>
-                  )}
-
-                  {/* MSME/Udyam Valid Till */}
-                  {/* MSME/Udyam Number */}
-                  {msmeUdyamApplicable === "Yes" && (
-                    <div className="col-md-4 mt-2">
-                      <div className="form-group">
-                        <label
-                        // data-bs-toggle="tooltip"
-                        // data-bs-placement="top"
-                        // title={tooltipMessages.MSMEUdyamNumber}
-                        >
-                          MSME/Udyam Number <span>*</span>
-                          <TooltipIcon message="Enter your organization's valid MSME or Udyam registration number. This number is issued by the Ministry of Micro, Small, and Medium Enterprises (MSME) under the Udyam registration scheme" />
-                        </label>
-                        <input
-                          className="form-control"
-                          type="text"
-                          name="name"
-                          placeholder=""
-                          value={msmeNo}
-                          onChange={handleMsmeNoChange} // Add onChange handler here
-                        // value={supplierData?.msme_details?.msme_no}
-                        />
-                        {errors.msmeNo && (
-                          <div className="ValidationColor">{errors.msmeNo}</div>
-                        )}{" "}
-                        {/* Show error */}
-                      </div>
-                    </div>
-                  )}
-
-                  {msmeUdyamApplicable === "Yes" && (
-                    <div className="col-md-4 mt-2">
-                      <div className="form-group">
-                        <label
-                        // data-bs-toggle="tooltip"
-                        // data-bs-placement="top"
-                        // title={tooltipMessages.MSMEEnterpriseType}
-                        >
-                          Classifiction Year <span>*</span>
-                        </label>
-                        {/* <select
-                          // onChange={(e) =>
-                          //   setClassificationYear(e.target.value)
-                          // }
-                          onChange={handleClassificationYearChange}
-                          className="form-control"
-                          value={classificationYear}
-                        >
-                          <option value="">Select Option</option>
-                          <option value="2021-22">2021-22</option>
-                          <option value="2022-23">2022-23</option>
-                          <option value="2023-24">2023-24</option>
-                          <option value="2024-25">2024-25</option>
-                        </select> */}
-                        <SingleSelector
-                          value={optionsClassificationYear.find(
-                            (option) => option.value === classificationYear
-                          )}
-                          onChange={handleClassificationYearChange}
-                          options={optionsClassificationYear}
-                          className="form-control"
-                          placeholder="Select Classification Year"
-                        />
-
-                        {/* {errors.msmeEnterpriseType && (
-                          <div className="ValidationColor">
-                            {errors.msmeEnterpriseType}
-                          </div>
-                        )}{" "} */}
-                        {/* Show error */}
-                        {errors.classificationYear && (
-                          <div className="ValidationColor">
-                            {errors.classificationYear}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* MSME/Udyam Valid From */}
-                  {msmeUdyamApplicable === "Yes" && (
-                    <div className="col-md-4 mt-2">
-                      <div className="form-group">
-                        <label
-                        // data-bs-toggle="tooltip"
-                        // data-bs-placement="top"
-                        // title={tooltipMessages.MSMEUdyamValidFrom}
-                        >
-                          MSME/Udyam Valid From <span>*</span>
-                          <TooltipIcon message="Enter the date when your MSME/Udyam registration became valid. This is the start date mentioned on your MSME/Udyam registration certificate for the financial year." />
-                        </label>
-                        <input
-                          className="form-control"
-                          type="date"
-                          name="name"
-                          placeholder=""
-                          value={validFrom}
-                          disabled={!!classificationYear} // Disable when classification year is selected
-                          onChange={handleValidFromChange} // Add onChange handler here
-                        // value={supplierData?.msme_details?.valid_from}
-                        />
-                        {errors.validFrom && (
-                          <div className="ValidationColor">
-                            {errors.validFrom}
-                          </div>
-                        )}{" "}
-                        {/* Show error */}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* MSME/Udyam Valid Till */}
-                  {msmeUdyamApplicable === "Yes" && (
-                    <div className="col-md-4 mt-2">
-                      <div className="form-group">
-                        <label
-                        // data-bs-toggle="tooltip"
-                        // data-bs-placement="top"
-                        // title={tooltipMessages.MSMEUdyamValidTill}
-                        >
-                          MSME/Udyam Valid Till <span>*</span>
-                          <TooltipIcon message="Enter the date when your MSME/Udyam registration became valid. This is the end date mentioned on your MSME/Udyam registration certificate for the financial year." />
-                        </label>
-                        <input
-                          className="form-control"
-                          type="date"
-                          name="name"
-                          placeholder=""
-                          value={validTill}
-                          disabled={!!classificationYear} // Disable when classification year is selected
-                          onChange={handleValidTillChange}
-                        // value={supplierData?.msme_details?.valid_till}
-                        />
-                        {errors.validTill && (
-                          <div className="ValidationColor">
-                            {errors.validTill}
-                          </div>
-                        )}{" "}
-                        {/* Show error */}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* MSME Enterprise Type */}
-                  {msmeUdyamApplicable === "Yes" && (
-                    <div className="col-md-4 mt-2">
-                      <div className="form-group">
-                        <label
-                        // data-bs-toggle="tooltip"
-                        // data-bs-placement="top"
-                        // title={tooltipMessages.MSMEEnterpriseType}
-                        >
-                          MSME Enterprise Type <span>*</span>
-                          <TooltipIcon message="Select the type of your organization under the MSME (Micro, Small, and Medium Enterprises) scheme. Choose from 'Micro,'Small,' or 'Medium' based on your organization's annual turnover and investment in plant and machinery." />
-                        </label>
-                        {/* <select
-                          // className="form-control"
-                          // value={supplierData?.msme_details?.enterprise}
-
-                          onChange={handleMsmeEnterpriseChange} // Handle value change
-                          className="form-control"
-                          value={msmeEnterpriseType}
-                        >
-                          <option value="">select option</option>
-                          <option value="Micro">Micro</option>
-                          <option value="Small">Small</option>
-                          <option value="Medium">Medium</option>
-                          <option value="Not_applicable">Not Applicable</option>
-                        </select> */}
-                        <SingleSelector
-                          value={optionsEnterPrise.find(
-                            (option) => option.value === msmeEnterpriseType
-                          )}
-                          onChange={(selected) =>
-                            handleMsmeEnterpriseChange({
-                              target: { value: selected.value },
-                            })
-                          }
-                          options={optionsEnterPrise}
-                          className="form-control"
-                          placeholder="Select option..."
-                        />
-                        {errors.msmeEnterpriseType && (
-                          <div className="ValidationColor">
-                            {errors.msmeEnterpriseType}
-                          </div>
-                        )}{" "}
-                        {/* Show error */}
-                      </div>
-                    </div>
-                  )}
-
-                  {msmeUdyamApplicable === "Yes" && (
-                    <div className="col-md-4 mt-2">
-                      <div className="form-group">
-                        <label
-                        // data-bs-toggle="tooltip"
-                        // data-bs-placement="top"
-                        // title={tooltipMessages.MSMEEnterpriseType}
-                        >
-                          Classifiction Date <span>*</span>
-                        </label>
-                        {/* <input
-                          className="form-control"
-                          type="date"
-                          name="name"
-                          placeholder=""
-                          value={validTill}
-                          onChange={handleValidTillChange}
-                          // value={supplierData?.msme_details?.valid_till}
-                        /> */}
-
-                        <input
-                          className="form-control"
-                          type="date"
-                          name="classificationDate"
-                          value={classificationDate}
-                          onChange={(e) =>
-                            setClassificationDate(e.target.value)
-                          }
-                        />
-
-                        {/* {errors.msmeEnterpriseType && (
-                          <div className="ValidationColor">
-                            {errors.msmeEnterpriseType}
-                          </div>
-                        )}{" "} */}
-                        {/* Show error */}
-                        {errors.classificationDate && (
-                          <div className="ValidationColor">
-                            {errors.classificationDate}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {/*  */}
-                  {msmeUdyamApplicable === "Yes" && (
-                    <div className="col-md-4 mt-2">
-                      <div className="form-group">
-                        <label>
-                          Download Specimen <span>*</span>
-                        </label>
-                        <a
-                          download="Specimen_E-Invoicing_Declaration.docx"
-                          className="text-primary d-flex align-items-center"
-                          href={`${baseURL}/assets/Yes%20_%20msme.pdf`}
-                        >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width={24}
-                            height={24}
-                            fill="#DE7008"
-                            className="bi bi-download"
-                            viewBox="0 0 16 16"
+                      {/* Beneficiary Name */}
+                      <div className="col-md-4 mt-2">
+                        <div className="form-group">
+                          <label
+                          // data-bs-toggle="tooltip"
+                          // data-bs-placement="top"
+                          // title={tooltipMessages.beneficiaryName}
                           >
-                            <path
-                              d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
-                              style={{ fill: "#de7008!important" }}
-                            />
-                            <path
-                              d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
-                              style={{ fill: "#de7008!important" }}
-                            />
-                          </svg>
-                          <span className="mt-2 ms-2">
-                            Specimen For Yes Msme.pdf
-                          </span>
-                        </a>
+                            Beneficiary Name <span>*</span>
+                            <TooltipIcon message="Enter the full legel name of the beneficiary." />
+                          </label>
+                          <input
+                            className="form-control"
+                            type="text"
+                            placeholder="Enter Beneficiary Name"
+                            // value={bankDetail.benficary_name}
+                            value={bankDetail.benficary_name} // Correct key
+                            onChange={(e) =>
+                              handleInputChange(
+                                e,
+                                bankDetail.id,
+                                "benficary_name"
+                              )
+                            }
+                            disabled={!bankDetail.isNew}
+                          />
+                          {bankDetail.isNew &&
+                            errors.benficary_name &&
+                            !bankDetail.benficary_name && (
+                              <div className="ValidationColor">
+                                {errors.benficary_name}
+                              </div>
+                            )}
+                        </div>
                       </div>
-                    </div>
-                  )}
-                  {/* MSME/Udyam Attachment */}
-                  {msmeUdyamApplicable === "Yes" && (
-                    <div className="col-md-4 mt-2">
-                      <div className="form-group">
-                        <label
-                        // data-bs-toggle="tooltip"
-                        // data-bs-placement="top"
-                        // title={tooltipMessages.MSMEUdyamAttachment}
-                        >
-                          MSME/Udyam Attachment <span>*</span>
-                          <TooltipIcon message="Attach a clear, scanned copy or digital image of your MSME/Udyam registration certificate to verify your organization's classification under the MSME scheme. The document must be uploaded in PDF format." />
-                        </label>
+                      {/* Cancelled Cheque / Bank Copy */}
+                      <div className="col-md-4 mt-2">
+                        <div className="form-group">
+                          <label
+                          // data-bs-toggle="tooltip"
+                          // data-bs-placement="top"
+                          // title={tooltipMessages.cancelledCheque}
+                          >
+                            Cancelled Cheque / Bank Copy <span>*</span>
+                            <TooltipIcon message="Provide a cancelled cheque or a bank statement copy that clearly displays your bank account details.This helps verify your account information. The document must be uploaded in PDF format" />
+                          </label>
 
-                        {supplierData?.msme_details?.msme_attachments?.length >
-                          0 && (
+                          {/* Conditionally Render Existing File Download Link */}
+                          {bankDetail?.attachment && (
                             <span className="ms-2">
                               <a
-                                href={`${baseURL}${supplierData?.msme_details?.msme_attachments[0]?.file_url}`} // Append base URL
-                                download // Ensure it prompts download
+                                href={`${baseURL}${bankDetail.attachment}`} // Ensure URL is correct
+                                download // Forces file download
                                 className="text-primary d-flex align-items-center"
                               >
-                                <span className="me-2">Existing Files:</span>
+                                <span className="me-2">Existing File:</span>
+                                {/* <TooltipIcon message="Indicate whether your organization is registered under the Goods and Services Tax (GST) Act."
+                               /> */}
                                 <svg
                                   xmlns="http://www.w3.org/2000/svg"
                                   width={24}
@@ -3309,194 +2840,548 @@ console.log("hasNewPan:", hasNewPan);
                                   // style={{ fill: "#de7008!important" }}
                                   />
                                 </svg>
-
-                                {supplierData?.msme_details?.msme_attachments
-                                  ?.length > 0
-                                  ? // Display the document name of the first attachment
-                                  supplierData?.msme_details
-                                    ?.msme_attachments[0]?.document_name
-                                  : // If no attachment is present, show a default message
-                                  "No Document Available"}
                               </a>
                             </span>
                           )}
-                        {/* <input className="form-control" type="file" name="" onChange={handleFileChange} /> */}
-                        <input
-                          className="form-control mt-2"
-                          type="file"
-                          onChange={(e) => handleFileChange(e.target.files[0])}
-                          ref={fileInputRef}
-                          multiple
-                          accept=".pdf"
-                        />
-                        {errors.msmeAttachments && (
+
+                          {/* File Input for Uploading New Attachments */}
+                          <input
+                            className="form-control mt-2"
+                            type="file"
+                            onChange={(e) =>
+                              handleFileChangeBank(
+                                e.target.files[0],
+                                bankDetail.id
+                              )
+                            }
+                            ref={fileInputRef}
+                            multiple
+                            accept=".pdf"
+                            disabled={!bankDetail.isNew}
+                          />
+
+                          {/* Validation Message */}
+                          {/* {bankDetail.isNew && errors.cancelled_cheque && (
                           <div className="ValidationColor">
-                            {errors.msmeAttachments}
+                            {errors.cancelled_cheque}
                           </div>
-                        )}
+                        )} */}
+                          {/* {bankDetail.isNew &&
+                          errors.cancelled_cheque &&
+                          !bankDetail.attachment && (
+                            <div className="ValidationColor">
+                              {errors.cancelled_cheque}
+                            </div>
+                          )} */}
+                          {bankDetail.isNew &&
+                            errors.cancelled_cheque &&
+                            !bankDetail.attachment && (
+                              <div className="ValidationColor">
+                                {errors.cancelled_cheque}
+                              </div>
+                            )}
+                        </div>
+                      </div>
+                      {/* Remark */}
+                      <div className="col-md-4 mt-2">
+                        <div className="form-group">
+                          <label>
+                            Remark
+                            {/* <span>*</span> */}
+                          </label>
+                          <textarea
+                            className="form-control"
+                            rows="3"
+                            placeholder="Enter Remark"
+                            value={bankDetail.remark}
+                            onChange={(e) =>
+                              handleInputChange(e, bankDetail.id, "remark")
+                            }
+                            disabled={!bankDetail.isNew}
+                          />
+                        </div>
                       </div>
                     </div>
-                  )}
+                  </CollapsedCardKYC>
+                ))}
+
+                <div className="row mt-2 ms-2 justify-content-start">
+                  <div className="col-md-2">
+                    <button className="purple-btn1" onClick={addBankDetails}>
+                      Add Bank Details
+                    </button>
+                  </div>
                 </div>
               </div>
+            )}
 
-              {/* // no */}
-              <div className="row">
-                {msmeUdyamApplicable === "No" && (
-                  <div className="col-md-4 mt-2 ms-3">
-                    <div className="form-group">
-                      <label
-                      // data-bs-toggle="tooltip"
-                      // data-bs-placement="top"
-                      // title={tooltipMessages.DownloadSpecimen}
-                      >
-                        Download Specimen <span>*</span>
-                      </label>
-                      <TooltipIcon message="If you choose 'No' for e-invoicing, a specimen format will be available for download. This is for businesses not subject to e-invoicing under GST regulations. Please upload a signed declaration stating that your organization is not registered.The document must be uploaded in PDF format" />
-                      <a
-                        download="Specimen_E-Invoicing_Declaration.docx"
-                        className="text-primary d-flex align-items-center"
-                        href={`${baseURL}/assets/NO_%20MSME.pdf`}
-                        target="_self" // Ensure it doesn't open in a new tab
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width={24}
-                          height={24}
-                          fill="#DE7008"
-                          className="bi bi-download"
-                          viewBox="0 0 16 16"
+            {/* rekeyc type present  */}
+
+            {(isRekycTypeEmpty || isMsmeRekyc) && (
+              <div className="card mx-3 pb-4 mt-4">
+                <div className="card-header3">
+                  <h3 className="card-title">MSME Details</h3>
+                </div>
+                {/* <CardBodyMsme /> */}
+
+                <div className="card-body mt-0">
+                  <div className="row">
+                    {/* MSME/Udyam Number Applicable */}
+                    <div className="col-md-4 mt-2">
+                      <div className="form-group">
+                        <label
+                        // data-bs-toggle="tooltip"
+                        // data-bs-placement="top"
+                        // title={tooltipMessages.MSMEUdyamNumberApplicable}
                         >
-                          <path
-                            d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
-                            style={{ fill: "#de7008!important" }}
-                          />
-                          <path
-                            d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
-                            style={{ fill: "#de7008!important" }}
-                          />
-                        </svg>
-
-                        <span className="mt-2 ms-2">
-                          Specimen For No Msme.pdf
-                        </span>
-                      </a>
-                    </div>
-                  </div>
-                )}
-
-                {msmeUdyamApplicable === "No" && (
-                  <div className="col-md-4 mt-2">
-                    <div className="form-group">
-                      <label
-                      // data-bs-toggle="tooltip"
-                      // data-bs-placement="top"
-                      // title={tooltipMessages.UploadDeclaration}
-                      >
-                        Upload Declaration <span>*</span>
-                      </label>
-
-                      <span className="ms-2">
-                        {/* <a
-                          href={
-                            supplierData?.msme_details?.msme_attachments[0]
-                              ?.file_url
-                          } // PDF file URL */}
-
-                        <a
-                          href={`${baseURL}${supplierData?.msme_details?.msme_attachments[0]?.file_url}`} // Prepend baseURL to the file URL
-                          download // Trigger download when clicked
-                          className="text-primary d-flex align-items-center"
-                        >
-                          <span className="me-2">Existing Files:</span>
-                          <TooltipIcon message="If you choose E-Invoice applicable 'No', please upload a signed declaration document to verify the details you have submitted. The document must be uploaded in PDF format.Ensure that the document is clear, legible, and properly signed." />
-
-                          {supplierData?.msme_details?.msme_attachments
-                            ?.length > 0
-                            ? // Display the document name of the first attachment
-                            supplierData?.msme_details?.msme_attachments[0]
-                              ?.document_name
-                            : // If no attachment is present, show a default message
-                            "No Document Available"}
-                        </a>
-                      </span>
-                      <input
+                          MSME/Udyam Number Applicable <span>*</span>
+                          <TooltipIcon message="Select whether your organization is registered under the MSME (Micro, Small, and Medium Enterprises) or Udyam scheme. Choose 'Yes' if applicable, otherwise select 'No.' By selecting 'No, you confirm that your organization does not hold a valid MSME/Udyam registration number. A declaration is required, and this response will be timestamped to record the submission date and time." />
+                        </label>
+                        {/* <select
+                        value={msmeUdyamApplicable}
+                        onChange={handleMsmeUdyamChange}
                         className="form-control"
-                        type="file"
-                        accept=".pdf"
-                        name=""
-                        onChange={handleFileChange}
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {(isRekycTypeEmpty || isEnvoiceRekyc) && (
-            <div className="card mx-3 pb-4 mt-4">
-              <div className="card-header3">
-                <h3 className="card-title">E-invoice</h3>
-              </div>
-              {/* <CardBodyKYC /> */}
-
-              {/* e  invoice */}
-              <div className="card-body mt-0">
-                {/* E-Invoicing Applicable */}
-                <div className="row">
-                  <div className="col-md-4 mt-2">
-                    <div className="form-group">
-                      <label>
-                        E-invoicing Applicable <span>*</span>
-                      </label>
-                      {/* <select
-                        // value={eInvoicingApplicable}
-                        // onChange={handleEInvoicingChange}
-                        // className="form-control"
-                        // value={supplierData?.einvoicing}
-
-                        onChange={handleEInvoicingChange} // Handle value change
-                        className="form-control"
-                        value={eInvoicingApplicable}
                       >
+                        <option value="">select</option>
                         <option value="Yes">Yes</option>
                         <option value="No">No</option>
                       </select> */}
-                      <SingleSelector
-                        options={[
-                          { value: "Yes", label: "Yes" },
-                          { value: "No", label: "No" },
-                        ]}
-                        value={
-                          eInvoicingApplicable
-                            ? {
-                              value: eInvoicingApplicable,
-                              label: eInvoicingApplicable,
-                            }
-                            : null
-                        }
-                        onChange={(selected) =>
-                          setEInvoicingApplicable(selected?.value || "")
-                        }
-                        className="form-control"
-                      />
+                        <SingleSelector
+                          value={options.find(
+                            (option) => option.value === msmeUdyamApplicable
+                          )}
+                          onChange={(selected) =>
+                            handleMsmeUdyamChange({
+                              target: { value: selected.value },
+                            })
+                          }
+                          options={options}
+                          className="form-control"
+                          placeholder="Select..."
+                        />
+                        {errors.msmeUdyamApplicable && (
+                          <div className="ValidationColor">
+                            {errors.msmeUdyamApplicable}
+                          </div>
+                        )}{" "}
+                        {/* Show error */}
+                      </div>
                     </div>
+
+                    {msmeUdyamApplicable === "Yes" && (
+                      <div className="col-md-4 mt-2">
+                        <div className="form-group">
+                          <label
+                          // data-bs-toggle="tooltip"
+                          // data-bs-placement="top"
+                          // title={tooltipMessages.MSMEEnterpriseType}
+                          >
+                            Major Activity <span>*</span>
+                          </label>
+                          {/* <select
+                          // className="form-control"
+                          // value={supplierData?.msme_details?.enterprise}
+
+                          onChange={(e) => setMajorActivity(e.target.value)}
+                          className="form-control"
+                          value={majorActivity}
+                        >
+                          <option value="">select option</option>
+                          <option value="services">Services</option>
+                          <option value="trader">Trader</option>
+                          <option value="manufacture">manufacture</option>
+                          <option value="others">Others</option>
+                        </select> */}
+                          {/* {errors.msmeEnterpriseType && (
+                          <div className="ValidationColor">
+                            {errors.msmeEnterpriseType}
+                          </div>
+                        )}{" "}
+                        {/* Show error */}
+
+                          <SingleSelector
+                            value={optionsMajorActivity.find(
+                              (option) => option.value === majorActivity
+                            )}
+                            onChange={(selected) =>
+                              setMajorActivity(selected.value)
+                            }
+                            options={optionsMajorActivity}
+                            className="form-control"
+                            placeholder="Select Major Activity"
+                          />
+                          {console.log("majorActivity", majorActivity)}
+
+                          {errors.majorActivity && (
+                            <div className="ValidationColor">
+                              {errors.majorActivity}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* MSME/Udyam Valid Till */}
+                    {/* MSME/Udyam Number */}
+                    {msmeUdyamApplicable === "Yes" && (
+                      <div className="col-md-4 mt-2">
+                        <div className="form-group">
+                          <label
+                          // data-bs-toggle="tooltip"
+                          // data-bs-placement="top"
+                          // title={tooltipMessages.MSMEUdyamNumber}
+                          >
+                            MSME/Udyam Number <span>*</span>
+                            <TooltipIcon message="Enter your organization's valid MSME or Udyam registration number. This number is issued by the Ministry of Micro, Small, and Medium Enterprises (MSME) under the Udyam registration scheme" />
+                          </label>
+                          <input
+                            className="form-control"
+                            type="text"
+                            name="name"
+                            placeholder=""
+                            value={msmeNo}
+                            onChange={handleMsmeNoChange} // Add onChange handler here
+                          // value={supplierData?.msme_details?.msme_no}
+                          />
+                          {errors.msmeNo && (
+                            <div className="ValidationColor">{errors.msmeNo}</div>
+                          )}{" "}
+                          {/* Show error */}
+                        </div>
+                      </div>
+                    )}
+
+                    {msmeUdyamApplicable === "Yes" && (
+                      <div className="col-md-4 mt-2">
+                        <div className="form-group">
+                          <label
+                          // data-bs-toggle="tooltip"
+                          // data-bs-placement="top"
+                          // title={tooltipMessages.MSMEEnterpriseType}
+                          >
+                            Classifiction Year <span>*</span>
+                          </label>
+                          {/* <select
+                          // onChange={(e) =>
+                          //   setClassificationYear(e.target.value)
+                          // }
+                          onChange={handleClassificationYearChange}
+                          className="form-control"
+                          value={classificationYear}
+                        >
+                          <option value="">Select Option</option>
+                          <option value="2021-22">2021-22</option>
+                          <option value="2022-23">2022-23</option>
+                          <option value="2023-24">2023-24</option>
+                          <option value="2024-25">2024-25</option>
+                        </select> */}
+                          <SingleSelector
+                            value={optionsClassificationYear.find(
+                              (option) => option.value === classificationYear
+                            )}
+                            onChange={handleClassificationYearChange}
+                            options={optionsClassificationYear}
+                            className="form-control"
+                            placeholder="Select Classification Year"
+                          />
+
+                          {/* {errors.msmeEnterpriseType && (
+                          <div className="ValidationColor">
+                            {errors.msmeEnterpriseType}
+                          </div>
+                        )}{" "} */}
+                          {/* Show error */}
+                          {errors.classificationYear && (
+                            <div className="ValidationColor">
+                              {errors.classificationYear}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* MSME/Udyam Valid From */}
+                    {msmeUdyamApplicable === "Yes" && (
+                      <div className="col-md-4 mt-2">
+                        <div className="form-group">
+                          <label
+                          // data-bs-toggle="tooltip"
+                          // data-bs-placement="top"
+                          // title={tooltipMessages.MSMEUdyamValidFrom}
+                          >
+                            MSME/Udyam Valid From <span>*</span>
+                            <TooltipIcon message="Enter the date when your MSME/Udyam registration became valid. This is the start date mentioned on your MSME/Udyam registration certificate for the financial year." />
+                          </label>
+                          <input
+                            className="form-control"
+                            type="date"
+                            name="name"
+                            placeholder=""
+                            value={validFrom}
+                            disabled={!!classificationYear} // Disable when classification year is selected
+                            onChange={handleValidFromChange} // Add onChange handler here
+                          // value={supplierData?.msme_details?.valid_from}
+                          />
+                          {errors.validFrom && (
+                            <div className="ValidationColor">
+                              {errors.validFrom}
+                            </div>
+                          )}{" "}
+                          {/* Show error */}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* MSME/Udyam Valid Till */}
+                    {msmeUdyamApplicable === "Yes" && (
+                      <div className="col-md-4 mt-2">
+                        <div className="form-group">
+                          <label
+                          // data-bs-toggle="tooltip"
+                          // data-bs-placement="top"
+                          // title={tooltipMessages.MSMEUdyamValidTill}
+                          >
+                            MSME/Udyam Valid Till <span>*</span>
+                            <TooltipIcon message="Enter the date when your MSME/Udyam registration became valid. This is the end date mentioned on your MSME/Udyam registration certificate for the financial year." />
+                          </label>
+                          <input
+                            className="form-control"
+                            type="date"
+                            name="name"
+                            placeholder=""
+                            value={validTill}
+                            disabled={!!classificationYear} // Disable when classification year is selected
+                            onChange={handleValidTillChange}
+                          // value={supplierData?.msme_details?.valid_till}
+                          />
+                          {errors.validTill && (
+                            <div className="ValidationColor">
+                              {errors.validTill}
+                            </div>
+                          )}{" "}
+                          {/* Show error */}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* MSME Enterprise Type */}
+                    {msmeUdyamApplicable === "Yes" && (
+                      <div className="col-md-4 mt-2">
+                        <div className="form-group">
+                          <label
+                          // data-bs-toggle="tooltip"
+                          // data-bs-placement="top"
+                          // title={tooltipMessages.MSMEEnterpriseType}
+                          >
+                            MSME Enterprise Type <span>*</span>
+                            <TooltipIcon message="Select the type of your organization under the MSME (Micro, Small, and Medium Enterprises) scheme. Choose from 'Micro,'Small,' or 'Medium' based on your organization's annual turnover and investment in plant and machinery." />
+                          </label>
+                          {/* <select
+                          // className="form-control"
+                          // value={supplierData?.msme_details?.enterprise}
+
+                          onChange={handleMsmeEnterpriseChange} // Handle value change
+                          className="form-control"
+                          value={msmeEnterpriseType}
+                        >
+                          <option value="">select option</option>
+                          <option value="Micro">Micro</option>
+                          <option value="Small">Small</option>
+                          <option value="Medium">Medium</option>
+                          <option value="Not_applicable">Not Applicable</option>
+                        </select> */}
+                          <SingleSelector
+                            value={optionsEnterPrise.find(
+                              (option) => option.value === msmeEnterpriseType
+                            )}
+                            onChange={(selected) =>
+                              handleMsmeEnterpriseChange({
+                                target: { value: selected.value },
+                              })
+                            }
+                            options={optionsEnterPrise}
+                            className="form-control"
+                            placeholder="Select option..."
+                          />
+                          {errors.msmeEnterpriseType && (
+                            <div className="ValidationColor">
+                              {errors.msmeEnterpriseType}
+                            </div>
+                          )}{" "}
+                          {/* Show error */}
+                        </div>
+                      </div>
+                    )}
+
+                    {msmeUdyamApplicable === "Yes" && (
+                      <div className="col-md-4 mt-2">
+                        <div className="form-group">
+                          <label
+                          // data-bs-toggle="tooltip"
+                          // data-bs-placement="top"
+                          // title={tooltipMessages.MSMEEnterpriseType}
+                          >
+                            Classifiction Date <span>*</span>
+                          </label>
+                          {/* <input
+                          className="form-control"
+                          type="date"
+                          name="name"
+                          placeholder=""
+                          value={validTill}
+                          onChange={handleValidTillChange}
+                          // value={supplierData?.msme_details?.valid_till}
+                        /> */}
+
+                          <input
+                            className="form-control"
+                            type="date"
+                            name="classificationDate"
+                            value={classificationDate}
+                            onChange={(e) =>
+                              setClassificationDate(e.target.value)
+                            }
+                          />
+
+                          {/* {errors.msmeEnterpriseType && (
+                          <div className="ValidationColor">
+                            {errors.msmeEnterpriseType}
+                          </div>
+                        )}{" "} */}
+                          {/* Show error */}
+                          {errors.classificationDate && (
+                            <div className="ValidationColor">
+                              {errors.classificationDate}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/*  */}
+                    {msmeUdyamApplicable === "Yes" && (
+                      <div className="col-md-4 mt-2">
+                        <div className="form-group">
+                          <label>
+                            Download Specimen <span>*</span>
+                          </label>
+                          <a
+                            download="Specimen_E-Invoicing_Declaration.docx"
+                            className="text-primary d-flex align-items-center"
+                            href={`${baseURL}/assets/Yes%20_%20msme.pdf`}
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width={24}
+                              height={24}
+                              fill="#DE7008"
+                              className="bi bi-download"
+                              viewBox="0 0 16 16"
+                            >
+                              <path
+                                d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
+                                style={{ fill: "#de7008!important" }}
+                              />
+                              <path
+                                d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
+                                style={{ fill: "#de7008!important" }}
+                              />
+                            </svg>
+                            <span className="mt-2 ms-2">
+                              Specimen For Yes Msme.pdf
+                            </span>
+                          </a>
+                        </div>
+                      </div>
+                    )}
+                    {/* MSME/Udyam Attachment */}
+                    {msmeUdyamApplicable === "Yes" && (
+                      <div className="col-md-4 mt-2">
+                        <div className="form-group">
+                          <label
+                          // data-bs-toggle="tooltip"
+                          // data-bs-placement="top"
+                          // title={tooltipMessages.MSMEUdyamAttachment}
+                          >
+                            MSME/Udyam Attachment <span>*</span>
+                            <TooltipIcon message="Attach a clear, scanned copy or digital image of your MSME/Udyam registration certificate to verify your organization's classification under the MSME scheme. The document must be uploaded in PDF format." />
+                          </label>
+
+                          {supplierData?.msme_details?.msme_attachments?.length >
+                            0 && (
+                              <span className="ms-2">
+                                <a
+                                  href={`${baseURL}${supplierData?.msme_details?.msme_attachments[0]?.file_url}`} // Append base URL
+                                  download // Ensure it prompts download
+                                  className="text-primary d-flex align-items-center"
+                                >
+                                  <span className="me-2">Existing Files:</span>
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width={24}
+                                    height={24}
+                                    fill="#DE7008"
+                                    className="bi bi-download"
+                                    viewBox="0 0 16 16"
+                                  >
+                                    <path
+                                      d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
+                                    // style={{ fill: "#de7008!important" }}
+                                    />
+                                    <path
+                                      d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
+                                    // style={{ fill: "#de7008!important" }}
+                                    />
+                                  </svg>
+
+                                  {supplierData?.msme_details?.msme_attachments
+                                    ?.length > 0
+                                    ? // Display the document name of the first attachment
+                                    supplierData?.msme_details
+                                      ?.msme_attachments[0]?.document_name
+                                    : // If no attachment is present, show a default message
+                                    "No Document Available"}
+                                </a>
+                              </span>
+                            )}
+                          {/* <input className="form-control" type="file" name="" onChange={handleFileChange} /> */}
+                          <input
+                            className="form-control mt-2"
+                            type="file"
+                            onChange={(e) => handleFileChange(e.target.files[0])}
+                            ref={fileInputRef}
+                            multiple
+                            accept=".pdf"
+                          />
+                          {errors.msmeAttachments && (
+                            <div className="ValidationColor">
+                              {errors.msmeAttachments}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 
-                {/* Conditional rendering for E-Invoicing - Hide Download Specimen and Upload Declaration */}
-                {eInvoicingApplicable === "No" && (
-                  <div className="row">
-                    <div className="col-md-4 mt-2">
+                {/* // no */}
+                <div className="row">
+                  {msmeUdyamApplicable === "No" && (
+                    <div className="col-md-4 mt-2 ms-3">
                       <div className="form-group">
-                        <label>
+                        <label
+                        // data-bs-toggle="tooltip"
+                        // data-bs-placement="top"
+                        // title={tooltipMessages.DownloadSpecimen}
+                        >
                           Download Specimen <span>*</span>
                         </label>
+                        <TooltipIcon message="If you choose 'No' for e-invoicing, a specimen format will be available for download. This is for businesses not subject to e-invoicing under GST regulations. Please upload a signed declaration stating that your organization is not registered.The document must be uploaded in PDF format" />
                         <a
                           download="Specimen_E-Invoicing_Declaration.docx"
                           className="text-primary d-flex align-items-center"
-                          href="/assets/Specimen_E-Invoicing_Declaration.docx"
+                          href={`${baseURL}/assets/NO_%20MSME.pdf`}
+                          target="_self" // Ensure it doesn't open in a new tab
                         >
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -3515,18 +3400,157 @@ console.log("hasNewPan:", hasNewPan);
                               style={{ fill: "#de7008!important" }}
                             />
                           </svg>
+
                           <span className="mt-2 ms-2">
-                            Specimen For E-Invoicing Declaration.pdf
+                            Specimen For No Msme.pdf
                           </span>
                         </a>
                       </div>
                     </div>
+                  )}
+
+                  {msmeUdyamApplicable === "No" && (
+                    <div className="col-md-4 mt-2">
+                      <div className="form-group">
+                        <label
+                        // data-bs-toggle="tooltip"
+                        // data-bs-placement="top"
+                        // title={tooltipMessages.UploadDeclaration}
+                        >
+                          Upload Declaration <span>*</span>
+                        </label>
+
+                        <span className="ms-2">
+                          {/* <a
+                          href={
+                            supplierData?.msme_details?.msme_attachments[0]
+                              ?.file_url
+                          } // PDF file URL */}
+
+                          <a
+                            href={`${baseURL}${supplierData?.msme_details?.msme_attachments[0]?.file_url}`} // Prepend baseURL to the file URL
+                            download // Trigger download when clicked
+                            className="text-primary d-flex align-items-center"
+                          >
+                            <span className="me-2">Existing Files:</span>
+                            <TooltipIcon message="If you choose E-Invoice applicable 'No', please upload a signed declaration document to verify the details you have submitted. The document must be uploaded in PDF format.Ensure that the document is clear, legible, and properly signed." />
+
+                            {supplierData?.msme_details?.msme_attachments
+                              ?.length > 0
+                              ? // Display the document name of the first attachment
+                              supplierData?.msme_details?.msme_attachments[0]
+                                ?.document_name
+                              : // If no attachment is present, show a default message
+                              "No Document Available"}
+                          </a>
+                        </span>
+                        <input
+                          className="form-control"
+                          type="file"
+                          accept=".pdf"
+                          name=""
+                          onChange={handleFileChange}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {(isRekycTypeEmpty || isEnvoiceRekyc) && (
+              <div className="card mx-3 pb-4 mt-4">
+                <div className="card-header3">
+                  <h3 className="card-title">E-invoice</h3>
+                </div>
+                {/* <CardBodyKYC /> */}
+
+                {/* e  invoice */}
+                <div className="card-body mt-0">
+                  {/* E-Invoicing Applicable */}
+                  <div className="row">
                     <div className="col-md-4 mt-2">
                       <div className="form-group">
                         <label>
-                          Upload Declaration <span>*</span>
+                          E-invoicing Applicable <span>*</span>
                         </label>
-                        {/* <input
+                        {/* <select
+                        // value={eInvoicingApplicable}
+                        // onChange={handleEInvoicingChange}
+                        // className="form-control"
+                        // value={supplierData?.einvoicing}
+
+                        onChange={handleEInvoicingChange} // Handle value change
+                        className="form-control"
+                        value={eInvoicingApplicable}
+                      >
+                        <option value="Yes">Yes</option>
+                        <option value="No">No</option>
+                      </select> */}
+                        <SingleSelector
+                          options={[
+                            { value: "Yes", label: "Yes" },
+                            { value: "No", label: "No" },
+                          ]}
+                          value={
+                            eInvoicingApplicable
+                              ? {
+                                value: eInvoicingApplicable,
+                                label: eInvoicingApplicable,
+                              }
+                              : null
+                          }
+                          onChange={(selected) =>
+                            setEInvoicingApplicable(selected?.value || "")
+                          }
+                          className="form-control"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Conditional rendering for E-Invoicing - Hide Download Specimen and Upload Declaration */}
+                  {eInvoicingApplicable === "No" && (
+                    <div className="row">
+                      <div className="col-md-4 mt-2">
+                        <div className="form-group">
+                          <label>
+                            Download Specimen <span>*</span>
+                          </label>
+                          <a
+                            download="Specimen_E-Invoicing_Declaration.docx"
+                            className="text-primary d-flex align-items-center"
+                            href="/assets/Specimen_E-Invoicing_Declaration.docx"
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width={24}
+                              height={24}
+                              fill="#DE7008"
+                              className="bi bi-download"
+                              viewBox="0 0 16 16"
+                            >
+                              <path
+                                d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
+                                style={{ fill: "#de7008!important" }}
+                              />
+                              <path
+                                d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
+                                style={{ fill: "#de7008!important" }}
+                              />
+                            </svg>
+                            <span className="mt-2 ms-2">
+                              Specimen For E-Invoicing Declaration.pdf
+                            </span>
+                          </a>
+                        </div>
+                      </div>
+                      <div className="col-md-4 mt-2">
+                        <div className="form-group">
+                          <label>
+                            Upload Declaration <span>*</span>
+                          </label>
+                          {/* <input
                           id="attachment"
                           accept=" "
                           className="form-control"
@@ -3534,22 +3558,22 @@ console.log("hasNewPan:", hasNewPan);
                           name=""
                           onChange={handleEinvoicingFileChange}
                         /> */}
-                        <input
-                          className="form-control mt-2"
-                          type="file"
-                          onChange={(e) => handleFileChange2(e.target.files[0])}
-                          ref={fileInputRef}
-                          multiple
-                          accept=".pdf"
-                        />
-                        Major Activity *
+                          <input
+                            className="form-control mt-2"
+                            type="file"
+                            onChange={(e) => handleFileChange2(e.target.files[0])}
+                            ref={fileInputRef}
+                            multiple
+                            accept=".pdf"
+                          />
+                          Major Activity *
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {/* Conditional rendering for MSME/Udyam - Hide Download Specimen and Upload Declaration */}
-                {/* {msmeUdyamApplicable === "No" && (
+                  {/* Conditional rendering for MSME/Udyam - Hide Download Specimen and Upload Declaration */}
+                  {/* {msmeUdyamApplicable === "No" && (
     <div className="row">
       <div className="col-md-4 mt-2">
         <div className="form-group">
@@ -3601,44 +3625,44 @@ console.log("hasNewPan:", hasNewPan);
       </div>
     </div>
   )} */}
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* name rekyc */}
-          {(isRekycTypeEmpty || isNameRekyc) && (
-            <div className="card mx-3 pb-4 mt-4">
-              <div className="card-header3">
-                <h3 className="card-title">Name Rekyc</h3>
-              </div>
+            {/* name rekyc */}
+            {(isRekycTypeEmpty || isNameRekyc) && (
+              <div className="card mx-3 pb-4 mt-4">
+                <div className="card-header3">
+                  <h3 className="card-title">Name Rekyc</h3>
+                </div>
 
-              <div className="card-body mt-0">
-                {/* Name Rekyc Applicable */}
-                <div className="row">
-                  <div className="col-md-4 mt-2">
-                    <div className="form-group">
-                      <label>Organization Name <span>*</span></label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        value={organizationName}
-                        onChange={(e) => setOrganizationName(e.target.value)}
-                        placeholder="Enter Organization Name"
-                        disabled
-                      />
-                      {errors.organizationName && (
-                        <div className="ValidationColor">
-                          {errors.organizationName}
-                        </div>
-                      )}
+                <div className="card-body mt-0">
+                  {/* Name Rekyc Applicable */}
+                  <div className="row">
+                    <div className="col-md-4 mt-2">
+                      <div className="form-group">
+                        <label>Organization Name <span>*</span></label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          value={organizationName}
+                          onChange={(e) => setOrganizationName(e.target.value)}
+                          placeholder="Enter Organization Name"
+                          disabled
+                        />
+                        {errors.organizationName && (
+                          <div className="ValidationColor">
+                            {errors.organizationName}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                  {/* PAN Upload */}
-                  <div className="col-md-4 mt-2">
-                    <div className="form-group">
-                      <label>PAN Attachment <span>*</span></label>
-                      
-                    {supplierData?.basic_information?.pan_attachments?.length >
+                    {/* PAN Upload */}
+                    <div className="col-md-4 mt-2">
+                      <div className="form-group">
+                        <label>PAN Attachment <span>*</span></label>
+
+                        {supplierData?.basic_information?.pan_attachments?.length >
                           0 && (
                             <span className="ms-2">
                               <a
@@ -3674,23 +3698,23 @@ console.log("hasNewPan:", hasNewPan);
                               </a>
                             </span>
                           )}
-                      <input
-                        type="file"
-                        accept=".pdf,.jpg,.jpeg,.png"
-                        className="form-control mt-2"
-                        onChange={(e) => handlePanUpload(e.target.files[0])}
-                      />
-                      {errors.panAttachments && (
-                        <div className="ValidationColor">{errors.panAttachments}</div>
-                      )}
+                        <input
+                          type="file"
+                          accept=".pdf,.jpg,.jpeg,.png"
+                          className="form-control mt-2"
+                          onChange={(e) => handlePanUpload(e.target.files[0])}
+                        />
+                        {errors.panAttachments && (
+                          <div className="ValidationColor">{errors.panAttachments}</div>
+                        )}
+                      </div>
                     </div>
-                  </div>
 
-                  {/* MSME Upload */}
-                  <div className="col-md-4 mt-2">
-                    <div className="form-group">
-                      <label>MSME Attachment <span>*</span></label>
-                      {supplierData?.basic_information?.msme_attachments?.length >
+                    {/* MSME Upload */}
+                    <div className="col-md-4 mt-2">
+                      <div className="form-group">
+                        <label>MSME Attachment <span>*</span></label>
+                        {supplierData?.basic_information?.msme_attachments?.length >
                           0 && (
                             <span className="ms-2">
                               <a
@@ -3726,23 +3750,23 @@ console.log("hasNewPan:", hasNewPan);
                               </a>
                             </span>
                           )}
-                      <input
-                        type="file"
-                        accept=".pdf,.jpg,.jpeg,.png"
-                        className="form-control mt-2"
-                        onChange={(e) => handleMsmeUpload(e.target.files[0])}
-                      />
-                      {errors.msmeAttachments2 && (
-                        <div className="ValidationColor">{errors.msmeAttachments2}</div>
-                      )}
+                        <input
+                          type="file"
+                          accept=".pdf,.jpg,.jpeg,.png"
+                          className="form-control mt-2"
+                          onChange={(e) => handleMsmeUpload(e.target.files[0])}
+                        />
+                        {errors.msmeAttachments2 && (
+                          <div className="ValidationColor">{errors.msmeAttachments2}</div>
+                        )}
+                      </div>
                     </div>
-                  </div>
 
-                  {/* CIN Upload */}
-                  <div className="col-md-4 mt-4">
-                    <div className="form-group">
-                      <label>CIN Attachment <span>*</span></label>
-                       {supplierData?.basic_information?.cin_number_attachments?.length >
+                    {/* CIN Upload */}
+                    <div className="col-md-4 mt-4">
+                      <div className="form-group">
+                        <label>CIN Attachment <span>*</span></label>
+                        {supplierData?.basic_information?.cin_number_attachments?.length >
                           0 && (
                             <span className="ms-2">
                               <a
@@ -3778,23 +3802,23 @@ console.log("hasNewPan:", hasNewPan);
                               </a>
                             </span>
                           )}
-                      <input
-                        type="file"
-                        accept=".pdf,.jpg,.jpeg,.png"
-                        className="form-control mt-2"
-                        onChange={(e) => handleCinUpload(e.target.files[0])}
-                      />
-                      {errors.cinAttachments && (
-                        <div className="ValidationColor">{errors.cinAttachments}</div>
-                      )}
+                        <input
+                          type="file"
+                          accept=".pdf,.jpg,.jpeg,.png"
+                          className="form-control mt-2"
+                          onChange={(e) => handleCinUpload(e.target.files[0])}
+                        />
+                        {errors.cinAttachments && (
+                          <div className="ValidationColor">{errors.cinAttachments}</div>
+                        )}
+                      </div>
                     </div>
-                  </div>
 
-                  {/* GSTIN Upload */}
-                  <div className="col-md-4 mt-4">
-                    <div className="form-group">
-                      <label>GSTIN Attachment <span>*</span></label>
-                       {supplierData?.basic_information?.gstin_attachments?.length >
+                    {/* GSTIN Upload */}
+                    <div className="col-md-4 mt-4">
+                      <div className="form-group">
+                        <label>GSTIN Attachment <span>*</span></label>
+                        {supplierData?.basic_information?.gstin_attachments?.length >
                           0 && (
                             <span className="ms-2">
                               <a
@@ -3830,24 +3854,24 @@ console.log("hasNewPan:", hasNewPan);
                               </a>
                             </span>
                           )}
-                      <input
-                        type="file"
-                        accept=".pdf,.jpg,.jpeg,.png"
-                        className="form-control mt-2"
-                        onChange={(e) => handleGstinUpload(e.target.files[0])}
-                      />
-                      {errors.gstinAttachments2 && (
-                        <div className="ValidationColor">{errors.gstinAttachments2}</div>
-                      )}
+                        <input
+                          type="file"
+                          accept=".pdf,.jpg,.jpeg,.png"
+                          className="form-control mt-2"
+                          onChange={(e) => handleGstinUpload(e.target.files[0])}
+                        />
+                        {errors.gstinAttachments2 && (
+                          <div className="ValidationColor">{errors.gstinAttachments2}</div>
+                        )}
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Checkbox */}
-                  {/* Bank Cheque Upload */}
-                  <div className="col-md-4 mt-4">
-                    <div className="form-group">
-                      <label>Cheque Attachment <span>*</span></label>
-                       {supplierData?.basic_information?.bank_attachments_attachments?.length >
+                    {/* Checkbox */}
+                    {/* Bank Cheque Upload */}
+                    <div className="col-md-4 mt-4">
+                      <div className="form-group">
+                        <label>Cheque Attachment <span>*</span></label>
+                        {supplierData?.basic_information?.bank_attachments_attachments?.length >
                           0 && (
                             <span className="ms-2">
                               <a
@@ -3883,139 +3907,164 @@ console.log("hasNewPan:", hasNewPan);
                               </a>
                             </span>
                           )}
-                      <input
-                        type="file"
-                        accept=".pdf,.jpg,.jpeg,.png"
-                        className="form-control"
-                        onChange={(e) => handleBankChequeUpload(e.target.files[0])}
-                      />
-                      {errors.bankChequeAttachments && (
-                        <div className="ValidationColor">{errors.bankChequeAttachments}</div>
-                      )}
+                        <input
+                          type="file"
+                          accept=".pdf,.jpg,.jpeg,.png"
+                          className="form-control"
+                          onChange={(e) => handleBankChequeUpload(e.target.files[0])}
+                        />
+                        {errors.bankChequeAttachments && (
+                          <div className="ValidationColor">{errors.bankChequeAttachments}</div>
+                        )}
+                      </div>
                     </div>
+
                   </div>
 
-                </div>
+                  {/* Other Statutory Details */}
+                  <div className="row mt-5">
+                    <div className="col-md-12">
+                      <h5 className="mb-3">Other Statutory Details</h5>
+                    </div>
 
-                {/* Other Statutory Details */}
-                <div className="row mt-5">
-                  <div className="col-md-12">
-                    <h5 className="mb-3">Other Statutory Details</h5>
+
+                    {/* <div>{"*********************************************************"} </div> */}
+
+                    {statutoryDetails?.map((field, index) => (
+                      <div className="row" key={`${field.id}-${index}`}>
+                        <div className="col-md-6 mt-3">
+                          <div className="form-group">
+                            <label>{field.name}</label>
+                            <input
+                              type="text"
+                              className="form-control"
+                              placeholder={`Enter ${field.name}`}
+                              // value={statutoryInputs[field.code]?.input || field.statutory_detail_value}
+                              value={
+                                statutoryInputs[field.code]?.input !== undefined
+                                  ? statutoryInputs[field.code]?.input
+                                  : field.statutory_detail_value || ""
+                              }
+                              onChange={(e) =>
+                                handleStatutoryInputChange(field.code, e.target.value, field.id, field.statutory_detail_value)
+                              }
+                            />
+                          </div>
+                        </div>
+
+                        <div className="col-md-6 mt-3">
+                          <div className="form-group">
+                            <label>Attachment</label>
+                            <input
+                              type="file"
+                              className="form-control"
+                              accept=".pdf,.jpg,.jpeg,.png"
+                              onChange={(e) =>
+                                handleStatutoryFileChange(field.code, e.target.files[0], field.id, field.statutory_detail_value)
+                              }
+                            />
+                            {statutoryErrors[field.code] && (
+                              <div className="ValidationColor">
+                                {statutoryErrors[field.code]}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-
-                
-{/* <div>{"*********************************************************"} </div> */}
-
-{statutoryDetails?.map((field,index) => (
-  <div className="row" key={`${field.id}-${index}`}>
-    <div className="col-md-6 mt-3">
-      <div className="form-group">
-        <label>{field.name}</label>
-        <input
-          type="text"
-          className="form-control"
-          placeholder={`Enter ${field.name}`}
-          value={statutoryInputs[field.code]?.input || field.name}
-          onChange={(e) =>
-            handleStatutoryInputChange(field.code, e.target.value,field.id,field.name)
-          }
-        />
-      </div>
-    </div>
-
-    <div className="col-md-6 mt-3">
-      <div className="form-group">
-        <label>Attachment</label>
-        <input
-          type="file"
-          className="form-control"
-          accept=".pdf,.jpg,.jpeg,.png"
-          onChange={(e) =>
-            handleStatutoryFileChange(field.code, e.target.files[0],field.id,field.name)
-          }
-        />
-        {statutoryErrors[field.code] && (
-          <div className="text-danger mt-1">
-            {statutoryErrors[field.code]}
-          </div>
-        )}
-      </div>
-    </div>
-  </div>
-))}
                 </div>
-              </div>
-            </div>
-          )}
-
-
-          <div className="row mt-4 mx-3">
-            <div className="col-md-12">
-              <h5 className=" ">
-                Declaration <span style={{ color: " #DE7008" }}>*</span>
-              </h5>
-              <p>
-                <span className="me-2 mt-2">
-                  <input
-                    type="checkbox"
-                    id="declaration-checkbox"
-                    required=""
-                    onChange={handleCheckboxChange}
-                  />
-                </span>{" "}
-                I, undersigned, on behalf of M/S Dell Organization Test hereby
-                certify that the information provided in this documents are the
-                best of my knowledge &amp; particulars given in this submission
-                are true and correct. I authorize M/S A2Z Online Services
-                Private Limited to make direct inquiries and references to any
-                person, firm, public official or organization named in this Form
-                to verify information submitted herein or regarding the
-                competence of the&nbsp;Organization
-              </p>
-
-              {errors.declaration && (
-                <div className="ValidationColor">{errors.declaration}</div>
-              )}
-              {/* <div id="checkboxError" style={{ color: "red", display: "none" }}>
-                Please check this box to proceed.
-              </div> */}
-            </div>
-          </div>
-        </div>
-        <div className=" d-flex justify-content-center">
-          <div className="col-md-2">
-            {loading && (
-              <div className="loader-container">
-                <div className="lds-ring">
-                  <div></div>
-                  <div></div>
-                  <div></div>
-                  <div></div>
-                  <div></div>
-                  <div></div>
-                  <div></div>
-                  <div></div>
-                </div>
-                <p>Updating...</p>
               </div>
             )}
-            <button className="purple-btn2" onClick={handleUpdate}>
-              Update
-            </button>
+
+
+            <div className="row mt-4 mx-3">
+              <div className="col-md-12">
+                <h5 className=" ">
+                  Declaration <span style={{ color: " #DE7008" }}>*</span>
+                </h5>
+                <p>
+                  <span className="me-2 mt-2">
+                    <input
+                      type="checkbox"
+                      id="declaration-checkbox"
+                      required=""
+                      onChange={handleCheckboxChange}
+                    />
+                  </span>{" "}
+                  I, undersigned, on behalf of M/S Dell Organization Test hereby
+                  certify that the information provided in this documents are the
+                  best of my knowledge &amp; particulars given in this submission
+                  are true and correct. I authorize M/S A2Z Online Services
+                  Private Limited to make direct inquiries and references to any
+                  person, firm, public official or organization named in this Form
+                  to verify information submitted herein or regarding the
+                  competence of the&nbsp;Organization
+                </p>
+
+                {errors.declaration && (
+                  <div className="ValidationColor">{errors.declaration}</div>
+                )}
+                {/* <div id="checkboxError" style={{ color: "red", display: "none" }}>
+                Please check this box to proceed.
+              </div> */}
+              </div>
+            </div>
+          </div>
+          <div className=" d-flex justify-content-center">
+            <div className="col-md-2">
+              {loading && (
+                <div className="loader-container">
+                  <div className="lds-ring">
+                    <div></div>
+                    <div></div>
+                    <div></div>
+                    <div></div>
+                    <div></div>
+                    <div></div>
+                    <div></div>
+                    <div></div>
+                  </div>
+                  <p>Updating...</p>
+                </div>
+              )}
+              <button className="purple-btn2" onClick={handleUpdate}>
+                Update
+              </button>
+            </div>
           </div>
         </div>
-      </div>
 
       ) : (
         <div className="card shadow-sm p-5">
-    <div className="card-header text-white mb-3"></div>
-    <div className="card-body">
-      <div className="alert alert-info" role="alert">
-        Thank you for submitting your details. We have successfully received your information, and it is now under review by our team. The review process ensures all the submitted details meet our requirements and comply with our standards. Once the review is complete, you will receive further communication regarding the status of your application or any additional steps required. We appreciate your patience and look forward to working with you.
-      </div>
-    </div>
-  </div>
-)}
+          <div className="card-header text-white mb-3"></div>
+          <div className="card-body">
+            <div className="alert alert-info" role="alert">
+              Thank you for submitting your details. We have successfully received your information, and it is now under review by our team. The review process ensures all the submitted details meet our requirements and comply with our standards. Once the review is complete, you will receive further communication regarding the status of your application or any additional steps required. We appreciate your patience and look forward to working with you.
+            </div>
+          </div>
+        </div>
+      )}
+
+
+
+      {loading2 && (
+        <div className="loader-container">
+          <div className="lds-ring">
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+          </div>
+          <p>Loading...</p>
+        </div>
+      )}
+
+
     </>
   );
 };
