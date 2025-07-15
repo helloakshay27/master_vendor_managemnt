@@ -62,7 +62,7 @@ const SectionReKYCDetails = () => {
 
   // !rekycType ||
 
-  // console.log(" re kyc type:", rekycType);
+  console.log(" re kyc type:", rekycType);
 
   const encryptFileContent = (file) => {
     return new Promise((resolve, reject) => {
@@ -208,6 +208,7 @@ const SectionReKYCDetails = () => {
 
       setRekycId(response.data?.id);
       setRekycType(response.data?.rekyc_type);
+      // setRekycType(["MSME Rekyc", "Name Rekyc", "E-invoicing Rekyc"]);
 
       // setGstApplicable(response.data?.gstin_applicable);
       // setGstClassification(response.data?.gst_classification);
@@ -787,7 +788,7 @@ const SectionReKYCDetails = () => {
       ...prev,
       [code]: {
         ...prev[code],
-        input: value ,
+        input: value,
         id: id,
       },
     }));
@@ -850,27 +851,42 @@ const SectionReKYCDetails = () => {
   //   setStatutoryErrors(errors);
   //   return Object.keys(errors).length === 0;
   // };
+  // const validateStatutoryInputs = () => {
+  //   const errors = {};
+
+  //   // Object.entries(statutoryInputs).forEach(([code, { file, id }]) => {
+  //   //   if (!file) {
+  //   //     errors[code] = "Attachment is required.";
+  //   //   }
+  //   // });
+
+  //   Object.entries(statutoryInputs).forEach(([code, { input, file }]) => {
+  //     if (input && !file) {
+  //       errors[code] = "Attachment is required.";
+  //     }
+  //   });
+
+  //   return errors;
+  // };
+
   const validateStatutoryInputs = () => {
     const errors = {};
 
-    // Object.entries(statutoryInputs).forEach(([code, { file, id }]) => {
-    //   if (!file) {
-    //     errors[code] = "Attachment is required.";
-    //   }
-    // });
-
     Object.entries(statutoryInputs).forEach(([code, { input, file }]) => {
-      if (input && !file) {
+      const isNotApplicable =
+        typeof input === "string" && input.trim().toLowerCase() === "not applicable";
+
+      if (input && !file && !isNotApplicable) {
         errors[code] = "Attachment is required.";
       }
     });
 
-    return errors;
-  };
+    return errors;
+  };
 
 
   // console.log("statutory details error:",statutoryErrors)
-  console.log("Payload to send:", statutoryPayload);
+  // console.log("Payload to send:", statutoryPayload);
 
   const payload = {
     authenticity_token: "[FILTERED]", // No quotes for the token value, but the key is a string
@@ -1022,15 +1038,18 @@ const SectionReKYCDetails = () => {
 
       organization_name: organizationName || "",
       pan_attachments: panAttachments || [],
+      msme: msmeUdyamApplicable || "",
       msme_attachments: msmeAttachments2 || [],
       cin_attachments: cinAttachments || [],
       gstin_attachments: gstinAttachments2 || [],
       bank_attachments_attachments: bankChequeAttachments || [],
-      statutory_details: statutoryPayload || []
+      statutory_details: statutoryPayload || [],
+      einvoicing: eInvoicingApplicable || "",
+      einvoicing_attachments: eInvoicingApplicable === "No" ? einvoicingAttachments || [] : [],
     };
   }
   // console.log("payload:", payload);
-  console.log("payload condition for new rekyc edit:", payloadCondition);
+  // console.log("payload condition for new rekyc edit:", payloadCondition);
 
   // update api
 
@@ -1315,6 +1334,10 @@ const SectionReKYCDetails = () => {
     // name ekyc
     if (isRekycTypeEmpty || isNameRekyc) {
 
+      if (!msmeUdyamApplicable) {
+        validationErrors.msmeUdyamApplicable =
+          "MSME/Udyam Number Applicable is required.";
+      }
 
 
 
@@ -1339,13 +1362,13 @@ const SectionReKYCDetails = () => {
       const hasExistingPan = supplierData?.basic_information?.pan_attachments?.length > 0;
       const hasNewPan = panAttachments.length > 0;
       if (!hasExistingPan && !hasNewPan) {
-        validationErrors.panAttachments = "PAN Attachment is required.**************";
+        validationErrors.panAttachments = "PAN Attachment is required.";
       }
 
-      console.log("existingPan:", supplierData?.basic_information?.pan_attachments);
-      console.log("newPan:", panAttachments);
-      console.log("hasExistingPan:", hasExistingPan);
-      console.log("hasNewPan:", hasNewPan);
+      // console.log("existingPan:", supplierData?.basic_information?.pan_attachments);
+      // console.log("newPan:", panAttachments);
+      // console.log("hasExistingPan:", hasExistingPan);
+      // console.log("hasNewPan:", hasNewPan);
       // if (
       //   (!supplierData?.basic_information?.pan_attachements?.length || supplierData.basic_information.pan_attachements.length === 0) &&
       //   panAttachments.length === 0
@@ -1356,7 +1379,7 @@ const SectionReKYCDetails = () => {
 
       // MSME Attachment
       if (
-        (!supplierData?.basic_information?.msme_attachments?.length || supplierData.basic_information.msme_attachments.length === 0) &&
+        (msmeUdyamApplicable === "Yes" && !supplierData?.basic_information?.msme_attachments?.length || supplierData.basic_information.msme_attachments.length === 0) &&
         msmeAttachments2.length === 0
       ) {
         validationErrors.msmeAttachments2 = "MSME Attachment is required.";
@@ -1486,11 +1509,14 @@ const SectionReKYCDetails = () => {
           ...payload.pms_supplier,
           organization_name: organizationName || "",
           pan_attachments: panAttachments || [],
+          msme: msmeUdyamApplicable || "",
           msme_attachments: msmeAttachments2 || [],
           cin_attachments: cinAttachments || [],
           gstin_attachments: gstinAttachments2 || [],
           bank_attachments_attachments: bankChequeAttachments || [],
-          statutory_details: statutoryPayload || []
+          statutory_details: statutoryPayload || [],
+          einvoicing: eInvoicingApplicable || "",
+          einvoicing_attachments: eInvoicingApplicable === "No" ? einvoicingAttachments || [] : [],
         };
       }
 
@@ -3710,57 +3736,7 @@ const SectionReKYCDetails = () => {
                       </div>
                     </div>
 
-                    {/* MSME Upload */}
-                    <div className="col-md-4 mt-2">
-                      <div className="form-group">
-                        <label>MSME Attachment <span>*</span></label>
-                        {supplierData?.basic_information?.msme_attachments?.length >
-                          0 && (
-                            <span className="ms-2">
-                              <a
-                                href={`${baseURL}${supplierData?.basic_information?.msme_attachments[0]?.file_url}`} // Append base URL
-                                download // Ensure it prompts download
-                                className="text-primary d-flex align-items-center"
-                              >
-                                <span className="me-2">Existing Files:</span>
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  width={24}
-                                  height={24}
-                                  fill="#DE7008"
-                                  className="bi bi-download"
-                                  viewBox="0 0 16 16"
-                                >
-                                  <path
-                                    d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
-                                  // style={{ fill: "#de7008!important" }}
-                                  />
-                                  <path
-                                    d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
-                                  // style={{ fill: "#de7008!important" }}
-                                  />
-                                </svg>
 
-                                {supplierData?.basic_information?.msme_attachments
-                                  ?.length > 0
-                                  ? // Display the document name of the first attachment
-                                  supplierData?.basic_information?.msme_attachments[0]?.document_name
-                                  : // If no attachment is present, show a default message
-                                  "No Document Available"}
-                              </a>
-                            </span>
-                          )}
-                        <input
-                          type="file"
-                          accept=".pdf,.jpg,.jpeg,.png"
-                          className="form-control mt-2"
-                          onChange={(e) => handleMsmeUpload(e.target.files[0])}
-                        />
-                        {errors.msmeAttachments2 && (
-                          <div className="ValidationColor">{errors.msmeAttachments2}</div>
-                        )}
-                      </div>
-                    </div>
 
                     {/* CIN Upload */}
                     <div className="col-md-4 mt-4">
@@ -3919,13 +3895,290 @@ const SectionReKYCDetails = () => {
                       </div>
                     </div>
 
+
+
+
+
                   </div>
+
+                  <div className="row  mt-4">
+                    <div className="col-md-4 mt-2">
+                      <div className="form-group">
+                        <label
+                        >
+                          MSME/Udyam Number Applicable <span>*</span>
+                          {/* <TooltipIcon message="Select whether your organization is registered under the MSME (Micro, Small, and Medium Enterprises) or Udyam scheme. Choose 'Yes' if applicable, otherwise select 'No.' By selecting 'No, you confirm that your organization does not hold a valid MSME/Udyam registration number. A declaration is required, and this response will be timestamped to record the submission date and time." /> */}
+                        </label>
+                        <SingleSelector
+                          value={options.find(
+                            (option) => option.value === msmeUdyamApplicable
+                          )}
+                          onChange={(selected) =>
+                            handleMsmeUdyamChange({
+                              target: { value: selected.value },
+                            })
+                          }
+                          options={options}
+                          className="form-control"
+                          placeholder="Select..."
+                        />
+                        {errors.msmeUdyamApplicable && (
+                          <div className="ValidationColor">
+                            {errors.msmeUdyamApplicable}
+                          </div>
+                        )}{" "}
+                        {/* Show error */}
+                      </div>
+                    </div>
+
+                    {msmeUdyamApplicable === "Yes" && (
+                      <>
+                        {/* MSME Upload */}
+                        <div className="col-md-4 mt-2">
+                          <div className="form-group">
+                            <label>MSME Attachment <span>*</span></label>
+                            {supplierData?.basic_information?.msme_attachments?.length >
+                              0 && (
+                                <span className="ms-2">
+                                  <a
+                                    href={`${baseURL}${supplierData?.basic_information?.msme_attachments[0]?.file_url}`} // Append base URL
+                                    download // Ensure it prompts download
+                                    className="text-primary d-flex align-items-center"
+                                  >
+                                    <span className="me-2">Existing Files:</span>
+                                    <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      width={24}
+                                      height={24}
+                                      fill="#DE7008"
+                                      className="bi bi-download"
+                                      viewBox="0 0 16 16"
+                                    >
+                                      <path
+                                        d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
+                                      // style={{ fill: "#de7008!important" }}
+                                      />
+                                      <path
+                                        d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
+                                      // style={{ fill: "#de7008!important" }}
+                                      />
+                                    </svg>
+
+                                    {supplierData?.basic_information?.msme_attachments
+                                      ?.length > 0
+                                      ? // Display the document name of the first attachment
+                                      supplierData?.basic_information?.msme_attachments[0]?.document_name
+                                      : // If no attachment is present, show a default message
+                                      "No Document Available"}
+                                  </a>
+                                </span>
+                              )}
+                            <input
+                              type="file"
+                              accept=".pdf,.jpg,.jpeg,.png"
+                              className="form-control mt-2"
+                              onChange={(e) => handleMsmeUpload(e.target.files[0])}
+                            />
+                            {errors.msmeAttachments2 && (
+                              <div className="ValidationColor">{errors.msmeAttachments2}</div>
+                            )}
+                          </div>
+                        </div>
+                      </>
+                    )}
+
+                    {msmeUdyamApplicable === "No" && (
+                      <div className="col-md-4 mt-2 ">
+                        <div className="form-group">
+                          <label >
+                            Download Specimen <span>*</span>
+                          </label>
+                          {/* <TooltipIcon message="If you choose 'No' for e-invoicing, a specimen format will be available for download. This is for businesses not subject to e-invoicing under GST regulations. Please upload a signed declaration stating that your organization is not registered.The document must be uploaded in PDF format" /> */}
+                          <a
+                            download="Specimen_E-Invoicing_Declaration.docx"
+                            className="text-primary d-flex align-items-center"
+                            href={`${baseURL}/assets/NO_%20MSME.pdf`}
+                            target="_self" // Ensure it doesn't open in a new tab
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width={24}
+                              height={24}
+                              fill="#DE7008"
+                              className="bi bi-download"
+                              viewBox="0 0 16 16"
+                            >
+                              <path
+                                d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
+                                style={{ fill: "#de7008!important" }}
+                              />
+                              <path
+                                d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
+                                style={{ fill: "#de7008!important" }}
+                              />
+                            </svg>
+
+                            <span className="mt-2 ms-2">
+                              Specimen For No Msme.pdf
+                            </span>
+                          </a>
+                        </div>
+                      </div>
+                    )}
+
+                    {msmeUdyamApplicable === "No" && (
+                      <div className="col-md-4 mt-4">
+                        <div className="form-group">
+                          <label >
+                            Upload Declaration <span>*</span>
+                          </label>
+
+                          <span className="ms-2">
+                            <a
+                              href={`${baseURL}${supplierData?.msme_details?.msme_attachments[0]?.file_url}`} // Prepend baseURL to the file URL
+                              download // Trigger download when clicked
+                              className="text-primary d-flex align-items-center"
+                            >
+                              <span className="me-2">Existing Files:</span>
+                              {/* <TooltipIcon message="If you choose E-Invoice applicable 'No', please upload a signed declaration document to verify the details you have submitted. The document must be uploaded in PDF format.Ensure that the document is clear, legible, and properly signed." /> */}
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width={24}
+                                height={24}
+                                fill="#DE7008"
+                                className="bi bi-download"
+                                viewBox="0 0 16 16"
+                              >
+                                <path
+                                  d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
+                                  style={{ fill: "#de7008!important" }}
+                                />
+                                <path
+                                  d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
+                                  style={{ fill: "#de7008!important" }}
+                                />
+                              </svg>
+
+                              {supplierData?.msme_details?.msme_attachments
+                                ?.length > 0
+                                ? // Display the document name of the first attachment
+                                supplierData?.msme_details?.msme_attachments[0]
+                                  ?.document_name
+                                : // If no attachment is present, show a default message
+                                "No Document Available"}
+                            </a>
+                          </span>
+                          <input
+                            className="form-control"
+                            type="file"
+                            accept=".pdf"
+                            name=""
+                            onChange={handleFileChange}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  <div className="row mt-3">
+                    <div className="col-md-4 mt-2">
+                      <div className="form-group">
+                        <label>
+                          E-invoicing Applicable <span>*</span>
+                        </label>
+                        <SingleSelector
+                          options={[
+                            { value: "Yes", label: "Yes" },
+                            { value: "No", label: "No" },
+                          ]}
+                          value={
+                            eInvoicingApplicable
+                              ? {
+                                value: eInvoicingApplicable,
+                                label: eInvoicingApplicable,
+                              }
+                              : null
+                          }
+                          onChange={(selected) =>
+                            setEInvoicingApplicable(selected?.value || "")
+                          }
+                          className="form-control"
+                        />
+                      </div>
+                    </div>
+                      {eInvoicingApplicable === "No" && (
+                        <>
+                     {/* <div className="row"> */}
+                      <div className="col-md-4 mt-2">
+                        <div className="form-group">
+                          <label>
+                            Download Specimen <span>*</span>
+                          </label>
+                          <a
+                            download="Specimen_E-Invoicing_Declaration.docx"
+                            className="text-primary d-flex align-items-center"
+                            href="/assets/Specimen_E-Invoicing_Declaration.docx"
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width={24}
+                              height={24}
+                              fill="#DE7008"
+                              className="bi bi-download"
+                              viewBox="0 0 16 16"
+                            >
+                              <path
+                                d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
+                                style={{ fill: "#de7008!important" }}
+                              />
+                              <path
+                                d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
+                                style={{ fill: "#de7008!important" }}
+                              />
+                            </svg>
+                            <span className="mt-2 ms-2">
+                              Specimen For E-Invoicing Declaration.pdf
+                            </span>
+                          </a>
+                        </div>
+                      </div>
+                      <div className="col-md-4 mt-2">
+                        <div className="form-group">
+                          <label>
+                            Upload Declaration <span>*</span>
+                          </label>
+                          {/* <input
+                          id="attachment"
+                          accept=" "
+                          className="form-control"
+                          type="file"
+                          name=""
+                          onChange={handleEinvoicingFileChange}
+                        /> */}
+                          <input
+                            className="form-control mt-2"
+                            type="file"
+                            onChange={(e) => handleFileChange2(e.target.files[0])}
+                            ref={fileInputRef}
+                            multiple
+                            accept=".pdf"
+                          />
+                          {/* Major Activity * */}
+                        </div>
+                      </div>
+                    {/* </div> */}
+                    </>
+                  )}
+
+                  </div>
+
+                
 
                   {/* Other Statutory Details */}
                   <div className="row mt-5">
                     <div className="col-md-12">
                       <h5 className="mb-3">Other Statutory Details</h5>
                     </div>
+
 
 
                     {/* <div>{"*********************************************************"} </div> */}
