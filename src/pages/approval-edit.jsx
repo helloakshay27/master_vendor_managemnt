@@ -33,6 +33,7 @@ const ApprovalEdit = () => {
     { value: "E-invoicing Rekyc", label: "E-invoicing Re-KYC" },
     { value: "Bank Rekyc", label: "Bank Rekyc Re-KYC" },
     { value: "GSTIN Rekyc", label: "GSTIN Rekyc" },
+     { value: "Name Rekyc", label: "Name Rekyc" },
   ];
 
   const [formData, setFormData] = useState({

@@ -30,6 +30,7 @@ const ApprovalMatrix = () => {
     { value: "E-invoicing Rekyc", label: "E-invoicing Re-KYC" },
     { value: "Bank Rekyc", label: "Bank Rekyc Re-KYC" },
     { value: "GSTIN Rekyc", label: "GSTIN Rekyc" },
+      { value: "Name Rekyc", label: "Name Rekyc" },
   ];
 
   // Fetch Companies and Departments
@@ -202,7 +203,7 @@ const ApprovalMatrix = () => {
       setSelectedKYCType([]);
       setApprovalLevels([{ order: "", name: "", users: [] }]); // Reset to initial empty level
 
-      navigate("/approval-list");
+      navigate(`/approval-list/?token=${token}`);
     } catch (error) {
       console.error("Error updating approval matrix:", error);
 

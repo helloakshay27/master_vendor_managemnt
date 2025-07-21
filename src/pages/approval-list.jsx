@@ -51,7 +51,7 @@ const ApprovalList = () => {
   const navigate = useNavigate();
 
   const handleAddClick = () => {
-    navigate("/approval-matrix");
+    navigate(`/approval-matrix/?token=${token}`);
   };
 
   const [filters, setFilters] = useState({
