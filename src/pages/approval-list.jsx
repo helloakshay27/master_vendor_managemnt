@@ -10,6 +10,7 @@ import axios from "axios";
 import { SingleValue } from "react-select/animated";
 import { baseURL } from "../confi/apiDomain";
 import FormatDate from "../components/FormatDate";
+import { Modal } from "react-bootstrap";
 
 const ApprovalList = () => {
   const urlParams = new URLSearchParams(location.search);
@@ -376,6 +377,7 @@ if (filters.rekycType)
 
   const [selectedFile, setSelectedFile] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
 
   const handleFileChange = (event) => {
     const file = event.target.files[0];
@@ -385,10 +387,10 @@ if (filters.rekycType)
   };
 
   const handleSubmit = async (event) => {
-    event.preventDefault();
+    // Remove event.preventDefault(); since it's not a form submit
     if (!selectedFile) {
       alert("Please select a file to upload.");
-      return;
+      return; // Stop here, do not close modal
     }
 
     setUploading(true);
@@ -408,6 +410,8 @@ if (filters.rekycType)
       );
 
       alert("File uploaded successfully!");
+      setShowImportModal(false); // Only close modal after successful upload
+      setSelectedFile(null); // Optionally reset file input
       console.log("Upload Response:", response.data);
     } catch (error) {
       console.error("Error uploading file:", error.response?.data || error);
@@ -444,8 +448,7 @@ if (filters.rekycType)
                 <button
                   className="purple-btn2"
                   fdprocessedid="xn3e6n"
-                  data-bs-toggle="modal"
-                  data-bs-target="#importModal"
+                  onClick={() => setShowImportModal(true)}
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -738,67 +741,45 @@ if (filters.rekycType)
             </div>
           </div>
 
-          <div
-            className="modal fade"
-            id="importModal"
-            tabIndex={-1}
-            aria-labelledby="importModalLabel"
-            aria-hidden="true"
+          <Modal
+            show={showImportModal}
+            onHide={() => setShowImportModal(false)}
+            centered
+            size="lg"
           >
-            <div className="modal-dialog modal-lg">
-              <div className="modal-content">
-                <div className="modal-header">
-                  <b className="modal-title" id="importModalLabel">
-                    Bulk Upload
-                  </b>
-                  <button
-                    type="button"
-                    className="btn-close"
-                    data-bs-dismiss="modal"
-                    aria-label="Close"
-                  />
-                </div>
-                <div>
-                  <input
-                    type="hidden"
-                    name="authenticity_token"
-                    defaultValue="your_token_here"
-                    autoComplete="off"
-                  />
-                  <div className="modal-body">
-                    <section className="upload-div">
-                      Drag & Drop or
-                      <input type="file" onChange={handleFileChange} />
-                    </section>
-                  </div>
-                  <div className="modal-footer">
-                    <a
-                      download="Approval Import.xlsx"
-                      target="_blank"
-                      className="purple-btn1"
-                      href={`${baseURL}/Rekyc%20Approval%20Import.xlsx`}
-                    >
-                      Download Sample Format
-                    </a>
-                    {/* <inpu
-                      type="submit"
-                      name="commit"
-                      defaultValue="Import"
-                      className="purple-btn2"
-                      data-disable-with="Import"
-                    /> */}
-                    <button
-                      onClick={handleSubmit}
-                      className="purple-btn2"
-                      disabled={uploading}
-                    >
-                      {uploading ? "Uploading..." : "Import"}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+            <Modal.Header closeButton>
+              <Modal.Title>Bulk Upload</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+              <input
+                type="hidden"
+                name="authenticity_token"
+                defaultValue="your_token_here"
+                autoComplete="off"
+              />
+              <section className="upload-div">
+                Drag & Drop or
+                <input type="file" onChange={handleFileChange} />
+              </section>
+            </Modal.Body>
+            <Modal.Footer>
+              <a
+                download="Approval Import.xlsx"
+                target="_blank"
+                className="purple-btn2"
+                href={`${baseURL}/Rekyc%20Approval%20Import.xlsx`}
+              >
+                Download Sample Format
+              </a>
+              <button
+                onClick={handleSubmit}
+                className="purple-btn2"
+                disabled={uploading}
+              >
+                {uploading ? "Uploading..." : "Import"}
+              </button>
+            </Modal.Footer>
+          </Modal>
 
           {/* Dynamic tab content will be inserted here */}
         </div>
