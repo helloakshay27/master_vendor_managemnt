@@ -10,6 +10,8 @@ import SingleSelector from "../components/base/Select/SingleSelector";
 import { baseURL } from "../confi/apiDomain";
 
 const ApprovalMatrix = () => {
+   const urlParams = new URLSearchParams(location.search);
+  const token = urlParams.get("token");
   const navigate = useNavigate(); //  navigate
   // const [companies, setCompanies] = useState([]);
   const [departments, setDepartments] = useState([]);
@@ -188,7 +190,7 @@ const ApprovalMatrix = () => {
 
     try {
       const response = await axios.post(
-        `${baseURL}/pms/admin/invoice_approvals.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`,
+        `${baseURL}/pms/admin/invoice_approvals.json?token=${token}`,
         payload
       );
 

@@ -12,6 +12,9 @@ import { baseURL } from "../confi/apiDomain";
 import FormatDate from "../components/FormatDate";
 
 const ApprovalList = () => {
+  const urlParams = new URLSearchParams(location.search);
+  const token = urlParams.get("token");
+  console.log("Token from URL:", token);
   const [approvals, setApprovals] = useState([]);
 
   // const [companies, setCompanies] = useState([]);
@@ -84,7 +87,7 @@ const ApprovalList = () => {
   //       // queryParams.append("page", pagination.current_page);
   //       // queryParams.append("page_size", 10); // Use API per_page value
 
-  //       const apiUrl = `${baseURL}/pms/admin/invoice_approvals.json?${queryParams.toString()}&token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`;
+  //       const apiUrl = `${baseURL}/pms/admin/invoice_approvals.json?${queryParams.toString()}&token=${token}`;
 
   //       console.log("API URL (Pagination):", apiUrl);
 
@@ -130,7 +133,7 @@ const ApprovalList = () => {
         queryParams.append("page", pagination.current_page);
         queryParams.append("page_size", pagination.per_page || 10); // Always send a valid page_size
 
-        const apiUrl = `${baseURL}/pms/admin/invoice_approvals.json?${queryParams.toString()}&token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`;
+        const apiUrl = `${baseURL}/pms/admin/invoice_approvals.json?${queryParams.toString()}&token=${token}`;
 
         console.log("API URL (Pagination):", apiUrl);
 
@@ -165,7 +168,7 @@ const ApprovalList = () => {
   }, [pagination.current_page, filters.department]);
 
   const handleEditClick = (id) => {
-    navigate(`/approval-edit/${id}`);
+    navigate(`/approval-edit/${id}?token=${token}`); 
   };
 
   useEffect(() => {
@@ -230,7 +233,7 @@ const ApprovalList = () => {
   //   queryParams.append("page", 1);
   //   queryParams.append("page_size", pagination.per_page); // Ensure correct page size
 
-  //   const apiUrl = `${baseURL}/pms/admin/invoice_approvals.json?${queryParams.toString()}&token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`;
+  //   const apiUrl = `${baseURL}/pms/admin/invoice_approvals.json?${queryParams.toString()}&token=${token}`;
 
   //   try {
   //     const response = await fetch(apiUrl);
@@ -271,7 +274,7 @@ if (filters.rekycType)
 
     
 
-    const apiUrl = `${baseURL}/pms/admin/invoice_approvals.json?${queryParams.toString()}&token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`;
+    const apiUrl = `${baseURL}/pms/admin/invoice_approvals.json?${queryParams.toString()}&token=${token}`;
 
     try {
       const response = await fetch(apiUrl);
@@ -316,9 +319,9 @@ if (filters.rekycType)
     });
 
     try {
-        const apiUrl = `${baseURL}/pms/admin/invoice_approvals.json?${queryParams.toString()}&token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`;
+        const apiUrl = `${baseURL}/pms/admin/invoice_approvals.json?${queryParams.toString()}&token=${token}`;
 
-      // const apiUrl = `${baseURL}/pms/admin/invoice_approvals.json?page=1&page_size=${pageSize}&token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`;
+      // const apiUrl = `${baseURL}/pms/admin/invoice_approvals.json?page=1&page_size=${pageSize}&token=${token}`;
 
       const response = await fetch(apiUrl);
       if (!response.ok) throw new Error("Failed to fetch initial data");
@@ -394,7 +397,7 @@ if (filters.rekycType)
 
     try {
       const response = await axios.post(
-        `${baseURL}/pms/admin/invoice_approvals/import_rekyc?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`,
+        `${baseURL}/pms/admin/invoice_approvals/import_rekyc?token=${token}`,
         formData,
         {
           headers: {
@@ -458,7 +461,7 @@ if (filters.rekycType)
                 </button>
                 <a
                   className="d-flex btn-sm purple-btn1 my-2"
-                  href={`${baseURL}/pms/admin/invoice_approvals/export_rekyc.xlsx?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078411`}
+                  href={`${baseURL}/pms/admin/invoice_approvals/export_rekyc.xlsx?token=${token}`}
                 >
                   Export to Excel
                 </a>
@@ -773,7 +776,7 @@ if (filters.rekycType)
                       download="Approval Import.xlsx"
                       target="_blank"
                       className="purple-btn1"
-                      href="${baseURL}/Rekyc%20Approval%20Import.xlsx"
+                      href={`${baseURL}/Rekyc%20Approval%20Import.xlsx`}
                     >
                       Download Sample Format
                     </a>

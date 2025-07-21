@@ -11,6 +11,9 @@ import { useParams } from "react-router-dom"; // Import useParams
 import { baseURL } from "../confi/apiDomain";
 
 const ApprovalEdit = () => {
+   const urlParams = new URLSearchParams(location.search);
+  const token = urlParams.get("token");
+  console.log("Token from URL:", token);
   const navigate = useNavigate(); //  navigate
   const { id } = useParams(); // Get ID from URL
   const [companies, setCompanies] = useState([]);
@@ -85,7 +88,7 @@ const ApprovalEdit = () => {
     const fetchApprovalData = async () => {
       try {
         const { data } = await axios.get(
-          `${baseURL}/pms/admin/invoice_approvals/${id}/edit.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`
+          `${baseURL}/pms/admin/invoice_approvals/${id}/edit.json?token=${token}`
         );
 
         setFormData({
@@ -257,7 +260,7 @@ const ApprovalEdit = () => {
 
     // try {
     //   const response = await axios.put(
-    //     `https://vendors.lockated.com/pms/admin/invoice_approvals/${id}.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`,
+    //     `https://vendors.lockated.com/pms/admin/invoice_approvals/${id}.json?token=${token}`,
     //     payload
     //   );
 
@@ -272,7 +275,7 @@ const ApprovalEdit = () => {
 
     try {
       const response = await axios.put(
-        `${baseURL}/pms/admin/invoice_approvals/${id}.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`,
+        `${baseURL}/pms/admin/invoice_approvals/${id}.json?token=${token}`,
         payload
       );
 

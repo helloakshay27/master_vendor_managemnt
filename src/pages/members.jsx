@@ -56,7 +56,7 @@ function Members() {
                 <Link to="/approval-matrix">Approval matrix</Link>
               </li>
               <li>
-                <Link to="/approval-list">Approval List</Link>
+                <Link to="/approval-list?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414">Approval List</Link>
               </li>
 
               <li>
