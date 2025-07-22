@@ -1354,9 +1354,9 @@ const SectionReKYCDetails = () => {
       // if (!isValid) {
       //   return; // Stop submit if validation failed
       // }
-      if (!organizationName?.trim()) {
-        validationErrors.organizationName = "Organization Name is required.";
-      }
+      // if (!organizationName?.trim()) {
+      //   validationErrors.organizationName = "Organization Name is required.";
+      // }
 
       // PAN Attachment
       const hasExistingPan = supplierData?.basic_information?.pan_attachments?.length > 0;
@@ -1401,13 +1401,13 @@ const SectionReKYCDetails = () => {
         validationErrors.gstinAttachments2 = "GSTIN Attachment is required.";
       }
 
-      // Bank Cheque Attachment
-      if (
-        (!supplierData?.basic_information?.bank_attachments_attachments?.length || supplierData.basic_information.bank_attachments_attachments.length === 0) &&
-        bankChequeAttachments.length === 0
-      ) {
-        validationErrors.bankChequeAttachments = "Bank Cheque Attachment is required.";
-      }
+      // // Bank Cheque Attachment
+      // if (
+      //   (!supplierData?.basic_information?.bank_attachments_attachments?.length || supplierData.basic_information.bank_attachments_attachments.length === 0) &&
+      //   bankChequeAttachments.length === 0
+      // ) {
+      //   validationErrors.bankChequeAttachments = "Bank Cheque Attachment is required.";
+      // }
 
 
     }
@@ -3676,11 +3676,11 @@ const SectionReKYCDetails = () => {
                           placeholder="Enter Organization Name"
                           disabled
                         />
-                        {errors.organizationName && (
+                        {/* {errors.organizationName && (
                           <div className="ValidationColor">
                             {errors.organizationName}
                           </div>
-                        )}
+                        )} */}
                       </div>
                     </div>
                     {/* PAN Upload */}
@@ -3739,7 +3739,7 @@ const SectionReKYCDetails = () => {
 
 
                     {/* CIN Upload */}
-                    <div className="col-md-4 mt-4">
+                    <div className="col-md-4 mt-2">
                       <div className="form-group">
                         <label>CIN Attachment <span>*</span></label>
                         {supplierData?.basic_information?.cin_number_attachments?.length >
@@ -3886,12 +3886,12 @@ const SectionReKYCDetails = () => {
                         <input
                           type="file"
                           accept=".pdf,.jpg,.jpeg,.png"
-                          className="form-control"
+                          className="form-control  mt-2"
                           onChange={(e) => handleBankChequeUpload(e.target.files[0])}
                         />
-                        {errors.bankChequeAttachments && (
+                        {/* {errors.bankChequeAttachments && (
                           <div className="ValidationColor">{errors.bankChequeAttachments}</div>
-                        )}
+                        )} */}
                       </div>
                     </div>
 
@@ -4027,7 +4027,7 @@ const SectionReKYCDetails = () => {
                     )}
 
                     {msmeUdyamApplicable === "No" && (
-                      <div className="col-md-4 mt-4">
+                      <div className="col-md-4 mt-2">
                         <div className="form-group">
                           <label >
                             Upload Declaration <span>*</span>
