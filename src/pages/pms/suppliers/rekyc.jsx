@@ -229,7 +229,7 @@ const SectionReKYCDetails = () => {
       );
 
       setGstClassification(selectedClassification || null);
-      setOrganizationName(supplierData?.basic_information?.vendor_organization_name)
+      setOrganizationName(response.data?.organization_name)
       // console.log("enterprise:", response.data?.msme_details?.enterprise);
       setLoading2(false);
     } catch (error) {
@@ -3667,7 +3667,7 @@ const SectionReKYCDetails = () => {
                   <div className="row">
                     <div className="col-md-4 mt-2">
                       <div className="form-group">
-                        <label>Organization Name <span>*</span></label>
+                        <label>Organization Name <span></span></label>
                         <input
                           type="text"
                           className="form-control"
@@ -3846,7 +3846,7 @@ const SectionReKYCDetails = () => {
                     {/* Bank Cheque Upload */}
                     <div className="col-md-4 mt-4">
                       <div className="form-group">
-                        <label>Cheque Attachment <span>*</span></label>
+                        <label>Cheque Attachment <span></span></label>
                         {supplierData?.basic_information?.bank_attachments_attachments?.length >
                           0 && (
                             <span className="ms-2">
@@ -4111,7 +4111,7 @@ const SectionReKYCDetails = () => {
                       <div className="col-md-4 mt-2">
                         <div className="form-group">
                           <label>
-                            Download Specimen <span>*</span>
+                            Download Specimen <span></span>
                           </label>
                           <a
                             download="Specimen_E-Invoicing_Declaration.docx"
@@ -4144,7 +4144,7 @@ const SectionReKYCDetails = () => {
                       <div className="col-md-4 mt-2">
                         <div className="form-group">
                           <label>
-                            Upload Declaration <span>*</span>
+                            Upload Declaration <span></span>
                           </label>
                           {/* <input
                           id="attachment"
