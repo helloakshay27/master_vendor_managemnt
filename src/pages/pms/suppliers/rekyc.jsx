@@ -13,7 +13,8 @@ import CryptoJS from "crypto-js"; // Import crypto-js for encryption
 import { baseURL } from "../../../confi/apiDomain";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import TooltipIcon from "../../../components/common/Icon/TooltipIcon";
-
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 // import ReactTooltip from "react-tooltip";
 
 const SectionReKYCDetails = () => {
@@ -1533,6 +1534,7 @@ const SectionReKYCDetails = () => {
         if (response.status === 200) {
           // console.log('Update successful:', data);
           // alert("Updated successfully");
+          toast.success("Updated successfully");
           navigate("/confirmation"); // This will navigate to the confirmation page
           // await fetchSupplierData();
           // Optionally handle success (e.g., show a success message or redirect)
@@ -1544,7 +1546,9 @@ const SectionReKYCDetails = () => {
           error.response ? error.response.data : error.message
         );
 
-        alert("Something went wrong! ");
+
+        // alert("Something went wrong! ");
+         toast.error("Something went wrong!");
       } finally {
         setLoading(false);
       }
@@ -4317,7 +4321,18 @@ const SectionReKYCDetails = () => {
         </div>
       )}
 
-
+   <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
     </>
   );
 };
