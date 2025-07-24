@@ -63,7 +63,7 @@ const SectionReKYCDetails = () => {
 
   // !rekycType ||
 
-  console.log(" re kyc type:", rekycType);
+  // console.log(" re kyc type:", rekycType);
 
   const encryptFileContent = (file) => {
     return new Promise((resolve, reject) => {
@@ -262,7 +262,7 @@ const SectionReKYCDetails = () => {
 
         const data = response.data || {};
         setStatutoryDetails(data.additional_statutory_details)
-        console.log("data api...", data)
+        // console.log("data api...", data)
 
         // Transform API response into statutoryInputs format
         const inputs = {};
@@ -870,20 +870,46 @@ const SectionReKYCDetails = () => {
   //   return errors;
   // };
 
+  //   const validateStatutoryInputs = () => {
+  //     const errors = {};
+
+  //     Object.entries(statutoryInputs).forEach(([code, { input, file }]) => {
+  //       const isNotApplicable =
+  //         typeof input === "string" && input.trim().toLowerCase() === "not applicable";
+
+  //       if (input && !file && !isNotApplicable) {
+  //         errors[code] = "Attachment is required.";
+  //       }
+  //     });
+
+  //     return errors;
+  //   };
+
+
   const validateStatutoryInputs = () => {
     const errors = {};
 
-    Object.entries(statutoryInputs).forEach(([code, { input, file }]) => {
-      const isNotApplicable =
-        typeof input === "string" && input.trim().toLowerCase() === "not applicable";
+    Object.entries(statutoryInputs || {}).forEach(([code, { input, file }]) => {
+      const inputValue = (input || "").toString().trim().toLowerCase();
+      const isNotApplicable = inputValue === "not applicable";
 
-      if (input && !file && !isNotApplicable) {
+      // Require file if input is provided and it's not 'not applicable'
+      if (inputValue && !isNotApplicable && !file) {
         errors[code] = "Attachment is required.";
       }
+
+      // Optional: You can add required input check too
+      // if (!inputValue && !file) {
+      //   errors[code] = "This field is required.";
+      // }
     });
 
-    return errors;
-  };
+    return errors;
+  };
+
+
+
+
 
 
   // console.log("statutory details error:",statutoryErrors)
@@ -1062,9 +1088,11 @@ const SectionReKYCDetails = () => {
     setIsChecked(!isChecked);
   };
 
+  console.log("before update")
   // Handle the Update Button Click
   const handleUpdate = async () => {
-    console.log("rekyc_type:", rekycType);
+    console.log("innn update")
+    // console.log("rekyc_type:", rekycType);
 
     // console.log('formSubmitted:', formSubmitted);
 
@@ -1334,19 +1362,22 @@ const SectionReKYCDetails = () => {
 
     // name ekyc
     if (isRekycTypeEmpty || isNameRekyc) {
+      console.log("is name rekyc true")
 
       if (!msmeUdyamApplicable) {
         validationErrors.msmeUdyamApplicable =
           "MSME/Udyam Number Applicable is required.";
       }
 
+      console.log("msme:", !msmeUdyamApplicable)
 
 
-      const statutoryErrors = validateStatutoryInputs();
+
+      const statutoryErrors = validateStatutoryInputs() || {};
 
       if (Object.keys(statutoryErrors).length > 0) {
         setStatutoryErrors(statutoryErrors); // show inline errors if needed
-        return; // stop submission
+        // return; // stop submission
       }
 
 
@@ -1355,40 +1386,45 @@ const SectionReKYCDetails = () => {
       // if (!isValid) {
       //   return; // Stop submit if validation failed
       // }
-      // if (!organizationName?.trim()) {
-      //   validationErrors.organizationName = "Organization Name is required.";
-      // }
+      if (!organizationName?.trim()) {
+        validationErrors.organizationName = "Organization Name is required.";
+      }
 
       // PAN Attachment
-      const hasExistingPan = supplierData?.basic_information?.pan_attachments?.length > 0;
-      const hasNewPan = panAttachments.length > 0;
-      if (!hasExistingPan && !hasNewPan) {
-        validationErrors.panAttachments = "PAN Attachment is required.";
-      }
+      // const hasExistingPan = supplierData?.basic_information?.pan_attachments?.length > 0;
+      // const hasNewPan = panAttachments.length > 0;
+      // if (!hasExistingPan && !hasNewPan) {
+      //   validationErrors.panAttachments = "PAN Attachment is required.";
+      // }
+      // console.log("has pan :",!hasNewPan)
 
       // console.log("existingPan:", supplierData?.basic_information?.pan_attachments);
       // console.log("newPan:", panAttachments);
       // console.log("hasExistingPan:", hasExistingPan);
       // console.log("hasNewPan:", hasNewPan);
-      // if (
-      //   (!supplierData?.basic_information?.pan_attachements?.length || supplierData.basic_information.pan_attachements.length === 0) &&
-      //   panAttachments.length === 0
-      // ) {
-      //   validationErrors.panAttachments = "PAN Attachment is required.";
-      // }
+      if (
+        // (!supplierData?.basic_information?.pan_attachements?.length || supplierData.basic_information.pan_attachements.length === 0) &&
+        panAttachments.length === 0
+      ) {
+        validationErrors.panAttachments = "PAN Attachment is required.";
+      }
 
 
       // MSME Attachment
       if (
-        (msmeUdyamApplicable === "Yes" && !supplierData?.basic_information?.msme_attachments?.length || supplierData.basic_information.msme_attachments.length === 0) &&
-        msmeAttachments2.length === 0
+        // (msmeUdyamApplicable === "Yes" && !supplierData?.basic_information?.msme_attachments?.length || supplierData.basic_information.msme_attachments.length === 0) &&
+        // msmeAttachments2.length === 0
+
+        (msmeUdyamApplicable === "Yes" &&
+          msmeAttachments2.length === 0
+        )
       ) {
         validationErrors.msmeAttachments2 = "MSME Attachment is required.";
       }
 
       // CIN Attachment
       if (
-        (!supplierData?.basic_information?.cin_number_attachments?.length || supplierData?.basic_information?.cin_number_attachments.length === 0) &&
+        // (!supplierData?.basic_information?.cin_number_attachments?.length || supplierData?.basic_information?.cin_number_attachments.length === 0) &&
         cinAttachments.length === 0
       ) {
         validationErrors.cinAttachments = "CIN Attachment is required.";
@@ -1396,7 +1432,7 @@ const SectionReKYCDetails = () => {
 
       // GSTIN Attachment (Name Rekyc)
       if (
-        (!supplierData?.basic_information?.gstin_attachments?.length || supplierData.basic_information.gstin_attachments.length === 0) &&
+        // (!supplierData?.basic_information?.gstin_attachments?.length || supplierData.basic_information.gstin_attachments.length === 0) &&
         gstinAttachments2.length === 0
       ) {
         validationErrors.gstinAttachments2 = "GSTIN Attachment is required.";
@@ -1548,7 +1584,7 @@ const SectionReKYCDetails = () => {
 
 
         // alert("Something went wrong! ");
-         toast.error("Something went wrong!");
+        toast.error("Something went wrong!");
       } finally {
         setLoading(false);
       }
@@ -3671,20 +3707,20 @@ const SectionReKYCDetails = () => {
                   <div className="row">
                     <div className="col-md-4 mt-2">
                       <div className="form-group">
-                        <label>Organization Name <span></span></label>
+                        <label>Organization Name <span>*</span></label>
                         <input
                           type="text"
                           className="form-control"
                           value={organizationName}
                           onChange={(e) => setOrganizationName(e.target.value)}
                           placeholder="Enter Organization Name"
-                          disabled
+                        // disabled
                         />
-                        {/* {errors.organizationName && (
+                        {errors.organizationName && (
                           <div className="ValidationColor">
                             {errors.organizationName}
                           </div>
-                        )} */}
+                        )}
                       </div>
                     </div>
                     {/* PAN Upload */}
@@ -4109,48 +4145,48 @@ const SectionReKYCDetails = () => {
                         />
                       </div>
                     </div>
-                      {eInvoicingApplicable === "No" && (
-                        <>
-                     {/* <div className="row"> */}
-                      <div className="col-md-4 mt-2">
-                        <div className="form-group">
-                          <label>
-                            Download Specimen <span></span>
-                          </label>
-                          <a
-                            download="Specimen_E-Invoicing_Declaration.docx"
-                            className="text-primary d-flex align-items-center"
-                            href="/assets/Specimen_E-Invoicing_Declaration.docx"
-                          >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width={24}
-                              height={24}
-                              fill="#DE7008"
-                              className="bi bi-download"
-                              viewBox="0 0 16 16"
+                    {eInvoicingApplicable === "No" && (
+                      <>
+                        {/* <div className="row"> */}
+                        <div className="col-md-4 mt-2">
+                          <div className="form-group">
+                            <label>
+                              Download Specimen <span></span>
+                            </label>
+                            <a
+                              download="Specimen_E-Invoicing_Declaration.docx"
+                              className="text-primary d-flex align-items-center"
+                              href="/assets/Specimen_E-Invoicing_Declaration.docx"
                             >
-                              <path
-                                d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
-                                style={{ fill: "#de7008!important" }}
-                              />
-                              <path
-                                d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
-                                style={{ fill: "#de7008!important" }}
-                              />
-                            </svg>
-                            <span className="mt-2 ms-2">
-                              Specimen For E-Invoicing Declaration.pdf
-                            </span>
-                          </a>
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width={24}
+                                height={24}
+                                fill="#DE7008"
+                                className="bi bi-download"
+                                viewBox="0 0 16 16"
+                              >
+                                <path
+                                  d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
+                                  style={{ fill: "#de7008!important" }}
+                                />
+                                <path
+                                  d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
+                                  style={{ fill: "#de7008!important" }}
+                                />
+                              </svg>
+                              <span className="mt-2 ms-2">
+                                Specimen For E-Invoicing Declaration.pdf
+                              </span>
+                            </a>
+                          </div>
                         </div>
-                      </div>
-                      <div className="col-md-4 mt-2">
-                        <div className="form-group">
-                          <label>
-                            Upload Declaration <span></span>
-                          </label>
-                          {/* <input
+                        <div className="col-md-4 mt-2">
+                          <div className="form-group">
+                            <label>
+                              Upload Declaration <span></span>
+                            </label>
+                            {/* <input
                           id="attachment"
                           accept=" "
                           className="form-control"
@@ -4158,24 +4194,24 @@ const SectionReKYCDetails = () => {
                           name=""
                           onChange={handleEinvoicingFileChange}
                         /> */}
-                          <input
-                            className="form-control mt-2"
-                            type="file"
-                            onChange={(e) => handleFileChange2(e.target.files[0])}
-                            ref={fileInputRef}
-                            multiple
-                            accept=".pdf"
-                          />
-                          {/* Major Activity * */}
+                            <input
+                              className="form-control mt-2"
+                              type="file"
+                              onChange={(e) => handleFileChange2(e.target.files[0])}
+                              ref={fileInputRef}
+                              multiple
+                              accept=".pdf"
+                            />
+                            {/* Major Activity * */}
+                          </div>
                         </div>
-                      </div>
-                    {/* </div> */}
-                    </>
-                  )}
+                        {/* </div> */}
+                      </>
+                    )}
 
                   </div>
 
-                
+
 
                   {/* Other Statutory Details */}
                   <div className="row mt-5">
@@ -4321,7 +4357,7 @@ const SectionReKYCDetails = () => {
         </div>
       )}
 
-   <ToastContainer
+      <ToastContainer
         position="top-right"
         autoClose={3000}
         hideProgressBar={false}
