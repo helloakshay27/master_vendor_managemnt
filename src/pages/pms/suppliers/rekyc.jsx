@@ -298,7 +298,7 @@ const SectionReKYCDetails = () => {
     fetchStatutoryData();
   }, [supplierData?.id]);
 
-  // console.log("statutory details:",statutoryDetails)
+  console.log("statutory details:",statutoryDetails)
 
   // Empty dependency array ensures this runs once on mount
 
@@ -1627,7 +1627,22 @@ const SectionReKYCDetails = () => {
 
   return (
     <>
-      {rekycStatus === "pending" ? (
+      {(!rekycStatus || rekycStatus === null || rekycStatus === undefined || rekycStatus === "") ? (
+                          <div className="loader-container">
+                            <div className="lds-ring">
+                              <div></div>
+                              <div></div>
+                              <div></div>
+                              <div></div>
+                              <div></div>
+                              <div></div>
+                              <div></div>
+                              <div></div>
+                            </div>
+                            <p>Loading...</p>
+                          </div>
+                        ):
+      rekycStatus === "pending" ? (
         <div className="website-content overflowY-auto">
           <div className="card mx-4 pb-4 mt-4">
             <div className="card-header3">
@@ -3833,7 +3848,10 @@ const SectionReKYCDetails = () => {
                     {/* GSTIN Upload */}
                     <div className="col-md-4 mt-4">
                       <div className="form-group">
-                        <label>GSTIN Attachment <span>*</span></label>
+                        <label>
+                          {supplierData?.gstin_applicable ? 'GSTIN Attachment ' : 'GSTIN Declaration '}
+                           <span>*</span>
+                        </label>
                         {supplierData?.basic_information?.gstin_attachments?.length >
                           0 && (
                             <span className="ms-2">
@@ -3881,10 +3899,11 @@ const SectionReKYCDetails = () => {
                         )}
                       </div>
                     </div>
+                    {/* {console.log("supplier data gsctin:",supplierData?.gstin_applicable)} */}
 
                     {/* Checkbox */}
                     {/* Bank Cheque Upload */}
-                    <div className="col-md-4 mt-4">
+                    {/* <div className="col-md-4 mt-4">
                       <div className="form-group">
                         <label>Cheque Attachment <span></span></label>
                         {supplierData?.basic_information?.bank_attachments_attachments?.length >
@@ -3892,7 +3911,7 @@ const SectionReKYCDetails = () => {
                             <span className="ms-2">
                               <a
                                 href={`${baseURL}${supplierData?.basic_information?.bank_attachments_attachments[0]?.file_url}`} // Append base URL
-                                download // Ensure it prompts download
+                                download 
                                 className="text-primary d-flex align-items-center"
                               >
                                 <span className="me-2">Existing Files:</span>
@@ -3932,8 +3951,8 @@ const SectionReKYCDetails = () => {
                         {/* {errors.bankChequeAttachments && (
                           <div className="ValidationColor">{errors.bankChequeAttachments}</div>
                         )} */}
-                      </div>
-                    </div>
+                      {/* </div>
+                    </div> */} 
 
 
 
@@ -4247,7 +4266,36 @@ const SectionReKYCDetails = () => {
 
                         <div className="col-md-6 mt-3">
                           <div className="form-group">
-                            <label>Attachment</label>
+                            <div className="d-flex align-items-center mb-2">
+                              <label className="mb-0">Attachment</label>
+                              {field?.attachment_url && (
+                                <span className="ms-2">
+                                  <a
+                                    href={`${baseURL}${field?.attachment_url}`}
+                                    download
+                                    className="text-primary d-flex align-items-center"
+                                  >
+                                    <span className="me-2 ms-3">Existing Files:</span>
+                                    <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      width={24}
+                                      height={24}
+                                      fill="#DE7008"
+                                      className="bi bi-download"
+                                      viewBox="0 0 16 16"
+                                    >
+                                      <path
+                                        d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
+                                      />
+                                      <path
+                                        d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
+                                      />
+                                    </svg>
+                                    {/* {field?.name ? field.name : "No Document Available"} */}
+                                  </a>
+                                </span>
+                              )}
+                            </div>
                             <input
                               type="file"
                               className="form-control"
