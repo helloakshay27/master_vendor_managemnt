@@ -36,6 +36,8 @@ import ApprovalMatrix from "./pages/approval-matrix.jsx";
 import ApprovalList from "./pages/approval-list.jsx";
 import ApprovalEdit from "./pages/approval-edit.jsx";
 import ConfirmationPage from "./pages/confirmation.jsx";
+import VendorRegistrationForm from "./pages/vendor-registration-form.jsx";
+import VendorRegistrationStepByStepForm from "./pages/vendor-registration-step-by-step-form.jsx";
 
 function App() {
   return (
@@ -96,6 +98,8 @@ function App() {
           <Route path="/approval-matrix" element={<ApprovalMatrix />} />
           <Route path="/approval-list" element={<ApprovalList />} />
           <Route path="/approval-edit/:id" element={<ApprovalEdit />} />
+          <Route path="/vendor-registration-form/:id" element={<VendorRegistrationForm />} />
+           <Route path="/vendor-registration-step-by-step-form/:id" element={<VendorRegistrationStepByStepForm />} />
         </Routes>
       </div>
     </BrowserRouter>
