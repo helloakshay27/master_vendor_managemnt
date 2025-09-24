@@ -723,8 +723,14 @@ const VendorRegistrationStepByStepForm = () => {
             return;
         }
 
-        const selectedYear = selectedOption.value; // ✅ Correct way to get value
-        setClassificationYear(selectedYear);
+                                            <div className="row w-100 mb-3">
+                                                <div className="col-md-6">
+                                                    <input className="form-control" type="text" placeholder="Enter Email OTP" />
+                                                </div>
+                                                <div className="col-md-6">
+                                                    <input className="form-control" type="text" placeholder="Enter Mobile OTP" />
+                                                </div>
+                                            </div>
 
         let validFromDate = "";
         let validTillDate = "";
@@ -1628,6 +1634,7 @@ const VendorRegistrationStepByStepForm = () => {
 
     // At the top of your component
     const steps = [
+        { label: "OTP Verification" },
         { label: "Organization Details" },
         { label: "Communication & Register Address" },
         { label: "Bank Details" },
@@ -1636,7 +1643,6 @@ const VendorRegistrationStepByStepForm = () => {
         { label: "Pre qualification" },
         { label: "Declarations" },
         { label: "Preview & Submit" },
-
     ];
     const [currentStep, setCurrentStep] = useState(0);
     const [completed, setCompleted] = useState(Array(steps.length).fill(false));
@@ -1710,8 +1716,88 @@ const VendorRegistrationStepByStepForm = () => {
                         ))}
                     </div>
 
-                    {/* Step content */}
+
                     {currentStep === 0 && (
+                        <div className="d-flex justify-content-center mt-4">
+                            <div className="card pb-4  mx-5 w-100" 
+                            // style={{maxWidth:'700px', width:'100%'}}
+                            >
+                            <div className="w-100 text-center mb-3">
+                                <h3 className="fw-bold" style={{ marginTop: '24px' }}>OTP Verification</h3>
+                            </div>
+                            <div className="card-body mt-0">
+                                <div className="row justify-content-center">
+                                    <div className="col-md-8">
+                                        <div className="form-group mb-3">
+                                            <label>Contact Person Name</label>
+                                            <input className="form-control" type="email" value="ajay.ghenand@lockated.com" readOnly />
+                                        </div>
+                                        <div className="row mb-3">
+                                            <div className="col-md-6">
+                                                <div className="form-group">
+                                                    <label>Primary Email ID</label>
+                                                    <input className="form-control" type="email" value="ajay.ghenand@lockated.com" readOnly />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-6">
+                                                <div className="form-group">
+                                                    <label>Secondary Email ID</label>
+                                                    <input className="form-control" type="email" value="ghenandajay1010@gmail.com" readOnly />
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="row mb-3">
+                                            <div className="col-md-6">
+                                                <div className="form-group">
+                                                    <label>Primary Mobile No.</label>
+                                                    <input className="form-control" type="text" value="9623636187" readOnly />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-6">
+                                                <div className="form-group">
+                                                    <label>Secondary Mobile No.</label>
+                                                    <input className="form-control" type="text" value="" placeholder="Enter secondary mobile number" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="row mb-3">
+                                            <div className="col-md-6 d-flex align-items-center">
+                                                <button className="purple-btn2 me-3">Get OTP</button>
+
+                                            </div>
+
+
+                                        </div>
+
+                                        <div className="row w-100 mb-3">
+                                            <div className="col-md-6">
+                                                <input className="form-control" type="text" placeholder="Enter Email OTP" />
+                                                <span style={{background:'#fff',color:'#e95420',padding:'2px 8px',borderRadius:'4px',fontSize:'0.95em',display:'inline-block',marginTop:'4px'}}>*Note: Any One OTP Is Mandatory To Proceed</span>
+                                            </div>
+                                            <div className="col-md-6">
+                                                <input className="form-control" type="text" placeholder="Enter Mobile OTP" />
+                                            </div>
+                                        </div>
+                                        <div className="d-flex justify-content-center mt-3">
+                                            <button className="purple-btn2 w-100" onClick={() => {
+                                                setCompleted((arr) => {
+                                                    const copy = [...arr];
+                                                    copy[currentStep] = true;
+                                                    return copy;
+                                                });
+                                                setCurrentStep((s) => Math.min(s + 1, steps.length - 1));
+                                            }}>Submit</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            </div>
+                        </div>
+
+                    )}
+
+                    {/* Step content */}
+                    {currentStep === 1 && (
                         <div className="card mx-4 pb-4 mt-4">
                             {/* Organization Details section here */}
                             {/* ...existing code for Organization Details... */}
@@ -1816,7 +1902,7 @@ const VendorRegistrationStepByStepForm = () => {
                                             <div className="form-group">
                                                 <label>
                                                     Vendor Organization Name <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
+                                                    <TooltipIcon message="Enter the full legal name of the vendor organization." />
                                                 </label>
                                                 <input
                                                     className="form-control"
@@ -1829,7 +1915,7 @@ const VendorRegistrationStepByStepForm = () => {
 
                                                 <label>
                                                     Type of Organization <span>*</span>
-                                                    <TooltipIcon message="Please choose your country from the list" />
+                                                    <TooltipIcon message="Choose the type of your organization from the options provided to help us better understand your profile." />
                                                 </label>
                                                 <SingleSelector
                                                     options={[]}
@@ -1842,7 +1928,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                 {/* Label with Tooltip */}
                                                 <label>
                                                     Nature of Business <span>*</span>
-                                                    <TooltipIcon message="Please choose your country from the list" />
+                                                    {/* <TooltipIcon message="Please choose your country from the list" /> */}
                                                 </label>
                                                 <SingleSelector
                                                     options={[]}
@@ -1855,7 +1941,7 @@ const VendorRegistrationStepByStepForm = () => {
 
                                                 <label>
                                                     Vendor Type  <span>*</span>
-                                                    <TooltipIcon message="Please choose your country from the list" />
+                                                    {/* <TooltipIcon message="Please choose your country from the list" /> */}
                                                 </label>
                                                 <SingleSelector
                                                     options={[]}
@@ -1868,7 +1954,7 @@ const VendorRegistrationStepByStepForm = () => {
 
                                                 <label>
                                                     Type of Industry  <span>*</span>
-                                                    <TooltipIcon message="Please choose your country from the list" />
+                                                    <TooltipIcon message="Choose the industry that your organization operates in. This helps us better understand your sector." />
                                                 </label>
                                                 <SingleSelector
                                                     options={[]}
@@ -1881,7 +1967,7 @@ const VendorRegistrationStepByStepForm = () => {
                                             <div className="form-group">
                                                 <label>
                                                     Type of Work (Scope of work with Panchshil)<span>*</span>
-                                                    <TooltipIcon message="Please provide the complete address of your bank branch,including the street address,city and postal code." />
+                                                    <TooltipIcon message="Write the Type of Work that your organization operates in.This helps us better understand your sector." />
                                                 </label>
                                                 <input
                                                     className="form-control"
@@ -1896,7 +1982,7 @@ const VendorRegistrationStepByStepForm = () => {
                                             <div className="form-group">
                                                 <label>
                                                     Full Name  <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
+                                                    {/* <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." /> */}
                                                 </label>
                                                 <input
                                                     className="form-control"
@@ -1908,7 +1994,7 @@ const VendorRegistrationStepByStepForm = () => {
                                             <div className="form-group">
                                                 <label>
                                                     Email <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
+                                                    {/* <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." /> */}
                                                 </label>
                                                 <input
                                                     className="form-control"
@@ -1920,7 +2006,7 @@ const VendorRegistrationStepByStepForm = () => {
                                             <div className="form-group">
                                                 <label>
                                                     Mobile <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
+                                                    {/* <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." /> */}
                                                 </label>
                                                 <input
                                                     className="form-control"
@@ -1933,7 +2019,7 @@ const VendorRegistrationStepByStepForm = () => {
                                             <div className="form-group">
                                                 <label>
                                                     Key Market <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
+                                                    <TooltipIcon message="Write the Key Market that your organization operates in. This helps us better understand your sector." />
                                                 </label>
                                                 <input
                                                     className="form-control"
@@ -1945,7 +2031,7 @@ const VendorRegistrationStepByStepForm = () => {
                                             <div className="form-group">
                                                 <label>
                                                     PAN No. <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
+                                                    {/* <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." /> */}
                                                 </label>
                                                 <input
                                                     className="form-control"
@@ -1957,7 +2043,7 @@ const VendorRegistrationStepByStepForm = () => {
                                             <div className="form-group">
                                                 <label>
                                                     PAN Attachment <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
+                                                    <TooltipIcon message="Please attach a clear PDF of your organization's PAN certificate. This is required for identity and tax verification." />
                                                 </label>
                                                 <input
                                                     className="form-control"
@@ -1969,8 +2055,9 @@ const VendorRegistrationStepByStepForm = () => {
                                             <div className="form-group">
 
                                                 <label>
-                                                    Schema Group <span>*</span>
-                                                    <TooltipIcon message="Please choose your country from the list" />
+                                                    Schema Group 
+                                                    {/* <span>*</span>
+                                                    <TooltipIcon message="Please choose your country from the list" /> */}
                                                 </label>
                                                 <SingleSelector
                                                     options={[]}
@@ -1981,8 +2068,8 @@ const VendorRegistrationStepByStepForm = () => {
                                         <div className="col-md-4 mt-2">
                                             <div className="form-group">
                                                 <label>
-                                                    Date of Incorporation <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
+                                                    Date of Incorporation 
+                                                    <TooltipIcon message="Provide the date when younorganization was officially incorporated. Use the format (DD-MM-YYYY) and refer to your incorporation certificate if needed." />
                                                 </label>
                                                 <input
                                                     className="form-control"
@@ -2648,7 +2735,7 @@ const VendorRegistrationStepByStepForm = () => {
                             </div>
                         </div>
                     )}
-                    {currentStep === 1 && (
+                    {currentStep === 2 && (
                         <div className="card mx-4 pb-4 mt-4">
                             {/* Basic Information section here */}
                             {/* ...existing code for Basic Information... */}
@@ -2998,7 +3085,7 @@ const VendorRegistrationStepByStepForm = () => {
                         </div>
                     )}
 
-                    {currentStep === 2 && (
+                    {currentStep === 3 && (
                         <div className="card mx-4 pb-4 mt-4">
                             {bankDetailsList?.map((bankDetail) => (
                                 <CollapsedCardKYC
@@ -3860,7 +3947,7 @@ const VendorRegistrationStepByStepForm = () => {
 
 
 
-                    {currentStep === 3 && (
+                    {currentStep === 4 && (
                         <div className="card mx-4 pb-4 mt-4">
                             <div className="card mx-3 pb-4 mt-4">
                                 <div className="card-header3">
@@ -4827,7 +4914,7 @@ const VendorRegistrationStepByStepForm = () => {
 
 
 
-                    {currentStep === 4 && (
+                    {currentStep === 5 && (
                         <div className="card mx-4 pb-4 mt-4">
                             <div className="row mb-3 mx-2">
                                 <div className="col-md-6">
@@ -5093,7 +5180,7 @@ const VendorRegistrationStepByStepForm = () => {
 
 
 
-                    {currentStep === 5 && (
+                    {currentStep === 6 && (
                         <div className="card mx-4 pb-4 mt-4">
                             <div className="card mx-3 pb-4 mt-4">
                                 <div className="card-header3">
@@ -5162,7 +5249,7 @@ const VendorRegistrationStepByStepForm = () => {
                     )}
 
 
-                    {currentStep === 6 && (
+                    {currentStep === 7 && (
                         <div className="card mx-4 pb-4 mt-4">
                             <div className="row mt-4 mx-3">
                                 <div className="col-md-12">
@@ -5205,36 +5292,38 @@ const VendorRegistrationStepByStepForm = () => {
 
 
                     {/* Navigation buttons */}
-                    <div className="d-flex justify-content-center mt-4" style={{ gap: '1rem' }}>
-                        <button
-                            className="purple-btn1"
-                            onClick={() => {
-                                setCompleted((arr) => {
-                                    const copy = [...arr];
-                                    copy[currentStep - 1] = false;
-                                    return copy;
-                                });
-                                setCurrentStep((s) => Math.max(s - 1, 0));
-                            }}
-                            disabled={currentStep === 0}
-                        >
-                            Back
-                        </button>
-                        <button
-                            className="purple-btn2"
-                            onClick={() => {
-                                setCompleted((arr) => {
-                                    const copy = [...arr];
-                                    copy[currentStep] = true;
-                                    return copy;
-                                });
-                                setCurrentStep((s) => Math.min(s + 1, steps.length - 1));
-                            }}
-                            disabled={currentStep === steps.length - 1}
-                        >
-                            Next
-                        </button>
-                    </div>
+                    {currentStep !== 0 && (
+                        <div className="d-flex justify-content-center mt-4" style={{ gap: '1rem' }}>
+                            <button
+                                className="purple-btn1"
+                                onClick={() => {
+                                    setCompleted((arr) => {
+                                        const copy = [...arr];
+                                        copy[currentStep - 1] = false;
+                                        return copy;
+                                    });
+                                    setCurrentStep((s) => Math.max(s - 1, 0));
+                                }}
+                                disabled={currentStep === 0}
+                            >
+                                Back
+                            </button>
+                            <button
+                                className="purple-btn2"
+                                onClick={() => {
+                                    setCompleted((arr) => {
+                                        const copy = [...arr];
+                                        copy[currentStep] = true;
+                                        return copy;
+                                    });
+                                    setCurrentStep((s) => Math.min(s + 1, steps.length - 1));
+                                }}
+                                disabled={currentStep === steps.length - 1}
+                            >
+                                Next
+                            </button>
+                        </div>
+                    )}
                 </div>
 
 
