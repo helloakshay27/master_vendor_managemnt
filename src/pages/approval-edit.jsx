@@ -9,6 +9,7 @@ import { useState, useEffect } from "react";
 import SingleSelector from "../components/base/Select/SingleSelector";
 import { useParams } from "react-router-dom"; // Import useParams
 import { baseURL } from "../confi/apiDomain";
+import { toast } from "react-toastify";
 
 const ApprovalEdit = () => {
    const urlParams = new URLSearchParams(location.search);
@@ -209,6 +210,45 @@ const ApprovalEdit = () => {
     setSelectedKYCType(selected); // Store all selected values
   };
 
+  // Extract a human-readable error message from various API error shapes
+  const extractErrorMessage = (err) => {
+    try {
+      const data = err?.response?.data;
+      if (!data) {
+        if (err?.message) return err.message;
+        return "An unexpected error occurred.";
+      }
+
+      if (typeof data === "string") return data;
+      if (data.message && typeof data.message === "string") return data.message;
+      if (Array.isArray(data.message) && data.message.length) return data.message[0];
+      if (data.error && typeof data.error === "string") return data.error;
+      if (Array.isArray(data.error) && data.error.length) return data.error[0];
+      if (data.errors) {
+        if (typeof data.errors === "string") return data.errors;
+        if (Array.isArray(data.errors) && data.errors.length) return data.errors[0];
+        if (typeof data.errors === "object") {
+          const firstKey = Object.keys(data.errors)[0];
+          const firstVal = data.errors[firstKey];
+          if (Array.isArray(firstVal) && firstVal.length) return `${firstKey} ${firstVal[0]}`.trim();
+          if (typeof firstVal === "string") return `${firstKey} ${firstVal}`.trim();
+        }
+      }
+      if (data.full_messages && Array.isArray(data.full_messages) && data.full_messages.length) {
+        return data.full_messages[0];
+      }
+      if (typeof data === "object") {
+        const values = Object.values(data).flat?.() ?? Object.values(data);
+        const first = Array.isArray(values) ? values[0] : values;
+        if (typeof first === "string") return first;
+        if (Array.isArray(first) && first.length && typeof first[0] === "string") return first[0];
+      }
+      return "Failed to process request.";
+    } catch (_) {
+      return "Failed to process request.";
+    }
+  };
+
   const handleUpdate = async () => {
     const payload = {
       invoice_approval: {
@@ -236,7 +276,7 @@ const ApprovalEdit = () => {
       !payload.invoice_approval.department_id ||
       !payload.invoice_approval.approval_type
     ) {
-      alert("Please select  Department, and KYC Type.");
+      toast.warn("Please select Department and KYC Type.");
       return;
     }
 
@@ -281,17 +321,13 @@ const ApprovalEdit = () => {
       );
 
       console.log("API Response:", response.data);
-      alert("Approval Matrix Updated Successfully!");
+      toast.success("Approval Matrix Updated Successfully!");
 
-      navigate("/approval-list");
+      // navigate("/approval-list");
+      navigate(`/approval-list/?token=${token}`);
     } catch (error) {
       console.error("Error updating approval matrix:", error);
-
-      if (error.response?.data?.error) {
-        alert(error.response.data.error[0]); // Show the exact error message
-      } else {
-        alert("Failed to update approval matrix.");
-      }
+      toast.error(extractErrorMessage(error));
     }
   };
 
