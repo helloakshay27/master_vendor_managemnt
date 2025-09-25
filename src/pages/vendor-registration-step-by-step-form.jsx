@@ -1,4 +1,4 @@
-
+    
 
 
 import React, { useState, useEffect, useRef } from "react";
@@ -79,11 +79,11 @@ const VendorRegistrationStepByStepForm = () => {
     const [mobileOtp, setMobileOtp] = useState("");
 
     const handleOtpSubmit = () => {
-        // if (!emailOtp && !mobileOtp) {
-        //     toast.error("Please enter at least one OTP to proceed.");
-        //     setTimeout(() => setToastMsg(""), 2500);
-        //     return;
-        // }
+        if (!emailOtp && !mobileOtp) {
+            toast.error("Please enter at least one OTP to proceed.");
+            setTimeout(() => setToastMsg(""), 2500);
+            return;
+        }
         setCompleted((arr) => {
             const copy = [...arr];
             copy[currentStep] = true;
@@ -111,7 +111,7 @@ const VendorRegistrationStepByStepForm = () => {
         const fetchOrganizationTypes = async () => {
             try {
                 const response = await axios.get('https://vendors.lockated.com/pms/suppliers/type_of_organization_list');
-                const options = (response.data?.type_of_organizations || []).map(item => ({ label: item.name, value: item.id }));
+                const options = (response.data?.type_of_organizations || []).map(item => ({ label: item.name, value: item.value }));
                 setOrganizationTypeOptions(options);
             } catch (error) {
                 console.error('Error fetching organization types:', error);
@@ -510,6 +510,12 @@ const VendorRegistrationStepByStepForm = () => {
     const deleteWorkingSite = (id) => {
         setWorkingSites(prev => prev.length === 1 ? prev : prev.filter(s => s.id !== id));
     };
+
+    // Organization type and CIN fields
+    const [organizationType, setOrganizationType] = useState("");
+    const [cin, setCin] = useState("");
+    const [cinAttachment, setCinAttachment] = useState(null);
+
 
     // *****************************************
 
@@ -2216,11 +2222,13 @@ const VendorRegistrationStepByStepForm = () => {
 
                                             <div className="row w-100 mb-3">
                                                 <div className="col-md-6">
-                                                    <input className="form-control" type="text" placeholder="Enter Email OTP" />
+                                                    <input className="form-control" type="text" placeholder="Enter Email OTP" value={emailOtp}
+                                                        onChange={e => setEmailOtp(e.target.value)}   />
                                                     <span style={{ background: '#fff', color: '#e95420', padding: '2px 8px', borderRadius: '4px', fontSize: '0.95em', display: 'inline-block', marginTop: '4px' }}>*Note: Any One OTP Is Mandatory To Proceed</span>
                                                 </div>
                                                 <div className="col-md-6">
-                                                    <input className="form-control" type="text" placeholder="Enter Mobile OTP" />
+                                                    <input className="form-control" type="text" placeholder="Enter Mobile OTP" value={mobileOtp}
+                                                        onChange={e => setMobileOtp(e.target.value)} />
                                                 </div>
                                             </div>
                                             <div className="d-flex justify-content-center mt-3">
@@ -2352,7 +2360,6 @@ const VendorRegistrationStepByStepForm = () => {
                                         </div>
                                         <div className="col-md-4">
                                             <div className="form-group">
-
                                                 <label>
                                                     Type of Organization <span>*</span>
                                                     <TooltipIcon message="Choose the type of your organization from the options provided to help us better understand your profile." />
@@ -2360,9 +2367,43 @@ const VendorRegistrationStepByStepForm = () => {
                                                 <SingleSelector
                                                     options={organizationTypeOptions}
                                                     placeholder="Select Organization Type"
+                                                    value={organizationType}
+                                                    onChange={val => setOrganizationType(val)}
                                                 />
                                             </div>
                                         </div>
+                                        {(organizationType === 'Public Limited' || organizationType === 'Private Limited') && (
+                                            <>
+                                                <div className="col-md-4 mt-2">
+                                                    <div className="form-group">
+                                                        <label>
+                                                            Corporate Identification Number <span>*</span>
+                                                            <TooltipIcon message="Enter your organization's Corporate Identification Number\n(MCA), which is issued by the Ministry of Corporate Affairs\n(MCA) in India. This number uniquely identifies\u00A0your\u00A0company." />
+                                                        </label>
+                                                        <input
+                                                            className="form-control"
+                                                            type="text"
+                                                            value={cin}
+                                                            onChange={e => setCin(e.target.value)}
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div className="col-md-4 mt-2">
+                                                    <div className="form-group">
+                                                        <label>
+                                                            Corporate Identification Number Attachment  <span>*</span>
+                                                            <TooltipIcon message="Upload the official document or certificate to verify the details you have submitted. The document must be uploaded in PDF format.\nCorporate Identification Number\u00A0Attachment." />
+                                                        </label>
+                                                        <input
+                                                            className="form-control"
+                                                            type="file"
+                                                            accept="application/pdf"
+                                                            onChange={e => setCinAttachment(e.target.files[0])}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </>
+                                        )}
                                         <div className="col-md-4">
                                             <div className="form-group">
                                                 {/* Label with Tooltip */}
