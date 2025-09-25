@@ -1,4 +1,4 @@
-    
+   
 
 
 import React, { useState, useEffect, useRef } from "react";
@@ -74,6 +74,43 @@ const VendorRegistrationStepByStepForm = () => {
     // console.log(" re kyc type:", rekycType);
 
     // ***********************************
+
+    const [basicInfo, setBasicInfo] = useState({
+        vendorOrganizationName: "",
+        organizationType: "",
+        cin: "",
+        cinAttachment: null,
+        llp: "",
+        llpAttachment: null,
+        natureOfBusiness: "",
+        vendorType: "",
+        industryType: "",
+        typeOfWork: "",
+        fullName: "",
+        email: "",
+        mobile: "",
+        keyMarket: "",
+        panNo: "",
+        panAttachment: null,
+        schemaGroup: "",
+        dateOfIncorporation: "",
+        gstinApplicable: "",
+        gstinClassification: "",
+        gstinNo: "",
+        gstinAttachment: null,
+        gstinDeclaration: null,
+    });
+
+    const updateBasicInfo = (field, value) => {
+        setBasicInfo(prev => ({ ...prev, [field]: value }));
+    };
+
+    // console.log("basic info:", basicInfo)
+
+    const gstinApplicableOptions = [
+        { label: 'Yes', value: 'Yes' },
+        { label: 'No', value: 'No' }
+    ];
     const [gstinApplicable, setGstinApplicable] = useState('');
     const [emailOtp, setEmailOtp] = useState("");
     const [mobileOtp, setMobileOtp] = useState("");
@@ -81,7 +118,7 @@ const VendorRegistrationStepByStepForm = () => {
     const handleOtpSubmit = () => {
         if (!emailOtp && !mobileOtp) {
             toast.error("Please enter at least one OTP to proceed.");
-            setTimeout(() => setToastMsg(""), 2500);
+            // setTimeout(() => setToastMsg(""), 2500);
             return;
         }
         setCompleted((arr) => {
@@ -104,7 +141,66 @@ const VendorRegistrationStepByStepForm = () => {
         };
         fetchSupplierShowData();
     }, []);
-    console.log("supplier data:", supplierShowData)
+    // console.log("supplier data:", supplierShowData)
+
+
+    // Map supplierShowData to basicInfo when supplierShowData changes
+    useEffect(() => {
+        if (!supplierShowData) return;
+        setBasicInfo(prev => ({
+            ...prev,
+            vendorOrganizationName: supplierShowData.organization_name || "",
+            organizationType: supplierShowData.company_type || "",
+            cin: supplierShowData.cin_number || "",
+            panNo: supplierShowData.pan_number || "",
+            fullName: supplierShowData.full_name || "",
+            email: supplierShowData.email || "",
+            mobile: supplierShowData.mobile || "",
+            dateOfIncorporation: supplierShowData.date_of_incorporation || "",
+            schemaGroup: supplierShowData.schema_group_id || "",
+            gstinNo: supplierShowData.gstin || "",
+            gstinApplicable: supplierShowData.gstin_applicable || "",
+            // Add more mappings as needed
+            llp: supplierShowData.llp_number || "",
+            natureOfBusiness: null
+            // supplierShowData.nature_of_business_id || null,
+            // Attachments: just set filenames for now (handle upload separately)
+            // panAttachment: supplierShowData.pan_attachments?.[0]?.document_name || null,
+            // cinAttachment: supplierShowData.cin_number_attachments?.[0]?.document_name || null,
+            // gstinAttachment: supplierShowData.gstin_attachments?.[0]?.document_name || null,
+            // gstinDeclaration: supplierShowData.gstin_declaration_attachments?.[0]?.document_name || null,
+            // ...other fields as needed
+        }));
+    }, [supplierShowData]);
+
+
+    // Additional Vendor Details state (all fields in one object)
+    const [additionalDetails, setAdditionalDetails] = useState({
+        deliveryLeadPeriod: "",
+        warrantyPeriod: "",
+        amcProvided: null,
+        website: "",
+        currencyType: null,
+        msmeUdyamApplicable: null,
+        einvoice: null,
+        einvoiceDeclaration: null,
+        msmeNo: "",
+        classificationYear: null,
+        majorActivity: null,
+        validFrom: "",
+        validTill: "",
+        msmeEnterpriseType: null,
+        msmeAttachment: null,
+        msmeDeclaration: null,
+    });
+
+    // Helper to update additional details fields
+    const updateAdditionalDetails = (field, value) => {
+        setAdditionalDetails(prev => ({ ...prev, [field]: value }));
+    };
+
+    // console.log("additional details:", additionalDetails)
+
 
     const [organizationTypeOptions, setOrganizationTypeOptions] = useState([]);
     useEffect(() => {
@@ -133,6 +229,199 @@ const VendorRegistrationStepByStepForm = () => {
         };
         fetchIndustryTypes();
     }, []);
+
+    // Validation state for basic info
+    const [basicInfoErrors, setBasicInfoErrors] = useState({});
+
+    // List of required fields for step 1 (Basic Information)
+    const requiredBasicInfoFields = [
+        'vendorOrganizationName',
+        'organizationType',
+        'natureOfBusiness',
+        'vendorType',
+        'industryType',
+        'typeOfWork',
+        'fullName',
+        'email',
+        'mobile',
+        'keyMarket',
+        'panNo',
+        // 'panAttachment',
+        'schemaGroup',
+        // 'dateOfIncorporation',
+        // Add more as needed
+    ];
+
+    // Validation function for step 1
+
+    // console.log("pan att:",basicInfo.panAttachment)
+    console.log("gst att:",basicInfo.gstinAttachment)
+
+    const validateBasicInfo = () => {
+        // Validate basic info fields
+        const errors = {};
+        requiredBasicInfoFields.forEach(field => {
+            if (!basicInfo[field] || (typeof basicInfo[field] === 'object' && !basicInfo[field]?.value && !basicInfo[field]?.label)) {
+                errors[field] = 'This field is required.';
+            }
+        });
+
+        // GSTIN Applicable validation (required)
+        if (!basicInfo.gstinApplicable || (typeof basicInfo.gstinApplicable === 'object' && !basicInfo.gstinApplicable.value && !basicInfo.gstinApplicable.label)) {
+            errors.gstinApplicable = 'This field is required.';
+        }
+
+        // Conditional GSTIN fields validation
+        const gstinApplicableLabel = basicInfo.gstinApplicable?.label || basicInfo.gstinApplicable;
+        if (gstinApplicableLabel === 'Yes') {
+            if (!basicInfo.gstinNo) {
+                errors.gstinNo = 'This field is required.';
+            }
+            if (!basicInfo.gstinAttachment) {
+                errors.gstinAttachment = 'This field is required.';
+            }
+        } else if (gstinApplicableLabel === 'No') {
+            if (!basicInfo.gstinDeclaration) {
+                errors.gstinDeclaration = 'This field is required.';
+            }
+        }
+
+        // Special case: if organizationType is Public/Private Limited, CIN and attachment required
+        const orgType = basicInfo.organizationType?.label || basicInfo.organizationType;
+        if (orgType === 'Public Limited' || orgType === 'Private Limited') {
+            if (!basicInfo.cin) {
+                errors.cin = 'This field is required';
+            } else {
+                // CIN must be 21 alphanumeric characters
+                const cinValue = basicInfo.cin.trim();
+                if (!/^[A-Za-z0-9]{21}$/.test(cinValue)) {
+                    errors.cin = 'CIN must be 21 alphanumeric characters.';
+                }
+            }
+            if (!basicInfo.cinAttachment) errors.cinAttachment = 'This field is required';
+        }
+
+        // Special case: if organizationType is Limited Liability Partnership (LLP), LLP No. and attachment required
+        if (orgType === 'Limited Liability Partnership (LLP)') {
+            if (!basicInfo.llp) {
+                errors.llp = 'This field is required.';
+            } else {
+                // LLP must be in the format AAR-1165
+                const llpValue = basicInfo.llp.trim();
+                if (!/^[A-Z]{3}-\d{4}$/.test(llpValue)) {
+                    errors.llp = 'LLP must be in the format AAR-1165.';
+                }
+            }
+            if (!basicInfo.llpAttachment) errors.llpAttachment = 'This field is required.';
+        }
+
+        console.log("errors***************:",errors)
+        setBasicInfoErrors(errors);
+
+        // --- Additional Vendor Details validation (for * fields) ---
+        const additionalErrors = {};
+        // Currency Type required
+        if (!additionalDetails.currencyType || (typeof additionalDetails.currencyType === 'object' && !additionalDetails.currencyType.value && !additionalDetails.currencyType.label)) {
+            additionalErrors.currencyType = 'This field is required.';
+        }
+
+        // MSME/Udyam Number Applicable required
+        if (!additionalDetails.msmeUdyamApplicable || (typeof additionalDetails.msmeUdyamApplicable === 'object' && !additionalDetails.msmeUdyamApplicable.value && !additionalDetails.msmeUdyamApplicable.label)) {
+            additionalErrors.msmeUdyamApplicable = 'This field is required.';
+        }
+
+        // If MSME/Udyam is Yes, validate all required fields
+        if (additionalDetails.msmeUdyamApplicable?.value === 'Yes') {
+            if (!additionalDetails.msmeNo) additionalErrors.msmeNo = 'This field is required.';
+            if (!additionalDetails.classificationYear || (typeof additionalDetails.classificationYear === 'object' && !additionalDetails.classificationYear.value && !additionalDetails.classificationYear.label)) {
+                additionalErrors.classificationYear = 'This field is required.';
+            }
+            if (!additionalDetails.majorActivity || (typeof additionalDetails.majorActivity === 'object' && !additionalDetails.majorActivity.value && !additionalDetails.majorActivity.label)) {
+                additionalErrors.majorActivity = 'This field is required.';
+            }
+            if (!additionalDetails.validFrom) additionalErrors.validFrom = 'This field is required.';
+            if (!additionalDetails.validTill) additionalErrors.validTill = 'This field is required.';
+            if (!additionalDetails.msmeEnterpriseType || (typeof additionalDetails.msmeEnterpriseType === 'object' && !additionalDetails.msmeEnterpriseType.value && !additionalDetails.msmeEnterpriseType.label)) {
+                additionalErrors.msmeEnterpriseType = 'This field is required.';
+            }
+            if (!additionalDetails.msmeAttachment) additionalErrors.msmeAttachments = 'This field is required.';
+        }
+        // If MSME/Udyam is No, declaration required
+        if (additionalDetails.msmeUdyamApplicable?.value === 'No') {
+            if (!additionalDetails.msmeDeclaration) additionalErrors.msmeDeclaration = 'This field is required.';
+        }
+
+        // E-invoicing Applicable required if GSTIN Applicable is Yes
+        if (basicInfo.gstinApplicable?.label === 'Yes') {
+            if (!additionalDetails.einvoice || (typeof additionalDetails.einvoice === 'object' && !additionalDetails.einvoice.value && !additionalDetails.einvoice.label)) {
+                additionalErrors.einvoice = 'This field is required.';
+            }
+        }
+        // If E-invoicing is No, declaration required
+        if (additionalDetails.einvoice?.value === 'No') {
+            if (!additionalDetails.einvoiceDeclaration) additionalErrors.einvoiceDeclaration = 'This field is required.';
+        }
+
+        console.log("additional errors:", additionalErrors)
+        setErrors(additionalErrors);
+
+        // Return false if either section has errors
+        return Object.keys(errors).length === 0 && Object.keys(additionalErrors).length === 0;
+    };
+
+
+
+
+     // Address state and handlers
+    const [registeredAddress, setRegisteredAddress] = useState({
+        address1: "",
+        address2: "",
+        address3: "",
+        address4: "",
+        address5: "",
+        country: null,
+        state: null,
+        city: "",
+        pincode: "",
+        telephone: "",
+        mobile: "",
+        orderingEmail: "",
+        billingEmail: "",
+    });
+
+    const [communicationAddress, setCommunicationAddress] = useState({
+        address1: "",
+        address2: "",
+        address3: "",
+        address4: "",
+        address5: "",
+        country: null,
+        state: null,
+        city: "",
+        pincode: "",
+        telephone: "",
+        mobile: "",
+        email: "",
+    });
+
+    const [sameAsRegistered, setSameAsRegistered] = useState(false);
+
+    const handleRegisteredAddressChange = (field, value) => {
+        setRegisteredAddress(prev => ({ ...prev, [field]: value }));
+    };
+
+    const handleCommunicationAddressChange = (field, value) => {
+        setCommunicationAddress(prev => ({ ...prev, [field]: value }));
+    };
+
+    const handleSameAsRegisteredAddress = (e) => {
+        const checked = e.target.checked;
+        setSameAsRegistered(checked);
+        if (checked) {
+            setCommunicationAddress({ ...registeredAddress });
+        }
+    };
+
 
 
     const [virtualAccount, setVirtualAccount] = useState("");
@@ -744,7 +1033,7 @@ const VendorRegistrationStepByStepForm = () => {
 
 
             } catch (error) {
-                console.error("Failed to fetch statutory details:", error);
+                // console.error("Failed to fetch statutory details:", error);
                 setLoading(false);
             }
         };
@@ -752,7 +1041,7 @@ const VendorRegistrationStepByStepForm = () => {
         fetchStatutoryData();
     }, [supplierData?.id]);
 
-    console.log("statutory details:", statutoryDetails)
+    // console.log("statutory details:", statutoryDetails)
 
     // Empty dependency array ensures this runs once on mount
 
@@ -1548,10 +1837,10 @@ const VendorRegistrationStepByStepForm = () => {
         setIsChecked(!isChecked);
     };
 
-    console.log("before update")
+    // console.log("before update")
     // Handle the Update Button Click
     const handleUpdate = async () => {
-        console.log("innn update")
+        // console.log("innn update")
         // console.log("rekyc_type:", rekycType);
 
         // console.log('formSubmitted:', formSubmitted);
@@ -2222,12 +2511,12 @@ const VendorRegistrationStepByStepForm = () => {
 
                                             <div className="row w-100 mb-3">
                                                 <div className="col-md-6">
-                                                    <input className="form-control" type="text" placeholder="Enter Email OTP" value={emailOtp}
-                                                        onChange={e => setEmailOtp(e.target.value)}   />
+                                                    <input className="form-control" type="number" placeholder="Enter Email OTP" value={emailOtp}
+                                                        onChange={e => setEmailOtp(e.target.value)} />
                                                     <span style={{ background: '#fff', color: '#e95420', padding: '2px 8px', borderRadius: '4px', fontSize: '0.95em', display: 'inline-block', marginTop: '4px' }}>*Note: Any One OTP Is Mandatory To Proceed</span>
                                                 </div>
                                                 <div className="col-md-6">
-                                                    <input className="form-control" type="text" placeholder="Enter Mobile OTP" value={mobileOtp}
+                                                    <input className="form-control" type="number" placeholder="Enter Mobile OTP" value={mobileOtp}
                                                         onChange={e => setMobileOtp(e.target.value)} />
                                                 </div>
                                             </div>
@@ -2355,7 +2644,12 @@ const VendorRegistrationStepByStepForm = () => {
                                                 <input
                                                     className="form-control"
                                                     type="text"
+                                                    value={basicInfo.vendorOrganizationName}
+                                                    onChange={e => updateBasicInfo('vendorOrganizationName', e.target.value)}
                                                 />
+                                                {basicInfoErrors.vendorOrganizationName && (
+                                                    <div className="ValidationColor">{basicInfoErrors.vendorOrganizationName}</div>
+                                                )}
                                             </div>
                                         </div>
                                         <div className="col-md-4">
@@ -2367,43 +2661,16 @@ const VendorRegistrationStepByStepForm = () => {
                                                 <SingleSelector
                                                     options={organizationTypeOptions}
                                                     placeholder="Select Organization Type"
-                                                    value={organizationType}
-                                                    onChange={val => setOrganizationType(val)}
+                                                    value={basicInfo.organizationType}
+                                                    onChange={val => updateBasicInfo('organizationType', val)}
                                                 />
+                                                {basicInfoErrors.organizationType && (
+                                                    <div className="ValidationColor">{basicInfoErrors.organizationType}</div>
+                                                )}
                                             </div>
                                         </div>
-                                        {(organizationType === 'Public Limited' || organizationType === 'Private Limited') && (
-                                            <>
-                                                <div className="col-md-4 mt-2">
-                                                    <div className="form-group">
-                                                        <label>
-                                                            Corporate Identification Number <span>*</span>
-                                                            <TooltipIcon message="Enter your organization's Corporate Identification Number\n(MCA), which is issued by the Ministry of Corporate Affairs\n(MCA) in India. This number uniquely identifies\u00A0your\u00A0company." />
-                                                        </label>
-                                                        <input
-                                                            className="form-control"
-                                                            type="text"
-                                                            value={cin}
-                                                            onChange={e => setCin(e.target.value)}
-                                                        />
-                                                    </div>
-                                                </div>
-                                                <div className="col-md-4 mt-2">
-                                                    <div className="form-group">
-                                                        <label>
-                                                            Corporate Identification Number Attachment  <span>*</span>
-                                                            <TooltipIcon message="Upload the official document or certificate to verify the details you have submitted. The document must be uploaded in PDF format.\nCorporate Identification Number\u00A0Attachment." />
-                                                        </label>
-                                                        <input
-                                                            className="form-control"
-                                                            type="file"
-                                                            accept="application/pdf"
-                                                            onChange={e => setCinAttachment(e.target.files[0])}
-                                                        />
-                                                    </div>
-                                                </div>
-                                            </>
-                                        )}
+                                        {/* {console.log("+++++++++++++", basicInfo.organizationType.label)} */}
+
                                         <div className="col-md-4">
                                             <div className="form-group">
                                                 {/* Label with Tooltip */}
@@ -2412,10 +2679,15 @@ const VendorRegistrationStepByStepForm = () => {
                                                     {/* <TooltipIcon message="Please choose your country from the list" /> */}
                                                 </label>
                                                 <SingleSelector
-                                                    options={[]}
+                                                    options={[{ label: 'Finance Vendor', value: 'finance_vendor' }]}
                                                     placeholder="Select Nature of Business"
-                                                    isDisabled={true}
+                                                    // isDisabled={true}
+                                                    value={basicInfo.natureOfBusiness}
+                                                    onChange={val => updateBasicInfo('natureOfBusiness', val)}
                                                 />
+                                                {basicInfoErrors.natureOfBusiness && (
+                                                    <div className="ValidationColor">{basicInfoErrors.natureOfBusiness}</div>
+                                                )}
                                             </div>
                                         </div>
                                         <div className="col-md-4 mt-2">
@@ -2426,10 +2698,15 @@ const VendorRegistrationStepByStepForm = () => {
                                                     {/* <TooltipIcon message="Please choose your country from the list" /> */}
                                                 </label>
                                                 <SingleSelector
-                                                    options={[]}
+                                                    options={[{ label: 'Import Supplier', value: 'import_supplier' }]}
                                                     placeholder="Select Vendor Type"
-                                                    isDisabled={true}
+                                                    // isDisabled={true}
+                                                    value={basicInfo.vendorType}
+                                                    onChange={val => updateBasicInfo('vendorType', val)}
                                                 />
+                                                {basicInfoErrors.vendorType && (
+                                                    <div className="ValidationColor">{basicInfoErrors.vendorType}</div>
+                                                )}
                                             </div>
                                         </div>
                                         <div className="col-md-4 mt-2">
@@ -2442,7 +2719,12 @@ const VendorRegistrationStepByStepForm = () => {
                                                 <SingleSelector
                                                     options={industryTypeOptions || []}
                                                     placeholder="Select Type of Industry"
+                                                    value={basicInfo.industryType}
+                                                    onChange={val => updateBasicInfo('industryType', val)}
                                                 />
+                                                {basicInfoErrors.industryType && (
+                                                    <div className="ValidationColor">{basicInfoErrors.industryType}</div>
+                                                )}
                                             </div>
                                         </div>
 
@@ -2456,8 +2738,12 @@ const VendorRegistrationStepByStepForm = () => {
                                                     className="form-control"
                                                     type="text"
                                                     placeholder="Enter Address"
-
+                                                    value={basicInfo.typeOfWork}
+                                                    onChange={e => updateBasicInfo('typeOfWork', e.target.value)}
                                                 />
+                                                {basicInfoErrors.typeOfWork && (
+                                                    <div className="ValidationColor">{basicInfoErrors.typeOfWork}</div>
+                                                )}
 
                                             </div>
                                         </div>
@@ -2470,7 +2756,12 @@ const VendorRegistrationStepByStepForm = () => {
                                                 <input
                                                     className="form-control"
                                                     type="text"
+                                                    value={basicInfo.fullName}
+                                                    onChange={e => updateBasicInfo('fullName', e.target.value)}
                                                 />
+                                                {basicInfoErrors.fullName && (
+                                                    <div className="ValidationColor">{basicInfoErrors.fullName}</div>
+                                                )}
                                             </div>
                                         </div>
                                         <div className="col-md-4 mt-2">
@@ -2482,7 +2773,12 @@ const VendorRegistrationStepByStepForm = () => {
                                                 <input
                                                     className="form-control"
                                                     type="text"
+                                                    value={basicInfo.email}
+                                                    onChange={e => updateBasicInfo('email', e.target.value)}
                                                 />
+                                                {basicInfoErrors.email && (
+                                                    <div className="ValidationColor">{basicInfoErrors.email}</div>
+                                                )}
                                             </div>
                                         </div>
                                         <div className="col-md-4 mt-2">
@@ -2494,7 +2790,12 @@ const VendorRegistrationStepByStepForm = () => {
                                                 <input
                                                     className="form-control"
                                                     type="text"
+                                                    value={basicInfo.mobile}
+                                                    onChange={e => updateBasicInfo('mobile', e.target.value)}
                                                 />
+                                                {basicInfoErrors.mobile && (
+                                                    <div className="ValidationColor">{basicInfoErrors.mobile}</div>
+                                                )}
                                             </div>
                                         </div>
 
@@ -2507,7 +2808,12 @@ const VendorRegistrationStepByStepForm = () => {
                                                 <input
                                                     className="form-control"
                                                     type="text"
+                                                    value={basicInfo.keyMarket}
+                                                    onChange={e => updateBasicInfo('keyMarket', e.target.value)}
                                                 />
+                                                {basicInfoErrors.keyMarket && (
+                                                    <div className="ValidationColor">{basicInfoErrors.keyMarket}</div>
+                                                )}
                                             </div>
                                         </div>
                                         <div className="col-md-4 mt-2">
@@ -2519,7 +2825,12 @@ const VendorRegistrationStepByStepForm = () => {
                                                 <input
                                                     className="form-control"
                                                     type="text"
+                                                    value={basicInfo.panNo}
+                                                    onChange={e => updateBasicInfo('panNo', e.target.value)}
                                                 />
+                                                {basicInfoErrors.panNo && (
+                                                    <div className="ValidationColor">{basicInfoErrors.panNo}</div>
+                                                )}
                                             </div>
                                         </div>
                                         <div className="col-md-4 mt-2">
@@ -2531,7 +2842,17 @@ const VendorRegistrationStepByStepForm = () => {
                                                 <input
                                                     className="form-control"
                                                     type="file"
+                                                    // onChange={e => {
+                                                    //     updateBasicInfo('panAttachment', e.target.files[0]);
+                                                    //     if (e.target.files[0]) {
+                                                    //         setBasicInfoErrors(prev => ({ ...prev, panAttachment: undefined }));
+                                                    //     }
+                                                    // }}
+                                                onChange={e => updateBasicInfo('panAttachment', e.target.files[0])}
                                                 />
+                                                {basicInfoErrors.panAttachment && (
+                                                    <div className="ValidationColor">{basicInfoErrors.panAttachment}</div>
+                                                )}
                                             </div>
                                         </div>
                                         <div className="col-md-4 mt-2">
@@ -2543,11 +2864,14 @@ const VendorRegistrationStepByStepForm = () => {
                                                     <TooltipIcon message="Please choose your country from the list" /> */}
                                                 </label>
                                                 <SingleSelector
-                                                    options={[]}
-                                                    // value={gstinApplicable}
-                                                    // onChange={selected => setGstinApplicable(selected.value)}
+                                                    options={[{ label: 'Domestic', value: 'domestic' }]}
+                                                    value={basicInfo.schemaGroup}
+                                                    onChange={val => updateBasicInfo('schemaGroup', val)}
                                                     placeholder="Select Schema Group"
                                                 />
+                                                {basicInfoErrors.schemaGroup && (
+                                                    <div className="ValidationColor">{basicInfoErrors.schemaGroup}</div>
+                                                )}
 
                                             </div>
                                         </div>
@@ -2561,36 +2885,99 @@ const VendorRegistrationStepByStepForm = () => {
                                                 <input
                                                     className="form-control"
                                                     type="date"
+                                                    value={basicInfo.dateOfIncorporation}
+                                                    onChange={e => updateBasicInfo('dateOfIncorporation', e.target.value)}
                                                 />
+                                                {/* {basicInfoErrors.dateOfIncorporation && (
+                                                    <div className="ValidationColor">{basicInfoErrors.dateOfIncorporation}</div>
+                                                )} */}
                                             </div>
                                         </div>
-                                        <div className="col-md-4 mt-2">
-                                            <div className="form-group">
-                                                <label>
-                                                    Corporate Identification Number <span>*</span>
-                                                    <TooltipIcon message="Enter your organization's Corporate Identification Number
-(CIN), which is issued by the Ministry of Corporate Affairs
-(MCA) in India. This number uniquely identifies your company." />
-                                                </label>
-                                                <input
-                                                    className="form-control"
-                                                    type="text"
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="col-md-4 mt-2">
-                                            <div className="form-group">
-                                                <label>
-                                                    Corporate Identification Number Attachment  <span>*</span>
-                                                    <TooltipIcon message="Upload the official document or certificate to verify the details you have submitted. The document must be uploaded in PDF format.
-Corporate Identification Number Attachment." />
-                                                </label>
-                                                <input
-                                                    className="form-control"
-                                                    type="file"
-                                                />
-                                            </div>
-                                        </div>
+
+                                        {(
+                                            basicInfo.organizationType.label === 'Private Limited' || basicInfo.organizationType.label === 'Public Limited') && (
+                                                <>
+                                                    <div className="col-md-4 mt-2">
+                                                        <div className="form-group">
+                                                            <label>
+                                                                Corporate Identification Number <span>*</span>
+                                                                <TooltipIcon message="Enter your organization's Corporate Identification Number\n(MCA), which is issued by the Ministry of Corporate Affairs\n(MCA) in India. This number uniquely identifies\u00A0your\u00A0company." />
+                                                            </label>
+                                                            <input
+                                                                className="form-control"
+                                                                type="text"
+                                                                value={basicInfo.cin}
+                                                                onChange={e => updateBasicInfo('cin', e.target.value)}
+                                                            />
+                                                            {basicInfoErrors.cin && (
+                                                                <div className="ValidationColor">{basicInfoErrors.cin}</div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                    <div className="col-md-4 mt-2">
+                                                        <div className="form-group">
+                                                            <label>
+                                                                Corporate Identification Number Attachment  <span>*</span>
+                                                                <TooltipIcon message="Upload the official document or certificate to verify the details you have submitted. The document must be uploaded in PDF format.\nCorporate Identification Number\u00A0Attachment." />
+                                                            </label>
+                                                            <input
+                                                                className="form-control"
+                                                                type="file"
+                                                                accept="application/pdf"
+                                                                onChange={e => updateBasicInfo('cinAttachment', e.target.files[0])}
+                                                            />
+                                                            {basicInfoErrors.cinAttachment && (
+                                                                <div className="ValidationColor">{basicInfoErrors.cinAttachment}</div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </>
+                                            )}
+
+                                        {(
+                                            basicInfo.organizationType.label === 'Limited Liability Partnership (LLP)') && (
+                                                <>
+                                                    <div className="col-md-4 mt-2">
+                                                        <div className="form-group">
+                                                            <label>
+                                                                LLP No. <span>*</span>
+                                                                <TooltipIcon message="Enter your organization's Corporate Identification Number\n(MCA), which is issued by the Ministry of Corporate Affairs\n(MCA) in India. This number uniquely identifies\u00A0your\u00A0company." />
+                                                            </label>
+                                                            <input
+                                                                className="form-control"
+                                                                type="text"
+                                                                value={basicInfo.llp}
+                                                                onChange={e => updateBasicInfo('llp', e.target.value)}
+                                                            />
+                                                            {basicInfoErrors.llp && (
+                                                                <div className="ValidationColor">{basicInfoErrors.llp}</div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                    <div className="col-md-4 mt-2">
+                                                        <div className="form-group">
+                                                            <label>
+                                                                LLP No. Attachment  <span>*</span>
+                                                                <TooltipIcon message="Upload the official document or certificate to verify the details you have submitted. The document must be uploaded in PDF format.\nCorporate Identification Number\u00A0Attachment." />
+                                                            </label>
+                                                            <input
+                                                                className="form-control"
+                                                                type="file"
+                                                                accept="application/pdf"
+                                                                onChange={e => updateBasicInfo('llpAttachment', e.target.files[0])}
+                                                            />
+                                                            {basicInfoErrors.llpAttachment && (
+                                                                <div className="ValidationColor">{basicInfoErrors.llpAttachment}</div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </>
+                                            )}
+
+
+
+
+
                                         <div className="col-md-4 mt-2">
                                             <div className="form-group">
                                                 {/* Label with Tooltip */}
@@ -2599,11 +2986,15 @@ Corporate Identification Number Attachment." />
                                                     <TooltipIcon message="Indicate whether your organization is registered under the Goods and Services Tax (GST) Act. Select 'Yes' if GSTIN is applicable to your organization" />
                                                 </label>
                                                 <SingleSelector
-                                                    options={[{ label: 'Yes', value: 'Yes' }, { label: 'No', value: 'No' }]}
-                                                    value={gstinApplicable}
-                                                    onChange={selected => setGstinApplicable(selected.value)}
                                                     placeholder="Select Yes or No"
+                                                    options={gstinApplicableOptions}
+                                                    value={basicInfo.gstinApplicable}
+                                                    onChange={selected => updateBasicInfo('gstinApplicable', selected)}
+                                                // placeholder="Select Yes or No"
                                                 />
+                                                {basicInfoErrors.gstinApplicable && (
+                                                    <div className="ValidationColor">{basicInfoErrors.gstinApplicable}</div>
+                                                )}
                                             </div>
                                         </div>
 
@@ -2615,15 +3006,20 @@ Corporate Identification Number Attachment." />
                                                     {/* <TooltipIcon message="Please choose your country from the list" /> */}
                                                 </label>
                                                 <SingleSelector
-                                                    options={[]}
+
+                                                    value={basicInfo.gstinClassification}
+                                                    onChange={val => updateBasicInfo('gstinClassification', val)}
                                                     placeholder="Select Country"
                                                 />
+                                                {basicInfoErrors.gstinClassification && (
+                                                    <div className="ValidationColor">{basicInfoErrors.gstinClassification}</div>
+                                                )}
                                             </div>
                                         </div>
 
 
                                         <div className="row">
-                                            {gstinApplicable === 'Yes' && (
+                                            {basicInfo.gstinApplicable.label === 'Yes' && (
                                                 <>
                                                     <div className="col-md-4 mt-2">
                                                         <div className="form-group">
@@ -2634,7 +3030,12 @@ Corporate Identification Number Attachment." />
                                                             <input
                                                                 className="form-control"
                                                                 type="text"
+                                                                value={basicInfo.gstinNo}
+                                                                onChange={e => updateBasicInfo('gstinNo', e.target.value)}
                                                             />
+                                                            {basicInfoErrors.gstinNo && (
+                                                                <div className="ValidationColor">{basicInfoErrors.gstinNo}</div>
+                                                            )}
                                                         </div>
                                                     </div>
 
@@ -2647,13 +3048,16 @@ Corporate Identification Number Attachment." />
                                                             <input
                                                                 className="form-control"
                                                                 type="file"
+                                                                onChange={e => updateBasicInfo('gstinAttachment', e.target.files[0])}
                                                             />
+                                                            {basicInfoErrors.gstinAttachment && (
+                                                                <div className="ValidationColor">{basicInfoErrors.gstinAttachment}</div>
+                                                            )}
                                                         </div>
                                                     </div>
                                                 </>
                                             )}
-
-                                            {gstinApplicable === 'No' && (
+                                            {basicInfo.gstinApplicable.label === 'No' && (
                                                 <>
                                                     <div className="col-md-4 mt-2">
                                                         <div className="form-group">
@@ -2703,7 +3107,11 @@ Corporate Identification Number Attachment." />
                                                             <input
                                                                 className="form-control"
                                                                 type="file"
+                                                                onChange={e => updateBasicInfo('gstinDeclaration', e.target.files[0])}
                                                             />
+                                                            {basicInfoErrors.gstinDeclaration && (
+                                                                <div className="ValidationColor">{basicInfoErrors.gstinDeclaration}</div>
+                                                            )}
                                                         </div>
                                                     </div>
                                                 </>
@@ -2730,6 +3138,8 @@ Corporate Identification Number Attachment." />
                                                 <input
                                                     className="form-control"
                                                     type="text"
+                                                    value={additionalDetails.deliveryLeadPeriod}
+                                                    onChange={e => updateAdditionalDetails('deliveryLeadPeriod', e.target.value)}
                                                 />
                                             </div>
                                         </div>
@@ -2742,6 +3152,8 @@ Corporate Identification Number Attachment." />
                                                 <input
                                                     className="form-control"
                                                     type="text"
+                                                    value={additionalDetails.warrantyPeriod}
+                                                    onChange={e => updateAdditionalDetails('warrantyPeriod', e.target.value)}
                                                 />
                                             </div>
                                         </div>
@@ -2754,11 +3166,12 @@ Corporate Identification Number Attachment." />
                                                 </label>
                                                 <SingleSelector
                                                     options={[]}
-                                                // placeholder="Select Country"
+                                                    value={additionalDetails.amcProvided}
+                                                    onChange={val => updateAdditionalDetails('amcProvided', val)}
                                                 />
                                             </div>
                                         </div>
-                                        <div className="col-md-4">
+                                        <div className="col-md-4 mt-2">
                                             <div className="form-group">
                                                 <label>
                                                     Website
@@ -2767,10 +3180,12 @@ Corporate Identification Number Attachment." />
                                                 <input
                                                     className="form-control"
                                                     type="text"
+                                                    value={additionalDetails.website}
+                                                    onChange={e => updateAdditionalDetails('website', e.target.value)}
                                                 />
                                             </div>
                                         </div>
-                                        <div className="col-md-4">
+                                        <div className="col-md-4  mt-2">
                                             <div className="form-group">
                                                 {/* Label with Tooltip */}
                                                 <label>
@@ -2778,9 +3193,14 @@ Corporate Identification Number Attachment." />
                                                     {/* <TooltipIcon message="Please choose your country from the list" /> */}
                                                 </label>
                                                 <SingleSelector
-                                                    options={[]}
-                                                // placeholder="Select Country"
+                                                    options={[{ label: 'INR', value: 'inr' }]}
+                                                    placeholder="Select Currency Type"
+                                                    value={additionalDetails.currencyType}
+                                                    onChange={val => updateAdditionalDetails('currencyType', val)}
                                                 />
+                                                {errors.currencyType && (
+                                                    <div className="ValidationColor">{errors.currencyType}</div>
+                                                )}
                                             </div>
                                         </div>
                                         <div className="col-md-4 mt-2">
@@ -2791,24 +3211,20 @@ Corporate Identification Number Attachment." />
                                                     <TooltipIcon message="Select whether your organization is registered under the MSME (Micro, Small, and Medium Enterprises) or Udyam scheme. Choose 'Yes' if applicable, otherwise select 'No.' By selecting 'No,' you confirm that your organization does not hold a valid MSME/Udyam registration number. A declaration is required, and this response will be timestamped to record the submission date and time." />
                                                 </label>
                                                 <SingleSelector
-
-                                                    value={options.find(
-                                                        (option) => option.value === msmeUdyamApplicable
-                                                    )}
-                                                    onChange={(selected) =>
-                                                        handleMsmeUdyamChange({
-                                                            target: { value: selected.value },
-                                                        })
-                                                    }
+                                                    value={additionalDetails.msmeUdyamApplicable}
+                                                    onChange={val => updateAdditionalDetails('msmeUdyamApplicable', val)}
                                                     options={options}
                                                     className="form-control"
-                                                    placeholder="Select..."
+                                                    placeholder="Select MSME/Udyam Number Applicable"
                                                 />
+                                                {errors.msmeUdyamApplicable && (
+                                                    <div className="ValidationColor">{errors.msmeUdyamApplicable}</div>
+                                                )}
 
                                             </div>
                                         </div>
 
-                                        {msmeUdyamApplicable === "Yes" && (
+                                        {additionalDetails.msmeUdyamApplicable?.value === "Yes" && (
                                             <div className="col-md-4 mt-2">
                                                 <div className="form-group">
                                                     <label
@@ -2824,19 +3240,19 @@ Corporate Identification Number Attachment." />
                                                         type="text"
                                                         name="name"
                                                         placeholder=""
-                                                        value={msmeNo}
-                                                        onChange={handleMsmeNoChange} // Add onChange handler here
+                                                        value={additionalDetails.msmeNo}
+                                                        onChange={e => updateAdditionalDetails('msmeNo', e.target.value)}
                                                     // value={supplierData?.msme_details?.msme_no}
                                                     />
                                                     {errors.msmeNo && (
                                                         <div className="ValidationColor">{errors.msmeNo}</div>
-                                                    )}{" "}
+                                                    )}
                                                     {/* Show error */}
                                                 </div>
                                             </div>
                                         )}
 
-                                        {msmeUdyamApplicable === "Yes" && (
+                                        {additionalDetails.msmeUdyamApplicable?.value === "Yes" && (
                                             <div className="col-md-4 mt-2">
                                                 <div className="form-group">
                                                     <label
@@ -2861,10 +3277,8 @@ Corporate Identification Number Attachment." />
                           <option value="2024-25">2024-25</option>
                         </select> */}
                                                     <SingleSelector
-                                                        value={optionsClassificationYear.find(
-                                                            (option) => option.value === classificationYear
-                                                        )}
-                                                        onChange={handleClassificationYearChange}
+                                                        value={additionalDetails.classificationYear}
+                                                        onChange={val => updateAdditionalDetails('classificationYear', val)}
                                                         options={optionsClassificationYear}
                                                         className="form-control"
                                                         placeholder="Select Classification Year"
@@ -2886,7 +3300,7 @@ Corporate Identification Number Attachment." />
                                         )}
 
 
-                                        {msmeUdyamApplicable === "Yes" && (
+                                        {additionalDetails.msmeUdyamApplicable?.value === "Yes" && (
                                             <div className="col-md-4 mt-2">
                                                 <div className="form-group">
                                                     <label
@@ -2918,12 +3332,8 @@ Corporate Identification Number Attachment." />
                         {/* Show error */}
 
                                                     <SingleSelector
-                                                        value={optionsMajorActivity.find(
-                                                            (option) => option.value === majorActivity
-                                                        )}
-                                                        onChange={(selected) =>
-                                                            setMajorActivity(selected.value)
-                                                        }
+                                                        value={additionalDetails.majorActivity}
+                                                        onChange={val => updateAdditionalDetails('majorActivity', val)}
                                                         options={optionsMajorActivity}
                                                         className="form-control"
                                                         placeholder="Select Major Activity"
@@ -2940,7 +3350,7 @@ Corporate Identification Number Attachment." />
                                         )}
 
                                         {/* MSME/Udyam Valid From */}
-                                        {msmeUdyamApplicable === "Yes" && (
+                                        {additionalDetails.msmeUdyamApplicable?.value === "Yes" && (
                                             <div className="col-md-4 mt-2">
                                                 <div className="form-group">
                                                     <label
@@ -2956,23 +3366,23 @@ Corporate Identification Number Attachment." />
                                                         type="date"
                                                         name="name"
                                                         placeholder=""
-                                                        value={validFrom}
-                                                        disabled={!!classificationYear} // Disable when classification year is selected
-                                                        onChange={handleValidFromChange} // Add onChange handler here
+                                                        value={additionalDetails.validFrom}
+                                                        disabled={!!additionalDetails.classificationYear}
+                                                        onChange={e => updateAdditionalDetails('validFrom', e.target.value)}
                                                     // value={supplierData?.msme_details?.valid_from}
                                                     />
                                                     {errors.validFrom && (
                                                         <div className="ValidationColor">
                                                             {errors.validFrom}
                                                         </div>
-                                                    )}{" "}
+                                                    )}
                                                     {/* Show error */}
                                                 </div>
                                             </div>
                                         )}
 
                                         {/* MSME/Udyam Valid Till */}
-                                        {msmeUdyamApplicable === "Yes" && (
+                                        {additionalDetails.msmeUdyamApplicable?.value === "Yes" && (
                                             <div className="col-md-4 mt-2">
                                                 <div className="form-group">
                                                     <label
@@ -2988,23 +3398,23 @@ Corporate Identification Number Attachment." />
                                                         type="date"
                                                         name="name"
                                                         placeholder=""
-                                                        value={validTill}
-                                                        disabled={!!classificationYear} // Disable when classification year is selected
-                                                        onChange={handleValidTillChange}
+                                                        value={additionalDetails.validTill}
+                                                        disabled={!!additionalDetails.classificationYear}
+                                                        onChange={e => updateAdditionalDetails('validTill', e.target.value)}
                                                     // value={supplierData?.msme_details?.valid_till}
                                                     />
                                                     {errors.validTill && (
                                                         <div className="ValidationColor">
                                                             {errors.validTill}
                                                         </div>
-                                                    )}{" "}
+                                                    )}
                                                     {/* Show error */}
                                                 </div>
                                             </div>
                                         )}
 
                                         {/* MSME Enterprise Type */}
-                                        {msmeUdyamApplicable === "Yes" && (
+                                        {additionalDetails.msmeUdyamApplicable?.value === "Yes" && (
                                             <div className="col-md-4 mt-2">
                                                 <div className="form-group">
                                                     <label
@@ -3030,14 +3440,8 @@ Corporate Identification Number Attachment." />
                           <option value="Not_applicable">Not Applicable</option>
                         </select> */}
                                                     <SingleSelector
-                                                        value={optionsEnterPrise.find(
-                                                            (option) => option.value === msmeEnterpriseType
-                                                        )}
-                                                        onChange={(selected) =>
-                                                            handleMsmeEnterpriseChange({
-                                                                target: { value: selected.value },
-                                                            })
-                                                        }
+                                                        value={additionalDetails.msmeEnterpriseType}
+                                                        onChange={val => updateAdditionalDetails('msmeEnterpriseType', val)}
                                                         options={optionsEnterPrise}
                                                         className="form-control"
                                                         placeholder="Select option..."
@@ -3046,7 +3450,7 @@ Corporate Identification Number Attachment." />
                                                         <div className="ValidationColor">
                                                             {errors.msmeEnterpriseType}
                                                         </div>
-                                                    )}{" "}
+                                                    )}
                                                     {/* Show error */}
                                                 </div>
                                             </div>
@@ -3055,7 +3459,7 @@ Corporate Identification Number Attachment." />
 
 
                                         {/*  */}
-                                        {msmeUdyamApplicable === "Yes" && (
+                                        {additionalDetails.msmeUdyamApplicable?.value === "Yes" && (
                                             <div className="col-md-4 mt-2">
                                                 <div className="form-group">
                                                     <label>
@@ -3091,7 +3495,7 @@ Corporate Identification Number Attachment." />
                                             </div>
                                         )}
                                         {/* MSME/Udyam Attachment */}
-                                        {msmeUdyamApplicable === "Yes" && (
+                                        {additionalDetails.msmeUdyamApplicable?.value === "Yes" && (
                                             <div className="col-md-4 mt-2">
                                                 <div className="form-group">
                                                     <label
@@ -3144,7 +3548,7 @@ Corporate Identification Number Attachment." />
                                                     <input
                                                         className="form-control mt-2"
                                                         type="file"
-                                                        onChange={(e) => handleFileChange(e.target.files[0])}
+                                                        onChange={e => updateAdditionalDetails('msmeAttachment', e.target.files[0])}
                                                         ref={fileInputRef}
                                                         multiple
                                                         accept=".pdf"
@@ -3160,7 +3564,7 @@ Corporate Identification Number Attachment." />
 
 
                                         <div className="row">
-                                            {msmeUdyamApplicable === "No" && (
+                                            {additionalDetails.msmeUdyamApplicable?.value === "No" && (
                                                 <div className="col-md-4 mt-2 ms-3">
                                                     <div className="form-group">
                                                         <label
@@ -3203,49 +3607,112 @@ Corporate Identification Number Attachment." />
                                                 </div>
                                             )}
 
-                                            {msmeUdyamApplicable === "No" && (
+                                            {additionalDetails.msmeUdyamApplicable?.value === "No" && (
                                                 <div className="col-md-4 mt-2">
                                                     <div className="form-group">
-                                                        <label
-                                                        // data-bs-toggle="tooltip"
-                                                        // data-bs-placement="top"
-                                                        // title={tooltipMessages.UploadDeclaration}
-                                                        >
+                                                        <label>
                                                             Upload Declaration <span>*</span>
                                                         </label>
                                                         <TooltipIcon message="If you choose E-Invoice applicable 'No', please upload a signed declaration document to verify the details you have submitted. The document must be uploaded in PDF format.Ensure that the document is clear, legible, and properly signed." />
-
-                                                        <span className="ms-2">
-                                                            {/* <a
-                          href={
-                            supplierData?.msme_details?.msme_attachments[0]
-                              ?.file_url
-                          } // PDF file URL */}
-
-                                                            <a
-                                                                // href={`${baseURL}${supplierData?.msme_details?.msme_attachments[0]?.file_url}`} // Prepend baseURL to the file URL
-                                                                download // Trigger download when clicked
-                                                                className="text-primary d-flex align-items-center"
-                                                            >
-                                                                {/* <span className="me-2">Existing Files:</span> */}
-
-
-                                                                {/* {supplierData?.msme_details?.msme_attachments
-                            ?.length > 0
-                            ? // Display the document name of the first attachment
-                            supplierData?.msme_details?.msme_attachments[0]
-                              ?.document_name
-                            : // If no attachment is present, show a default message
-                            "No Document Available"} */}
-                                                            </a>
-                                                        </span>
                                                         <input
                                                             className="form-control"
                                                             type="file"
                                                             accept=".pdf"
                                                             name=""
-                                                            onChange={handleFileChange}
+                                                            onChange={e => updateAdditionalDetails('msmeDeclaration', e.target.files[0])}
                                                         />
+                                                        {errors.msmeDeclaration && (
+                                                            <div className="ValidationColor">{errors.msmeDeclaration}</div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+
+
+                                        {basicInfo.gstinApplicable.label === 'Yes' && (
+                                            <div className="col-md-4 mt-2">
+                                                <div className="form-group">
+
+                                                    <label>
+                                                        E-invoicing Applicable  <span>*</span>
+                                                        {/* <TooltipIcon message="Select whether your organization is registered under the MSME (Micro, Small, and Medium Enterprises) or Udyam scheme. Choose 'Yes' if applicable, otherwise select 'No.' By selecting 'No,' you confirm that your organization does not hold a valid MSME/Udyam registration number. A declaration is required, and this response will be timestamped to record the submission date and time." /> */}
+                                                    </label>
+                                                    <SingleSelector
+                                                        value={additionalDetails.einvoice}
+                                                        onChange={val => updateAdditionalDetails('einvoice', val)}
+                                                        options={options}
+                                                        className="form-control"
+                                                        placeholder="Selec E-invoicing Applicable ."
+                                                    />
+                                                    {errors.einvoice && (
+                                                        <div className="ValidationColor">{errors.einvoice}</div>
+                                                    )}
+
+                                                </div>
+                                            </div>
+                                        )}
+                                        <div className="row">
+                                            {additionalDetails.einvoice?.value === "No" && (
+                                                <div className="col-md-4 mt-2 ms-3">
+                                                    <div className="form-group">
+                                                        <label
+                                                        // data-bs-toggle="tooltip"
+                                                        // data-bs-placement="top"
+                                                        // title={tooltipMessages.DownloadSpecimen}
+                                                        >
+                                                            Download Specimen <span>*</span>
+                                                        </label>
+                                                        <TooltipIcon message="If you choose 'No' for e-invoicing, a specimen format will be available for download. This is for businesses not subject to e-invoicing under GST regulations. Please upload a signed declaration stating that your organization is not registered.The document must be uploaded in PDF format" />
+                                                        <a
+                                                            download="Specimen_E-Invoicing_Declaration.docx"
+                                                            className="text-primary d-flex align-items-center"
+                                                            href={`${baseURL}/assets/NO_%20MSME.pdf`}
+                                                            target="_self" // Ensure it doesn't open in a new tab
+                                                        >
+                                                            <svg
+                                                                xmlns="http://www.w3.org/2000/svg"
+                                                                width={24}
+                                                                height={24}
+                                                                fill="#DE7008"
+                                                                className="bi bi-download"
+                                                                viewBox="0 0 16 16"
+                                                            >
+                                                                <path
+                                                                    d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
+                                                                    style={{ fill: "#de7008!important" }}
+                                                                />
+                                                                <path
+                                                                    d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
+                                                                    style={{ fill: "#de7008!important" }}
+                                                                />
+                                                            </svg>
+
+                                                            <span className="mt-2 ms-2">
+                                                                Specimen For No Msme.pdf
+                                                            </span>
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {additionalDetails.einvoice?.value === "No" && (
+                                                <div className="col-md-4 mt-2">
+                                                    <div className="form-group">
+                                                        <label>
+                                                            Upload Declaration <span>*</span>
+                                                        </label>
+                                                        <TooltipIcon message="If you choose E-Invoice applicable 'No', please upload a signed declaration document to verify the details you have submitted. The document must be uploaded in PDF format.Ensure that the document is clear, legible, and properly signed." />
+                                                        <input
+                                                            className="form-control"
+                                                            type="file"
+                                                            accept=".pdf"
+                                                            name=""
+                                                            onChange={e => updateAdditionalDetails('einvoiceDeclaration', e.target.files[0])}
+                                                        />
+                                                        {errors.einvoiceDeclaration && (
+                                                            <div className="ValidationColor">{errors.einvoiceDeclaration}</div>
+                                                        )}
                                                     </div>
                                                 </div>
                                             )}
@@ -3278,6 +3745,8 @@ Corporate Identification Number Attachment." />
                                                 <input
                                                     className="form-control"
                                                     type="text"
+                                                    value={registeredAddress.address1}
+                                                    onChange={e => handleRegisteredAddressChange('address1', e.target.value)}
                                                 />
                                             </div>
                                         </div>
@@ -3290,6 +3759,8 @@ Corporate Identification Number Attachment." />
                                                 <input
                                                     className="form-control"
                                                     type="text"
+                                                    value={registeredAddress.address2}
+                                                    onChange={e => handleRegisteredAddressChange('address2', e.target.value)}
                                                 />
                                             </div>
                                         </div>
@@ -3302,6 +3773,8 @@ Corporate Identification Number Attachment." />
                                                 <input
                                                     className="form-control"
                                                     type="text"
+                                                    value={registeredAddress.address3}
+                                                    onChange={e => handleRegisteredAddressChange('address3', e.target.value)}
                                                 />
                                             </div>
                                         </div>
@@ -3314,6 +3787,8 @@ Corporate Identification Number Attachment." />
                                                 <input
                                                     className="form-control"
                                                     type="text"
+                                                    value={registeredAddress.address4}
+                                                    onChange={e => handleRegisteredAddressChange('address4', e.target.value)}
                                                 />
                                             </div>
                                         </div>
@@ -3326,6 +3801,8 @@ Corporate Identification Number Attachment." />
                                                 <input
                                                     className="form-control"
                                                     type="text"
+                                                    value={registeredAddress.address5}
+                                                    onChange={e => handleRegisteredAddressChange('address5', e.target.value)}
                                                 />
                                             </div>
                                         </div>
@@ -3338,7 +3815,8 @@ Corporate Identification Number Attachment." />
                                                 </label>
                                                 <SingleSelector
                                                     options={[]}
-                                                // placeholder="Select Country"
+                                                    value={registeredAddress.country}
+                                                    onChange={val => handleRegisteredAddressChange('country', val)}
                                                 />
                                             </div>
                                         </div>
@@ -3351,7 +3829,8 @@ Corporate Identification Number Attachment." />
                                                 </label>
                                                 <SingleSelector
                                                     options={[]}
-                                                // placeholder="Select Country"
+                                                    value={registeredAddress.state}
+                                                    onChange={val => handleRegisteredAddressChange('state', val)}
                                                 />
                                             </div>
                                         </div>
@@ -3365,6 +3844,8 @@ Corporate Identification Number Attachment." />
                                                 <input
                                                     className="form-control"
                                                     type="text"
+                                                    value={registeredAddress.city}
+                                                    onChange={e => handleRegisteredAddressChange('city', e.target.value)}
                                                 />
                                             </div>
                                         </div>
@@ -3377,6 +3858,8 @@ Corporate Identification Number Attachment." />
                                                 <input
                                                     className="form-control"
                                                     type="text"
+                                                    value={registeredAddress.pincode}
+                                                    onChange={e => handleRegisteredAddressChange('pincode', e.target.value)}
                                                 />
                                             </div>
                                         </div>
@@ -3390,6 +3873,8 @@ Corporate Identification Number Attachment." />
                                                 <input
                                                     className="form-control"
                                                     type="text"
+                                                    value={registeredAddress.telephone}
+                                                    onChange={e => handleRegisteredAddressChange('telephone', e.target.value)}
                                                 />
                                             </div>
                                         </div>
@@ -3402,6 +3887,8 @@ Corporate Identification Number Attachment." />
                                                 <input
                                                     className="form-control"
                                                     type="text"
+                                                    value={registeredAddress.mobile}
+                                                    onChange={e => handleRegisteredAddressChange('mobile', e.target.value)}
                                                 />
                                             </div>
                                         </div>
@@ -3415,6 +3902,8 @@ Corporate Identification Number Attachment." />
                                                 <input
                                                     className="form-control"
                                                     type="text"
+                                                    value={registeredAddress.orderingEmail}
+                                                    onChange={e => handleRegisteredAddressChange('orderingEmail', e.target.value)}
                                                 />
                                             </div>
                                         </div>
@@ -3427,6 +3916,8 @@ Corporate Identification Number Attachment." />
                                                 <input
                                                     className="form-control"
                                                     type="text"
+                                                    value={registeredAddress.billingEmail}
+                                                    onChange={e => handleRegisteredAddressChange('billingEmail', e.target.value)}
                                                 />
                                             </div>
                                         </div>
@@ -3446,7 +3937,8 @@ Corporate Identification Number Attachment." />
                                                 className="form-check-input"
                                                 type="checkbox"
                                                 id="sameAsRegisteredAddress"
-                                            // onChange={handleSameAsRegisteredAddress} // Add handler if needed
+                                                checked={sameAsRegistered}
+                                                onChange={handleSameAsRegisteredAddress}
                                             />
                                             <label className="form-check-label" htmlFor="sameAsRegisteredAddress">
                                                 Same as Registered Address
@@ -3463,6 +3955,9 @@ Corporate Identification Number Attachment." />
                                                 <input
                                                     className="form-control"
                                                     type="text"
+                                                    value={communicationAddress.address1}
+                                                    onChange={e => handleCommunicationAddressChange('address1', e.target.value)}
+                                                    disabled={sameAsRegistered}
                                                 />
                                             </div>
                                         </div>
@@ -3475,6 +3970,9 @@ Corporate Identification Number Attachment." />
                                                 <input
                                                     className="form-control"
                                                     type="text"
+                                                    value={communicationAddress.address2}
+                                                    onChange={e => handleCommunicationAddressChange('address2', e.target.value)}
+                                                    disabled={sameAsRegistered}
                                                 />
                                             </div>
                                         </div>
@@ -3487,6 +3985,9 @@ Corporate Identification Number Attachment." />
                                                 <input
                                                     className="form-control"
                                                     type="text"
+                                                    value={communicationAddress.address3}
+                                                    onChange={e => handleCommunicationAddressChange('address3', e.target.value)}
+                                                    disabled={sameAsRegistered}
                                                 />
                                             </div>
                                         </div>
@@ -3499,6 +4000,9 @@ Corporate Identification Number Attachment." />
                                                 <input
                                                     className="form-control"
                                                     type="text"
+                                                    value={communicationAddress.address4}
+                                                    onChange={e => handleCommunicationAddressChange('address4', e.target.value)}
+                                                    disabled={sameAsRegistered}
                                                 />
                                             </div>
                                         </div>
@@ -3511,6 +4015,9 @@ Corporate Identification Number Attachment." />
                                                 <input
                                                     className="form-control"
                                                     type="text"
+                                                    value={communicationAddress.address5}
+                                                    onChange={e => handleCommunicationAddressChange('address5', e.target.value)}
+                                                    disabled={sameAsRegistered}
                                                 />
                                             </div>
                                         </div>
@@ -3529,7 +4036,9 @@ Corporate Identification Number Attachment." />
                                                 </label>
                                                 <SingleSelector
                                                     options={[]}
-                                                // placeholder="Select Country"
+                                                    value={communicationAddress.country}
+                                                    onChange={val => handleCommunicationAddressChange('country', val)}
+                                                    isDisabled={sameAsRegistered}
                                                 />
                                             </div>
                                         </div>
@@ -3542,7 +4051,9 @@ Corporate Identification Number Attachment." />
                                                 </label>
                                                 <SingleSelector
                                                     options={[]}
-                                                // placeholder="Select Country"
+                                                    value={communicationAddress.state}
+                                                    onChange={val => handleCommunicationAddressChange('state', val)}
+                                                    isDisabled={sameAsRegistered}
                                                 />
                                             </div>
                                         </div>
@@ -3556,6 +4067,9 @@ Corporate Identification Number Attachment." />
                                                 <input
                                                     className="form-control"
                                                     type="text"
+                                                    value={communicationAddress.city}
+                                                    onChange={e => handleCommunicationAddressChange('city', e.target.value)}
+                                                    disabled={sameAsRegistered}
                                                 />
                                             </div>
                                         </div>
@@ -3568,6 +4082,9 @@ Corporate Identification Number Attachment." />
                                                 <input
                                                     className="form-control"
                                                     type="text"
+                                                    value={communicationAddress.pincode}
+                                                    onChange={e => handleCommunicationAddressChange('pincode', e.target.value)}
+                                                    disabled={sameAsRegistered}
                                                 />
                                             </div>
                                         </div>
@@ -3580,6 +4097,9 @@ Corporate Identification Number Attachment." />
                                                 <input
                                                     className="form-control"
                                                     type="text"
+                                                    value={communicationAddress.telephone}
+                                                    onChange={e => handleCommunicationAddressChange('telephone', e.target.value)}
+                                                    disabled={sameAsRegistered}
                                                 />
                                             </div>
                                         </div>
@@ -3592,6 +4112,9 @@ Corporate Identification Number Attachment." />
                                                 <input
                                                     className="form-control"
                                                     type="text"
+                                                    value={communicationAddress.mobile}
+                                                    onChange={e => handleCommunicationAddressChange('mobile', e.target.value)}
+                                                    disabled={sameAsRegistered}
                                                 />
                                             </div>
                                         </div>
@@ -3604,6 +4127,9 @@ Corporate Identification Number Attachment." />
                                                 <input
                                                     className="form-control"
                                                     type="text"
+                                                    value={communicationAddress.email}
+                                                    onChange={e => handleCommunicationAddressChange('email', e.target.value)}
+                                                    disabled={sameAsRegistered}
                                                 />
                                             </div>
                                         </div>
@@ -5327,7 +5853,7 @@ Corporate Identification Number Attachment." />
                             {/* Turnover Table */}
                             <div className="mx-3 mt-4">
                                 <div className="col-md-12">
-                                    <h5 className="mb-3">Annual Turnover 
+                                    <h5 className="mb-3">Annual Turnover
                                         <TooltipIcon message="Enter the value of Turnover in Lacs." />
                                     </h5>
                                 </div>
@@ -5387,7 +5913,7 @@ Corporate Identification Number Attachment." />
                             <div className="row mt-5 mx-2">
                                 <div className="col-md-12">
                                     <h5 className="mb-3">Additional Vendor Statutory Details
-                                         <TooltipIcon message="If not applicable then keep The field blank Additional Vendor Statutory Details." />
+                                        <TooltipIcon message="If not applicable then keep The field blank Additional Vendor Statutory Details." />
                                     </h5>
                                 </div>
 
@@ -5710,6 +6236,12 @@ Corporate Identification Number Attachment." />
                             <button
                                 className="purple-btn2"
                                 onClick={() => {
+                                    if (currentStep === 1) {
+                                        // Validate step 1
+                                        if (!validateBasicInfo()) return;
+                                        setBasicInfoErrors({});
+                                    }
+
                                     setCompleted((arr) => {
                                         const copy = [...arr];
                                         copy[currentStep] = true;
