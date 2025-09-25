@@ -1,5 +1,6 @@
 
 
+
 import React, { useState, useEffect, useRef } from "react";
 // import CollapsedCardKYC from "../../../components/base/Card/CollapsedCardKYC";
 import CardBodyKYC from "../components/base/Card/CardBodyKYC";
@@ -22,6 +23,9 @@ import CollapsedCardKYC from "../components/base/Card/CollapsedCardKYC";
 import { MultiSelector } from "../components";
 
 const VendorRegistrationStepByStepForm = () => {
+    // Major Customer Served by You dynamic section state and handlers
+
+
     const navigate = useNavigate(); // Initialize navigate
     const fileInputRef = useRef(null);
 
@@ -68,6 +72,446 @@ const VendorRegistrationStepByStepForm = () => {
     // !rekycType ||
 
     // console.log(" re kyc type:", rekycType);
+
+    // ***********************************
+    const [gstinApplicable, setGstinApplicable] = useState('');
+    const [emailOtp, setEmailOtp] = useState("");
+    const [mobileOtp, setMobileOtp] = useState("");
+
+    const handleOtpSubmit = () => {
+        // if (!emailOtp && !mobileOtp) {
+        //     toast.error("Please enter at least one OTP to proceed.");
+        //     setTimeout(() => setToastMsg(""), 2500);
+        //     return;
+        // }
+        setCompleted((arr) => {
+            const copy = [...arr];
+            copy[currentStep] = true;
+            return copy;
+        });
+        setCurrentStep((s) => Math.min(s + 1, steps.length - 1));
+    };
+
+    const [supplierShowData, setSupplierShowData] = useState(null);
+    useEffect(() => {
+        const fetchSupplierShowData = async () => {
+            try {
+                const response = await axios.get('https://vendors.lockated.com/pms/suppliers/4009/supplier_show');
+                setSupplierShowData(response.data);
+            } catch (error) {
+                console.error('Error fetching supplier show data:', error);
+            }
+        };
+        fetchSupplierShowData();
+    }, []);
+    console.log("supplier data:", supplierShowData)
+
+    const [organizationTypeOptions, setOrganizationTypeOptions] = useState([]);
+    useEffect(() => {
+        const fetchOrganizationTypes = async () => {
+            try {
+                const response = await axios.get('https://vendors.lockated.com/pms/suppliers/type_of_organization_list');
+                const options = (response.data?.type_of_organizations || []).map(item => ({ label: item.name, value: item.id }));
+                setOrganizationTypeOptions(options);
+            } catch (error) {
+                console.error('Error fetching organization types:', error);
+            }
+        };
+        fetchOrganizationTypes();
+    }, []);
+
+    const [industryTypeOptions, setIndustryTypeOptions] = useState([]);
+    useEffect(() => {
+        const fetchIndustryTypes = async () => {
+            try {
+                const response = await axios.get('https://vendors.lockated.com/pms/suppliers/type_of_industry_list');
+                const options = (response.data?.type_of_industry || []).map(item => ({ label: item.name, value: item.id }));
+                setIndustryTypeOptions(options);
+            } catch (error) {
+                console.error('Error fetching industry types:', error);
+            }
+        };
+        fetchIndustryTypes();
+    }, []);
+
+
+    const [virtualAccount, setVirtualAccount] = useState("");
+    const [selectedCompany, setSelectedCompany] = useState(null);
+    // Example company options, replace with API if needed
+    const companyOptions = [
+        { label: "Company A", value: "company_a" },
+        { label: "Company B", value: "company_b" },
+        { label: "Company C", value: "company_c" },
+    ];
+
+
+
+
+    const [branchOffices, setBranchOffices] = useState([
+        {
+            id: Date.now(),
+            address: '',
+            country: null,
+            state: null,
+            city: '',
+            pincode: '',
+            telephone: '',
+            mobile: ''
+        }
+    ]);
+
+    const addBranchOffice = () => {
+        setBranchOffices(prev => ([
+            ...prev,
+            {
+                id: Date.now() + Math.random(),
+                address: '',
+                country: null,
+                state: null,
+                city: '',
+                pincode: '',
+                telephone: '',
+                mobile: ''
+            }
+        ]));
+    };
+
+    const handleBranchChange = (idx, field, value) => {
+        setBranchOffices(prev => prev.map((b, i) => i === idx ? { ...b, [field]: value } : b));
+    };
+
+    const deleteBranchOffice = (id) => {
+        // setBranchOffices(prev => prev.length === 1 ? prev : prev.filter(branch => branch.id !== id));
+        setBranchOffices(prev => prev.length === 0 ? prev : prev.filter(branch => branch.id !== id));
+    };
+
+
+
+    const [contactPersons, setContactPersons] = useState([
+        {
+            id: Date.now(),
+            escalationLevel: null,
+            nameTitle: null,
+            firstName: "",
+            lastName: "",
+            designation: null,
+            primaryEmail: "",
+            secondaryEmail: "",
+            primaryMobile: "",
+            secondaryMobile: "",
+            nationality: null,
+            gender: null,
+            dob: "",
+            attachment: null,
+        },
+    ]);
+    const addContactPerson = () => {
+        setContactPersons((prev) => [
+            ...prev,
+            {
+                id: Date.now() + Math.random(),
+                escalationLevel: null,
+                nameTitle: null,
+                firstName: "",
+                lastName: "",
+                designation: null,
+                primaryEmail: "",
+                secondaryEmail: "",
+                primaryMobile: "",
+                secondaryMobile: "",
+                nationality: null,
+                gender: null,
+                dob: "",
+                attachment: null,
+            },
+        ]);
+    };
+
+    const handleContactPersonChange = (idx, field, value) => {
+        setContactPersons((prev) =>
+            prev.map((p, i) => (i === idx ? { ...p, [field]: value } : p))
+        );
+    };
+
+    const deleteContactPerson = (id) => {
+        setContactPersons((prev) =>
+            prev.length === 1 ? prev : prev.filter((person) => person.id !== id)
+        );
+    };
+
+
+
+    // Owners / Directors Information dynamic section state and handlers
+    const [owners, setOwners] = useState([
+        {
+            id: Date.now(),
+            firstName: '',
+            lastName: '',
+            designation: null,
+            qualification: null,
+            experience: '',
+            email: '',
+            mobile: '',
+            attachment: null
+        }
+    ]);
+
+    const addOwner = () => {
+        setOwners(prev => ([
+            ...prev,
+            {
+                id: Date.now() + Math.random(),
+                firstName: '',
+                lastName: '',
+                designation: null,
+                qualification: null,
+                experience: '',
+                email: '',
+                mobile: '',
+                attachment: null
+            }
+        ]));
+    };
+
+    const handleOwnerChange = (idx, field, value) => {
+        setOwners(prev => prev.map((o, i) => i === idx ? { ...o, [field]: value } : o));
+    };
+
+    const deleteOwner = (id) => {
+        setOwners(prev => prev.length === 1 ? prev : prev.filter(o => o.id !== id));
+    };
+    // Factory Warehouse Details dynamic section state and handlers
+    const [warehouses, setWarehouses] = useState([
+        {
+            id: Date.now(),
+            address: '',
+            country: null,
+            state: null,
+            city: '',
+            telephone: '',
+            mobile: '',
+            attachment: null
+        }
+    ]);
+
+    const addWarehouse = () => {
+        setWarehouses(prev => ([
+            ...prev,
+            {
+                id: Date.now() + Math.random(),
+                address: '',
+                country: null,
+                state: null,
+                city: '',
+                telephone: '',
+                mobile: '',
+                attachment: null
+            }
+        ]));
+    };
+
+    const handleWarehouseChange = (idx, field, value) => {
+        setWarehouses(prev => prev.map((w, i) => i === idx ? { ...w, [field]: value } : w));
+    };
+
+    const deleteWarehouse = (id) => {
+        setWarehouses(prev => prev.length === 1 ? prev : prev.filter(w => w.id !== id));
+    };
+
+
+    const [majorCustomers, setMajorCustomers] = useState([
+        {
+            id: Date.now(),
+            companyName: '',
+            workDone: '',
+            contactPerson: '',
+            designation: null,
+            country: null,
+            phone: '',
+            mobile: '',
+            yearOfAssociation: '',
+            businessLast12Months: '',
+            serviceFrom: '',
+            serviceTo: '',
+            stageOfProject: '',
+            majorCompetitors: '',
+            attachment: null
+        }
+    ]);
+
+    const addMajorCustomer = () => {
+        setMajorCustomers(prev => ([
+            ...prev,
+            {
+                id: Date.now() + Math.random(),
+                companyName: '',
+                workDone: '',
+                contactPerson: '',
+                designation: null,
+                country: null,
+                phone: '',
+                mobile: '',
+                yearOfAssociation: '',
+                businessLast12Months: '',
+                serviceFrom: '',
+                serviceTo: '',
+                stageOfProject: '',
+                majorCompetitors: '',
+                attachment: null
+            }
+        ]));
+    };
+
+    const handleMajorCustomerChange = (idx, field, value) => {
+        setMajorCustomers(prev => prev.map((c, i) => i === idx ? { ...c, [field]: value } : c));
+    };
+
+    const deleteMajorCustomer = (id) => {
+        setMajorCustomers(prev => prev.length === 1 ? prev : prev.filter(c => c.id !== id));
+    };
+    // Supervisory Manpower & Resources Details dynamic section state and handlers
+    const [supervisoryManpower, setSupervisoryManpower] = useState([
+        {
+            id: Date.now(),
+            details: '',
+            totalNumbers: '',
+            remark: '',
+            attachment: null
+        }
+    ]);
+
+    const addSupervisoryManpower = () => {
+        setSupervisoryManpower(prev => ([
+            ...prev,
+            {
+                id: Date.now() + Math.random(),
+                details: '',
+                totalNumbers: '',
+                remark: '',
+                attachment: null
+            }
+        ]));
+    };
+
+    const handleSupervisoryManpowerChange = (idx, field, value) => {
+        setSupervisoryManpower(prev => prev.map((s, i) => i === idx ? { ...s, [field]: value } : s));
+    };
+
+    const deleteSupervisoryManpower = (id) => {
+        setSupervisoryManpower(prev => prev.length === 1 ? prev : prev.filter(s => s.id !== id));
+    };
+    // Sister Concern / Group Company dynamic section state and handlers
+    const [groupCompanies, setGroupCompanies] = useState([
+        {
+            id: Date.now(),
+            name: '',
+            natureOfBusiness: null,
+            pan: '',
+            gstin: ''
+        }
+    ]);
+
+    const addGroupCompany = () => {
+        setGroupCompanies(prev => ([
+            ...prev,
+            {
+                id: Date.now() + Math.random(),
+                name: '',
+                natureOfBusiness: null,
+                pan: '',
+                gstin: ''
+            }
+        ]));
+    };
+
+    const handleGroupCompanyChange = (idx, field, value) => {
+        setGroupCompanies(prev => prev.map((c, i) => i === idx ? { ...c, [field]: value } : c));
+    };
+
+    const deleteGroupCompany = (id) => {
+        setGroupCompanies(prev => prev.length === 1 ? prev : prev.filter(c => c.id !== id));
+    };
+    // Related Employee dynamic section state and handlers
+    const [relatedEmployees, setRelatedEmployees] = useState([
+        {
+            id: Date.now(),
+            firstName: '',
+            lastName: '',
+            email: '',
+            mobile: '',
+            designation: null,
+            department: null,
+            relationship: null,
+            currentlyWorking: '',
+            attachment: null
+        }
+    ]);
+
+    const addRelatedEmployee = () => {
+        setRelatedEmployees(prev => ([
+            ...prev,
+            {
+                id: Date.now() + Math.random(),
+                firstName: '',
+                lastName: '',
+                email: '',
+                mobile: '',
+                designation: null,
+                department: null,
+                relationship: null,
+                currentlyWorking: '',
+                attachment: null
+            }
+        ]));
+    };
+
+    const handleRelatedEmployeeChange = (idx, field, value) => {
+        setRelatedEmployees(prev => prev.map((e, i) => i === idx ? { ...e, [field]: value } : e));
+    };
+
+    const deleteRelatedEmployee = (id) => {
+        setRelatedEmployees(prev => prev.length === 1 ? prev : prev.filter(e => e.id !== id));
+    };
+
+    // Current Working Sites dynamic section state and handlers
+    const [workingSites, setWorkingSites] = useState([
+        {
+            id: Date.now(),
+            builderName: '',
+            briefDetails: '',
+            area: '',
+            manpower: '',
+            stageOfProject: '',
+            likelyCompletion: '',
+            attachment: null
+        }
+    ]);
+
+    const addWorkingSite = () => {
+        setWorkingSites(prev => ([
+            ...prev,
+            {
+                id: Date.now() + Math.random(),
+                builderName: '',
+                briefDetails: '',
+                area: '',
+                manpower: '',
+                stageOfProject: '',
+                likelyCompletion: '',
+                attachment: null
+            }
+        ]));
+    };
+
+    const handleWorkingSiteChange = (idx, field, value) => {
+        setWorkingSites(prev => prev.map((s, i) => i === idx ? { ...s, [field]: value } : s));
+    };
+
+    const deleteWorkingSite = (id) => {
+        setWorkingSites(prev => prev.length === 1 ? prev : prev.filter(s => s.id !== id));
+    };
+
+    // *****************************************
 
     const encryptFileContent = (file) => {
         return new Promise((resolve, reject) => {
@@ -723,14 +1167,14 @@ const VendorRegistrationStepByStepForm = () => {
             return;
         }
 
-                                            <div className="row w-100 mb-3">
-                                                <div className="col-md-6">
-                                                    <input className="form-control" type="text" placeholder="Enter Email OTP" />
-                                                </div>
-                                                <div className="col-md-6">
-                                                    <input className="form-control" type="text" placeholder="Enter Mobile OTP" />
-                                                </div>
-                                            </div>
+        <div className="row w-100 mb-3">
+            <div className="col-md-6">
+                <input className="form-control" type="text" placeholder="Enter Email OTP" />
+            </div>
+            <div className="col-md-6">
+                <input className="form-control" type="text" placeholder="Enter Mobile OTP" />
+            </div>
+        </div>
 
         let validFromDate = "";
         let validTillDate = "";
@@ -1638,11 +2082,12 @@ const VendorRegistrationStepByStepForm = () => {
         { label: "Organization Details" },
         { label: "Communication & Register Address" },
         { label: "Bank Details" },
-        { label: "Statutory Details" },
         { label: "Additional Details" },
+        { label: "Statutory Details" },
+
         { label: "Pre qualification" },
-        { label: "Declarations" },
-        { label: "Preview & Submit" },
+        { label: "Preview,Declarations & Submit" },
+        // { label: "Preview " },
     ];
     const [currentStep, setCurrentStep] = useState(0);
     const [completed, setCompleted] = useState(Array(steps.length).fill(false));
@@ -1719,78 +2164,73 @@ const VendorRegistrationStepByStepForm = () => {
 
                     {currentStep === 0 && (
                         <div className="d-flex justify-content-center mt-4">
-                            <div className="card pb-4  mx-5 w-100" 
+                            <div className="card pb-4  mx-5 w-100"
                             // style={{maxWidth:'700px', width:'100%'}}
                             >
-                            <div className="w-100 text-center mb-3">
-                                <h3 className="fw-bold" style={{ marginTop: '24px' }}>OTP Verification</h3>
-                            </div>
-                            <div className="card-body mt-0">
-                                <div className="row justify-content-center">
-                                    <div className="col-md-8">
-                                        <div className="form-group mb-3">
-                                            <label>Contact Person Name</label>
-                                            <input className="form-control" type="email" value="ajay.ghenand@lockated.com" readOnly />
-                                        </div>
-                                        <div className="row mb-3">
-                                            <div className="col-md-6">
-                                                <div className="form-group">
-                                                    <label>Primary Email ID</label>
-                                                    <input className="form-control" type="email" value="ajay.ghenand@lockated.com" readOnly />
+                                <div className="w-100 text-center mb-3">
+                                    <h3 className="fw-bold" style={{ marginTop: '24px' }}>OTP Verification</h3>
+                                </div>
+                                <div className="card-body mt-0">
+                                    <div className="row justify-content-center">
+                                        <div className="col-md-8">
+                                            <div className="form-group mb-3">
+                                                <label>Contact Person Name</label>
+                                                <input className="form-control" type="email" value="ajay.ghenand@lockated.com" readOnly />
+                                            </div>
+                                            <div className="row mb-3">
+                                                <div className="col-md-6">
+                                                    <div className="form-group">
+                                                        <label>Primary Email ID</label>
+                                                        <input className="form-control" type="email" value="ajay.ghenand@lockated.com" readOnly />
+                                                    </div>
+                                                </div>
+                                                <div className="col-md-6">
+                                                    <div className="form-group">
+                                                        <label>Secondary Email ID</label>
+                                                        <input className="form-control" type="email" value="ghenandajay1010@gmail.com" readOnly />
+                                                    </div>
                                                 </div>
                                             </div>
-                                            <div className="col-md-6">
-                                                <div className="form-group">
-                                                    <label>Secondary Email ID</label>
-                                                    <input className="form-control" type="email" value="ghenandajay1010@gmail.com" readOnly />
+                                            <div className="row mb-3">
+                                                <div className="col-md-6">
+                                                    <div className="form-group">
+                                                        <label>Primary Mobile No.</label>
+                                                        <input className="form-control" type="text" value="9623636187" readOnly />
+                                                    </div>
+                                                </div>
+                                                <div className="col-md-6">
+                                                    <div className="form-group">
+                                                        <label>Secondary Mobile No.</label>
+                                                        <input className="form-control" type="text" value="" placeholder="Enter secondary mobile number" />
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                        <div className="row mb-3">
-                                            <div className="col-md-6">
-                                                <div className="form-group">
-                                                    <label>Primary Mobile No.</label>
-                                                    <input className="form-control" type="text" value="9623636187" readOnly />
+                                            <div className="row mb-3">
+                                                <div className="col-md-6 d-flex align-items-center">
+                                                    <button className="purple-btn2 me-3">Get OTP</button>
+
                                                 </div>
-                                            </div>
-                                            <div className="col-md-6">
-                                                <div className="form-group">
-                                                    <label>Secondary Mobile No.</label>
-                                                    <input className="form-control" type="text" value="" placeholder="Enter secondary mobile number" />
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className="row mb-3">
-                                            <div className="col-md-6 d-flex align-items-center">
-                                                <button className="purple-btn2 me-3">Get OTP</button>
+
 
                                             </div>
 
-
-                                        </div>
-
-                                        <div className="row w-100 mb-3">
-                                            <div className="col-md-6">
-                                                <input className="form-control" type="text" placeholder="Enter Email OTP" />
-                                                <span style={{background:'#fff',color:'#e95420',padding:'2px 8px',borderRadius:'4px',fontSize:'0.95em',display:'inline-block',marginTop:'4px'}}>*Note: Any One OTP Is Mandatory To Proceed</span>
+                                            <div className="row w-100 mb-3">
+                                                <div className="col-md-6">
+                                                    <input className="form-control" type="text" placeholder="Enter Email OTP" />
+                                                    <span style={{ background: '#fff', color: '#e95420', padding: '2px 8px', borderRadius: '4px', fontSize: '0.95em', display: 'inline-block', marginTop: '4px' }}>*Note: Any One OTP Is Mandatory To Proceed</span>
+                                                </div>
+                                                <div className="col-md-6">
+                                                    <input className="form-control" type="text" placeholder="Enter Mobile OTP" />
+                                                </div>
                                             </div>
-                                            <div className="col-md-6">
-                                                <input className="form-control" type="text" placeholder="Enter Mobile OTP" />
+                                            <div className="d-flex justify-content-center mt-3">
+                                                <button className="purple-btn2 w-100" onClick={() => {
+                                                    handleOtpSubmit();
+                                                }}>Submit</button>
                                             </div>
-                                        </div>
-                                        <div className="d-flex justify-content-center mt-3">
-                                            <button className="purple-btn2 w-100" onClick={() => {
-                                                setCompleted((arr) => {
-                                                    const copy = [...arr];
-                                                    copy[currentStep] = true;
-                                                    return copy;
-                                                });
-                                                setCurrentStep((s) => Math.min(s + 1, steps.length - 1));
-                                            }}>Submit</button>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
                             </div>
                         </div>
 
@@ -1818,7 +2258,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                     <span className="me-3">
                                                         <span className="text-dark">:</span>
                                                     </span>
-                                                    {"Acme Corporation"}
+                                                    {supplierShowData?.organization_name || "-"}
                                                 </label>
                                             </div>
                                         </div>
@@ -1831,7 +2271,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                     <span className="me-3">
                                                         <span className="text-dark">:</span>
                                                     </span>
-                                                    {"27AAECS1234F1Z5"}
+                                                    {supplierShowData?.gstin || "-"}
                                                 </label>
                                             </div>
                                         </div>
@@ -1844,7 +2284,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                     <span className="me-3">
                                                         <span className="text-dark">:</span>
                                                     </span>
-                                                    {"Mumbai"}
+                                                    {supplierShowData?.city_id || "-"}
                                                 </label>
                                             </div>
                                         </div>
@@ -1857,7 +2297,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                     <span className="me-3">
                                                         <span className="text-dark">:</span>
                                                     </span>
-                                                    {"Procurement"}
+                                                    {supplierShowData?.department_id || "-"}
                                                 </label>
                                             </div>
                                         </div>
@@ -1870,7 +2310,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                     <span className="me-3">
                                                         <span className="text-dark">:</span>
                                                     </span>
-                                                    {"John Doe"}
+                                                    {supplierShowData?.contact_person_name || "-"}
                                                 </label>
                                             </div>
                                         </div>
@@ -1883,7 +2323,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                     <span className="me-3">
                                                         <span className="text-dark">:</span>
                                                     </span>
-                                                    {"9876543210"}
+                                                    {supplierShowData?.mobile || "-"}
                                                 </label>
                                             </div>
                                         </div>
@@ -1918,8 +2358,8 @@ const VendorRegistrationStepByStepForm = () => {
                                                     <TooltipIcon message="Choose the type of your organization from the options provided to help us better understand your profile." />
                                                 </label>
                                                 <SingleSelector
-                                                    options={[]}
-                                                // placeholder="Select Country"
+                                                    options={organizationTypeOptions}
+                                                    placeholder="Select Organization Type"
                                                 />
                                             </div>
                                         </div>
@@ -1932,7 +2372,8 @@ const VendorRegistrationStepByStepForm = () => {
                                                 </label>
                                                 <SingleSelector
                                                     options={[]}
-                                                // placeholder="Select Country"
+                                                    placeholder="Select Nature of Business"
+                                                    isDisabled={true}
                                                 />
                                             </div>
                                         </div>
@@ -1945,7 +2386,8 @@ const VendorRegistrationStepByStepForm = () => {
                                                 </label>
                                                 <SingleSelector
                                                     options={[]}
-                                                // placeholder="Select Country"
+                                                    placeholder="Select Vendor Type"
+                                                    isDisabled={true}
                                                 />
                                             </div>
                                         </div>
@@ -1957,8 +2399,8 @@ const VendorRegistrationStepByStepForm = () => {
                                                     <TooltipIcon message="Choose the industry that your organization operates in. This helps us better understand your sector." />
                                                 </label>
                                                 <SingleSelector
-                                                    options={[]}
-                                                // placeholder="Select Country"
+                                                    options={industryTypeOptions || []}
+                                                    placeholder="Select Type of Industry"
                                                 />
                                             </div>
                                         </div>
@@ -2055,21 +2497,25 @@ const VendorRegistrationStepByStepForm = () => {
                                             <div className="form-group">
 
                                                 <label>
-                                                    Schema Group 
+                                                    Schema Group
                                                     {/* <span>*</span>
                                                     <TooltipIcon message="Please choose your country from the list" /> */}
                                                 </label>
                                                 <SingleSelector
                                                     options={[]}
-                                                    placeholder="Select Country"
+                                                    // value={gstinApplicable}
+                                                    // onChange={selected => setGstinApplicable(selected.value)}
+                                                    placeholder="Select Schema Group"
                                                 />
+
                                             </div>
                                         </div>
+
                                         <div className="col-md-4 mt-2">
                                             <div className="form-group">
                                                 <label>
-                                                    Date of Incorporation 
-                                                    <TooltipIcon message="Provide the date when younorganization was officially incorporated. Use the format (DD-MM-YYYY) and refer to your incorporation certificate if needed." />
+                                                    Date of Incorporation
+                                                    <TooltipIcon message="Provide the date when your organization was officially incorporated. Use the format (DD-MM-YYYY) and refer to your incorporation certificate if needed." />
                                                 </label>
                                                 <input
                                                     className="form-control"
@@ -2079,14 +2525,43 @@ const VendorRegistrationStepByStepForm = () => {
                                         </div>
                                         <div className="col-md-4 mt-2">
                                             <div className="form-group">
+                                                <label>
+                                                    Corporate Identification Number <span>*</span>
+                                                    <TooltipIcon message="Enter your organization's Corporate Identification Number
+(CIN), which is issued by the Ministry of Corporate Affairs
+(MCA) in India. This number uniquely identifies your company." />
+                                                </label>
+                                                <input
+                                                    className="form-control"
+                                                    type="text"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="col-md-4 mt-2">
+                                            <div className="form-group">
+                                                <label>
+                                                    Corporate Identification Number Attachment  <span>*</span>
+                                                    <TooltipIcon message="Upload the official document or certificate to verify the details you have submitted. The document must be uploaded in PDF format.
+Corporate Identification Number Attachment." />
+                                                </label>
+                                                <input
+                                                    className="form-control"
+                                                    type="file"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="col-md-4 mt-2">
+                                            <div className="form-group">
                                                 {/* Label with Tooltip */}
                                                 <label>
                                                     GSTIN Applicable <span>*</span>
-                                                    <TooltipIcon message="Please choose your country from the list" />
+                                                    <TooltipIcon message="Indicate whether your organization is registered under the Goods and Services Tax (GST) Act. Select 'Yes' if GSTIN is applicable to your organization" />
                                                 </label>
                                                 <SingleSelector
-                                                    options={[]}
-                                                    placeholder="Select Country"
+                                                    options={[{ label: 'Yes', value: 'Yes' }, { label: 'No', value: 'No' }]}
+                                                    value={gstinApplicable}
+                                                    onChange={selected => setGstinApplicable(selected.value)}
+                                                    placeholder="Select Yes or No"
                                                 />
                                             </div>
                                         </div>
@@ -2095,8 +2570,8 @@ const VendorRegistrationStepByStepForm = () => {
                                             <div className="form-group">
 
                                                 <label>
-                                                    GSTIN Classification <span>*</span>
-                                                    <TooltipIcon message="Please choose your country from the list" />
+                                                    GSTIN Classification
+                                                    {/* <TooltipIcon message="Please choose your country from the list" /> */}
                                                 </label>
                                                 <SingleSelector
                                                     options={[]}
@@ -2107,85 +2582,91 @@ const VendorRegistrationStepByStepForm = () => {
 
 
                                         <div className="row">
+                                            {gstinApplicable === 'Yes' && (
+                                                <>
+                                                    <div className="col-md-4 mt-2">
+                                                        <div className="form-group">
+                                                            <label>
+                                                                GSTIN No. <span>*</span>
+                                                                {/* <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." /> */}
+                                                            </label>
+                                                            <input
+                                                                className="form-control"
+                                                                type="text"
+                                                            />
+                                                        </div>
+                                                    </div>
 
-                                            <div className="col-md-4 mt-2">
-                                                <div className="form-group">
-                                                    <label>
-                                                        GSTIN No. <span>*</span>
-                                                        <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
-                                                    </label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="text"
-                                                    />
-                                                </div>
-                                            </div>
+                                                    <div className="col-md-4 mt-2">
+                                                        <div className="form-group">
+                                                            <label>
+                                                                GSTIN Attachment <span>*</span>
+                                                                <TooltipIcon message="Upload a digital copy of the official GSTIN certificate or document showing your GST registration number. Ensure the document is legible and valid." />
+                                                            </label>
+                                                            <input
+                                                                className="form-control"
+                                                                type="file"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                </>
+                                            )}
 
-                                            <div className="col-md-4 mt-2">
-                                                <div className="form-group">
-                                                    <label>
-                                                        GSTIN Attachment <span>*</span>
-                                                        <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
-                                                    </label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="file"
-                                                    />
-                                                </div>
-                                            </div>
+                                            {gstinApplicable === 'No' && (
+                                                <>
+                                                    <div className="col-md-4 mt-2">
+                                                        <div className="form-group">
+                                                            <label>
+                                                                Download Specimen
+                                                                {/* <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." /> */}
+                                                            </label>
 
 
-                                            <div className="col-md-4 mt-2">
-                                                <div className="form-group">
-                                                    <label>
-                                                        Download Specimen<span>*</span>
-                                                        <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
-                                                    </label>
-
-
-                                                    <span className="ms-2">
-                                                        <a
-                                                            // href={`${baseURL}${bankDetail.attachment}`} // Ensure URL is correct
-                                                            download // Forces file download
-                                                            className="text-primary d-flex align-items-center"
-                                                        >
-                                                            {/* <span className="me-2">Existing File:</span> */}
-                                                            {/* <TooltipIcon message="Indicate whether your organization is registered under the Goods and Services Tax (GST) Act."
+                                                            <span className="ms-2">
+                                                                <a
+                                                                    // href={`${baseURL}${bankDetail.attachment}`} // Ensure URL is correct
+                                                                    download // Forces file download
+                                                                    className="text-primary d-flex align-items-center"
+                                                                >
+                                                                    {/* <span className="me-2">Existing File:</span> */}
+                                                                    {/* <TooltipIcon message="Indicate whether your organization is registered under the Goods and Services Tax (GST) Act."
                                /> */}
-                                                            <svg
-                                                                xmlns="http://www.w3.org/2000/svg"
-                                                                width={24}
-                                                                height={24}
-                                                                fill="#DE7008"
-                                                                className="bi bi-download"
-                                                                viewBox="0 0 16 16"
-                                                            >
-                                                                <path
-                                                                    d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
-                                                                // style={{ fill: "#de7008!important" }}
-                                                                />
-                                                                <path
-                                                                    d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
-                                                                // style={{ fill: "#de7008!important" }}
-                                                                />
-                                                            </svg>
-                                                        </a>
-                                                    </span>
-                                                </div>
-                                            </div>
+                                                                    <svg
+                                                                        xmlns="http://www.w3.org/2000/svg"
+                                                                        width={24}
+                                                                        height={24}
+                                                                        fill="#DE7008"
+                                                                        className="bi bi-download"
+                                                                        viewBox="0 0 16 16"
+                                                                    >
+                                                                        <path
+                                                                            d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
+                                                                        // style={{ fill: "#de7008!important" }}
+                                                                        />
+                                                                        <path
+                                                                            d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
+                                                                        // style={{ fill: "#de7008!important" }}
+                                                                        />
+                                                                    </svg>
+                                                                </a>
+                                                            </span>
+                                                        </div>
+                                                    </div>
 
-                                            <div className="col-md-4 mt-2">
-                                                <div className="form-group">
-                                                    <label>
-                                                        Upload GSTIN Declaration  <span>*</span>
-                                                        <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
-                                                    </label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="file"
-                                                    />
-                                                </div>
-                                            </div>
+                                                    <div className="col-md-4 mt-2">
+                                                        <div className="form-group">
+                                                            <label>
+                                                                Upload GSTIN Declaration  <span>*</span>
+                                                                {/* <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." /> */}
+                                                            </label>
+                                                            <input
+                                                                className="form-control"
+                                                                type="file"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                </>
+                                            )}
                                         </div>
 
                                     </div>
@@ -2202,8 +2683,8 @@ const VendorRegistrationStepByStepForm = () => {
                                         <div className="col-md-4">
                                             <div className="form-group">
                                                 <label>
-                                                    Delivery Lead Period (In Days)<span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
+                                                    Delivery Lead Period (In Days)
+                                                    <TooltipIcon message="Enter the number of days required to deliver the product or service from the date of order confirmation." />
                                                 </label>
                                                 <input
                                                     className="form-control"
@@ -2214,8 +2695,8 @@ const VendorRegistrationStepByStepForm = () => {
                                         <div className="col-md-4">
                                             <div className="form-group">
                                                 <label>
-                                                    Specify Warranty Period (In Years)<span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
+                                                    Specify Warranty Period (In Years)
+                                                    <TooltipIcon message="Enter the duration of the warranty for the product or service, in years. This is the period during which the item will be covered for repairs or replacement." />
                                                 </label>
                                                 <input
                                                     className="form-control"
@@ -2227,8 +2708,8 @@ const VendorRegistrationStepByStepForm = () => {
                                             <div className="form-group">
 
                                                 <label>
-                                                    AMC Provided<span>*</span>
-                                                    <TooltipIcon message="Please choose your country from the list" />
+                                                    AMC Provided
+                                                    <TooltipIcon message="Please specify if an Annual Maintenance Contract (AMC) is included with the product or service. Select 'Yes if AMC is provided." />
                                                 </label>
                                                 <SingleSelector
                                                     options={[]}
@@ -2239,8 +2720,8 @@ const VendorRegistrationStepByStepForm = () => {
                                         <div className="col-md-4">
                                             <div className="form-group">
                                                 <label>
-                                                    Website <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
+                                                    Website
+                                                    <TooltipIcon message="Enter the URL of your company's website where users can lear more about your products or services." />
                                                 </label>
                                                 <input
                                                     className="form-control"
@@ -2253,7 +2734,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                 {/* Label with Tooltip */}
                                                 <label>
                                                     Currency Type <span>*</span>
-                                                    <TooltipIcon message="Please choose your country from the list" />
+                                                    {/* <TooltipIcon message="Please choose your country from the list" /> */}
                                                 </label>
                                                 <SingleSelector
                                                     options={[]}
@@ -2266,7 +2747,7 @@ const VendorRegistrationStepByStepForm = () => {
 
                                                 <label>
                                                     MSME/Udyam Number Applicable  <span>*</span>
-                                                    <TooltipIcon message="Please choose your country from the list" />
+                                                    <TooltipIcon message="Select whether your organization is registered under the MSME (Micro, Small, and Medium Enterprises) or Udyam scheme. Choose 'Yes' if applicable, otherwise select 'No.' By selecting 'No,' you confirm that your organization does not hold a valid MSME/Udyam registration number. A declaration is required, and this response will be timestamped to record the submission date and time." />
                                                 </label>
                                                 <SingleSelector
 
@@ -2751,7 +3232,7 @@ const VendorRegistrationStepByStepForm = () => {
                                             <div className="form-group">
                                                 <label>
                                                     Address <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
+                                                    <TooltipIcon message="Please enter your address using a maximum of 40 characters." />
                                                 </label>
                                                 <input
                                                     className="form-control"
@@ -2762,8 +3243,8 @@ const VendorRegistrationStepByStepForm = () => {
                                         <div className="col-md-4">
                                             <div className="form-group">
                                                 <label>
-                                                    Address Line 2  <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
+                                                    Address Line 2
+                                                    <TooltipIcon message="Please enter your address line 2 using a maximum of 40 characters." />
                                                 </label>
                                                 <input
                                                     className="form-control"
@@ -2774,8 +3255,8 @@ const VendorRegistrationStepByStepForm = () => {
                                         <div className="col-md-4">
                                             <div className="form-group">
                                                 <label>
-                                                    Address Line 3 <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
+                                                    Address Line 3
+                                                    <TooltipIcon message="Please enter your address line 3 using a maximum of 40 characters." />
                                                 </label>
                                                 <input
                                                     className="form-control"
@@ -2786,8 +3267,8 @@ const VendorRegistrationStepByStepForm = () => {
                                         <div className="col-md-4 mt-2">
                                             <div className="form-group">
                                                 <label>
-                                                    Address Line 4 <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
+                                                    Address Line 4
+                                                    <TooltipIcon message=" Please enter your address line 4 using a maximum of 40 characters." />
                                                 </label>
                                                 <input
                                                     className="form-control"
@@ -2798,8 +3279,8 @@ const VendorRegistrationStepByStepForm = () => {
                                         <div className="col-md-4  mt-2">
                                             <div className="form-group">
                                                 <label>
-                                                    Address Line 5 <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
+                                                    Address Line 5
+                                                    <TooltipIcon message=" Please enter your address line 5 using a maximum of 40 characters." />
                                                 </label>
                                                 <input
                                                     className="form-control"
@@ -2812,7 +3293,7 @@ const VendorRegistrationStepByStepForm = () => {
 
                                                 <label>
                                                     Country<span>*</span>
-                                                    <TooltipIcon message="Please choose your country from the list" />
+                                                    <TooltipIcon message="Please choose your country from the list. This helps us identify the location of your organization." />
                                                 </label>
                                                 <SingleSelector
                                                     options={[]}
@@ -2825,7 +3306,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                 {/* Label with Tooltip */}
                                                 <label>
                                                     State <span>*</span>
-                                                    <TooltipIcon message="Please choose your country from the list" />
+                                                    <TooltipIcon message="Please choose your state from the list. This helps us determine your organization's regional location." />
                                                 </label>
                                                 <SingleSelector
                                                     options={[]}
@@ -2838,7 +3319,7 @@ const VendorRegistrationStepByStepForm = () => {
                                             <div className="form-group">
                                                 <label>
                                                     City <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
+                                                    <TooltipIcon message="Please provide the name of the city where your business is based." />
                                                 </label>
                                                 <input
                                                     className="form-control"
@@ -2850,7 +3331,7 @@ const VendorRegistrationStepByStepForm = () => {
                                             <div className="form-group">
                                                 <label>
                                                     Pin Code<span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
+                                                    <TooltipIcon message="Enter the postal code (Pin Code) for your organization's location. This is required for address verification." />
                                                 </label>
                                                 <input
                                                     className="form-control"
@@ -2861,8 +3342,9 @@ const VendorRegistrationStepByStepForm = () => {
                                         <div className="col-md-4  mt-2">
                                             <div className="form-group">
                                                 <label>
-                                                    Telephone Phone No.<span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
+                                                    Telephone Phone No.
+                                                    <TooltipIcon message="Enter your organization's primary telephone number, including the country code and area code (e.g., + 1-123-
+4567890)." />
                                                 </label>
                                                 <input
                                                     className="form-control"
@@ -2874,7 +3356,7 @@ const VendorRegistrationStepByStepForm = () => {
                                             <div className="form-group">
                                                 <label>
                                                     Mobile Number <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
+                                                    <TooltipIcon message="Please provide the full mobile number, including the country code. Ensure the number is correct and formatted properly.." />
                                                 </label>
                                                 <input
                                                     className="form-control"
@@ -2886,7 +3368,8 @@ const VendorRegistrationStepByStepForm = () => {
                                             <div className="form-group">
                                                 <label>
                                                     Ordering Email ID <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
+                                                    <TooltipIcon message="Please provide the email address used by your organization for processing orders. Make sure the email ID is accurate and valid
+." />
                                                 </label>
                                                 <input
                                                     className="form-control"
@@ -2897,8 +3380,8 @@ const VendorRegistrationStepByStepForm = () => {
                                         <div className="col-md-4  mt-2">
                                             <div className="form-group">
                                                 <label>
-                                                    Billing & Accounting Email ID<span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
+                                                    Billing & Accounting Email ID
+                                                    <TooltipIcon message="Enter the email address your organization uses for billing and accounting communications. Ensure it is a valid email format (e.g., example@domain.com)." />
                                                 </label>
                                                 <input
                                                     className="form-control"
@@ -2930,12 +3413,11 @@ const VendorRegistrationStepByStepForm = () => {
                                         </div>
                                     </div>
                                     <div className="row">
-
                                         <div className="col-md-4">
                                             <div className="form-group">
                                                 <label>
                                                     Address <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
+                                                    <TooltipIcon message="Please enter your address using a maximum of 40 characters." />
                                                 </label>
                                                 <input
                                                     className="form-control"
@@ -2946,8 +3428,8 @@ const VendorRegistrationStepByStepForm = () => {
                                         <div className="col-md-4">
                                             <div className="form-group">
                                                 <label>
-                                                    Address Line 2  <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
+                                                    Address Line 2
+                                                    <TooltipIcon message="Please enter your address line 2 using a maximum of 40 characters." />
                                                 </label>
                                                 <input
                                                     className="form-control"
@@ -2958,8 +3440,8 @@ const VendorRegistrationStepByStepForm = () => {
                                         <div className="col-md-4">
                                             <div className="form-group">
                                                 <label>
-                                                    Address Line 3 <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
+                                                    Address Line 3
+                                                    <TooltipIcon message="Please enter your address line 3 using a maximum of 40 characters." />
                                                 </label>
                                                 <input
                                                     className="form-control"
@@ -2970,8 +3452,8 @@ const VendorRegistrationStepByStepForm = () => {
                                         <div className="col-md-4 mt-2">
                                             <div className="form-group">
                                                 <label>
-                                                    Address Line 4 <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
+                                                    Address Line 4
+                                                    <TooltipIcon message=" Please enter your address line 4 using a maximum of 40 characters." />
                                                 </label>
                                                 <input
                                                     className="form-control"
@@ -2982,8 +3464,8 @@ const VendorRegistrationStepByStepForm = () => {
                                         <div className="col-md-4  mt-2">
                                             <div className="form-group">
                                                 <label>
-                                                    Address Line 5 <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
+                                                    Address Line 5
+                                                    <TooltipIcon message=" Please enter your address line 5 using a maximum of 40 characters." />
                                                 </label>
                                                 <input
                                                     className="form-control"
@@ -2991,12 +3473,18 @@ const VendorRegistrationStepByStepForm = () => {
                                                 />
                                             </div>
                                         </div>
+
+
+
+
+
+
                                         <div className="col-md-4  mt-2">
                                             <div className="form-group">
 
                                                 <label>
                                                     Country<span>*</span>
-                                                    <TooltipIcon message="Please choose your country from the list" />
+                                                    {/* <TooltipIcon message="Please choose your country from the list" /> */}
                                                 </label>
                                                 <SingleSelector
                                                     options={[]}
@@ -3009,7 +3497,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                 {/* Label with Tooltip */}
                                                 <label>
                                                     State <span>*</span>
-                                                    <TooltipIcon message="Please choose your country from the list" />
+                                                    {/* <TooltipIcon message="Please choose your country from the list" /> */}
                                                 </label>
                                                 <SingleSelector
                                                     options={[]}
@@ -3022,7 +3510,7 @@ const VendorRegistrationStepByStepForm = () => {
                                             <div className="form-group">
                                                 <label>
                                                     City <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
+                                                    {/* <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." /> */}
                                                 </label>
                                                 <input
                                                     className="form-control"
@@ -3034,7 +3522,7 @@ const VendorRegistrationStepByStepForm = () => {
                                             <div className="form-group">
                                                 <label>
                                                     Pin Code<span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
+                                                    {/* <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." /> */}
                                                 </label>
                                                 <input
                                                     className="form-control"
@@ -3045,8 +3533,8 @@ const VendorRegistrationStepByStepForm = () => {
                                         <div className="col-md-4  mt-2">
                                             <div className="form-group">
                                                 <label>
-                                                    Telephone Phone No.<span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
+                                                    Telephone Phone No.
+                                                    {/* <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." /> */}
                                                 </label>
                                                 <input
                                                     className="form-control"
@@ -3058,7 +3546,7 @@ const VendorRegistrationStepByStepForm = () => {
                                             <div className="form-group">
                                                 <label>
                                                     Mobile Number <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
+                                                    {/* <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." /> */}
                                                 </label>
                                                 <input
                                                     className="form-control"
@@ -3070,7 +3558,7 @@ const VendorRegistrationStepByStepForm = () => {
                                             <div className="form-group">
                                                 <label>
                                                     Email ID <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
+                                                    {/* <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." /> */}
                                                 </label>
                                                 <input
                                                     className="form-control"
@@ -3098,9 +3586,7 @@ const VendorRegistrationStepByStepForm = () => {
                                         <div className="col-md-4">
                                             <div className="form-group">
                                                 <label
-                                                // data-bs-toggle="tooltip"
-                                                // data-bs-placement="top"
-                                                // title={tooltipMessages.bankName}
+
                                                 >
                                                     Bank Name <span>*</span>
                                                     <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
@@ -3115,11 +3601,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                     }
                                                     disabled={!bankDetail.isNew}
                                                 />
-                                                {/* {errors.bank_name && !bankDetail.bank_name && (
-                          <div className="ValidationColor">
-                            {errors.bank_name}
-                          </div>
-                        )} */}
+
                                                 {bankDetail.isNew &&
                                                     errors.bank_name &&
                                                     !bankDetail.bank_name && (
@@ -3128,17 +3610,14 @@ const VendorRegistrationStepByStepForm = () => {
                                                         </div>
                                                     )}
 
-                                                {/* {errors.bank_name && <div className="invalid-feedback">{errors.bank_name}</div>} */}
-                                                {/* {console.log(errors.bank_name)} */}
+
                                             </div>
                                         </div>
                                         {/* Address */}
                                         <div className="col-md-4">
                                             <div className="form-group">
                                                 <label
-                                                // data-bs-toggle="tooltip"
-                                                // data-bs-placement="top"
-                                                // title={tooltipMessages.address}
+
                                                 >
                                                     Address <span>*</span>
                                                     <TooltipIcon message="Please provide the complete address of your bank branch,including the street address,city and postal code." />
@@ -3160,11 +3639,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                             {errors.address}
                                                         </div>
                                                     )}
-                                                {/* {errors.address && !bankDetail.address && (
-                          <div className="ValidationColor">
-                            {errors.address}
-                          </div>
-                        )} */}
+
                                             </div>
                                         </div>
                                         {/* Country */}
@@ -3172,37 +3647,14 @@ const VendorRegistrationStepByStepForm = () => {
                                             <div className="form-group">
                                                 {/* Label with Tooltip */}
                                                 <label
-                                                // data-bs-toggle="tooltip"
-                                                // data-bs-placement="top"
-                                                // title={tooltipMessages.country}
+
                                                 >
                                                     Country <span>*</span>
                                                     <TooltipIcon message="Please choose your country from the list" />
                                                 </label>
 
-                                                {/* Country Dropdown */}
-                                                {/* <SingleSelector
-                          options={countries}
-                          value={bankDetail.selectedCountry}
-                          onChange={(selectedOption) =>
-                            handleCountryChange(selectedOption, bankDetail.id)
-                          } // Properly handling onChange
-                        /> */}
 
-                                                {/* <select
-                          className="form-control"
-                          value={bankDetail.country || ""}
-                          onChange={(e) =>
-                            handleCountryChange(e, bankDetail.id)
-                          }
-                        >
-                          <option value="">Select Country</option>
-                          {countries.map((country) => (
-                            <option key={country.value} value={country.value}>
-                              {country.name}
-                            </option>
-                          ))}
-                        </select> */}
+
 
                                                 <SingleSelector
                                                     options={countries}
@@ -3227,36 +3679,19 @@ const VendorRegistrationStepByStepForm = () => {
                                                             {errors.country_id}
                                                         </div>
                                                     )}
-                                                {/* {errors.country_id && !bankDetail.country_id && (
-                          <div className="ValidationColor">
-                            {errors.country_id}
-                          </div>
-                        )} */}
+
                                             </div>
                                         </div>
                                         <div className="col-md-4">
                                             <div className="form-group mt-2">
                                                 <label
-                                                // data-bs-toggle="tooltip"
-                                                // data-bs-placement="top"
-                                                // title={tooltipMessages.state}
+
                                                 >
                                                     State <span>*</span>
                                                     <TooltipIcon message="Please choose your State from the list" />
                                                 </label>
 
-                                                {/* <select
-                          className="form-control"
-                          value={bankDetail.state || ""}
-                          onChange={(e) => handleStateChange(e, bankDetail.id)}
-                        >
-                          <option value="">Select State</option>
-                          {states.map((state) => (
-                            <option key={state.value} value={state.value}>
-                              {state.name}
-                            </option>
-                          ))}
-                        </select> */}
+
 
                                                 <SingleSelector
                                                     options={states}
@@ -3272,11 +3707,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                     // isDisabled={!bankDetail.country_id},
                                                     isDisabled={!bankDetail.isNew}
                                                 />
-                                                {/* {errors.state_id && !bankDetail.state_id && (
-                          <div className="ValidationColor">
-                            {errors.state_id}
-                          </div>
-                        )} */}
+
                                                 {bankDetail.isNew &&
                                                     errors.state_id &&
                                                     !bankDetail.state_id && (
@@ -3290,9 +3721,7 @@ const VendorRegistrationStepByStepForm = () => {
                                         <div className="col-md-4 mt-2">
                                             <div className="form-group">
                                                 <label
-                                                // data-bs-toggle="tooltip"
-                                                // data-bs-placement="top"
-                                                // title={tooltipMessages.city_name}
+
                                                 >
                                                     City <span>*</span>
                                                     <TooltipIcon message="Enter the city where your bank branch is located" />
@@ -3320,9 +3749,7 @@ const VendorRegistrationStepByStepForm = () => {
                                         <div className="col-md-4 mt-2">
                                             <div className="form-group">
                                                 <label
-                                                // data-bs-toggle="tooltip"
-                                                // data-bs-placement="top"
-                                                // title={tooltipMessages.pincode}
+
                                                 >
                                                     Pin Code <span>*</span>
                                                     <TooltipIcon message="Enter the postal code (Pin Code) for the bank branch location" />
@@ -3337,18 +3764,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                     }
                                                     disabled={!bankDetail.isNew}
                                                 />
-                                                {/* {errors.pin_code && !bankDetail.pin_code && (
-                          <div className="ValidationColor">
-                            {errors.pin_code}
-                          </div>
-                        )} */}
-                                                {/* {bankDetail.isNew &&
-                          errors.pincode &&
-                          !bankDetail.pincode && (
-                            <div className="ValidationColor">
-                              {errors.pincode}
-                            </div>
-                          )} */}
+
                                                 {bankDetail.isNew && (
                                                     <>
                                                         {inputErrors[bankDetail.id]?.pincode && (
@@ -3369,23 +3785,12 @@ const VendorRegistrationStepByStepForm = () => {
                                         <div className="col-md-4 mt-2">
                                             <div className="form-group">
                                                 <label
-                                                // data-bs-toggle="tooltip"
-                                                // data-bs-placement="top"
-                                                // title={tooltipMessages.accountType}
+
                                                 >
                                                     Account Type <span>*</span>
                                                     <TooltipIcon message="Select the type of bank account your organization holds,such as Savings,Current,or any other relevant type" />
                                                 </label>
-                                                {/* <input
-                          className="form-control"
-                          type="text"
-                          placeholder="Enter Account Type"
-                          value={bankDetail.account_type}
-                          onChange={(e) =>
-                            handleInputChange(e, bankDetail.id, "account_type")
-                          }
-                          disabled={!bankDetail.isNew}
-                        /> */}
+
 
                                                 <SingleSelector
                                                     options={accountTypeOptions}
@@ -3418,9 +3823,7 @@ const VendorRegistrationStepByStepForm = () => {
                                         <div className="col-md-4 mt-2">
                                             <div className="form-group">
                                                 <label
-                                                // data-bs-toggle="tooltip"
-                                                // data-bs-placement="top"
-                                                // title={tooltipMessages.accountNumber}
+
                                                 >
                                                     Account Number <span>*</span>
                                                     <TooltipIcon message="Please provide your organization's bank account number.Make sure it is correct and matches the details at your bank" />
@@ -3449,98 +3852,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                     )}
                                             </div>
                                         </div>
-                                        {/* Confirm Account Number */}
-                                        {/* <div className="col-md-4 mt-2">
-                      <div className="form-group">
-                        <label
-                        // data-bs-toggle="tooltip"
-                        // data-bs-placement="top"
-                        // title={tooltipMessages.confirmAccountNumber}
-                        >
-                          Confirm Account Number <span>*</span>
-                          <TooltipIcon message="Re-enter the  bank account number to confirm accuracy.Ensure it matches the original account number entered above." />
-                        </label>
-                        <input
-                          className="form-control"
-                          type="text"
-                          placeholder="Enter Confirm Account Number"
-                          value={bankDetail.confirm_account_number}
-                          onChange={(e) =>
-                            handleInputChange(
-                              e,
-                              bankDetail.id,
-                              "confirm_account_number"
-                            )
-                          }
-                        />
-                        {/* {bankDetail.isNew && errors.confirm_account_number && (
-                          <div className="ValidationColor">
-                            {errors.confirm_account_number}
-                          </div>
-                        )}
-                        {bankDetail.isNew && errors.account_match && (
-                          <div className="ValidationColor">
-                            {errors.account_match}
-                          </div>
-                        )} */}
-                                        {/* {errors.confirm_account_number &&
-                          !bankDetail.confirm_account_number && (
-                            <div className="ValidationColor">
-                              {errors.confirm_account_number}
-                            </div>
-                          )}
-                        {errors.account_match &&
-                          bankDetail.account_number !==
-                            bankDetail.confirm_account_number && (
-                            <div className="ValidationColor">
-                              {errors.account_match}
-                            </div>
-                          )}
-                      </div>
-                    </div> */}
-                                        {/* <div className="col-md-4 mt-2">
-                      <div className="form-group">
-                        <label>
-                          Confirm Account Number <span>*</span>
-                          <TooltipIcon message="Re-enter the bank account number to confirm accuracy. Ensure it matches the original account number entered above." />
-                        </label>
-                        <input
-                          className="form-control"
-                          type="text"
-                          placeholder="Enter Confirm Account Number"
-                          value={bankDetail.confirm_account_number}
-                          onChange={(e) => {
-                            handleInputChange(
-                              e,
-                              bankDetail.id,
-                              "confirm_account_number"
-                            );
-                            // Trigger validation when the user starts typing
-                            if (e.target.value !== bankDetail.account_number) {
-                              setErrors((prevErrors) => ({
-                                ...prevErrors,
-                                confirm_account_number:
-                                  "Confirm Account Number must match Account Number.",
-                              }));
-                            } else {
-                              setErrors((prevErrors) => {
-                                const newErrors = { ...prevErrors };
-                                delete newErrors.confirm_account_number;
-                                return newErrors;
-                              });
-                            }
-                          }}
-                          disabled={!bankDetail.isNew}
-                        />
-                        {bankDetail.isNew && errors.confirm_account_number && (
-                          <div className="ValidationColor">
-                            {errors.confirm_account_number}
-                          </div>
-                        )}
-                      </div>
-                    </div> */}
-                                        {/* // Add this to your component's return JSX where the confirm
-                    account number input is */}
+
                                         <div className="col-md-4 mt-2">
                                             <div className="form-group">
                                                 <label>
@@ -3594,9 +3906,7 @@ const VendorRegistrationStepByStepForm = () => {
                                         <div className="col-md-4 mt-2">
                                             <div className="form-group">
                                                 <label
-                                                // data-bs-toggle="tooltip"
-                                                // data-bs-placement="top"
-                                                // title={tooltipMessages.branchName}
+
                                                 >
                                                     Branch Name <span>*</span>
                                                     <TooltipIcon message="Enter the name of the bank branch where your organization's account is held. " />
@@ -3624,9 +3934,7 @@ const VendorRegistrationStepByStepForm = () => {
                                         <div className="col-md-4 mt-2">
                                             <div className="form-group">
                                                 <label
-                                                // data-bs-toggle="tooltip"
-                                                // data-bs-placement="top"
-                                                // title={tooltipMessages.MICR}
+
                                                 >
                                                     MICR No. <span>*</span>
                                                     <TooltipIcon message="MICR: Enter the MICR (Magnetic Ink Character Recognition) number of your  bank branch. This number is typically found on your cheque leaf" />
@@ -3652,9 +3960,7 @@ const VendorRegistrationStepByStepForm = () => {
                                         <div className="col-md-4 mt-2">
                                             <div className="form-group">
                                                 <label
-                                                // data-bs-toggle="tooltip"
-                                                // data-bs-placement="top"
-                                                // title={tooltipMessages.IFSCCode}
+
                                                 >
                                                     IFSC Code <span>*</span>
                                                     <TooltipIcon message="Enter the IFSC (Indian Financial System Code) of your bank branch. This is required for electronic fund transfers like NEFT and RTGS" />
@@ -3670,13 +3976,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                     }
                                                     disabled={!bankDetail.isNew}
                                                 />
-                                                {/* {bankDetail.isNew &&
-                          errors.ifsc_code &&
-                          !bankDetail.ifsc_code && (
-                            <div className="ValidationColor">
-                              {errors.ifsc_code}
-                            </div>
-                          )} */}
+
                                                 {bankDetail.isNew && (
                                                     <>
                                                         {inputErrors[bankDetail.id]?.ifsc && (
@@ -3697,9 +3997,6 @@ const VendorRegistrationStepByStepForm = () => {
                                         <div className="col-md-4 mt-2">
                                             <div className="form-group">
                                                 <label
-                                                // data-bs-toggle="tooltip"
-                                                // data-bs-placement="top"
-                                                // title={tooltipMessages.beneficiaryName}
                                                 >
                                                     Beneficiary Name <span>*</span>
                                                     <TooltipIcon message="Enter the full legel name of the beneficiary." />
@@ -3728,13 +4025,94 @@ const VendorRegistrationStepByStepForm = () => {
                                                     )}
                                             </div>
                                         </div>
+
+
+                                        <div className="col-md-4 mt-2">
+                                            <div className="form-group">
+                                                <label
+
+                                                >
+                                                    Virtual Account
+                                                    {/* <TooltipIcon message="Select the type of bank account your organization holds,such as Savings,Current,or any other relevant type" /> */}
+                                                </label>
+
+
+                                                <SingleSelector
+                                                    options={[{ label: 'Yes', value: 'Yes' }, { label: 'No', value: 'No' }]}
+                                                    value={[{ label: 'Yes', value: 'Yes' }, { label: 'No', value: 'No' }].find(opt => opt.value === virtualAccount) || null}
+                                                    onChange={selected => setVirtualAccount(selected.value)}
+                                                    placeholder="Select Virtual Account"
+                                                />
+                                                {/* {bankDetail.isNew &&
+                                                    errors.account_type &&
+                                                    !bankDetail.account_type && (
+                                                        <div className="ValidationColor">
+                                                            {errors.account_type}
+                                                        </div>
+                                                    )} */}
+                                            </div>
+                                        </div>
+
+
+
+
+
+                                        {virtualAccount === 'Yes' && (
+                                            <div className="col-md-4 mt-2">
+                                                <div className="form-group">
+                                                    <label>
+                                                        Select Company <span>*</span>
+                                                    </label>
+                                                    <SingleSelector
+                                                        options={companyOptions}
+                                                        value={selectedCompany}
+                                                        onChange={selected => setSelectedCompany(selected)}
+                                                        placeholder="Select Company"
+                                                    />
+                                                </div>
+                                            </div>
+                                        )}
+
+
+
+                                        <div className="col-md-4 mt-2">
+                                            <div className="form-group">
+                                                <label
+                                                >
+                                                    Generated Virtual Account Code
+                                                    {/* <TooltipIcon message="Enter the full legel name of the beneficiary." /> */}
+                                                </label>
+                                                <input
+                                                    className="form-control"
+                                                    type="text"
+                                                    placeholder="Enter Generated Virtual Account Code"
+                                                // value={bankDetail.benficary_name}
+                                                // value={bankDetail.benficary_name} // Correct key
+                                                // onChange={(e) =>
+                                                //     handleInputChange(
+                                                //         e,
+                                                //         bankDetail.id,
+                                                //         "benficary_name"
+                                                //     )
+                                                // }
+                                                // disabled={!bankDetail.isNew}
+                                                />
+                                                {/* {bankDetail.isNew &&
+                                                    errors.benficary_name &&
+                                                    !bankDetail.benficary_name && (
+                                                        <div className="ValidationColor">
+                                                            {errors.benficary_name}
+                                                        </div>
+                                                    )} */}
+                                            </div>
+                                        </div>
+
+
                                         {/* Cancelled Cheque / Bank Copy */}
                                         <div className="col-md-4 mt-2">
                                             <div className="form-group">
                                                 <label
-                                                // data-bs-toggle="tooltip"
-                                                // data-bs-placement="top"
-                                                // title={tooltipMessages.cancelledCheque}
+
                                                 >
                                                     Cancelled Cheque / Bank Copy <span>*</span>
                                                     <TooltipIcon message="Provide a cancelled cheque or a bank statement copy that clearly displays your bank account details.This helps verify your account information. The document must be uploaded in PDF format" />
@@ -3788,19 +4166,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                     disabled={!bankDetail.isNew}
                                                 />
 
-                                                {/* Validation Message */}
-                                                {/* {bankDetail.isNew && errors.cancelled_cheque && (
-                          <div className="ValidationColor">
-                            {errors.cancelled_cheque}
-                          </div>
-                        )} */}
-                                                {/* {bankDetail.isNew &&
-                          errors.cancelled_cheque &&
-                          !bankDetail.attachment && (
-                            <div className="ValidationColor">
-                              {errors.cancelled_cheque}
-                            </div>
-                          )} */}
+
                                                 {bankDetail.isNew &&
                                                     errors.cancelled_cheque &&
                                                     !bankDetail.attachment && (
@@ -3841,107 +4207,10 @@ const VendorRegistrationStepByStepForm = () => {
                                 </div>
                             </div>
 
-                            <div className="card mx-3 pb-4 mt-4">
-                                <div className="card-header3">
-                                    <h3 className="card-title">Branch Office</h3>
-                                </div>
-                                <div className="card-body mt-0">
-
-                                    <div className="row">
-
-                                        <div className="col-md-4">
-                                            <div className="form-group">
-                                                <label>
-                                                    Address <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
-                                                </label>
-                                                <input
-                                                    className="form-control"
-                                                    type="text"
-                                                />
-                                            </div>
-                                        </div>
-
-                                        <div className="col-md-4  mt-2">
-                                            <div className="form-group">
-
-                                                <label>
-                                                    Country<span>*</span>
-                                                    <TooltipIcon message="Please choose your country from the list" />
-                                                </label>
-                                                <SingleSelector
-                                                    options={[]}
-                                                // placeholder="Select Country"
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="col-md-4  mt-2">
-                                            <div className="form-group">
-                                                {/* Label with Tooltip */}
-                                                <label>
-                                                    State <span>*</span>
-                                                    <TooltipIcon message="Please choose your country from the list" />
-                                                </label>
-                                                <SingleSelector
-                                                    options={[]}
-                                                // placeholder="Select Country"
-                                                />
-                                            </div>
-                                        </div>
-
-                                        <div className="col-md-4  mt-2">
-                                            <div className="form-group">
-                                                <label>
-                                                    City <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
-                                                </label>
-                                                <input
-                                                    className="form-control"
-                                                    type="text"
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="col-md-4  mt-2">
-                                            <div className="form-group">
-                                                <label>
-                                                    Pin Code<span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
-                                                </label>
-                                                <input
-                                                    className="form-control"
-                                                    type="text"
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="col-md-4  mt-2">
-                                            <div className="form-group">
-                                                <label>
-                                                    Telephone Phone No.<span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
-                                                </label>
-                                                <input
-                                                    className="form-control"
-                                                    type="text"
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="col-md-4  mt-2">
-                                            <div className="form-group">
-                                                <label>
-                                                    Mobile Number <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
-                                                </label>
-                                                <input
-                                                    className="form-control"
-                                                    type="text"
-                                                />
-                                            </div>
-                                        </div>
 
 
-                                    </div>
-                                </div>
-                            </div>
+
+
                         </div>
                     )}
 
@@ -3949,963 +4218,1045 @@ const VendorRegistrationStepByStepForm = () => {
 
                     {currentStep === 4 && (
                         <div className="card mx-4 pb-4 mt-4">
-                            <div className="card mx-3 pb-4 mt-4">
-                                <div className="card-header3">
-                                    <h3 className="card-title">Contact Person</h3>
-                                </div>
-                                <div className="card-body mt-0">
 
-                                    <div className="row">
-                                        <div className="col-md-4  mt-2">
-                                            <div className="form-group">
-
-                                                <label>
-                                                    Escalation Level<span>*</span>
-                                                    <TooltipIcon message="Please choose your country from the list" />
-                                                </label>
-                                                <SingleSelector
-                                                    options={[]}
-                                                // placeholder="Select Country"
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="col-md-4  mt-2">
-                                            <div className="form-group">
-
-                                                <label>
-                                                    Name Title <span>*</span>
-                                                    <TooltipIcon message="Please choose your country from the list" />
-                                                </label>
-                                                <SingleSelector
-                                                    options={[]}
-                                                // placeholder="Select Country"
-                                                />
-                                            </div>
-                                        </div>
-
-
-                                        <div className="col-md-4">
-                                            <div className="form-group">
-                                                <label>
-                                                    First Name <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
-                                                </label>
-                                                <input
-                                                    className="form-control"
-                                                    type="text"
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="col-md-4">
-                                            <div className="form-group">
-                                                <label>
-                                                    Last Name<span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
-                                                </label>
-                                                <input
-                                                    className="form-control"
-                                                    type="text"
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="col-md-4  mt-2">
-                                            <div className="form-group">
-
-                                                <label>
-                                                    Designation<span>*</span>
-                                                    <TooltipIcon message="Please choose your country from the list" />
-                                                </label>
-                                                <SingleSelector
-                                                    options={[]}
-                                                // placeholder="Select Country"
-                                                />
-                                            </div>
-                                        </div>
-
-                                        <div className="col-md-4">
-                                            <div className="form-group">
-                                                <label>
-                                                    Primary Email ID <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
-                                                </label>
-                                                <input
-                                                    className="form-control"
-                                                    type="text"
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="col-md-4">
-                                            <div className="form-group">
-                                                <label>
-                                                    Secondary Email ID <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
-                                                </label>
-                                                <input
-                                                    className="form-control"
-                                                    type="text"
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="col-md-4">
-                                            <div className="form-group">
-                                                <label>
-                                                    Primary Mobile No. <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
-                                                </label>
-                                                <input
-                                                    className="form-control"
-                                                    type="text"
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="col-md-4">
-                                            <div className="form-group">
-                                                <label>
-                                                    Secondary Mobile No. <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
-                                                </label>
-                                                <input
-                                                    className="form-control"
-                                                    type="text"
-                                                />
-                                            </div>
-                                        </div>
-
-
-
-                                        <div className="col-md-4  mt-2">
-                                            <div className="form-group">
-
-                                                <label>
-                                                    Nationality<span>*</span>
-                                                    <TooltipIcon message="Please choose your country from the list" />
-                                                </label>
-                                                <SingleSelector
-                                                    options={[]}
-                                                // placeholder="Select Country"
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="col-md-4  mt-2">
-                                            <div className="form-group">
-                                                {/* Label with Tooltip */}
-                                                <label>
-                                                    Gender <span>*</span>
-                                                    <TooltipIcon message="Please choose your country from the list" />
-                                                </label>
-                                                <SingleSelector
-                                                    options={[]}
-                                                // placeholder="Select Country"
-                                                />
-                                            </div>
-                                        </div>
-
-                                        <div className="col-md-4  mt-2">
-                                            <div className="form-group">
-                                                <label>
-                                                    Date of Birth<span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
-                                                </label>
-                                                <input
-                                                    className="form-control"
-                                                    type="date"
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="col-md-4  mt-2">
-                                            <div className="form-group">
-                                                <label>
-                                                    Attachment<span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
-                                                </label>
-                                                <input
-                                                    className="form-control"
-                                                    type="file"
-                                                />
-                                            </div>
-                                        </div>
-
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="card mx-3 pb-4 mt-4">
-                                <div className="card-header3">
-                                    <h3 className="card-title">Factory Warehouse Details</h3>
-                                </div>
-                                <div className="card-body mt-0">
-
-                                    <div className="row">
-
-                                        <div className="col-md-4">
-                                            <div className="form-group">
-                                                <label>
-                                                    Address <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
-                                                </label>
-                                                <input
-                                                    className="form-control"
-                                                    type="text"
-                                                />
-                                            </div>
-                                        </div>
-
-                                        <div className="col-md-4  ">
-                                            <div className="form-group">
-
-                                                <label>
-                                                    Country<span>*</span>
-                                                    <TooltipIcon message="Please choose your country from the list" />
-                                                </label>
-                                                <SingleSelector
-                                                    options={[]}
-                                                // placeholder="Select Country"
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="col-md-4  mt-2">
-                                            <div className="form-group">
-                                                {/* Label with Tooltip */}
-                                                <label>
-                                                    State <span>*</span>
-                                                    <TooltipIcon message="Please choose your country from the list" />
-                                                </label>
-                                                <SingleSelector
-                                                    options={[]}
-                                                // placeholder="Select Country"
-                                                />
-                                            </div>
-                                        </div>
-
-                                        <div className="col-md-4  mt-2">
-                                            <div className="form-group">
-                                                <label>
-                                                    City <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
-                                                </label>
-                                                <input
-                                                    className="form-control"
-                                                    type="text"
-                                                />
-                                            </div>
-                                        </div>
-
-                                        <div className="col-md-4  mt-2">
-                                            <div className="form-group">
-                                                <label>
-                                                    Telephone Phone No.<span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
-                                                </label>
-                                                <input
-                                                    className="form-control"
-                                                    type="text"
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="col-md-4  mt-2">
-                                            <div className="form-group">
-                                                <label>
-                                                    Mobile Number <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
-                                                </label>
-                                                <input
-                                                    className="form-control"
-                                                    type="text"
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="col-md-4  mt-2">
-                                            <div className="form-group">
-                                                <label>
-                                                    Attachment <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
-                                                </label>
-                                                <input
-                                                    className="form-control"
-                                                    type="file"
-                                                />
-                                            </div>
-                                        </div>
-
-
-                                    </div>
-                                </div>
-                            </div>
-
-
-                            <div className="card mx-3 pb-4 mt-4">
-                                <div className="card-header3">
-                                    <h3 className="card-title">Owners / Directors Information</h3>
-                                </div>
-                                <div className="card-body mt-0">
-
-                                    <div className="row">
-
-                                        <div className="col-md-4">
-                                            <div className="form-group">
-                                                <label>
-                                                    First Name  <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
-                                                </label>
-                                                <input
-                                                    className="form-control"
-                                                    type="text"
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="col-md-4">
-                                            <div className="form-group">
-                                                <label>
-                                                    Last Name  <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
-                                                </label>
-                                                <input
-                                                    className="form-control"
-                                                    type="text"
-                                                />
-                                            </div>
-                                        </div>
-
-
-                                        <div className="col-md-4  ">
-                                            <div className="form-group">
-
-                                                <label>
-                                                    Designation <span>*</span>
-                                                    <TooltipIcon message="Please choose your country from the list" />
-                                                </label>
-                                                <SingleSelector
-                                                    options={[]}
-                                                // placeholder="Select Country"
-                                                />
-                                            </div>
-                                        </div> <div className="col-md-4  ">
-                                            <div className="form-group">
-
-                                                <label>
-                                                    Qualification <span>*</span>
-                                                    <TooltipIcon message="Please choose your country from the list" />
-                                                </label>
-                                                <SingleSelector
-                                                    options={[]}
-                                                // placeholder="Select Country"
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="col-md-4">
-                                            <div className="form-group">
-                                                <label>
-                                                    Experience <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
-                                                </label>
-                                                <input
-                                                    className="form-control"
-                                                    type="text"
-                                                />
-                                            </div>
-                                        </div>
-
-                                        <div className="col-md-4">
-                                            <div className="form-group">
-                                                <label>
-                                                    Email <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
-                                                </label>
-                                                <input
-                                                    className="form-control"
-                                                    type="text"
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="col-md-4">
-                                            <div className="form-group">
-                                                <label>
-                                                    Mobile Number <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
-                                                </label>
-                                                <input
-                                                    className="form-control"
-                                                    type="text"
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="col-md-4">
-                                            <div className="form-group">
-                                                <label>
-                                                    Attachment <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
-                                                </label>
-                                                <input
-                                                    className="form-control"
-                                                    type="file"
-                                                />
-                                            </div>
-                                        </div>
-
-                                    </div>
-                                </div>
-                            </div>
-
-
-                            <div className="card mx-3 pb-4 mt-4">
-                                <div className="card-header3">
-                                    <h3 className="card-title">Are you related to any employee of Panchshil?</h3>
-                                </div>
-                                <div className="card-body mt-0">
-
-                                    <div className="row">
-
-                                        <div className="col-md-4">
-                                            <div className="form-group">
-                                                <label>
-                                                    First Name  <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
-                                                </label>
-                                                <input
-                                                    className="form-control"
-                                                    type="text"
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="col-md-4">
-                                            <div className="form-group">
-                                                <label>
-                                                    Last Name  <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
-                                                </label>
-                                                <input
-                                                    className="form-control"
-                                                    type="text"
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="col-md-4">
-                                            <div className="form-group">
-                                                <label>
-                                                    Employee Email Id  <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
-                                                </label>
-                                                <input
-                                                    className="form-control"
-                                                    type="text"
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="col-md-4">
-                                            <div className="form-group">
-                                                <label>
-                                                    Mobile Number  <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
-                                                </label>
-                                                <input
-                                                    className="form-control"
-                                                    type="text"
-                                                />
-                                            </div>
-                                        </div>
-
-
-                                        <div className="col-md-4  ">
-                                            <div className="form-group">
-
-                                                <label>
-                                                    Designation <span>*</span>
-                                                    <TooltipIcon message="Please choose your country from the list" />
-                                                </label>
-                                                <SingleSelector
-                                                    options={[]}
-                                                // placeholder="Select Country"
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="col-md-4  ">
-                                            <div className="form-group">
-
-                                                <label>
-                                                    Department <span>*</span>
-                                                    <TooltipIcon message="Please choose your country from the list" />
-                                                </label>
-                                                <SingleSelector
-                                                    options={[]}
-                                                // placeholder="Select Country"
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="col-md-4  ">
-                                            <div className="form-group">
-                                                <label>
-                                                    Relationship <span>*</span>
-                                                    <TooltipIcon message="Please choose your country from the list" />
-                                                </label>
-                                                <SingleSelector
-                                                    options={[]}
-                                                // placeholder="Select Country"
-                                                />
-                                            </div>
-                                        </div>
-
-                                        {/* Radio button group for Currently Working */}
-                                        <div className="row mb-3 mt-2">
+                            {branchOffices.map((branch, idx) => (
+                                // <div className="card mx-3 pb-4 mt-4" key={branch.id}>
+                                <CollapsedCardKYC
+                                    key={branch.id}
+                                    title={`Branch Office${branchOffices.length > 1 ? ` ${idx + 1}` : ''}`}
+                                    onDelete={() => deleteBranchOffice(branch.id)}
+                                    showDelete={branchOffices.length > 1}
+                                >
+                                    <div className="card-body mt-0">
+                                        <div className="row">
                                             <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>Address</label>
+                                                    <input className="form-control" type="text" value={branch.address} onChange={e => handleBranchChange(idx, 'address', e.target.value)} />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4 ">
+                                                <div className="form-group">
+                                                    <label>Country<span>*</span></label>
+                                                    <SingleSelector
+                                                        options={countries}
+                                                        value={countries.find(opt => opt.value === branch.country) || null}
+                                                        onChange={selected => handleBranchChange(idx, 'country', selected?.value)}
+                                                        placeholder="Select Country"
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4 ">
+                                                <div className="form-group">
+                                                    <label>State <span>*</span></label>
+                                                    <SingleSelector
+                                                        options={states}
+                                                        value={states.find(opt => opt.value === branch.state) || null}
+                                                        onChange={selected => handleBranchChange(idx, 'state', selected?.value)}
+                                                        placeholder="Select State"
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4 mt-2">
+                                                <div className="form-group">
+                                                    <label>City <span>*</span></label>
+                                                    <input className="form-control" type="text" value={branch.city} onChange={e => handleBranchChange(idx, 'city', e.target.value)} />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4 mt-2">
+                                                <div className="form-group">
+                                                    <label>Pin Code<span>*</span></label>
+                                                    <input className="form-control" type="text" value={branch.pincode} onChange={e => handleBranchChange(idx, 'pincode', e.target.value)} />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4 mt-2">
+                                                <div className="form-group">
+                                                    <label>Telephone Phone No.</label>
+                                                    <input className="form-control" type="text" value={branch.telephone} onChange={e => handleBranchChange(idx, 'telephone', e.target.value)} />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4 mt-2">
+                                                <div className="form-group">
+                                                    <label>Mobile Number</label>
+                                                    <input className="form-control" type="text" value={branch.mobile} onChange={e => handleBranchChange(idx, 'mobile', e.target.value)} />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </CollapsedCardKYC>
+                                // </div>
+                            ))}
+                            <div className="row mt-2 ms-2 justify-content-start">
+                                <div className="col-md-2">
+                                    <button className="purple-btn1" onClick={e => { e.preventDefault(); addBranchOffice(); }}>
+                                        Add Branch
+                                    </button>
+                                </div>
+                            </div>
+
+
+                            {contactPersons.map((person, idx) => (
+
+                                <CollapsedCardKYC
+                                    key={person.id}
+                                    title={`Contact Person${contactPersons.length > 1 ? ` ${idx + 1}` : ""}`}
+                                    onDelete={() => deleteContactPerson(person.id)}
+                                    showDelete={contactPersons.length > 1}
+                                >
+                                    <div className="card-body mt-0">
+                                        <div className="row">
+                                            {/* Escalation Level */}
+                                            <div className="col-md-4  ">
+                                                <div className="form-group">
+                                                    <label>
+                                                        Escalation Level<span>*</span>
+                                                        <TooltipIcon message="Select the escalation level for the contact person. This indicates the priority or seniority in the escalation process for any issues or concerns." />
+                                                    </label>
+                                                    <SingleSelector
+                                                        options={[]}
+                                                        value={person.escalationLevel}
+                                                        onChange={(selected) =>
+                                                            handleContactPersonChange(idx, "escalationLevel", selected)
+                                                        }
+                                                    />
+                                                </div>
+                                            </div>
+                                            {/* Name Title */}
+                                            <div className="col-md-4 ">
+                                                <div className="form-group">
+                                                    <label>
+                                                        Name Title <span>*</span>
+                                                        <TooltipIcon message="Select the appropriate title for the employee (e.g. Mr., Mrs., Dr. Ms.). This helps in addressing the employee correctly in formal communications." />
+                                                    </label>
+                                                    <SingleSelector
+                                                        options={[]}
+                                                        value={person.nameTitle}
+                                                        onChange={(selected) =>
+                                                            handleContactPersonChange(idx, "nameTitle", selected)
+                                                        }
+                                                    />
+                                                </div>
+                                            </div>
+                                            {/* First Name */}
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>
+                                                        First Name <span>*</span>
+                                                        <TooltipIcon message="Please provide the first name Of the designated contact person for your organization. This is required for direct correspondence." />
+                                                    </label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="text"
+                                                        value={person.firstName}
+                                                        onChange={(e) =>
+                                                            handleContactPersonChange(idx, "firstName", e.target.value)
+                                                        }
+                                                    />
+                                                </div>
+                                            </div>
+                                            {/* Last Name */}
+                                            <div className="col-md-4 mt-2">
+                                                <div className="form-group">
+                                                    <label>
+                                                        Last Name<span>*</span>
+                                                        <TooltipIcon message="Please provide the last name of the designated contact person for your organization. This is required for direct correspondence." />
+                                                    </label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="text"
+                                                        value={person.lastName}
+                                                        onChange={(e) =>
+                                                            handleContactPersonChange(idx, "lastName", e.target.value)
+                                                        }
+                                                    />
+                                                </div>
+                                            </div>
+                                            {/* Designation */}
+                                            <div className="col-md-4  mt-2">
+                                                <div className="form-group">
+                                                    <label>
+                                                        Designation<span>*</span>
+                                                        <TooltipIcon message="Enter the official designation or job title of the contact person within the organization." />
+                                                    </label>
+                                                    <SingleSelector
+                                                        options={[]}
+                                                        value={person.designation}
+                                                        onChange={(selected) =>
+                                                            handleContactPersonChange(idx, "designation", selected)
+                                                        }
+                                                    />
+                                                </div>
+                                            </div>
+                                            {/* Primary Email */}
+                                            <div className="col-md-4  mt-2">
+                                                <div className="form-group">
+                                                    <label>
+                                                        Primary Email ID <span>*</span>
+                                                        <TooltipIcon message=" Enter the primary email address of the contact person. This will be used for communication and correspondence." />
+                                                    </label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="text"
+                                                        value={person.primaryEmail}
+                                                        onChange={(e) =>
+                                                            handleContactPersonChange(idx, "primaryEmail", e.target.value)
+                                                        }
+                                                    />
+                                                </div>
+                                            </div>
+                                            {/* Secondary Email */}
+                                            <div className="col-md-4  mt-2">
+                                                <div className="form-group">
+                                                    <label>Secondary Email ID</label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="text"
+                                                        value={person.secondaryEmail}
+                                                        onChange={(e) =>
+                                                            handleContactPersonChange(idx, "secondaryEmail", e.target.value)
+                                                        }
+                                                    />
+                                                </div>
+                                            </div>
+                                            {/* Primary Mobile */}
+                                            <div className="col-md-4  mt-2">
+                                                <div className="form-group">
+                                                    <label>
+                                                        Primary Mobile No. <span>*</span>
+                                                        <TooltipIcon message="Enter the contact person's primary mobile number. This will be used for urgent communication and notifications." />
+                                                    </label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="text"
+                                                        value={person.primaryMobile}
+                                                        onChange={(e) =>
+                                                            handleContactPersonChange(idx, "primaryMobile", e.target.value)
+                                                        }
+                                                    />
+                                                </div>
+                                            </div>
+                                            {/* Secondary Mobile */}
+                                            <div className="col-md-4  mt-2">
+                                                <div className="form-group">
+                                                    <label>Secondary Mobile No.</label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="text"
+                                                        value={person.secondaryMobile}
+                                                        onChange={(e) =>
+                                                            handleContactPersonChange(idx, "secondaryMobile", e.target.value)
+                                                        }
+                                                    />
+                                                </div>
+                                            </div>
+                                            {/* Nationality */}
+                                            <div className="col-md-4  mt-2">
+                                                <div className="form-group">
+                                                    <label>Nationality</label>
+                                                    <SingleSelector
+                                                        options={[]}
+                                                        value={person.nationality}
+                                                        onChange={(selected) =>
+                                                            handleContactPersonChange(idx, "nationality", selected)
+                                                        }
+                                                    />
+                                                </div>
+                                            </div>
+                                            {/* Gender */}
+                                            <div className="col-md-4  mt-2">
+                                                <div className="form-group">
+                                                    <label>Gender</label>
+                                                    <SingleSelector
+                                                        options={[]}
+                                                        value={person.gender}
+                                                        onChange={(selected) =>
+                                                            handleContactPersonChange(idx, "gender", selected)
+                                                        }
+                                                    />
+                                                </div>
+                                            </div>
+                                            {/* Date of Birth */}
+                                            <div className="col-md-4  mt-2">
+                                                <div className="form-group">
+                                                    <label>Date of Birth</label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="date"
+                                                        value={person.dob}
+                                                        onChange={(e) =>
+                                                            handleContactPersonChange(idx, "dob", e.target.value)
+                                                        }
+                                                    />
+                                                </div>
+                                            </div>
+                                            {/* Attachment */}
+                                            <div className="col-md-4  mt-2">
+                                                <div className="form-group">
+                                                    <label>Attachment</label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="file"
+                                                        onChange={(e) =>
+                                                            handleContactPersonChange(idx, "attachment", e.target.files[0])
+                                                        }
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </CollapsedCardKYC>
+
+                            ))}
+                            <div className="row mt-2 ms-2 justify-content-start">
+                                <div className="col-md-2">
+                                    <button
+                                        className="purple-btn1"
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            addContactPerson();
+                                        }}
+                                    >
+                                        Add Contact Person
+                                    </button>
+                                </div>
+                            </div>
+
+                            {warehouses.map((warehouse, idx) => (
+                                // <div className="card mx-3 pb-4 mt-4" key={warehouse.id}>
+                                <CollapsedCardKYC
+                                    key={warehouse.id}
+                                    title={`Factory Warehouse${warehouses.length > 1 ? ` ${idx + 1}` : ''}`}
+                                    onDelete={() => deleteWarehouse(warehouse.id)}
+                                    showDelete={warehouses.length > 1}
+                                >
+                                    <div className="card-body mt-0">
+                                        <div className="row">
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>Address</label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="text"
+                                                        value={warehouse.address}
+                                                        onChange={e => handleWarehouseChange(idx, 'address', e.target.value)}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4  ">
+                                                <div className="form-group">
+                                                    <label>Country<span>*</span></label>
+                                                    <SingleSelector
+                                                        options={[]}
+                                                        value={warehouse.country}
+                                                        onChange={selected => handleWarehouseChange(idx, 'country', selected)}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4  mt-2">
+                                                <div className="form-group">
+                                                    <label>State <span>*</span></label>
+                                                    <SingleSelector
+                                                        options={[]}
+                                                        value={warehouse.state}
+                                                        onChange={selected => handleWarehouseChange(idx, 'state', selected)}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4  mt-2">
+                                                <div className="form-group">
+                                                    <label>City <span>*</span></label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="text"
+                                                        value={warehouse.city}
+                                                        onChange={e => handleWarehouseChange(idx, 'city', e.target.value)}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4  mt-2">
+                                                <div className="form-group">
+                                                    <label>Telephone Phone No.</label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="text"
+                                                        value={warehouse.telephone}
+                                                        onChange={e => handleWarehouseChange(idx, 'telephone', e.target.value)}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4  mt-2">
+                                                <div className="form-group">
+                                                    <label>Mobile Number</label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="text"
+                                                        value={warehouse.mobile}
+                                                        onChange={e => handleWarehouseChange(idx, 'mobile', e.target.value)}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4  mt-2">
+                                                <div className="form-group">
+                                                    <label>Attachment</label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="file"
+                                                        onChange={e => handleWarehouseChange(idx, 'attachment', e.target.files[0])}
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </CollapsedCardKYC>
+                                // </div>
+                            ))}
+                            <div className="row mt-2 ms-2 justify-content-start">
+                                <div className="col-md-3">
+                                    <button className="purple-btn1" onClick={e => { e.preventDefault(); addWarehouse(); }}>
+                                        Add Manufacturing Factory / Plant
+                                    </button>
+                                </div>
+                            </div>
+
+
+                            {owners.map((owner, idx) => (
+
+                                <CollapsedCardKYC
+                                    key={owner.id}
+                                    title={`Owner / Director${owners.length > 1 ? ` ${idx + 1}` : ''}`}
+                                    onDelete={() => deleteOwner(owner.id)}
+                                    showDelete={owners.length > 1}
+                                >
+                                    <div className="card-body mt-0">
+                                        <div className="row">
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>First Name <span>*</span></label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="text"
+                                                        value={owner.firstName}
+                                                        onChange={e => handleOwnerChange(idx, 'firstName', e.target.value)}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>Last Name <span>*</span></label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="text"
+                                                        value={owner.lastName}
+                                                        onChange={e => handleOwnerChange(idx, 'lastName', e.target.value)}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4  ">
+                                                <div className="form-group">
+                                                    <label>Designation <span>*</span></label>
+                                                    <SingleSelector
+                                                        options={[]}
+                                                        value={owner.designation}
+                                                        onChange={selected => handleOwnerChange(idx, 'designation', selected)}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4  ">
+                                                <div className="form-group">
+                                                    <label>Qualification</label>
+                                                    <SingleSelector
+                                                        options={[]}
+                                                        value={owner.qualification}
+                                                        onChange={selected => handleOwnerChange(idx, 'qualification', selected)}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>Experience</label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="text"
+                                                        value={owner.experience}
+                                                        onChange={e => handleOwnerChange(idx, 'experience', e.target.value)}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>Email <span>*</span></label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="text"
+                                                        value={owner.email}
+                                                        onChange={e => handleOwnerChange(idx, 'email', e.target.value)}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>Mobile Number <span>*</span></label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="text"
+                                                        value={owner.mobile}
+                                                        onChange={e => handleOwnerChange(idx, 'mobile', e.target.value)}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>Attachment</label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="file"
+                                                        onChange={e => handleOwnerChange(idx, 'attachment', e.target.files[0])}
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </CollapsedCardKYC>
+
+                            ))}
+                            <div className="row mt-2 ms-2 justify-content-start">
+                                <div className="col-md-2">
+                                    <button className="purple-btn1" onClick={e => { e.preventDefault(); addOwner(); }}>
+                                        Add Director
+                                    </button>
+                                </div>
+                            </div>
+
+
+                            {relatedEmployees.map((employee, idx) => (
+                                // <div className="card mx-3 pb-4 mt-4" key={employee.id}>
+                                <CollapsedCardKYC
+                                    key={employee.id}
+                                    title={`Are you related to any employee of Panchshil ?${relatedEmployees.length > 1 ? ` ${idx + 1}` : ''}`}
+                                    onDelete={() => deleteRelatedEmployee(employee.id)}
+                                    showDelete={relatedEmployees.length > 1}
+                                >
+                                    <div className="card-body mt-0">
+                                        <div className="row">
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>First Name <span>*</span><TooltipIcon message="Enter the employee's first name." /></label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="text"
+                                                        value={employee.firstName}
+                                                        onChange={e => handleRelatedEmployeeChange(idx, 'firstName', e.target.value)}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>Last Name <span>*</span><TooltipIcon message="Enter the employee's last name." /></label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="text"
+                                                        value={employee.lastName}
+                                                        onChange={e => handleRelatedEmployeeChange(idx, 'lastName', e.target.value)}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>Employee Email Id <span>*</span><TooltipIcon message=" Enter the employee 's official email address" /></label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="text"
+                                                        value={employee.email}
+                                                        onChange={e => handleRelatedEmployeeChange(idx, 'email', e.target.value)}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>Mobile Number <TooltipIcon message="Enter the employee's mobile number." /></label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="text"
+                                                        value={employee.mobile}
+                                                        onChange={e => handleRelatedEmployeeChange(idx, 'mobile', e.target.value)}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4  ">
+                                                <div className="form-group">
+                                                    <label>Designation <TooltipIcon message="Select the employee's designation from the list provided. This defines the employee's role within the organization." /></label>
+                                                    <SingleSelector
+                                                        options={[]}
+                                                        value={employee.designation}
+                                                        onChange={selected => handleRelatedEmployeeChange(idx, 'designation', selected)}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4  ">
+                                                <div className="form-group">
+                                                    <label>Department <TooltipIcon message="Please choose the appropriate department from the list." /></label>
+                                                    <SingleSelector
+                                                        options={[]}
+                                                        value={employee.department}
+                                                        onChange={selected => handleRelatedEmployeeChange(idx, 'department', selected)}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4  ">
+                                                <div className="form-group">
+                                                    <label>Relationship <TooltipIcon message="Choose the relationship type between the employee and the organization." /></label>
+                                                    <SingleSelector
+                                                        options={[]}
+                                                        value={employee.relationship}
+                                                        onChange={selected => handleRelatedEmployeeChange(idx, 'relationship', selected)}
+                                                    />
+                                                </div>
+                                            </div>
+                                            {/* Radio button group for Currently Working */}
+                                            <div className="col-md-4 mb-3 mt-2">
                                                 <div className="form-group mb-0">
-                                                    <label className="mb-1">Currently Working <span>*</span></label>
+                                                    <label className="mb-1">Currently Working </label>
+                                                    <TooltipIcon message="Select Yes if the employee is currently working with the organization. Select No if the employee has left the organization." />
                                                     <div>
                                                         <div className="form-check form-check-inline">
-                                                            <input className="form-check-input" type="radio" name="currentlyWorking" id="currentlyWorkingYes" value="yes" />
-                                                            <label className="form-check-label" htmlFor="currentlyWorkingYes">Yes</label>
+                                                            <input className="form-check-input" type="radio" name={`currentlyWorking${employee.id}`} id={`currentlyWorkingYes${employee.id}`} value="yes" checked={employee.currentlyWorking === 'yes'} onChange={() => handleRelatedEmployeeChange(idx, 'currentlyWorking', 'yes')} />
+                                                            <label className="form-check-label" htmlFor={`currentlyWorkingYes${employee.id}`}>Yes</label>
                                                         </div>
                                                         <div className="form-check form-check-inline">
-                                                            <input className="form-check-input" type="radio" name="currentlyWorking" id="currentlyWorkingNo" value="no" />
-                                                            <label className="form-check-label" htmlFor="currentlyWorkingNo">No</label>
+                                                            <input className="form-check-input" type="radio" name={`currentlyWorking${employee.id}`} id={`currentlyWorkingNo${employee.id}`} value="no" checked={employee.currentlyWorking === 'no'} onChange={() => handleRelatedEmployeeChange(idx, 'currentlyWorking', 'no')} />
+                                                            <label className="form-check-label" htmlFor={`currentlyWorkingNo${employee.id}`}>No</label>
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
-
-                                        <div className="col-md-4">
-                                            <div className="form-group">
-                                                <label>
-                                                    Attachment <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
-                                                </label>
-                                                <input
-                                                    className="form-control"
-                                                    type="file"
-                                                />
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>Attachment</label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="file"
+                                                        onChange={e => handleRelatedEmployeeChange(idx, 'attachment', e.target.files[0])}
+                                                    />
+                                                </div>
                                             </div>
                                         </div>
-
                                     </div>
+                                </CollapsedCardKYC>
+                                // </div>
+                            ))}
+                            <div className="row mt-2 ms-2 justify-content-start">
+                                <div className="col-md-4">
+                                    <button className="purple-btn1" onClick={e => { e.preventDefault(); addRelatedEmployee(); }}>
+                                        Are you related to any employee of Panchshil ?
+                                    </button>
                                 </div>
                             </div>
 
-                            <div className="card mx-3 pb-4 mt-4">
-                                <div className="card-header3">
-                                    <h3 className="card-title">Name of Sister Concern / Group Company()</h3>
-                                </div>
-                                <div className="card-body mt-0">
-
-                                    <div className="row">
-
-                                        <div className="col-md-4">
-                                            <div className="form-group">
-                                                <label>
-                                                    Name  <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
-                                                </label>
-                                                <input
-                                                    className="form-control"
-                                                    type="text"
-                                                />
+                            {groupCompanies.map((company, idx) => (
+                                // <div className="card mx-3 pb-4 mt-4" key={company.id}>
+                                <CollapsedCardKYC
+                                    key={company.id}
+                                    title={`Sister Concern / Group Company${groupCompanies.length > 1 ? ` ${idx + 1}` : ''}`}
+                                    onDelete={() => deleteGroupCompany(company.id)}
+                                    showDelete={groupCompanies.length > 1}
+                                >
+                                    <div className="card-body mt-0">
+                                        <div className="row">
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>Name <span>*</span></label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="text"
+                                                        value={company.name}
+                                                        onChange={e => handleGroupCompanyChange(idx, 'name', e.target.value)}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4  ">
+                                                <div className="form-group">
+                                                    <label>Nature Of Business <span>*</span></label>
+                                                    <SingleSelector
+                                                        options={[]}
+                                                        value={company.natureOfBusiness}
+                                                        onChange={selected => handleGroupCompanyChange(idx, 'natureOfBusiness', selected)}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>PAN No. <span>*</span></label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="text"
+                                                        value={company.pan}
+                                                        onChange={e => handleGroupCompanyChange(idx, 'pan', e.target.value)}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>GSTIN No. <span>*</span></label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="text"
+                                                        value={company.gstin}
+                                                        onChange={e => handleGroupCompanyChange(idx, 'gstin', e.target.value)}
+                                                    />
+                                                </div>
                                             </div>
                                         </div>
-
-
-                                        <div className="col-md-4  ">
-                                            <div className="form-group">
-
-                                                <label>
-                                                    Nature Of Business  <span>*</span>
-                                                    <TooltipIcon message="Please choose your country from the list" />
-                                                </label>
-                                                <SingleSelector
-                                                    options={[]}
-                                                // placeholder="Select Country"
-                                                />
-                                            </div>
-                                        </div>
-
-                                        <div className="col-md-4">
-                                            <div className="form-group">
-                                                <label>
-                                                    PAN No.   <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
-                                                </label>
-                                                <input
-                                                    className="form-control"
-                                                    type="text"
-                                                />
-                                            </div>
-                                        </div>
-
-                                        <div className="col-md-4">
-                                            <div className="form-group">
-                                                <label>
-                                                    GSTIN No. <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
-                                                </label>
-                                                <input
-                                                    className="form-control"
-                                                    type="text"
-                                                />
-                                            </div>
-                                        </div>
-
                                     </div>
-                                </div>
-                            </div>
-
-
-
-                            <div className="card mx-3 pb-4 mt-4">
-                                <div className="card-header3">
-                                    <h3 className="card-title">Supervisory Manpower & Resources Details</h3>
-                                </div>
-                                <div className="card-body mt-0">
-
-                                    <div className="row">
-
-                                        <div className="col-md-4">
-                                            <div className="form-group">
-                                                <label>
-                                                    Supervisory Manpower Details <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
-                                                </label>
-                                                <input
-                                                    className="form-control"
-                                                    type="text"
-                                                />
-                                            </div>
-                                        </div>
-
-
-
-                                        <div className="col-md-4">
-                                            <div className="form-group">
-                                                <label>
-                                                    Total Numbers <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
-                                                </label>
-                                                <input
-                                                    className="form-control"
-                                                    type="text"
-                                                />
-                                            </div>
-                                        </div>
-
-                                        <div className="col-md-4">
-                                            <div className="form-group">
-                                                <label>
-                                                    Remark <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
-                                                </label>
-                                                <input
-                                                    className="form-control"
-                                                    type="text"
-                                                />
-                                            </div>
-                                        </div>
-
-                                        <div className="col-md-4">
-                                            <div className="form-group">
-                                                <label>
-                                                    Attachment <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
-                                                </label>
-                                                <input
-                                                    className="form-control"
-                                                    type="text"
-                                                />
-                                            </div>
-                                        </div>
-
-                                    </div>
+                                </CollapsedCardKYC>
+                                // </div>
+                            ))}
+                            <div className="row mt-2 ms-2 justify-content-start">
+                                <div className="col-md-4">
+                                    <button className="purple-btn1" onClick={e => { e.preventDefault(); addGroupCompany(); }}>
+                                        Add Concern / Group Company
+                                    </button>
                                 </div>
                             </div>
 
 
-                            <div className="card mx-3 pb-4 mt-4">
-                                <div className="card-header3">
-                                    <h3 className="card-title">Major Customer Served by You </h3>
-                                </div>
-                                <div className="card-body mt-0">
 
-                                    <div className="row">
-
-                                        <div className="col-md-4">
-                                            <div className="form-group">
-                                                <label>
-                                                    Company Name <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
-                                                </label>
-                                                <input
-                                                    className="form-control"
-                                                    type="text"
-                                                />
+                            {supervisoryManpower.map((item, idx) => (
+                                // <div className="card mx-3 pb-4 mt-4" key={item.id}>
+                                <CollapsedCardKYC
+                                    key={item.id}
+                                    title={`Supervisory Manpower${supervisoryManpower.length > 1 ? ` ${idx + 1}` : ''}`}
+                                    onDelete={() => deleteSupervisoryManpower(item.id)}
+                                    showDelete={supervisoryManpower.length > 1}
+                                >
+                                    <div className="card-body mt-0">
+                                        <div className="row">
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>Supervisory Manpower Details <span>*</span></label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="text"
+                                                        value={item.details}
+                                                        onChange={e => handleSupervisoryManpowerChange(idx, 'details', e.target.value)}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>Total Numbers <span>*</span></label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="text"
+                                                        value={item.totalNumbers}
+                                                        onChange={e => handleSupervisoryManpowerChange(idx, 'totalNumbers', e.target.value)}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>Remark</label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="text"
+                                                        value={item.remark}
+                                                        onChange={e => handleSupervisoryManpowerChange(idx, 'remark', e.target.value)}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>Attachment</label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="file"
+                                                        onChange={e => handleSupervisoryManpowerChange(idx, 'attachment', e.target.files[0])}
+                                                    />
+                                                </div>
                                             </div>
                                         </div>
-
-
-
-                                        <div className="col-md-4">
-                                            <div className="form-group">
-                                                <label>
-                                                    Work Done <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
-                                                </label>
-                                                <input
-                                                    className="form-control"
-                                                    type="text"
-                                                />
-                                            </div>
-                                        </div>
-
-                                        <div className="col-md-4">
-                                            <div className="form-group">
-                                                <label>
-                                                    Contact Person <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
-                                                </label>
-                                                <input
-                                                    className="form-control"
-                                                    type="text"
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="col-md-4  ">
-                                            <div className="form-group">
-
-                                                <label>
-                                                    Designation  <span>*</span>
-                                                    <TooltipIcon message="Please choose your country from the list" />
-                                                </label>
-                                                <SingleSelector
-                                                    options={[]}
-                                                // placeholder="Select Country"
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="col-md-4  ">
-                                            <div className="form-group">
-
-                                                <label>
-                                                    Country  <span>*</span>
-                                                    <TooltipIcon message="Please choose your country from the list" />
-                                                </label>
-                                                <SingleSelector
-                                                    options={[]}
-                                                // placeholder="Select Country"
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="col-md-4">
-                                            <div className="form-group">
-                                                <label>
-                                                    Phone No. <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
-                                                </label>
-                                                <input
-                                                    className="form-control"
-                                                    type="text"
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="col-md-4">
-                                            <div className="form-group">
-                                                <label>
-                                                    Mobile No. <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
-                                                </label>
-                                                <input
-                                                    className="form-control"
-                                                    type="text"
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="col-md-4">
-                                            <div className="form-group">
-                                                <label>
-                                                    Year of Association <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
-                                                </label>
-                                                <input
-                                                    className="form-control"
-                                                    type="text"
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="col-md-4">
-                                            <div className="form-group">
-                                                <label>
-                                                    Business done in Last 12 month in lacs <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
-                                                </label>
-                                                <input
-                                                    className="form-control"
-                                                    type="text"
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="col-md-4">
-                                            <div className="form-group">
-                                                <label>
-                                                    Service Provided From <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
-                                                </label>
-                                                <input
-                                                    className="form-control"
-                                                    type="date"
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="col-md-4">
-                                            <div className="form-group">
-                                                <label>
-                                                    Service Provided To  <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
-                                                </label>
-                                                <input
-                                                    className="form-control"
-                                                    type="date"
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="col-md-4">
-                                            <div className="form-group">
-                                                <label>
-                                                    Stage Of Project <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
-                                                </label>
-                                                <input
-                                                    className="form-control"
-                                                    type="text"
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="col-md-4">
-                                            <div className="form-group">
-                                                <label>
-                                                    Major Competitors <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
-                                                </label>
-                                                <input
-                                                    className="form-control"
-                                                    type="text"
-                                                />
-                                            </div>
-                                        </div>
-
-                                        <div className="col-md-4">
-                                            <div className="form-group">
-                                                <label>
-                                                    Attachment <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
-                                                </label>
-                                                <input
-                                                    className="form-control"
-                                                    type="text"
-                                                />
-                                            </div>
-                                        </div>
-
                                     </div>
+                                </CollapsedCardKYC>
+                                // </div>
+                            ))}
+                            <div className="row mt-2 ms-2 justify-content-start">
+                                <div className="col-md-2">
+                                    <button className="purple-btn1" onClick={e => { e.preventDefault(); addSupervisoryManpower(); }}>
+                                        Add Supervisory
+                                    </button>
                                 </div>
                             </div>
 
-                            <div className="card mx-3 pb-4 mt-4">
-                                <div className="card-header3">
-                                    <h3 className="card-title">Current Working Sites </h3>
-                                </div>
-                                <div className="card-body mt-0">
 
-                                    <div className="row">
-
-                                        <div className="col-md-4">
-                                            <div className="form-group">
-                                                <label>
-                                                    Builder / Client Name <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
-                                                </label>
-                                                <input
-                                                    className="form-control"
-                                                    type="text"
-                                                />
+                            {majorCustomers.map((customer, idx) => (
+                                // <div className="card mx-3 pb-4 mt-4" key={customer.id}>
+                                <CollapsedCardKYC
+                                    key={customer.id}
+                                    title={`Major Customer${majorCustomers.length > 1 ? ` ${idx + 1}` : ''}`}
+                                    onDelete={() => deleteMajorCustomer(customer.id)}
+                                    showDelete={majorCustomers.length > 1}
+                                >
+                                    <div className="card-body mt-0">
+                                        <div className="row">
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>Company Name <span>*</span></label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="text"
+                                                        value={customer.companyName}
+                                                        onChange={e => handleMajorCustomerChange(idx, 'companyName', e.target.value)}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>Work Done <span>*</span></label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="text"
+                                                        value={customer.workDone}
+                                                        onChange={e => handleMajorCustomerChange(idx, 'workDone', e.target.value)}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>Contact Person <span>*</span></label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="text"
+                                                        value={customer.contactPerson}
+                                                        onChange={e => handleMajorCustomerChange(idx, 'contactPerson', e.target.value)}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4  ">
+                                                <div className="form-group">
+                                                    <label>Designation <span>*</span></label>
+                                                    <SingleSelector
+                                                        options={[]}
+                                                        value={customer.designation}
+                                                        onChange={selected => handleMajorCustomerChange(idx, 'designation', selected)}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4  ">
+                                                <div className="form-group">
+                                                    <label>Country <span>*</span></label>
+                                                    <SingleSelector
+                                                        options={[]}
+                                                        value={customer.country}
+                                                        onChange={selected => handleMajorCustomerChange(idx, 'country', selected)}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>Phone No.</label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="text"
+                                                        value={customer.phone}
+                                                        onChange={e => handleMajorCustomerChange(idx, 'phone', e.target.value)}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>Mobile No. <span>*</span></label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="text"
+                                                        value={customer.mobile}
+                                                        onChange={e => handleMajorCustomerChange(idx, 'mobile', e.target.value)}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>Year of Association <span>*</span></label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="text"
+                                                        value={customer.yearOfAssociation}
+                                                        onChange={e => handleMajorCustomerChange(idx, 'yearOfAssociation', e.target.value)}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>Business done in Last 12 month in lacs <span>*</span></label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="text"
+                                                        value={customer.businessLast12Months}
+                                                        onChange={e => handleMajorCustomerChange(idx, 'businessLast12Months', e.target.value)}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>Service Provided From <span>*</span></label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="date"
+                                                        value={customer.serviceFrom}
+                                                        onChange={e => handleMajorCustomerChange(idx, 'serviceFrom', e.target.value)}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>Service Provided To <span>*</span></label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="date"
+                                                        value={customer.serviceTo}
+                                                        onChange={e => handleMajorCustomerChange(idx, 'serviceTo', e.target.value)}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>Stage Of Project</label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="text"
+                                                        value={customer.stageOfProject}
+                                                        onChange={e => handleMajorCustomerChange(idx, 'stageOfProject', e.target.value)}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>Major Competitors</label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="text"
+                                                        value={customer.majorCompetitors}
+                                                        onChange={e => handleMajorCustomerChange(idx, 'majorCompetitors', e.target.value)}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>Attachment</label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="file"
+                                                        onChange={e => handleMajorCustomerChange(idx, 'attachment', e.target.files[0])}
+                                                    />
+                                                </div>
                                             </div>
                                         </div>
-
-
-
-                                        <div className="col-md-4">
-                                            <div className="form-group">
-                                                <label>
-                                                    Brief Details <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
-                                                </label>
-                                                <input
-                                                    className="form-control"
-                                                    type="text"
-                                                />
-                                            </div>
-                                        </div>
-
-                                        <div className="col-md-4">
-                                            <div className="form-group">
-                                                <label>
-                                                    Area (Sq ft.) <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
-                                                </label>
-                                                <input
-                                                    className="form-control"
-                                                    type="text"
-                                                />
-                                            </div>
-                                        </div>
-
-
-                                        <div className="col-md-4">
-                                            <div className="form-group">
-                                                <label>
-                                                    Manpower employed at Site <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
-                                                </label>
-                                                <input
-                                                    className="form-control"
-                                                    type="text"
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="col-md-4">
-                                            <div className="form-group">
-                                                <label>
-                                                    Stage Of Project <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
-                                                </label>
-                                                <input
-                                                    className="form-control"
-                                                    type="text"
-                                                />
-                                            </div>
-                                        </div>
-
-
-                                        <div className="col-md-4">
-                                            <div className="form-group">
-                                                <label>
-                                                    Likely Compl. Date <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
-                                                </label>
-                                                <input
-                                                    className="form-control"
-                                                    type="date"
-                                                />
-                                            </div>
-                                        </div>
-
-                                        <div className="col-md-4">
-                                            <div className="form-group">
-                                                <label>
-                                                    Attachment <span>*</span>
-                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
-                                                </label>
-                                                <input
-                                                    className="form-control"
-                                                    type="file"
-                                                />
-                                            </div>
-                                        </div>
-
                                     </div>
+                                </CollapsedCardKYC>
+                                // </div>
+                            ))}
+                            <div className="row mt-2 ms-2 justify-content-start">
+                                <div className="col-md-2">
+                                    <button className="purple-btn1" onClick={e => { e.preventDefault(); addMajorCustomer(); }}>
+                                        Add Client References
+                                    </button>
+                                </div>
+                            </div>
+
+                            {workingSites.map((site, idx) => (
+                                // <div className="card mx-3 pb-4 mt-4" key={site.id}>
+                                <CollapsedCardKYC
+                                    key={site.id}
+                                    title={`Working Site${workingSites.length > 1 ? ` ${idx + 1}` : ''}`}
+                                    onDelete={() => deleteWorkingSite(site.id)}
+                                    showDelete={workingSites.length > 1}
+                                >
+                                    <div className="card-body mt-0">
+                                        <div className="row">
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>Builder / Client Name <span>*</span></label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="text"
+                                                        value={site.builderName}
+                                                        onChange={e => handleWorkingSiteChange(idx, 'builderName', e.target.value)}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>Brief Details <span>*</span></label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="text"
+                                                        value={site.briefDetails}
+                                                        onChange={e => handleWorkingSiteChange(idx, 'briefDetails', e.target.value)}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>Area (Sq ft.) <span>*</span></label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="text"
+                                                        value={site.area}
+                                                        onChange={e => handleWorkingSiteChange(idx, 'area', e.target.value)}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>Manpower employed at Site</label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="text"
+                                                        value={site.manpower}
+                                                        onChange={e => handleWorkingSiteChange(idx, 'manpower', e.target.value)}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>Stage Of Project</label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="text"
+                                                        value={site.stageOfProject}
+                                                        onChange={e => handleWorkingSiteChange(idx, 'stageOfProject', e.target.value)}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>Likely Compl. Date</label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="date"
+                                                        value={site.likelyCompletion}
+                                                        onChange={e => handleWorkingSiteChange(idx, 'likelyCompletion', e.target.value)}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>Attachment</label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="file"
+                                                        onChange={e => handleWorkingSiteChange(idx, 'attachment', e.target.files[0])}
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </CollapsedCardKYC>
+                                // </div>
+                            ))}
+                            <div className="row mt-2 ms-2 justify-content-start">
+                                <div className="col-md-2">
+                                    <button className="purple-btn1" onClick={e => { e.preventDefault(); addWorkingSite(); }}>
+                                        Add Working Site
+                                    </button>
                                 </div>
                             </div>
 
@@ -4916,10 +5267,10 @@ const VendorRegistrationStepByStepForm = () => {
 
                     {currentStep === 5 && (
                         <div className="card mx-4 pb-4 mt-4">
-                            <div className="row mb-3 mx-2">
+                            <div className="row mb-3 mx-2 mt-4">
                                 <div className="col-md-6">
                                     <div className="form-group">
-                                        <label>Product & Services <span>*</span></label>
+                                        <label>Product & Services </label>
                                         <MultiSelector
                                             options={[]}
                                             // value={selectedProductServices || []}
@@ -4933,7 +5284,12 @@ const VendorRegistrationStepByStepForm = () => {
 
 
                             {/* Turnover Table */}
-                            <div className="mx-3">
+                            <div className="mx-3 mt-4">
+                                <div className="col-md-12">
+                                    <h5 className="mb-3">Annual Turnover 
+                                        <TooltipIcon message="Enter the value of Turnover in Lacs." />
+                                    </h5>
+                                </div>
                                 <div className="tbl-container mt-3 ">
                                     <table className=" w-100">
                                         <thead>
@@ -4989,7 +5345,9 @@ const VendorRegistrationStepByStepForm = () => {
 
                             <div className="row mt-5 mx-2">
                                 <div className="col-md-12">
-                                    <h5 className="mb-3">Additional Vendor Statutory Details</h5>
+                                    <h5 className="mb-3">Additional Vendor Statutory Details
+                                         <TooltipIcon message="If not applicable then keep The field blank Additional Vendor Statutory Details." />
+                                    </h5>
                                 </div>
 
 
@@ -5152,7 +5510,7 @@ const VendorRegistrationStepByStepForm = () => {
                                 ))}
                             </div>
 
-                            <div className="mb-3 mx-3">
+                            <div className="mb-3 mx-3 mt-5">
                                 <h5 className="mb-3">Questions</h5>
                                 <div className="row mb-3">
                                     <div className="col-md-12 mb-3">
