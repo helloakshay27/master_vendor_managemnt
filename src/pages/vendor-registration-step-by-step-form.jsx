@@ -1,5 +1,8 @@
    
 
+  
+    
+
 
 import React, { useState, useEffect, useRef } from "react";
 // import CollapsedCardKYC from "../../../components/base/Card/CollapsedCardKYC";
@@ -130,18 +133,20 @@ const VendorRegistrationStepByStepForm = () => {
     };
 
     const [supplierShowData, setSupplierShowData] = useState(null);
+    const [bankDetailsList, setBankDetailsList] = useState([]);
     useEffect(() => {
         const fetchSupplierShowData = async () => {
             try {
-                const response = await axios.get('https://vendors.lockated.com/pms/suppliers/4009/supplier_show');
+                const response = await axios.get('https://vendors.lockated.com/pms/suppliers/4009/supplier_show.json');
                 setSupplierShowData(response.data);
+                  setBankDetailsList(response.data?.bank_details || [])
             } catch (error) {
                 console.error('Error fetching supplier show data:', error);
             }
         };
         fetchSupplierShowData();
     }, []);
-    // console.log("supplier data:", supplierShowData)
+    console.log("supplier data bankDetailsList:", bankDetailsList)
 
 
     // Map supplierShowData to basicInfo when supplierShowData changes
@@ -544,7 +549,6 @@ const VendorRegistrationStepByStepForm = () => {
     };
     
 
-
     const [virtualAccount, setVirtualAccount] = useState("");
     const [selectedCompany, setSelectedCompany] = useState(null);
     // Example company options, replace with API if needed
@@ -554,21 +558,95 @@ const VendorRegistrationStepByStepForm = () => {
         { label: "Company C", value: "company_c" },
     ];
 
+// --- Step 3 Validation: Bank Details ---
+    const [bankErrors, setBankErrors] = useState({});
 
+    const validateStep3 = () => {
+        let validationErrors = {};
+        if (isRekycTypeEmpty || isBankRekyc) {
+            let hasNewBankDetails = false;
 
+            bankDetailsList.forEach((bankDetail) => {
+                // Only validate if it's a new entry
+                if (bankDetail.isNew) {
+                    hasNewBankDetails = true;
 
-    const [branchOffices, setBranchOffices] = useState([
-        {
-            id: Date.now(),
-            address: '',
-            country: null,
-            state: null,
-            city: '',
-            pincode: '',
-            telephone: '',
-            mobile: ''
+                    if (!bankDetail.bank_name) {
+                        validationErrors.bank_name = "Bank Name is required.";
+                    }
+                    if (!bankDetail.address) {
+                        validationErrors.address = "Address is required.";
+                    }
+                    if (!bankDetail.country_id) {
+                        validationErrors.country_id = "Country is required.";
+                    }
+                    if (!bankDetail.state_id) {
+                        validationErrors.state_id = "State is required.";
+                    }
+                    if (!bankDetail.city_name) {
+                        validationErrors.city_name = "City is required.";
+                    }
+
+                    // For pincode, only validate if it's a new entry and there's no input error
+                    if (!bankDetail.pincode || isNaN(bankDetail.pincode)) {
+                        if (!inputErrors[bankDetail.id]?.pincode) {
+                            validationErrors.pincode = "Valid Pin Code is required.";
+                        }
+                    }
+
+                    if (!bankDetail.account_type || bankDetail.account_type === "") {
+                        validationErrors.account_type = "Account Type is required.";
+                    }
+                    if (!bankDetail.account_number) {
+                        validationErrors.account_number = "Account Number is required.";
+                    }
+                    if (!bankDetail.confirm_account_number) {
+                        validationErrors.confirm_account_number = "Confirm Account Number is required.";
+                    } else if (
+                        bankDetail.account_number !== bankDetail.confirm_account_number
+                    ) {
+                        validationErrors.confirm_account_number = "Account numbers must match";
+                    }
+
+                    if (!bankDetail.branch_name) {
+                        validationErrors.branch_name = "Branch Name is required.";
+                    }
+                    if (!bankDetail.micr_number) {
+                        validationErrors.micr_number = "MICR Number is required.";
+                    }
+
+                    // For IFSC code, only validate if it's a new entry and there's no input error
+                    if (!bankDetail.ifsc_code) {
+                        if (!inputErrors[bankDetail.id]?.ifsc) {
+                            validationErrors.ifsc_code = "IFSC Code is required.";
+                        }
+                    }
+
+                    if (!bankDetail.benficary_name) {
+                        validationErrors.benficary_name = "Beneficiary Name is required.";
+                    }
+
+                    if (!bankAttachments[bankDetail.id]) {
+                        validationErrors.cancelled_cheque = "Cancelled Cheque / Bank Copy is required.";
+                    }
+                }
+            });
+
+            // If there are no new bank details, don't show validation errors
+            if (!hasNewBankDetails) {
+                validationErrors = {};
+            }
         }
-    ]);
+        setBankErrors(validationErrors);
+        return Object.keys(validationErrors).length === 0;
+    };
+   
+
+
+
+
+
+    const [branchOffices, setBranchOffices] = useState([]);
 
     const addBranchOffice = () => {
         setBranchOffices(prev => ([
@@ -598,22 +676,7 @@ const VendorRegistrationStepByStepForm = () => {
 
 
     const [contactPersons, setContactPersons] = useState([
-        {
-            id: Date.now(),
-            escalationLevel: null,
-            nameTitle: null,
-            firstName: "",
-            lastName: "",
-            designation: null,
-            primaryEmail: "",
-            secondaryEmail: "",
-            primaryMobile: "",
-            secondaryMobile: "",
-            nationality: null,
-            gender: null,
-            dob: "",
-            attachment: null,
-        },
+        
     ]);
     const addContactPerson = () => {
         setContactPersons((prev) => [
@@ -645,7 +708,7 @@ const VendorRegistrationStepByStepForm = () => {
 
     const deleteContactPerson = (id) => {
         setContactPersons((prev) =>
-            prev.length === 1 ? prev : prev.filter((person) => person.id !== id)
+            prev.length === 0 ? prev : prev.filter((person) => person.id !== id)
         );
     };
 
@@ -653,17 +716,7 @@ const VendorRegistrationStepByStepForm = () => {
 
     // Owners / Directors Information dynamic section state and handlers
     const [owners, setOwners] = useState([
-        {
-            id: Date.now(),
-            firstName: '',
-            lastName: '',
-            designation: null,
-            qualification: null,
-            experience: '',
-            email: '',
-            mobile: '',
-            attachment: null
-        }
+      
     ]);
 
     const addOwner = () => {
@@ -688,20 +741,11 @@ const VendorRegistrationStepByStepForm = () => {
     };
 
     const deleteOwner = (id) => {
-        setOwners(prev => prev.length === 1 ? prev : prev.filter(o => o.id !== id));
+        setOwners(prev => prev.length === 0 ? prev : prev.filter(o => o.id !== id));
     };
     // Factory Warehouse Details dynamic section state and handlers
     const [warehouses, setWarehouses] = useState([
-        {
-            id: Date.now(),
-            address: '',
-            country: null,
-            state: null,
-            city: '',
-            telephone: '',
-            mobile: '',
-            attachment: null
-        }
+        
     ]);
 
     const addWarehouse = () => {
@@ -725,28 +769,12 @@ const VendorRegistrationStepByStepForm = () => {
     };
 
     const deleteWarehouse = (id) => {
-        setWarehouses(prev => prev.length === 1 ? prev : prev.filter(w => w.id !== id));
+        setWarehouses(prev => prev.length === 0 ? prev : prev.filter(w => w.id !== id));
     };
 
 
     const [majorCustomers, setMajorCustomers] = useState([
-        {
-            id: Date.now(),
-            companyName: '',
-            workDone: '',
-            contactPerson: '',
-            designation: null,
-            country: null,
-            phone: '',
-            mobile: '',
-            yearOfAssociation: '',
-            businessLast12Months: '',
-            serviceFrom: '',
-            serviceTo: '',
-            stageOfProject: '',
-            majorCompetitors: '',
-            attachment: null
-        }
+        
     ]);
 
     const addMajorCustomer = () => {
@@ -777,17 +805,11 @@ const VendorRegistrationStepByStepForm = () => {
     };
 
     const deleteMajorCustomer = (id) => {
-        setMajorCustomers(prev => prev.length === 1 ? prev : prev.filter(c => c.id !== id));
+        setMajorCustomers(prev => prev.length === 0 ? prev : prev.filter(c => c.id !== id));
     };
     // Supervisory Manpower & Resources Details dynamic section state and handlers
     const [supervisoryManpower, setSupervisoryManpower] = useState([
-        {
-            id: Date.now(),
-            details: '',
-            totalNumbers: '',
-            remark: '',
-            attachment: null
-        }
+      
     ]);
 
     const addSupervisoryManpower = () => {
@@ -808,17 +830,11 @@ const VendorRegistrationStepByStepForm = () => {
     };
 
     const deleteSupervisoryManpower = (id) => {
-        setSupervisoryManpower(prev => prev.length === 1 ? prev : prev.filter(s => s.id !== id));
+        setSupervisoryManpower(prev => prev.length === 0 ? prev : prev.filter(s => s.id !== id));
     };
     // Sister Concern / Group Company dynamic section state and handlers
     const [groupCompanies, setGroupCompanies] = useState([
-        {
-            id: Date.now(),
-            name: '',
-            natureOfBusiness: null,
-            pan: '',
-            gstin: ''
-        }
+       
     ]);
 
     const addGroupCompany = () => {
@@ -839,22 +855,11 @@ const VendorRegistrationStepByStepForm = () => {
     };
 
     const deleteGroupCompany = (id) => {
-        setGroupCompanies(prev => prev.length === 1 ? prev : prev.filter(c => c.id !== id));
+        setGroupCompanies(prev => prev.length === 0 ? prev : prev.filter(c => c.id !== id));
     };
     // Related Employee dynamic section state and handlers
     const [relatedEmployees, setRelatedEmployees] = useState([
-        {
-            id: Date.now(),
-            firstName: '',
-            lastName: '',
-            email: '',
-            mobile: '',
-            designation: null,
-            department: null,
-            relationship: null,
-            currentlyWorking: '',
-            attachment: null
-        }
+      
     ]);
 
     const addRelatedEmployee = () => {
@@ -880,21 +885,12 @@ const VendorRegistrationStepByStepForm = () => {
     };
 
     const deleteRelatedEmployee = (id) => {
-        setRelatedEmployees(prev => prev.length === 1 ? prev : prev.filter(e => e.id !== id));
+        setRelatedEmployees(prev => prev.length === 0 ? prev : prev.filter(e => e.id !== id));
     };
 
     // Current Working Sites dynamic section state and handlers
     const [workingSites, setWorkingSites] = useState([
-        {
-            id: Date.now(),
-            builderName: '',
-            briefDetails: '',
-            area: '',
-            manpower: '',
-            stageOfProject: '',
-            likelyCompletion: '',
-            attachment: null
-        }
+        
     ]);
 
     const addWorkingSite = () => {
@@ -918,13 +914,154 @@ const VendorRegistrationStepByStepForm = () => {
     };
 
     const deleteWorkingSite = (id) => {
-        setWorkingSites(prev => prev.length === 1 ? prev : prev.filter(s => s.id !== id));
+        setWorkingSites(prev => prev.length === 0 ? prev : prev.filter(s => s.id !== id));
     };
 
     // Organization type and CIN fields
     const [organizationType, setOrganizationType] = useState("");
     const [cin, setCin] = useState("");
     const [cinAttachment, setCinAttachment] = useState(null);
+
+
+// --- Step 4 Validation: Branch Offices, Contact Persons, Warehouses ---
+    const [branchErrors, setBranchErrors] = useState([]);
+    const [contactPersonErrors, setContactPersonErrors] = useState([]);
+    const [warehouseErrors, setWarehouseErrors] = useState([]);
+     // --- Step 4 (cont): Owners, Related Employees, Group Companies, Supervisory Manpower, Major Customers, Working Sites ---
+    const [ownerErrors, setOwnerErrors] = useState([]);
+    const [relatedEmployeeErrors, setRelatedEmployeeErrors] = useState([]);
+    const [groupCompanyErrors, setGroupCompanyErrors] = useState([]);
+    const [supervisoryManpowerErrors, setSupervisoryManpowerErrors] = useState([]);
+    const [majorCustomerErrors, setMajorCustomerErrors] = useState([]);
+    const [workingSiteErrors, setWorkingSiteErrors] = useState([]);
+
+
+
+     
+
+    const validateStep4 = () => {
+        // Branch Offices
+        const branchErrs = branchOffices.map(branch => {
+            const err = {};
+            if (!branch.country) err.country = 'Country is required.';
+            if (!branch.state) err.state = 'State is required.';
+            if (!branch.city) err.city = 'City is required.';
+            if (!branch.pincode) err.pincode = 'Pin Code is required.';
+            return err;
+        });
+        setBranchErrors(branchErrs);
+
+        // Contact Persons
+        const contactErrs = contactPersons.map(person => {
+            const err = {};
+            if (!person.escalationLevel) err.escalationLevel = 'Escalation Level is required.';
+            if (!person.nameTitle) err.nameTitle = 'Name Title is required.';
+            if (!person.firstName) err.firstName = 'First Name is required.';
+            if (!person.lastName) err.lastName = 'Last Name is required.';
+            if (!person.designation) err.designation = 'Designation is required.';
+            if (!person.primaryEmail) err.primaryEmail = 'Primary Email is required.';
+            if (!person.primaryMobile) err.primaryMobile = 'Primary Mobile is required.';
+            return err;
+        });
+        setContactPersonErrors(contactErrs);
+
+        // Warehouses
+        const warehouseErrs = warehouses.map(warehouse => {
+            const err = {};
+            if (!warehouse.country) err.country = 'Country is required.';
+            if (!warehouse.state) err.state = 'State is required.';
+            if (!warehouse.city) err.city = 'City is required.';
+            return err;
+        });
+        setWarehouseErrors(warehouseErrs);
+          // Owners
+        const ownerErrs = owners.map(owner => {
+            const err = {};
+            if (!owner.firstName) err.firstName = 'First Name is required.';
+            if (!owner.lastName) err.lastName = 'Last Name is required.';
+            if (!owner.designation) err.designation = 'Designation is required.';
+            if (!owner.email) err.email = 'Email is required.';
+            if (!owner.mobile) err.mobile = 'Mobile Number is required.';
+            return err;
+        });
+        setOwnerErrors(ownerErrs);
+
+        // Related Employees
+        const relEmpErrs = relatedEmployees.map(emp => {
+            const err = {};
+            if (!emp.firstName) err.firstName = 'First Name is required.';
+            if (!emp.lastName) err.lastName = 'Last Name is required.';
+            if (!emp.email) err.email = 'Employee Email Id is required.';
+            return err;
+        });
+        setRelatedEmployeeErrors(relEmpErrs);
+
+        // Group Companies
+        const groupErrs = groupCompanies.map(company => {
+            const err = {};
+            if (!company.name) err.name = 'Name is required.';
+            if (!company.natureOfBusiness) err.natureOfBusiness = 'Nature Of Business is required.';
+            if (!company.pan) err.pan = 'PAN No. is required.';
+            if (!company.gstin) err.gstin = 'GSTIN No. is required.';
+            return err;
+        });
+        setGroupCompanyErrors(groupErrs);
+
+        // Supervisory Manpower
+        const supErrs = supervisoryManpower.map(item => {
+            const err = {};
+            if (!item.details) err.details = 'Supervisory Manpower Details are required.';
+            if (!item.totalNumbers) err.totalNumbers = 'Total Numbers is required.';
+            return err;
+        });
+        setSupervisoryManpowerErrors(supErrs);
+
+        // Major Customers
+        const custErrs = majorCustomers.map(cust => {
+            const err = {};
+            if (!cust.companyName) err.companyName = 'Company Name is required.';
+            if (!cust.workDone) err.workDone = 'Work Done is required.';
+            if (!cust.contactPerson) err.contactPerson = 'Contact Person is required.';
+            if (!cust.designation) err.designation = 'Designation is required.';
+            if (!cust.country) err.country = 'Country is required.';
+            if (!cust.mobile) err.mobile = 'Mobile No. is required.';
+            if (!cust.yearOfAssociation) err.yearOfAssociation = 'Year of Association is required.';
+            if (!cust.businessLast12Months) err.businessLast12Months = 'Business done in Last 12 month is required.';
+            if (!cust.serviceFrom) err.serviceFrom = 'Service Provided From is required.';
+            if (!cust.serviceTo) err.serviceTo = 'Service Provided To is required.';
+            return err;
+        });
+        setMajorCustomerErrors(custErrs);
+
+        // Working Sites
+        const siteErrs = workingSites.map(site => {
+            const err = {};
+            if (!site.builderName) err.builderName = 'Builder / Client Name is required.';
+            if (!site.briefDetails) err.briefDetails = 'Brief Details is required.';
+            if (!site.area) err.area = 'Area is required.';
+            return err;
+        });
+        setWorkingSiteErrors(siteErrs);
+
+        // Return true if all error objects are empty
+        const allBranchesValid = branchErrs.every(e => Object.keys(e).length === 0);
+        const allContactsValid = contactErrs.every(e => Object.keys(e).length === 0);
+        const allWarehousesValid = warehouseErrs.every(e => Object.keys(e).length === 0);
+          // Combine all validations
+        // ...existing checks...
+        const allOwnersValid = ownerErrs.every(e => Object.keys(e).length === 0);
+        const allRelEmpValid = relEmpErrs.every(e => Object.keys(e).length === 0);
+        const allGroupValid = groupErrs.every(e => Object.keys(e).length === 0);
+        const allSupValid = supErrs.every(e => Object.keys(e).length === 0);
+        const allCustValid = custErrs.every(e => Object.keys(e).length === 0);
+        const allSiteValid = siteErrs.every(e => Object.keys(e).length === 0);
+        // ...existing return...
+
+        return allBranchesValid && allContactsValid && allWarehousesValid && allOwnersValid && allRelEmpValid && allGroupValid && allSupValid && allCustValid && allSiteValid;
+       
+    };
+    
+
 
 
     // *****************************************
@@ -1038,7 +1175,7 @@ const VendorRegistrationStepByStepForm = () => {
     const [gstinNumber, setGstinNumber] = useState("");
     const [gstinAttachments, setGstinAttachments] = useState([]);
     const [gstOptions, setGstOptions] = useState([]);
-    const [bankDetailsList, setBankDetailsList] = useState([]);
+    // const [bankDetailsList, setBankDetailsList] = useState([]);
     const [majorActivity, setMajorActivity] = useState("");
     const [classificationYear, setClassificationYear] = useState("");
     const [classificationDate, setClassificationDate] = useState("");
@@ -1056,7 +1193,7 @@ const VendorRegistrationStepByStepForm = () => {
             setEInvoicingApplicable(response.data?.einvoicing);
             setMsmeUdyamApplicable(response.data?.msme_details?.msme);
             setMsmeEnterpriseType(response.data?.msme_details?.enterprise);
-            setBankDetailsList(response.data?.bank_details);
+            // setBankDetailsList(response.data?.bank_details);
             setMsmeNo(response.data?.msme_details?.msme_no);
             setValidFrom(response.data?.msme_details?.valid_from);
             setValidTill(response.data?.msme_details?.valid_till);
@@ -4332,13 +4469,13 @@ const VendorRegistrationStepByStepForm = () => {
                                                     disabled={!bankDetail.isNew}
                                                 />
 
-                                                {bankDetail.isNew &&
-                                                    errors.bank_name &&
-                                                    !bankDetail.bank_name && (
-                                                        <div className="ValidationColor">
-                                                            {errors.bank_name}
-                                                        </div>
-                                                    )}
+                                                    {bankDetail.isNew &&
+                                                        bankErrors.bank_name &&
+                                                        !bankDetail.bank_name && (
+                                                            <div className="ValidationColor">
+                                                                {bankErrors.bank_name}
+                                                            </div>
+                                                        )}
 
 
                                             </div>
@@ -4362,13 +4499,13 @@ const VendorRegistrationStepByStepForm = () => {
                                                     }
                                                     disabled={!bankDetail.isNew}
                                                 />
-                                                {bankDetail.isNew &&
-                                                    errors.address &&
-                                                    !bankDetail.address && (
-                                                        <div className="ValidationColor">
-                                                            {errors.address}
-                                                        </div>
-                                                    )}
+                                                    {bankDetail.isNew &&
+                                                        bankErrors.address &&
+                                                        !bankDetail.address && (
+                                                            <div className="ValidationColor">
+                                                                {bankErrors.address}
+                                                            </div>
+                                                        )}
 
                                             </div>
                                         </div>
@@ -4402,13 +4539,13 @@ const VendorRegistrationStepByStepForm = () => {
                                                 />
 
                                                 {/* Validation Error Message */}
-                                                {bankDetail.isNew &&
-                                                    errors.country_id &&
-                                                    !bankDetail.country_id && (
-                                                        <div className="ValidationColor">
-                                                            {errors.country_id}
-                                                        </div>
-                                                    )}
+                                                    {bankDetail.isNew &&
+                                                        bankErrors.country_id &&
+                                                        !bankDetail.country_id && (
+                                                            <div className="ValidationColor">
+                                                                {bankErrors.country_id}
+                                                            </div>
+                                                        )}
 
                                             </div>
                                         </div>
@@ -4438,13 +4575,13 @@ const VendorRegistrationStepByStepForm = () => {
                                                     isDisabled={!bankDetail.isNew}
                                                 />
 
-                                                {bankDetail.isNew &&
-                                                    errors.state_id &&
-                                                    !bankDetail.state_id && (
-                                                        <div className="ValidationColor">
-                                                            {errors.state_id}
-                                                        </div>
-                                                    )}
+                                                    {bankDetail.isNew &&
+                                                        bankErrors.state_id &&
+                                                        !bankDetail.state_id && (
+                                                            <div className="ValidationColor">
+                                                                {bankErrors.state_id}
+                                                            </div>
+                                                        )}
                                             </div>
                                         </div>
                                         {/* City */}
@@ -4466,13 +4603,13 @@ const VendorRegistrationStepByStepForm = () => {
                                                     }
                                                     disabled={!bankDetail.isNew}
                                                 />
-                                                {bankDetail.isNew &&
-                                                    errors.city_name &&
-                                                    !bankDetail.city_name && (
-                                                        <div className="ValidationColor">
-                                                            {errors.city_name}
-                                                        </div>
-                                                    )}
+                                                    {bankDetail.isNew &&
+                                                        bankErrors.city_name &&
+                                                        !bankDetail.city_name && (
+                                                            <div className="ValidationColor">
+                                                                {bankErrors.city_name}
+                                                            </div>
+                                                        )}
                                             </div>
                                         </div>
                                         {/* Pin Code */}
@@ -4495,20 +4632,20 @@ const VendorRegistrationStepByStepForm = () => {
                                                     disabled={!bankDetail.isNew}
                                                 />
 
-                                                {bankDetail.isNew && (
-                                                    <>
-                                                        {inputErrors[bankDetail.id]?.pincode && (
-                                                            <div className="ValidationColor">
-                                                                {inputErrors[bankDetail.id].pincode}
-                                                            </div>
-                                                        )}
-                                                        {errors.pincode && !bankDetail.pincode && (
-                                                            <div className="ValidationColor">
-                                                                {errors.pincode}
-                                                            </div>
-                                                        )}
-                                                    </>
-                                                )}
+                                                    {bankDetail.isNew && (
+                                                        <>
+                                                            {inputErrors[bankDetail.id]?.pincode && (
+                                                                <div className="ValidationColor">
+                                                                    {inputErrors[bankDetail.id].pincode}
+                                                                </div>
+                                                            )}
+                                                            {bankErrors.pincode && !bankDetail.pincode && (
+                                                                <div className="ValidationColor">
+                                                                    {bankErrors.pincode}
+                                                                </div>
+                                                            )}
+                                                        </>
+                                                    )}
                                             </div>
                                         </div>
                                         {/* Account Type */}
@@ -4540,13 +4677,13 @@ const VendorRegistrationStepByStepForm = () => {
                                                     placeholder="Select Account Type"
                                                     isDisabled={!bankDetail.isNew}
                                                 />
-                                                {bankDetail.isNew &&
-                                                    errors.account_type &&
-                                                    !bankDetail.account_type && (
-                                                        <div className="ValidationColor">
-                                                            {errors.account_type}
-                                                        </div>
-                                                    )}
+                                                    {bankDetail.isNew &&
+                                                        bankErrors.account_type &&
+                                                        !bankDetail.account_type && (
+                                                            <div className="ValidationColor">
+                                                                {bankErrors.account_type}
+                                                            </div>
+                                                        )}
                                             </div>
                                         </div>
                                         {/* Account Number */}
@@ -4573,13 +4710,13 @@ const VendorRegistrationStepByStepForm = () => {
                                                     disabled={!bankDetail.isNew}
                                                 />
 
-                                                {bankDetail.isNew &&
-                                                    errors.account_number &&
-                                                    !bankDetail.account_number && (
-                                                        <div className="ValidationColor">
-                                                            {errors.account_number}
-                                                        </div>
-                                                    )}
+                                                    {bankDetail.isNew &&
+                                                        bankErrors.account_number &&
+                                                        !bankDetail.account_number && (
+                                                            <div className="ValidationColor">
+                                                                {bankErrors.account_number}
+                                                            </div>
+                                                        )}
                                             </div>
                                         </div>
 
@@ -4625,11 +4762,11 @@ const VendorRegistrationStepByStepForm = () => {
                                                     }}
                                                     disabled={!bankDetail.isNew}
                                                 />
-                                                {bankDetail.isNew && errors.confirm_account_number && (
-                                                    <div className="ValidationColor">
-                                                        {errors.confirm_account_number}
-                                                    </div>
-                                                )}
+                                                    {bankDetail.isNew && bankErrors.confirm_account_number && (
+                                                        <div className="ValidationColor">
+                                                            {bankErrors.confirm_account_number}
+                                                        </div>
+                                                    )}
                                             </div>
                                         </div>
                                         {/* Branch Name */}
@@ -4651,13 +4788,13 @@ const VendorRegistrationStepByStepForm = () => {
                                                     }
                                                     disabled={!bankDetail.isNew}
                                                 />
-                                                {bankDetail.isNew &&
-                                                    errors.branch_name &&
-                                                    !bankDetail.branch_name && (
-                                                        <div className="ValidationColor">
-                                                            {errors.branch_name}
-                                                        </div>
-                                                    )}
+                                                    {bankDetail.isNew &&
+                                                        bankErrors.branch_name &&
+                                                        !bankDetail.branch_name && (
+                                                            <div className="ValidationColor">
+                                                                {bankErrors.branch_name}
+                                                            </div>
+                                                        )}
                                             </div>
                                         </div>
                                         {/* MICR No. */}
@@ -4679,11 +4816,11 @@ const VendorRegistrationStepByStepForm = () => {
                                                     }
                                                     disabled={!bankDetail.isNew}
                                                 />
-                                                {errors.micr_number && !bankDetail.micr_number && (
-                                                    <div className="ValidationColor">
-                                                        {errors.micr_number}
-                                                    </div>
-                                                )}
+                                                    {bankDetail.isNew && bankErrors.micr_number && !bankDetail.micr_number && (
+                                                        <div className="ValidationColor">
+                                                            {bankErrors.micr_number}
+                                                        </div>
+                                                    )}
                                             </div>
                                         </div>
                                         {/* IFSC Code */}
@@ -4707,20 +4844,20 @@ const VendorRegistrationStepByStepForm = () => {
                                                     disabled={!bankDetail.isNew}
                                                 />
 
-                                                {bankDetail.isNew && (
-                                                    <>
-                                                        {inputErrors[bankDetail.id]?.ifsc && (
-                                                            <div className="ValidationColor">
-                                                                {inputErrors[bankDetail.id].ifsc}
-                                                            </div>
-                                                        )}
-                                                        {errors.ifsc_code && !bankDetail.ifsc_code && (
-                                                            <div className="ValidationColor">
-                                                                {errors.ifsc_code}
-                                                            </div>
-                                                        )}
-                                                    </>
-                                                )}
+                                                    {bankDetail.isNew && (
+                                                        <>
+                                                            {inputErrors[bankDetail.id]?.ifsc && (
+                                                                <div className="ValidationColor">
+                                                                    {inputErrors[bankDetail.id].ifsc}
+                                                                </div>
+                                                            )}
+                                                            {bankErrors.ifsc_code && !bankDetail.ifsc_code && (
+                                                                <div className="ValidationColor">
+                                                                    {bankErrors.ifsc_code}
+                                                                </div>
+                                                            )}
+                                                        </>
+                                                    )}
                                             </div>
                                         </div>
                                         {/* Beneficiary Name */}
@@ -4746,13 +4883,13 @@ const VendorRegistrationStepByStepForm = () => {
                                                     }
                                                     disabled={!bankDetail.isNew}
                                                 />
-                                                {bankDetail.isNew &&
-                                                    errors.benficary_name &&
-                                                    !bankDetail.benficary_name && (
-                                                        <div className="ValidationColor">
-                                                            {errors.benficary_name}
-                                                        </div>
-                                                    )}
+                                                    {bankDetail.isNew &&
+                                                        bankErrors.benficary_name &&
+                                                        !bankDetail.benficary_name && (
+                                                            <div className="ValidationColor">
+                                                                {bankErrors.benficary_name}
+                                                            </div>
+                                                        )}
                                             </div>
                                         </div>
 
@@ -4897,13 +5034,13 @@ const VendorRegistrationStepByStepForm = () => {
                                                 />
 
 
-                                                {bankDetail.isNew &&
-                                                    errors.cancelled_cheque &&
-                                                    !bankDetail.attachment && (
-                                                        <div className="ValidationColor">
-                                                            {errors.cancelled_cheque}
-                                                        </div>
-                                                    )}
+                                                    {bankDetail.isNew &&
+                                                        bankErrors.cancelled_cheque &&
+                                                        !bankDetail.attachment && (
+                                                            <div className="ValidationColor">
+                                                                {bankErrors.cancelled_cheque}
+                                                            </div>
+                                                        )}
                                             </div>
                                         </div>
                                         {/* Remark */}
@@ -4953,7 +5090,7 @@ const VendorRegistrationStepByStepForm = () => {
                                 // <div className="card mx-3 pb-4 mt-4" key={branch.id}>
                                 <CollapsedCardKYC
                                     key={branch.id}
-                                    title={`Branch Office${branchOffices.length > 1 ? ` ${idx + 1}` : ''}`}
+                                    title={`Branch Office${branchOffices.length > 1 ? ` (${idx + 1})` : ''}`}
                                     onDelete={() => deleteBranchOffice(branch.id)}
                                     showDelete={branchOffices.length > 1}
                                 >
@@ -4974,6 +5111,9 @@ const VendorRegistrationStepByStepForm = () => {
                                                         onChange={selected => handleBranchChange(idx, 'country', selected?.value)}
                                                         placeholder="Select Country"
                                                     />
+                                                    {branchErrors[idx]?.country && (
+                                                        <div className="ValidationColor">{branchErrors[idx].country}</div>
+                                                    )}
                                                 </div>
                                             </div>
                                             <div className="col-md-4 ">
@@ -4985,18 +5125,27 @@ const VendorRegistrationStepByStepForm = () => {
                                                         onChange={selected => handleBranchChange(idx, 'state', selected?.value)}
                                                         placeholder="Select State"
                                                     />
+                                                    {branchErrors[idx]?.state && (
+                                                        <div className="ValidationColor">{branchErrors[idx].state}</div>
+                                                    )}
                                                 </div>
                                             </div>
                                             <div className="col-md-4 mt-2">
                                                 <div className="form-group">
                                                     <label>City <span>*</span></label>
                                                     <input className="form-control" type="text" value={branch.city} onChange={e => handleBranchChange(idx, 'city', e.target.value)} />
+                                                    {branchErrors[idx]?.city && (
+                                                        <div className="ValidationColor">{branchErrors[idx].city}</div>
+                                                    )}
                                                 </div>
                                             </div>
                                             <div className="col-md-4 mt-2">
                                                 <div className="form-group">
                                                     <label>Pin Code<span>*</span></label>
                                                     <input className="form-control" type="text" value={branch.pincode} onChange={e => handleBranchChange(idx, 'pincode', e.target.value)} />
+                                                    {branchErrors[idx]?.pincode && (
+                                                        <div className="ValidationColor">{branchErrors[idx].pincode}</div>
+                                                    )}
                                                 </div>
                                             </div>
                                             <div className="col-md-4 mt-2">
@@ -5037,102 +5186,120 @@ const VendorRegistrationStepByStepForm = () => {
                                         <div className="row">
                                             {/* Escalation Level */}
                                             <div className="col-md-4  ">
-                                                <div className="form-group">
-                                                    <label>
-                                                        Escalation Level<span>*</span>
-                                                        <TooltipIcon message="Select the escalation level for the contact person. This indicates the priority or seniority in the escalation process for any issues or concerns." />
-                                                    </label>
-                                                    <SingleSelector
-                                                        options={[]}
-                                                        value={person.escalationLevel}
-                                                        onChange={(selected) =>
-                                                            handleContactPersonChange(idx, "escalationLevel", selected)
-                                                        }
-                                                    />
-                                                </div>
+                                                                            <div className="form-group">
+                                                                                <label>
+                                                                                    Escalation Level<span>*</span>
+                                                                                    <TooltipIcon message="Select the escalation level for the contact person. This indicates the priority or seniority in the escalation process for any issues or concerns." />
+                                                                                </label>
+                                                                                <SingleSelector
+                                                                                    options={[]}
+                                                                                    value={person.escalationLevel}
+                                                                                    onChange={(selected) =>
+                                                                                        handleContactPersonChange(idx, "escalationLevel", selected)
+                                                                                    }
+                                                                                />
+                                                                                {contactPersonErrors[idx]?.escalationLevel && (
+                                                                                    <div className="ValidationColor">{contactPersonErrors[idx].escalationLevel}</div>
+                                                                                )}
+                                                                            </div>
                                             </div>
                                             {/* Name Title */}
                                             <div className="col-md-4 ">
-                                                <div className="form-group">
-                                                    <label>
-                                                        Name Title <span>*</span>
-                                                        <TooltipIcon message="Select the appropriate title for the employee (e.g. Mr., Mrs., Dr. Ms.). This helps in addressing the employee correctly in formal communications." />
-                                                    </label>
-                                                    <SingleSelector
-                                                        options={[]}
-                                                        value={person.nameTitle}
-                                                        onChange={(selected) =>
-                                                            handleContactPersonChange(idx, "nameTitle", selected)
-                                                        }
-                                                    />
-                                                </div>
+                                                                            <div className="form-group">
+                                                                                <label>
+                                                                                    Name Title <span>*</span>
+                                                                                    <TooltipIcon message="Select the appropriate title for the employee (e.g. Mr., Mrs., Dr. Ms.). This helps in addressing the employee correctly in formal communications." />
+                                                                                </label>
+                                                                                <SingleSelector
+                                                                                    options={[]}
+                                                                                    value={person.nameTitle}
+                                                                                    onChange={(selected) =>
+                                                                                        handleContactPersonChange(idx, "nameTitle", selected)
+                                                                                    }
+                                                                                />
+                                                                                {contactPersonErrors[idx]?.nameTitle && (
+                                                                                    <div className="ValidationColor">{contactPersonErrors[idx].nameTitle}</div>
+                                                                                )}
+                                                                            </div>
                                             </div>
                                             {/* First Name */}
                                             <div className="col-md-4">
-                                                <div className="form-group">
-                                                    <label>
-                                                        First Name <span>*</span>
-                                                        <TooltipIcon message="Please provide the first name Of the designated contact person for your organization. This is required for direct correspondence." />
-                                                    </label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="text"
-                                                        value={person.firstName}
-                                                        onChange={(e) =>
-                                                            handleContactPersonChange(idx, "firstName", e.target.value)
-                                                        }
-                                                    />
-                                                </div>
+                                                                            <div className="form-group">
+                                                                                <label>
+                                                                                    First Name <span>*</span>
+                                                                                    <TooltipIcon message="Please provide the first name Of the designated contact person for your organization. This is required for direct correspondence." />
+                                                                                </label>
+                                                                                <input
+                                                                                    className="form-control"
+                                                                                    type="text"
+                                                                                    value={person.firstName}
+                                                                                    onChange={(e) =>
+                                                                                        handleContactPersonChange(idx, "firstName", e.target.value)
+                                                                                    }
+                                                                                />
+                                                                                {contactPersonErrors[idx]?.firstName && (
+                                                                                    <div className="ValidationColor">{contactPersonErrors[idx].firstName}</div>
+                                                                                )}
+                                                                            </div>
                                             </div>
                                             {/* Last Name */}
                                             <div className="col-md-4 mt-2">
-                                                <div className="form-group">
-                                                    <label>
-                                                        Last Name<span>*</span>
-                                                        <TooltipIcon message="Please provide the last name of the designated contact person for your organization. This is required for direct correspondence." />
-                                                    </label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="text"
-                                                        value={person.lastName}
-                                                        onChange={(e) =>
-                                                            handleContactPersonChange(idx, "lastName", e.target.value)
-                                                        }
-                                                    />
-                                                </div>
+                                                                            <div className="form-group">
+                                                                                <label>
+                                                                                    Last Name<span>*</span>
+                                                                                    <TooltipIcon message="Please provide the last name of the designated contact person for your organization. This is required for direct correspondence." />
+                                                                                </label>
+                                                                                <input
+                                                                                    className="form-control"
+                                                                                    type="text"
+                                                                                    value={person.lastName}
+                                                                                    onChange={(e) =>
+                                                                                        handleContactPersonChange(idx, "lastName", e.target.value)
+                                                                                    }
+                                                                                />
+                                                                                {contactPersonErrors[idx]?.lastName && (
+                                                                                    <div className="ValidationColor">{contactPersonErrors[idx].lastName}</div>
+                                                                                )}
+                                                                            </div>
                                             </div>
                                             {/* Designation */}
                                             <div className="col-md-4  mt-2">
-                                                <div className="form-group">
-                                                    <label>
-                                                        Designation<span>*</span>
-                                                        <TooltipIcon message="Enter the official designation or job title of the contact person within the organization." />
-                                                    </label>
-                                                    <SingleSelector
-                                                        options={[]}
-                                                        value={person.designation}
-                                                        onChange={(selected) =>
-                                                            handleContactPersonChange(idx, "designation", selected)
-                                                        }
-                                                    />
-                                                </div>
+                                                                            <div className="form-group">
+                                                                                <label>
+                                                                                    Designation<span>*</span>
+                                                                                    <TooltipIcon message="Enter the official designation or job title of the contact person within the organization." />
+                                                                                </label>
+                                                                                <SingleSelector
+                                                                                    options={[]}
+                                                                                    value={person.designation}
+                                                                                    onChange={(selected) =>
+                                                                                        handleContactPersonChange(idx, "designation", selected)
+                                                                                    }
+                                                                                />
+                                                                                {contactPersonErrors[idx]?.designation && (
+                                                                                    <div className="ValidationColor">{contactPersonErrors[idx].designation}</div>
+                                                                                )}
+                                                                            </div>
                                             </div>
                                             {/* Primary Email */}
                                             <div className="col-md-4  mt-2">
-                                                <div className="form-group">
-                                                    <label>
-                                                        Primary Email ID <span>*</span>
-                                                        <TooltipIcon message=" Enter the primary email address of the contact person. This will be used for communication and correspondence." />
-                                                    </label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="text"
-                                                        value={person.primaryEmail}
-                                                        onChange={(e) =>
-                                                            handleContactPersonChange(idx, "primaryEmail", e.target.value)
-                                                        }
-                                                    />
-                                                </div>
+                                                                            <div className="form-group">
+                                                                                <label>
+                                                                                    Primary Email ID <span>*</span>
+                                                                                    <TooltipIcon message=" Enter the primary email address of the contact person. This will be used for communication and correspondence." />
+                                                                                </label>
+                                                                                <input
+                                                                                    className="form-control"
+                                                                                    type="text"
+                                                                                    value={person.primaryEmail}
+                                                                                    onChange={(e) =>
+                                                                                        handleContactPersonChange(idx, "primaryEmail", e.target.value)
+                                                                                    }
+                                                                                />
+                                                                                {contactPersonErrors[idx]?.primaryEmail && (
+                                                                                    <div className="ValidationColor">{contactPersonErrors[idx].primaryEmail}</div>
+                                                                                )}
+                                                                            </div>
                                             </div>
                                             {/* Secondary Email */}
                                             <div className="col-md-4  mt-2">
@@ -5150,20 +5317,23 @@ const VendorRegistrationStepByStepForm = () => {
                                             </div>
                                             {/* Primary Mobile */}
                                             <div className="col-md-4  mt-2">
-                                                <div className="form-group">
-                                                    <label>
-                                                        Primary Mobile No. <span>*</span>
-                                                        <TooltipIcon message="Enter the contact person's primary mobile number. This will be used for urgent communication and notifications." />
-                                                    </label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="text"
-                                                        value={person.primaryMobile}
-                                                        onChange={(e) =>
-                                                            handleContactPersonChange(idx, "primaryMobile", e.target.value)
-                                                        }
-                                                    />
-                                                </div>
+                                                                            <div className="form-group">
+                                                                                <label>
+                                                                                    Primary Mobile No. <span>*</span>
+                                                                                    <TooltipIcon message="Enter the contact person's primary mobile number. This will be used for urgent communication and notifications." />
+                                                                                </label>
+                                                                                <input
+                                                                                    className="form-control"
+                                                                                    type="text"
+                                                                                    value={person.primaryMobile}
+                                                                                    onChange={(e) =>
+                                                                                        handleContactPersonChange(idx, "primaryMobile", e.target.value)
+                                                                                    }
+                                                                                />
+                                                                                {contactPersonErrors[idx]?.primaryMobile && (
+                                                                                    <div className="ValidationColor">{contactPersonErrors[idx].primaryMobile}</div>
+                                                                                )}
+                                                                            </div>
                                             </div>
                                             {/* Secondary Mobile */}
                                             <div className="col-md-4  mt-2">
@@ -5273,35 +5443,44 @@ const VendorRegistrationStepByStepForm = () => {
                                                 </div>
                                             </div>
                                             <div className="col-md-4  ">
-                                                <div className="form-group">
-                                                    <label>Country<span>*</span></label>
-                                                    <SingleSelector
-                                                        options={[]}
-                                                        value={warehouse.country}
-                                                        onChange={selected => handleWarehouseChange(idx, 'country', selected)}
-                                                    />
-                                                </div>
+                                                                                                        <div className="form-group">
+                                                                                                            <label>Country<span>*</span></label>
+                                                                                                            <SingleSelector
+                                                                                                                options={[]}
+                                                                                                                value={warehouse.country}
+                                                                                                                onChange={selected => handleWarehouseChange(idx, 'country', selected)}
+                                                                                                            />
+                                                                                                            {warehouseErrors[idx]?.country && (
+                                                                                                                <div className="ValidationColor">{warehouseErrors[idx].country}</div>
+                                                                                                            )}
+                                                                                                        </div>
                                             </div>
                                             <div className="col-md-4  mt-2">
-                                                <div className="form-group">
-                                                    <label>State <span>*</span></label>
-                                                    <SingleSelector
-                                                        options={[]}
-                                                        value={warehouse.state}
-                                                        onChange={selected => handleWarehouseChange(idx, 'state', selected)}
-                                                    />
-                                                </div>
+                                                                                                        <div className="form-group">
+                                                                                                            <label>State <span>*</span></label>
+                                                                                                            <SingleSelector
+                                                                                                                options={[]}
+                                                                                                                value={warehouse.state}
+                                                                                                                onChange={selected => handleWarehouseChange(idx, 'state', selected)}
+                                                                                                            />
+                                                                                                            {warehouseErrors[idx]?.state && (
+                                                                                                                <div className="ValidationColor">{warehouseErrors[idx].state}</div>
+                                                                                                            )}
+                                                                                                        </div>
                                             </div>
                                             <div className="col-md-4  mt-2">
-                                                <div className="form-group">
-                                                    <label>City <span>*</span></label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="text"
-                                                        value={warehouse.city}
-                                                        onChange={e => handleWarehouseChange(idx, 'city', e.target.value)}
-                                                    />
-                                                </div>
+                                                                                                        <div className="form-group">
+                                                                                                            <label>City <span>*</span></label>
+                                                                                                            <input
+                                                                                                                className="form-control"
+                                                                                                                type="text"
+                                                                                                                value={warehouse.city}
+                                                                                                                onChange={e => handleWarehouseChange(idx, 'city', e.target.value)}
+                                                                                                            />
+                                                                                                            {warehouseErrors[idx]?.city && (
+                                                                                                                <div className="ValidationColor">{warehouseErrors[idx].city}</div>
+                                                                                                            )}
+                                                                                                        </div>
                                             </div>
                                             <div className="col-md-4  mt-2">
                                                 <div className="form-group">
@@ -5368,6 +5547,9 @@ const VendorRegistrationStepByStepForm = () => {
                                                         value={owner.firstName}
                                                         onChange={e => handleOwnerChange(idx, 'firstName', e.target.value)}
                                                     />
+                                                    {ownerErrors[idx]?.firstName && (
+                                                        <div className="ValidationColor">{ownerErrors[idx].firstName}</div>
+                                                    )}
                                                 </div>
                                             </div>
                                             <div className="col-md-4">
@@ -5379,6 +5561,9 @@ const VendorRegistrationStepByStepForm = () => {
                                                         value={owner.lastName}
                                                         onChange={e => handleOwnerChange(idx, 'lastName', e.target.value)}
                                                     />
+                                                    {ownerErrors[idx]?.lastName && (
+                                                        <div className="ValidationColor">{ownerErrors[idx].lastName}</div>
+                                                    )}
                                                 </div>
                                             </div>
                                             <div className="col-md-4  ">
@@ -5389,6 +5574,9 @@ const VendorRegistrationStepByStepForm = () => {
                                                         value={owner.designation}
                                                         onChange={selected => handleOwnerChange(idx, 'designation', selected)}
                                                     />
+                                                    {ownerErrors[idx]?.designation && (
+                                                        <div className="ValidationColor">{ownerErrors[idx].designation}</div>
+                                                    )}
                                                 </div>
                                             </div>
                                             <div className="col-md-4  ">
@@ -5421,6 +5609,9 @@ const VendorRegistrationStepByStepForm = () => {
                                                         value={owner.email}
                                                         onChange={e => handleOwnerChange(idx, 'email', e.target.value)}
                                                     />
+                                                    {ownerErrors[idx]?.email && (
+                                                        <div className="ValidationColor">{ownerErrors[idx].email}</div>
+                                                    )}
                                                 </div>
                                             </div>
                                             <div className="col-md-4">
@@ -5432,6 +5623,9 @@ const VendorRegistrationStepByStepForm = () => {
                                                         value={owner.mobile}
                                                         onChange={e => handleOwnerChange(idx, 'mobile', e.target.value)}
                                                     />
+                                                    {ownerErrors[idx]?.mobile && (
+                                                        <div className="ValidationColor">{ownerErrors[idx].mobile}</div>
+                                                    )}
                                                 </div>
                                             </div>
                                             <div className="col-md-4">
@@ -5469,37 +5663,46 @@ const VendorRegistrationStepByStepForm = () => {
                                     <div className="card-body mt-0">
                                         <div className="row">
                                             <div className="col-md-4">
-                                                <div className="form-group">
-                                                    <label>First Name <span>*</span><TooltipIcon message="Enter the employee's first name." /></label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="text"
-                                                        value={employee.firstName}
-                                                        onChange={e => handleRelatedEmployeeChange(idx, 'firstName', e.target.value)}
-                                                    />
-                                                </div>
+                                                                                <div className="form-group">
+                                                                                    <label>First Name <span>*</span><TooltipIcon message="Enter the employee's first name." /></label>
+                                                                                    <input
+                                                                                        className="form-control"
+                                                                                        type="text"
+                                                                                        value={employee.firstName}
+                                                                                        onChange={e => handleRelatedEmployeeChange(idx, 'firstName', e.target.value)}
+                                                                                    />
+                                                                                    {relatedEmployeeErrors[idx]?.firstName && (
+                                                                                        <div className="ValidationColor">{relatedEmployeeErrors[idx].firstName}</div>
+                                                                                    )}
+                                                                                </div>
                                             </div>
                                             <div className="col-md-4">
-                                                <div className="form-group">
-                                                    <label>Last Name <span>*</span><TooltipIcon message="Enter the employee's last name." /></label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="text"
-                                                        value={employee.lastName}
-                                                        onChange={e => handleRelatedEmployeeChange(idx, 'lastName', e.target.value)}
-                                                    />
-                                                </div>
+                                                                                <div className="form-group">
+                                                                                    <label>Last Name <span>*</span><TooltipIcon message="Enter the employee's last name." /></label>
+                                                                                    <input
+                                                                                        className="form-control"
+                                                                                        type="text"
+                                                                                        value={employee.lastName}
+                                                                                        onChange={e => handleRelatedEmployeeChange(idx, 'lastName', e.target.value)}
+                                                                                    />
+                                                                                    {relatedEmployeeErrors[idx]?.lastName && (
+                                                                                        <div className="ValidationColor">{relatedEmployeeErrors[idx].lastName}</div>
+                                                                                    )}
+                                                                                </div>
                                             </div>
                                             <div className="col-md-4">
-                                                <div className="form-group">
-                                                    <label>Employee Email Id <span>*</span><TooltipIcon message=" Enter the employee 's official email address" /></label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="text"
-                                                        value={employee.email}
-                                                        onChange={e => handleRelatedEmployeeChange(idx, 'email', e.target.value)}
-                                                    />
-                                                </div>
+                                                                                <div className="form-group">
+                                                                                    <label>Employee Email Id <span>*</span><TooltipIcon message=" Enter the employee 's official email address" /></label>
+                                                                                    <input
+                                                                                        className="form-control"
+                                                                                        type="text"
+                                                                                        value={employee.email}
+                                                                                        onChange={e => handleRelatedEmployeeChange(idx, 'email', e.target.value)}
+                                                                                    />
+                                                                                    {relatedEmployeeErrors[idx]?.email && (
+                                                                                        <div className="ValidationColor">{relatedEmployeeErrors[idx].email}</div>
+                                                                                    )}
+                                                                                </div>
                                             </div>
                                             <div className="col-md-4">
                                                 <div className="form-group">
@@ -5593,47 +5796,59 @@ const VendorRegistrationStepByStepForm = () => {
                                     <div className="card-body mt-0">
                                         <div className="row">
                                             <div className="col-md-4">
-                                                <div className="form-group">
-                                                    <label>Name <span>*</span></label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="text"
-                                                        value={company.name}
-                                                        onChange={e => handleGroupCompanyChange(idx, 'name', e.target.value)}
-                                                    />
-                                                </div>
+                                                                                                                <div className="form-group">
+                                                                                                                    <label>Name <span>*</span></label>
+                                                                                                                    <input
+                                                                                                                        className="form-control"
+                                                                                                                        type="text"
+                                                                                                                        value={company.name}
+                                                                                                                        onChange={e => handleGroupCompanyChange(idx, 'name', e.target.value)}
+                                                                                                                    />
+                                                                                                                    {groupCompanyErrors[idx]?.name && (
+                                                                                                                        <div className="ValidationColor">{groupCompanyErrors[idx].name}</div>
+                                                                                                                    )}
+                                                                                                                </div>
                                             </div>
                                             <div className="col-md-4  ">
-                                                <div className="form-group">
-                                                    <label>Nature Of Business <span>*</span></label>
-                                                    <SingleSelector
-                                                        options={[]}
-                                                        value={company.natureOfBusiness}
-                                                        onChange={selected => handleGroupCompanyChange(idx, 'natureOfBusiness', selected)}
-                                                    />
-                                                </div>
+                                                                                                                <div className="form-group">
+                                                                                                                    <label>Nature Of Business <span>*</span></label>
+                                                                                                                    <SingleSelector
+                                                                                                                        options={[]}
+                                                                                                                        value={company.natureOfBusiness}
+                                                                                                                        onChange={selected => handleGroupCompanyChange(idx, 'natureOfBusiness', selected)}
+                                                                                                                    />
+                                                                                                                    {groupCompanyErrors[idx]?.natureOfBusiness && (
+                                                                                                                        <div className="ValidationColor">{groupCompanyErrors[idx].natureOfBusiness}</div>
+                                                                                                                    )}
+                                                                                                                </div>
                                             </div>
                                             <div className="col-md-4">
-                                                <div className="form-group">
-                                                    <label>PAN No. <span>*</span></label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="text"
-                                                        value={company.pan}
-                                                        onChange={e => handleGroupCompanyChange(idx, 'pan', e.target.value)}
-                                                    />
-                                                </div>
+                                                                                                                <div className="form-group">
+                                                                                                                    <label>PAN No. <span>*</span></label>
+                                                                                                                    <input
+                                                                                                                        className="form-control"
+                                                                                                                        type="text"
+                                                                                                                        value={company.pan}
+                                                                                                                        onChange={e => handleGroupCompanyChange(idx, 'pan', e.target.value)}
+                                                                                                                    />
+                                                                                                                    {groupCompanyErrors[idx]?.pan && (
+                                                                                                                        <div className="ValidationColor">{groupCompanyErrors[idx].pan}</div>
+                                                                                                                    )}
+                                                                                                                </div>
                                             </div>
                                             <div className="col-md-4">
-                                                <div className="form-group">
-                                                    <label>GSTIN No. <span>*</span></label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="text"
-                                                        value={company.gstin}
-                                                        onChange={e => handleGroupCompanyChange(idx, 'gstin', e.target.value)}
-                                                    />
-                                                </div>
+                                                                                                                <div className="form-group">
+                                                                                                                    <label>GSTIN No. <span>*</span></label>
+                                                                                                                    <input
+                                                                                                                        className="form-control"
+                                                                                                                        type="text"
+                                                                                                                        value={company.gstin}
+                                                                                                                        onChange={e => handleGroupCompanyChange(idx, 'gstin', e.target.value)}
+                                                                                                                    />
+                                                                                                                    {groupCompanyErrors[idx]?.gstin && (
+                                                                                                                        <div className="ValidationColor">{groupCompanyErrors[idx].gstin}</div>
+                                                                                                                    )}
+                                                                                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -5661,26 +5876,32 @@ const VendorRegistrationStepByStepForm = () => {
                                     <div className="card-body mt-0">
                                         <div className="row">
                                             <div className="col-md-4">
-                                                <div className="form-group">
-                                                    <label>Supervisory Manpower Details <span>*</span></label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="text"
-                                                        value={item.details}
-                                                        onChange={e => handleSupervisoryManpowerChange(idx, 'details', e.target.value)}
-                                                    />
-                                                </div>
+                                                                                                                                                <div className="form-group">
+                                                                                                                                                    <label>Supervisory Manpower Details <span>*</span></label>
+                                                                                                                                                    <input
+                                                                                                                                                        className="form-control"
+                                                                                                                                                        type="text"
+                                                                                                                                                        value={item.details}
+                                                                                                                                                        onChange={e => handleSupervisoryManpowerChange(idx, 'details', e.target.value)}
+                                                                                                                                                    />
+                                                                                                                                                    {supervisoryManpowerErrors[idx]?.details && (
+                                                                                                                                                        <div className="ValidationColor">{supervisoryManpowerErrors[idx].details}</div>
+                                                                                                                                                    )}
+                                                                                                                                                </div>
                                             </div>
                                             <div className="col-md-4">
-                                                <div className="form-group">
-                                                    <label>Total Numbers <span>*</span></label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="text"
-                                                        value={item.totalNumbers}
-                                                        onChange={e => handleSupervisoryManpowerChange(idx, 'totalNumbers', e.target.value)}
-                                                    />
-                                                </div>
+                                                                                                                                                <div className="form-group">
+                                                                                                                                                    <label>Total Numbers <span>*</span></label>
+                                                                                                                                                    <input
+                                                                                                                                                        className="form-control"
+                                                                                                                                                        type="text"
+                                                                                                                                                        value={item.totalNumbers}
+                                                                                                                                                        onChange={e => handleSupervisoryManpowerChange(idx, 'totalNumbers', e.target.value)}
+                                                                                                                                                    />
+                                                                                                                                                    {supervisoryManpowerErrors[idx]?.totalNumbers && (
+                                                                                                                                                        <div className="ValidationColor">{supervisoryManpowerErrors[idx].totalNumbers}</div>
+                                                                                                                                                    )}
+                                                                                                                                                </div>
                                             </div>
                                             <div className="col-md-4">
                                                 <div className="form-group">
@@ -5728,57 +5949,72 @@ const VendorRegistrationStepByStepForm = () => {
                                     <div className="card-body mt-0">
                                         <div className="row">
                                             <div className="col-md-4">
-                                                <div className="form-group">
-                                                    <label>Company Name <span>*</span></label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="text"
-                                                        value={customer.companyName}
-                                                        onChange={e => handleMajorCustomerChange(idx, 'companyName', e.target.value)}
-                                                    />
-                                                </div>
+                                                                                                                                                                                <div className="form-group">
+                                                                                                                                                                                    <label>Company Name <span>*</span></label>
+                                                                                                                                                                                    <input
+                                                                                                                                                                                        className="form-control"
+                                                                                                                                                                                        type="text"
+                                                                                                                                                                                        value={customer.companyName}
+                                                                                                                                                                                        onChange={e => handleMajorCustomerChange(idx, 'companyName', e.target.value)}
+                                                                                                                                                                                    />
+                                                                                                                                                                                    {majorCustomerErrors[idx]?.companyName && (
+                                                                                                                                                                                        <div className="ValidationColor">{majorCustomerErrors[idx].companyName}</div>
+                                                                                                                                                                                    )}
+                                                                                                                                                                                </div>
                                             </div>
                                             <div className="col-md-4">
-                                                <div className="form-group">
-                                                    <label>Work Done <span>*</span></label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="text"
-                                                        value={customer.workDone}
-                                                        onChange={e => handleMajorCustomerChange(idx, 'workDone', e.target.value)}
-                                                    />
-                                                </div>
+                                                                                                                                                                                <div className="form-group">
+                                                                                                                                                                                    <label>Work Done <span>*</span></label>
+                                                                                                                                                                                    <input
+                                                                                                                                                                                        className="form-control"
+                                                                                                                                                                                        type="text"
+                                                                                                                                                                                        value={customer.workDone}
+                                                                                                                                                                                        onChange={e => handleMajorCustomerChange(idx, 'workDone', e.target.value)}
+                                                                                                                                                                                    />
+                                                                                                                                                                                    {majorCustomerErrors[idx]?.workDone && (
+                                                                                                                                                                                        <div className="ValidationColor">{majorCustomerErrors[idx].workDone}</div>
+                                                                                                                                                                                    )}
+                                                                                                                                                                                </div>
                                             </div>
                                             <div className="col-md-4">
-                                                <div className="form-group">
-                                                    <label>Contact Person <span>*</span></label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="text"
-                                                        value={customer.contactPerson}
-                                                        onChange={e => handleMajorCustomerChange(idx, 'contactPerson', e.target.value)}
-                                                    />
-                                                </div>
+                                                                                                                                                                                <div className="form-group">
+                                                                                                                                                                                    <label>Contact Person <span>*</span></label>
+                                                                                                                                                                                    <input
+                                                                                                                                                                                        className="form-control"
+                                                                                                                                                                                        type="text"
+                                                                                                                                                                                        value={customer.contactPerson}
+                                                                                                                                                                                        onChange={e => handleMajorCustomerChange(idx, 'contactPerson', e.target.value)}
+                                                                                                                                                                                    />
+                                                                                                                                                                                    {majorCustomerErrors[idx]?.contactPerson && (
+                                                                                                                                                                                        <div className="ValidationColor">{majorCustomerErrors[idx].contactPerson}</div>
+                                                                                                                                                                                    )}
+                                                                                                                                                                                </div>
                                             </div>
                                             <div className="col-md-4  ">
-                                                <div className="form-group">
-                                                    <label>Designation <span>*</span></label>
-                                                    <SingleSelector
-                                                        options={[]}
-                                                        value={customer.designation}
-                                                        onChange={selected => handleMajorCustomerChange(idx, 'designation', selected)}
-                                                    />
-                                                </div>
+                                                                                                                                                                                <div className="form-group">
+                                                                                                                                                                                    <label>Designation <span>*</span></label>
+                                                                                                                                                                                    <SingleSelector
+                                                                                                                                                                                        options={[]}
+                                                                                                                                                                                        value={customer.designation}
+                                                                                                                                                                                        onChange={selected => handleMajorCustomerChange(idx, 'designation', selected)}
+                                                                                                                                                                                    />
+                                                                                                                                                                                    {majorCustomerErrors[idx]?.designation && (
+                                                                                                                                                                                        <div className="ValidationColor">{majorCustomerErrors[idx].designation}</div>
+                                                                                                                                                                                    )}
+                                                                                                                                                                                </div>
                                             </div>
                                             <div className="col-md-4  ">
-                                                <div className="form-group">
-                                                    <label>Country <span>*</span></label>
-                                                    <SingleSelector
-                                                        options={[]}
-                                                        value={customer.country}
-                                                        onChange={selected => handleMajorCustomerChange(idx, 'country', selected)}
-                                                    />
-                                                </div>
+                                                                                                                                                                                <div className="form-group">
+                                                                                                                                                                                    <label>Country <span>*</span></label>
+                                                                                                                                                                                    <SingleSelector
+                                                                                                                                                                                        options={[]}
+                                                                                                                                                                                        value={customer.country}
+                                                                                                                                                                                        onChange={selected => handleMajorCustomerChange(idx, 'country', selected)}
+                                                                                                                                                                                    />
+                                                                                                                                                                                    {majorCustomerErrors[idx]?.country && (
+                                                                                                                                                                                        <div className="ValidationColor">{majorCustomerErrors[idx].country}</div>
+                                                                                                                                                                                    )}
+                                                                                                                                                                                </div>
                                             </div>
                                             <div className="col-md-4">
                                                 <div className="form-group">
@@ -5792,59 +6028,74 @@ const VendorRegistrationStepByStepForm = () => {
                                                 </div>
                                             </div>
                                             <div className="col-md-4">
-                                                <div className="form-group">
-                                                    <label>Mobile No. <span>*</span></label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="text"
-                                                        value={customer.mobile}
-                                                        onChange={e => handleMajorCustomerChange(idx, 'mobile', e.target.value)}
-                                                    />
-                                                </div>
+                                                                                                                                                                                <div className="form-group">
+                                                                                                                                                                                    <label>Mobile No. <span>*</span></label>
+                                                                                                                                                                                    <input
+                                                                                                                                                                                        className="form-control"
+                                                                                                                                                                                        type="text"
+                                                                                                                                                                                        value={customer.mobile}
+                                                                                                                                                                                        onChange={e => handleMajorCustomerChange(idx, 'mobile', e.target.value)}
+                                                                                                                                                                                    />
+                                                                                                                                                                                    {majorCustomerErrors[idx]?.mobile && (
+                                                                                                                                                                                        <div className="ValidationColor">{majorCustomerErrors[idx].mobile}</div>
+                                                                                                                                                                                    )}
+                                                                                                                                                                                </div>
                                             </div>
                                             <div className="col-md-4">
-                                                <div className="form-group">
-                                                    <label>Year of Association <span>*</span></label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="text"
-                                                        value={customer.yearOfAssociation}
-                                                        onChange={e => handleMajorCustomerChange(idx, 'yearOfAssociation', e.target.value)}
-                                                    />
-                                                </div>
+                                                                                                                                                                                <div className="form-group">
+                                                                                                                                                                                    <label>Year of Association <span>*</span></label>
+                                                                                                                                                                                    <input
+                                                                                                                                                                                        className="form-control"
+                                                                                                                                                                                        type="text"
+                                                                                                                                                                                        value={customer.yearOfAssociation}
+                                                                                                                                                                                        onChange={e => handleMajorCustomerChange(idx, 'yearOfAssociation', e.target.value)}
+                                                                                                                                                                                    />
+                                                                                                                                                                                    {majorCustomerErrors[idx]?.yearOfAssociation && (
+                                                                                                                                                                                        <div className="ValidationColor">{majorCustomerErrors[idx].yearOfAssociation}</div>
+                                                                                                                                                                                    )}
+                                                                                                                                                                                </div>
                                             </div>
                                             <div className="col-md-4">
-                                                <div className="form-group">
-                                                    <label>Business done in Last 12 month in lacs <span>*</span></label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="text"
-                                                        value={customer.businessLast12Months}
-                                                        onChange={e => handleMajorCustomerChange(idx, 'businessLast12Months', e.target.value)}
-                                                    />
-                                                </div>
+                                                                                                                                                                                <div className="form-group">
+                                                                                                                                                                                    <label>Business done in Last 12 month in lacs <span>*</span></label>
+                                                                                                                                                                                    <input
+                                                                                                                                                                                        className="form-control"
+                                                                                                                                                                                        type="text"
+                                                                                                                                                                                        value={customer.businessLast12Months}
+                                                                                                                                                                                        onChange={e => handleMajorCustomerChange(idx, 'businessLast12Months', e.target.value)}
+                                                                                                                                                                                    />
+                                                                                                                                                                                    {majorCustomerErrors[idx]?.businessLast12Months && (
+                                                                                                                                                                                        <div className="ValidationColor">{majorCustomerErrors[idx].businessLast12Months}</div>
+                                                                                                                                                                                    )}
+                                                                                                                                                                                </div>
                                             </div>
                                             <div className="col-md-4">
-                                                <div className="form-group">
-                                                    <label>Service Provided From <span>*</span></label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="date"
-                                                        value={customer.serviceFrom}
-                                                        onChange={e => handleMajorCustomerChange(idx, 'serviceFrom', e.target.value)}
-                                                    />
-                                                </div>
+                                                                                                                                                                                <div className="form-group">
+                                                                                                                                                                                    <label>Service Provided From <span>*</span></label>
+                                                                                                                                                                                    <input
+                                                                                                                                                                                        className="form-control"
+                                                                                                                                                                                        type="date"
+                                                                                                                                                                                        value={customer.serviceFrom}
+                                                                                                                                                                                        onChange={e => handleMajorCustomerChange(idx, 'serviceFrom', e.target.value)}
+                                                                                                                                                                                    />
+                                                                                                                                                                                    {majorCustomerErrors[idx]?.serviceFrom && (
+                                                                                                                                                                                        <div className="ValidationColor">{majorCustomerErrors[idx].serviceFrom}</div>
+                                                                                                                                                                                    )}
+                                                                                                                                                                                </div>
                                             </div>
                                             <div className="col-md-4">
-                                                <div className="form-group">
-                                                    <label>Service Provided To <span>*</span></label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="date"
-                                                        value={customer.serviceTo}
-                                                        onChange={e => handleMajorCustomerChange(idx, 'serviceTo', e.target.value)}
-                                                    />
-                                                </div>
+                                                                                                                                                                                <div className="form-group">
+                                                                                                                                                                                    <label>Service Provided To <span>*</span></label>
+                                                                                                                                                                                    <input
+                                                                                                                                                                                        className="form-control"
+                                                                                                                                                                                        type="date"
+                                                                                                                                                                                        value={customer.serviceTo}
+                                                                                                                                                                                        onChange={e => handleMajorCustomerChange(idx, 'serviceTo', e.target.value)}
+                                                                                                                                                                                    />
+                                                                                                                                                                                    {majorCustomerErrors[idx]?.serviceTo && (
+                                                                                                                                                                                        <div className="ValidationColor">{majorCustomerErrors[idx].serviceTo}</div>
+                                                                                                                                                                                    )}
+                                                                                                                                                                                </div>
                                             </div>
                                             <div className="col-md-4">
                                                 <div className="form-group">
@@ -5902,37 +6153,46 @@ const VendorRegistrationStepByStepForm = () => {
                                     <div className="card-body mt-0">
                                         <div className="row">
                                             <div className="col-md-4">
-                                                <div className="form-group">
-                                                    <label>Builder / Client Name <span>*</span></label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="text"
-                                                        value={site.builderName}
-                                                        onChange={e => handleWorkingSiteChange(idx, 'builderName', e.target.value)}
-                                                    />
-                                                </div>
+                                                                                                                                                                                                            <div className="form-group">
+                                                                                                                                                                                                                <label>Builder / Client Name <span>*</span></label>
+                                                                                                                                                                                                                <input
+                                                                                                                                                                                                                    className="form-control"
+                                                                                                                                                                                                                    type="text"
+                                                                                                                                                                                                                    value={site.builderName}
+                                                                                                                                                                                                                    onChange={e => handleWorkingSiteChange(idx, 'builderName', e.target.value)}
+                                                                                                                                                                                                                />
+                                                                                                                                                                                                                {workingSiteErrors[idx]?.builderName && (
+                                                                                                                                                                                                                    <div className="ValidationColor">{workingSiteErrors[idx].builderName}</div>
+                                                                                                                                                                                                                )}
+                                                                                                                                                                                                            </div>
                                             </div>
                                             <div className="col-md-4">
-                                                <div className="form-group">
-                                                    <label>Brief Details <span>*</span></label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="text"
-                                                        value={site.briefDetails}
-                                                        onChange={e => handleWorkingSiteChange(idx, 'briefDetails', e.target.value)}
-                                                    />
-                                                </div>
+                                                                                                                                                                                                            <div className="form-group">
+                                                                                                                                                                                                                <label>Brief Details <span>*</span></label>
+                                                                                                                                                                                                                <input
+                                                                                                                                                                                                                    className="form-control"
+                                                                                                                                                                                                                    type="text"
+                                                                                                                                                                                                                    value={site.briefDetails}
+                                                                                                                                                                                                                    onChange={e => handleWorkingSiteChange(idx, 'briefDetails', e.target.value)}
+                                                                                                                                                                                                                />
+                                                                                                                                                                                                                {workingSiteErrors[idx]?.briefDetails && (
+                                                                                                                                                                                                                    <div className="ValidationColor">{workingSiteErrors[idx].briefDetails}</div>
+                                                                                                                                                                                                                )}
+                                                                                                                                                                                                            </div>
                                             </div>
                                             <div className="col-md-4">
-                                                <div className="form-group">
-                                                    <label>Area (Sq ft.) <span>*</span></label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="text"
-                                                        value={site.area}
-                                                        onChange={e => handleWorkingSiteChange(idx, 'area', e.target.value)}
-                                                    />
-                                                </div>
+                                                                                                                                                                                                            <div className="form-group">
+                                                                                                                                                                                                                <label>Area (Sq ft.) <span>*</span></label>
+                                                                                                                                                                                                                <input
+                                                                                                                                                                                                                    className="form-control"
+                                                                                                                                                                                                                    type="text"
+                                                                                                                                                                                                                    value={site.area}
+                                                                                                                                                                                                                    onChange={e => handleWorkingSiteChange(idx, 'area', e.target.value)}
+                                                                                                                                                                                                                />
+                                                                                                                                                                                                                {workingSiteErrors[idx]?.area && (
+                                                                                                                                                                                                                    <div className="ValidationColor">{workingSiteErrors[idx].area}</div>
+                                                                                                                                                                                                                )}
+                                                                                                                                                                                                            </div>
                                             </div>
                                             <div className="col-md-4">
                                                 <div className="form-group">
@@ -5990,14 +6250,8 @@ const VendorRegistrationStepByStepForm = () => {
                                 </div>
                             </div>
 
-                        </div>
-                    )}
 
-
-
-                    {currentStep === 5 && (
-                        <div className="card mx-4 pb-4 mt-4">
-                            <div className="row mb-3 mx-2 mt-4">
+                                                        <div className="row mb-3 mx-2 mt-4">
                                 <div className="col-md-6">
                                     <div className="form-group">
                                         <label>Product & Services </label>
@@ -6010,10 +6264,7 @@ const VendorRegistrationStepByStepForm = () => {
                                     </div>
                                 </div>
                             </div>
-
-
-
-                            {/* Turnover Table */}
+  {/* Turnover Table */}
                             <div className="mx-3 mt-4">
                                 <div className="col-md-12">
                                     <h5 className="mb-3">Annual Turnover
@@ -6073,7 +6324,14 @@ const VendorRegistrationStepByStepForm = () => {
                             </div>
 
 
-                            <div className="row mt-5 mx-2">
+                        </div>
+                    )}
+
+
+
+                    {currentStep === 5 && (
+                        <div className="card mx-4 pb-4 mt-4">
+                            <div className="row mt-4 mx-2">
                                 <div className="col-md-12">
                                     <h5 className="mb-3">Additional Vendor Statutory Details
                                         <TooltipIcon message="If not applicable then keep The field blank Additional Vendor Statutory Details." />
@@ -6408,14 +6666,20 @@ const VendorRegistrationStepByStepForm = () => {
                                     // }
                                     // // Add more step validations as needed
                                     // else 
-                                        if (currentStep === 2) {
-                                        isValid = validateStep2();
-                                        if (!isValid) return;
-                                    }
-                                    // else if (currentStep === 2) {
-                                    //     isValid = validateStep3();
+                                    //     if (currentStep === 2) {
+                                    //     isValid = validateStep2();
                                     //     if (!isValid) return;
                                     // }
+                                    // else 
+                                    if (currentStep === 3) {
+                                        isValid = validateStep3();
+                                        if (!isValid) return;
+                                    }
+                                     else 
+                                    if (currentStep === 4) {
+                                        isValid = validateStep4();
+                                        if (!isValid) return;
+                                    }
                                     // ...
 
                                     setCompleted((arr) => {
