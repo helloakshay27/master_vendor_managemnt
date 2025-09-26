@@ -371,6 +371,28 @@ const VendorRegistrationStepByStepForm = () => {
 
 
 
+    // Country options for address selectors
+    const [countryOptions, setCountryOptions] = useState([]);
+
+    useEffect(() => {
+        const fetchCountries = async () => {
+            try {
+                const response = await axios.get('https://vendors.lockated.com/pms/suppliers/pms_country_list');
+                // Assuming response.data is an array of country objects with id and name
+                const options = (response.data.pms_country || []).map(country => ({
+                    label: country.name,
+                    value: country.value
+                }));
+                setCountryOptions(options);
+            } catch (error) {
+                console.error('Error fetching country list:', error);
+            }
+        };
+        fetchCountries();
+    }, []);
+   
+
+
 
      // Address state and handlers
     const [registeredAddress, setRegisteredAddress] = useState({
@@ -401,8 +423,65 @@ const VendorRegistrationStepByStepForm = () => {
         pincode: "",
         telephone: "",
         mobile: "",
-        email: "",
+        // email: "",
+        orderingEmail:""
     });
+
+    console.log("reg add :",registeredAddress)
+    console.log("comm add:",communicationAddress)
+
+
+    // State options for address selectors
+    const [stateOptions, setStateOptions] = useState([]);
+
+    useEffect(() => {
+        if (!registeredAddress.country || !registeredAddress.country.value) {
+            setStateOptions([]);
+            return;
+        }
+        const fetchStates = async () => {
+            try {
+                const response = await axios.get('https://vendors.lockated.com/pms/suppliers/pms_state_list', {
+                    params: { country_id: registeredAddress.country.value }
+                });
+                // Assuming response.data is an array of state objects with id and name
+                const options = (response.data.pms_state || []).map(state => ({
+                    label: state.name,
+                    value: state.value
+                }));
+                setStateOptions(options);
+            } catch (error) {
+                console.error('Error fetching state list:', error);
+            }
+        };
+        fetchStates();
+    }, [registeredAddress.country]);
+
+    // State options for communication address
+    const [commStateOptions, setCommStateOptions] = useState([]);
+
+    useEffect(() => {
+        if (!communicationAddress.country || !communicationAddress.country.value) {
+            setCommStateOptions([]);
+            return;
+        }
+        const fetchStates = async () => {
+            try {
+                const response = await axios.get('https://vendors.lockated.com/pms/suppliers/pms_state_list', {
+                    params: { country_id: communicationAddress.country.value }
+                });
+                const options = (response.data.pms_state || []).map(state => ({
+                    label: state.name,
+                    value: state.value
+                }));
+                setCommStateOptions(options);
+            } catch (error) {
+                console.error('Error fetching state list (communication):', error);
+            }
+        };
+        fetchStates();
+    }, [communicationAddress.country]);
+    
 
     const [sameAsRegistered, setSameAsRegistered] = useState(false);
 
@@ -422,6 +501,48 @@ const VendorRegistrationStepByStepForm = () => {
         }
     };
 
+
+
+     // --- Step 2 Validation: Registered & Communication Address ---
+    const [addressErrors, setAddressErrors] = useState({ registered: {}, communication: {} });
+
+    const validateStep2 = () => {
+        const regFields = [
+            { key: 'address1', label: 'Address' },
+            { key: 'country', label: 'Country' },
+            { key: 'state', label: 'State' },
+            { key: 'city', label: 'City' },
+            { key: 'pincode', label: 'Pin Code' },
+            { key: 'mobile', label: 'Mobile Number' },
+            { key: 'orderingEmail', label: 'Ordering Email ID' },
+        ];
+        const commFields = [
+            { key: 'address1', label: 'Address' },
+            { key: 'country', label: 'Country' },
+            { key: 'state', label: 'State' },
+            { key: 'city', label: 'City' },
+            { key: 'pincode', label: 'Pin Code' },
+            { key: 'mobile', label: 'Mobile Number' },
+            { key: 'orderingEmail', label: 'Email ID' },
+        ];
+        const regErrs = {};
+        const commErrs = {};
+        regFields.forEach(f => {
+            const val = registeredAddress[f.key];
+            if (!val || (typeof val === 'object' && (!val.value && !val.label))) {
+                regErrs[f.key] = `${f.label} is required.`;
+            }
+        });
+        commFields.forEach(f => {
+            const val = communicationAddress[f.key];
+            if (!val || (typeof val === 'object' && (!val.value && !val.label))) {
+                commErrs[f.key] = `${f.label} is required.`;
+            }
+        });
+        setAddressErrors({ registered: regErrs, communication: commErrs });
+        return Object.keys(regErrs).length === 0 && Object.keys(commErrs).length === 0;
+    };
+    
 
 
     const [virtualAccount, setVirtualAccount] = useState("");
@@ -3748,6 +3869,9 @@ const VendorRegistrationStepByStepForm = () => {
                                                     value={registeredAddress.address1}
                                                     onChange={e => handleRegisteredAddressChange('address1', e.target.value)}
                                                 />
+                                                {addressErrors.registered.address1 && (
+                                                    <div className="ValidationColor">{addressErrors.registered.address1}</div>
+                                                )}
                                             </div>
                                         </div>
                                         <div className="col-md-4">
@@ -3814,10 +3938,13 @@ const VendorRegistrationStepByStepForm = () => {
                                                     <TooltipIcon message="Please choose your country from the list. This helps us identify the location of your organization." />
                                                 </label>
                                                 <SingleSelector
-                                                    options={[]}
+                                                    options={countryOptions}
                                                     value={registeredAddress.country}
                                                     onChange={val => handleRegisteredAddressChange('country', val)}
                                                 />
+                                                {addressErrors.registered.country && (
+                                                    <div className="ValidationColor">{addressErrors.registered.country}</div>
+                                                )}
                                             </div>
                                         </div>
                                         <div className="col-md-4  mt-2">
@@ -3828,10 +3955,13 @@ const VendorRegistrationStepByStepForm = () => {
                                                     <TooltipIcon message="Please choose your state from the list. This helps us determine your organization's regional location." />
                                                 </label>
                                                 <SingleSelector
-                                                    options={[]}
+                                                    options={stateOptions}
                                                     value={registeredAddress.state}
                                                     onChange={val => handleRegisteredAddressChange('state', val)}
                                                 />
+                                                {addressErrors.registered.state && (
+                                                    <div className="ValidationColor">{addressErrors.registered.state}</div>
+                                                )}
                                             </div>
                                         </div>
 
@@ -3847,6 +3977,9 @@ const VendorRegistrationStepByStepForm = () => {
                                                     value={registeredAddress.city}
                                                     onChange={e => handleRegisteredAddressChange('city', e.target.value)}
                                                 />
+                                                {addressErrors.registered.city && (
+                                                    <div className="ValidationColor">{addressErrors.registered.city}</div>
+                                                )}
                                             </div>
                                         </div>
                                         <div className="col-md-4  mt-2">
@@ -3861,6 +3994,9 @@ const VendorRegistrationStepByStepForm = () => {
                                                     value={registeredAddress.pincode}
                                                     onChange={e => handleRegisteredAddressChange('pincode', e.target.value)}
                                                 />
+                                                {addressErrors.registered.pincode && (
+                                                    <div className="ValidationColor">{addressErrors.registered.pincode}</div>
+                                                )}
                                             </div>
                                         </div>
                                         <div className="col-md-4  mt-2">
@@ -3890,6 +4026,9 @@ const VendorRegistrationStepByStepForm = () => {
                                                     value={registeredAddress.mobile}
                                                     onChange={e => handleRegisteredAddressChange('mobile', e.target.value)}
                                                 />
+                                                {addressErrors.registered.mobile && (
+                                                    <div className="ValidationColor">{addressErrors.registered.mobile}</div>
+                                                )}
                                             </div>
                                         </div>
                                         <div className="col-md-4  mt-2">
@@ -3905,6 +4044,9 @@ const VendorRegistrationStepByStepForm = () => {
                                                     value={registeredAddress.orderingEmail}
                                                     onChange={e => handleRegisteredAddressChange('orderingEmail', e.target.value)}
                                                 />
+                                                {addressErrors.registered.orderingEmail && (
+                                                    <div className="ValidationColor">{addressErrors.registered.orderingEmail}</div>
+                                                )}
                                             </div>
                                         </div>
                                         <div className="col-md-4  mt-2">
@@ -3959,6 +4101,9 @@ const VendorRegistrationStepByStepForm = () => {
                                                     onChange={e => handleCommunicationAddressChange('address1', e.target.value)}
                                                     disabled={sameAsRegistered}
                                                 />
+                                                {addressErrors.communication.address1 && (
+                                                    <div className="ValidationColor">{addressErrors.communication.address1}</div>
+                                                )}
                                             </div>
                                         </div>
                                         <div className="col-md-4">
@@ -4035,11 +4180,14 @@ const VendorRegistrationStepByStepForm = () => {
                                                     {/* <TooltipIcon message="Please choose your country from the list" /> */}
                                                 </label>
                                                 <SingleSelector
-                                                    options={[]}
+                                                    options={countryOptions}
                                                     value={communicationAddress.country}
                                                     onChange={val => handleCommunicationAddressChange('country', val)}
                                                     isDisabled={sameAsRegistered}
                                                 />
+                                                {addressErrors.communication.country && (
+                                                    <div className="ValidationColor">{addressErrors.communication.country}</div>
+                                                )}
                                             </div>
                                         </div>
                                         <div className="col-md-4  mt-2">
@@ -4050,11 +4198,14 @@ const VendorRegistrationStepByStepForm = () => {
                                                     {/* <TooltipIcon message="Please choose your country from the list" /> */}
                                                 </label>
                                                 <SingleSelector
-                                                    options={[]}
+                                                    options={commStateOptions}
                                                     value={communicationAddress.state}
                                                     onChange={val => handleCommunicationAddressChange('state', val)}
                                                     isDisabled={sameAsRegistered}
                                                 />
+                                                {addressErrors.communication.state && (
+                                                    <div className="ValidationColor">{addressErrors.communication.state}</div>
+                                                )}
                                             </div>
                                         </div>
 
@@ -4071,6 +4222,9 @@ const VendorRegistrationStepByStepForm = () => {
                                                     onChange={e => handleCommunicationAddressChange('city', e.target.value)}
                                                     disabled={sameAsRegistered}
                                                 />
+                                                {addressErrors.communication.city && (
+                                                    <div className="ValidationColor">{addressErrors.communication.city}</div>
+                                                )}
                                             </div>
                                         </div>
                                         <div className="col-md-4  mt-2">
@@ -4086,6 +4240,9 @@ const VendorRegistrationStepByStepForm = () => {
                                                     onChange={e => handleCommunicationAddressChange('pincode', e.target.value)}
                                                     disabled={sameAsRegistered}
                                                 />
+                                                {addressErrors.communication.pincode && (
+                                                    <div className="ValidationColor">{addressErrors.communication.pincode}</div>
+                                                )}
                                             </div>
                                         </div>
                                         <div className="col-md-4  mt-2">
@@ -4116,6 +4273,9 @@ const VendorRegistrationStepByStepForm = () => {
                                                     onChange={e => handleCommunicationAddressChange('mobile', e.target.value)}
                                                     disabled={sameAsRegistered}
                                                 />
+                                                {addressErrors.communication.mobile && (
+                                                    <div className="ValidationColor">{addressErrors.communication.mobile}</div>
+                                                )}
                                             </div>
                                         </div>
                                         <div className="col-md-4  mt-2">
@@ -4127,10 +4287,13 @@ const VendorRegistrationStepByStepForm = () => {
                                                 <input
                                                     className="form-control"
                                                     type="text"
-                                                    value={communicationAddress.email}
-                                                    onChange={e => handleCommunicationAddressChange('email', e.target.value)}
+                                                    value={communicationAddress.orderingEmail}
+                                                    onChange={e => handleCommunicationAddressChange('orderingEmail', e.target.value)}
                                                     disabled={sameAsRegistered}
                                                 />
+                                                {addressErrors.communication.orderingEmail && (
+                                                    <div className="ValidationColor">{addressErrors.communication.orderingEmail}</div>
+                                                )}
                                             </div>
                                         </div>
 
@@ -6236,11 +6399,24 @@ const VendorRegistrationStepByStepForm = () => {
                             <button
                                 className="purple-btn2"
                                 onClick={() => {
-                                    if (currentStep === 1) {
-                                        // Validate step 1
-                                        if (!validateBasicInfo()) return;
-                                        setBasicInfoErrors({});
+                                    // Step-wise validation logic
+                                    let isValid = true;
+                                    // if (currentStep === 1) {
+                                    //     // Step 1: Basic Info validation
+                                    //     isValid = validateBasicInfo();
+                                    //     if (!isValid) return;
+                                    // }
+                                    // // Add more step validations as needed
+                                    // else 
+                                        if (currentStep === 2) {
+                                        isValid = validateStep2();
+                                        if (!isValid) return;
                                     }
+                                    // else if (currentStep === 2) {
+                                    //     isValid = validateStep3();
+                                    //     if (!isValid) return;
+                                    // }
+                                    // ...
 
                                     setCompleted((arr) => {
                                         const copy = [...arr];
