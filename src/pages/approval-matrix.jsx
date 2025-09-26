@@ -9,6 +9,8 @@ import axios from "axios";
 import { useState, useEffect } from "react";
 import SingleSelector from "../components/base/Select/SingleSelector";
 import { baseURL } from "../confi/apiDomain";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const ApprovalMatrix = () => {
    const urlParams = new URLSearchParams(location.search);
@@ -20,7 +22,7 @@ const ApprovalMatrix = () => {
   const [selectedDepartment, setSelectedDepartment] = useState(null);
 
   const [approvalLevels, setApprovalLevels] = useState([
-    { order: "", name: "", users: [] }, // Initial level remains open
+    { order: "1", name: "", users: [] }, // Single level default order set to 1
   ]);
   const [selectedKYCType, setSelectedKYCType] = useState(null);
 
@@ -167,7 +169,8 @@ const ApprovalMatrix = () => {
           const firstKey = Object.keys(data.errors)[0];
           const firstVal = data.errors[firstKey];
           if (Array.isArray(firstVal) && firstVal.length) return `${firstKey} ${firstVal[0]}`.trim();
-          if (typeof firstVal === "string") return `${firstKey} ${firstVal}`.trim();
+          if (typeof firstVal
+             === "string") return `${firstKey} ${firstVal}`.trim();
         }
       }
 
@@ -203,7 +206,7 @@ const ApprovalMatrix = () => {
       !finalFormData.department_id ||
       !finalFormData.approval_type
     ) {
-      alert("Please select a Department, and KYC Type.");
+      toast.warn("Please select a Department and KYC Type.");
       return;
     }
 
@@ -211,17 +214,17 @@ const ApprovalMatrix = () => {
       const level = approvalLevels[i];
 
       if (!level.order || level.order.toString().trim() === "") {
-        alert(`Please enter an order `);
+        toast.warn(`Please enter an order`);
         return;
       }
 
       if (!level.name.trim()) {
-        alert(`Please enter a name `);
+        toast.warn(`Please enter a name`);
         return;
       }
 
       if (!level.users || level.users.length === 0) {
-        alert(`Please select at least one user`);
+        toast.warn(`Please select at least one user`);
         return;
       }
     }
@@ -248,7 +251,7 @@ const ApprovalMatrix = () => {
       );
 
       console.log("API Response:", response.data);
-      alert("Approval Matrix Created Successfully!");
+      toast.success("Approval Matrix Created Successfully!");
 
       // setSelectedCompany(null);
       setSelectedDepartment(null);
@@ -258,12 +261,13 @@ const ApprovalMatrix = () => {
       navigate(`/approval-list/?token=${token}`);
     } catch (error) {
       console.error("Error updating approval matrix:", error);
-      alert(extractErrorMessage(error));
+      toast.error(extractErrorMessage(error));
     }
   };
 
   return (
     <div>
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} newestOnTop closeOnClick pauseOnHover />
       <div
         className="website-content"
         data-select2-id="select2-data-192-0lua"
@@ -332,7 +336,7 @@ const ApprovalMatrix = () => {
                               {/* Status */}
                               <div className="col-md-3">
                                 <label htmlFor="status-select">
-                                  Department
+                                  Department <span style={{ color: "#f69380" }}>*</span>
                                 </label>
                                 <SingleSelector
                                   id="status-select"
@@ -347,7 +351,7 @@ const ApprovalMatrix = () => {
                               <div className="col-md-3 mt-4">
                                 <label htmlFor="created-by-select">
                                   {" "}
-                                  KYC Type
+                                  KYC Type <span style={{ color: "#f69380" }}>*</span>
                                 </label>
                                 <SingleSelector
                                   id="module-select"
@@ -379,6 +383,7 @@ const ApprovalMatrix = () => {
                                 <legend className="float-none">
                                   Order{" "}
                                   <span style={{ color: "#f69380" }}>*</span>
+                                  
                                 </legend>
                                 <input
                                   className="form-group order"
@@ -392,6 +397,7 @@ const ApprovalMatrix = () => {
                                   }
                                   placeholder="Enter Order"
                                   required
+                                  disabled
                                 />
                               </fieldset>
                               <fieldset className="border ms-4">
@@ -455,10 +461,17 @@ const ApprovalMatrix = () => {
                       {/* </div> */}
                       <div style={{ textAlign: "center" }}>
                         <button
-                          className="purple-btn1 submit-btn"
+                          className="purple-btn2 submit-btn"
                           onClick={handleCreate}
                         >
                           Create
+                        </button>
+                        <button
+                          className="purple-btn1 submit-btn ms-2"
+                          onClick={() => navigate(`/approval-list/?token=${token}`)}
+                          // style={{ backgroundColor: "#6c757d", borderColor: "#6c757d" }}
+                        >
+                          Cancel
                         </button>
                       </div>
                     </div>

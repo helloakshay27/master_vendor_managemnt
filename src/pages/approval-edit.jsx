@@ -9,7 +9,8 @@ import { useState, useEffect } from "react";
 import SingleSelector from "../components/base/Select/SingleSelector";
 import { useParams } from "react-router-dom"; // Import useParams
 import { baseURL } from "../confi/apiDomain";
-import { toast } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const ApprovalEdit = () => {
    const urlParams = new URLSearchParams(location.search);
@@ -284,17 +285,17 @@ const ApprovalEdit = () => {
       const level = approvalLevels[i];
 
       if (!level.order || level.order.toString().trim() === "") {
-        alert(`Please enter an order `);
+        toast.warn(`Please enter an order`);
         return;
       }
 
       if (!level.name.trim()) {
-        alert(`Please enter a name `);
+        toast.warn(`Please enter a name`);
         return;
       }
 
       if (!level.users || level.users.length === 0) {
-        alert(`Please select at least one user`);
+        toast.warn(`Please select at least one user`);
         return;
       }
     }
@@ -333,6 +334,7 @@ const ApprovalEdit = () => {
 
   return (
     <div>
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} newestOnTop closeOnClick pauseOnHover />
       <div
         className="website-content"
         data-select2-id="select2-data-192-0lua"
@@ -402,6 +404,7 @@ const ApprovalEdit = () => {
                               <div className="col-md-3">
                                 <label htmlFor="status-select">
                                   Department
+                                  <span style={{ color: "#f69380" }}>*</span>
                                 </label>
                                 <SingleSelector
                                   id="status-select"
@@ -417,6 +420,7 @@ const ApprovalEdit = () => {
                                 <label htmlFor="created-by-select">
                                   {" "}
                                   KYC Type
+                                  <span style={{ color: "#f69380" }}>*</span>
                                 </label>
                                 <SingleSelector
                                   id="module-select"
@@ -461,6 +465,8 @@ const ApprovalEdit = () => {
                                   }
                                   placeholder="Enter Order"
                                   required
+                                  readOnly
+                                  disabled
                                 />
                               </fieldset>
                               <fieldset className="border ms-4">
@@ -481,6 +487,7 @@ const ApprovalEdit = () => {
                                   placeholder="Enter Name of Level"
                                   required
                                   type="text"
+                                  
                                 />
                               </fieldset>
                               <fieldset
