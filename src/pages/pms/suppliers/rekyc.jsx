@@ -379,14 +379,43 @@ const SectionReKYCDetails = () => {
     }
   }, [gstinNumber]);
 
+  // const handleGstinChange = (e) => {
+  //   const value = e.target.value;
+  //   setGstinNumber(value);
+
+  //   if (value.length !== 15) {
+  //     setErrors((prevErrors) => ({
+  //       ...prevErrors,
+  //       gstinNumber: "Enter a valid 15-character GSTIN!",
+  //     }));
+  //   } else {
+  //     // GSTIN regex: 2 digits, 5 letters, 4 digits, 1 letter, 1 alphanumeric, 1 Z/z, 1 alphanumeric
+  //     const gstinRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[A-Z0-9]{1}Z[A-Z0-9]{1}$/i;
+  //     if (!gstinRegex.test(value)) {
+  //       setErrors((prevErrors) => ({
+  //         ...prevErrors,
+  //         gstinNumber: "GSTIN format is invalid!",
+  //       }));
+  //     } else {
+  //       setErrors((prevErrors) => {
+  //         const newErrors = { ...prevErrors };
+  //         delete newErrors.gstinNumber;
+  //         return newErrors;
+  //       });
+  //     }
+  //   }
+  // };
+
+
   const handleGstinChange = (e) => {
-    const value = e.target.value;
+    let value = e.target.value.toUpperCase().slice(0, 15); // Always uppercase, max 15 chars
     setGstinNumber(value);
 
-    if (value.length !== 15) {
+    const gstinRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[A-Z0-9]{1}Z[A-Z0-9]{1}$/;
+    if (value.length !== 15 || !gstinRegex.test(value)) {
       setErrors((prevErrors) => ({
         ...prevErrors,
-        gstinNumber: "Enter a valid 15-character GSTIN!",
+        gstinNumber: "Enter a valid 15-character GSTIN (e.g., 29ABCDE1234F1Z5)",
       }));
     } else {
       setErrors((prevErrors) => {
@@ -1368,16 +1397,19 @@ const SectionReKYCDetails = () => {
       if (!gstApplicable) {
         validationErrors.gstApplicable = "GST Applicable is required.";
       } else if (gstApplicable === "Yes") {
-        // if (!gstClassification?.value)
-        //   validationErrors.gstClassification =
-        //     "GST Classification is required.";
-        if (!gstinNumber)
-          validationErrors.gstinNumber = "GSTIN Number is required.";
+        // Unified GSTIN validation: one error for missing, length, or format
+        const gstinRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[A-Z0-9]{1}Z[A-Z0-9]{1}$/i;
+        if (!gstinNumber || gstinNumber.length !== 15 || !gstinRegex.test(gstinNumber)) {
+          validationErrors.gstinNumber = "Enter a valid 15-character GSTIN (e.g., 29ABCDE1234F1Z5)";
+        }
+
         // if (supplierData?.basic_information?.gstin_attachments.length === 0)
         //   validationErrors.gstinAttachments = "GSTIN Attachment is required.";
         if (
-          (supplierData?.basic_information?.gstin_attachments.length === 0 ||
-            !supplierData?.basic_information?.gstin_attachments) &&
+          (
+            !supplierData?.basic_information?.gstin_attachments ||
+            supplierData?.basic_information?.gstin_attachments.length === 0
+          ) &&
           gstinAttachments.length === 0
         ) {
           validationErrors.gstinAttachments = "GSTIN Attachment is required.";
@@ -2168,6 +2200,7 @@ const SectionReKYCDetails = () => {
                         </div>
 
                         {/* GSTIN No. */}
+                        
                         <div className="col-md-4 mt-2">
                           <div className="form-group">
                             <label
@@ -2185,6 +2218,7 @@ const SectionReKYCDetails = () => {
                               value={gstinNumber}
                               // onChange={(e) => setGstinNumber(e.target.value)}
                               onChange={handleGstinChange}
+                              maxLength={15}
                             />
                             {errors.gstinNumber && (
                               <div className="ValidationColor">
@@ -2921,7 +2955,7 @@ const SectionReKYCDetails = () => {
                             multiple
                             accept=".pdf"
                           />
-                          Major Activity *
+                          {/* Major Activity * */}
                         </div>
                       </div>
                     </div>

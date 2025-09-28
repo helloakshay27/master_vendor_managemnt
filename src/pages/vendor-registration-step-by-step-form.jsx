@@ -1,7 +1,5 @@
-   
 
-  
-    
+
 
 
 import React, { useState, useEffect, useRef } from "react";
@@ -6596,43 +6594,625 @@ const VendorRegistrationStepByStepForm = () => {
 
 
                     {currentStep === 7 && (
-                        <div className="card mx-4 pb-4 mt-4">
-                            <div className="row mt-4 mx-3">
-                                <div className="col-md-12">
-                                    <h5 className=" ">
-                                        Declaration <span style={{ color: " #DE7008" }}>*</span>
-                                    </h5>
-                                    <p>
-                                        <span className="me-2 mt-2">
-                                            <input
-                                                type="checkbox"
-                                                id="declaration-checkbox"
-                                                required=""
-                                                onChange={handleCheckboxChange}
-                                            />
-                                        </span>{" "}
-                                        {/* I, undersigned, on behalf of M/S Dell Organization Test hereby
-                certify that the information provided in this documents are the
-                best of my knowledge &amp; particulars given in this submission
-                are true and correct. I authorize M/S A2Z Online Services
-                Private Limited to make direct inquiries and references to any
-                person, firm, public official or organization named in this Form
-                to verify information submitted herein or regarding the
-                competence of the&nbsp;Organization */}
+                        <>
 
-
-                                        I, undersigned, on behalf of M/S Test 20/9/2025/ new hereby certify that the information provided in this documents are the best of my knowledge & particulars given in this submission are true and correct. I authorize M/S A2Z Online Services Private Limited to make direct inquiries and references to any person, firm, public official or organization named in this Form to verify information submitted herein or regarding the competence of the Organization.
-                                    </p>
-
-                                    {errors.declaration && (
-                                        <div className="ValidationColor">{errors.declaration}</div>
-                                    )}
-                                    {/* <div id="checkboxError" style={{ color: "red", display: "none" }}>
-                Please check this box to proceed.
-              </div> */}
+                        <div className="card mx-4 pb-4 mt-4 mt-5">
+                                <div className="card-header3">
+                                    <h3 className="card-title">Organization Details</h3>
+                                </div>
+                                <div className="card-body mt-0">
+                                    <div className="row px-3">
+                                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
+                                            <div className="col-6 ">
+                                                <label>Company</label>
+                                            </div>
+                                            <div className="col-6">
+                                                <label className="text">
+                                                    <span className="me-3">
+                                                        <span className="text-dark">:</span>
+                                                    </span>
+                                                    {supplierShowData?.organization_name || "-"}
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
+                                            <div className="col-6 ">
+                                                <label>Certifying Company GSTIN</label>
+                                            </div>
+                                            <div className="col-6">
+                                                <label className="text">
+                                                    <span className="me-3">
+                                                        <span className="text-dark">:</span>
+                                                    </span>
+                                                    {supplierShowData?.gstin || "-"}
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
+                                            <div className="col-6 ">
+                                                <label>Site</label>
+                                            </div>
+                                            <div className="col-6">
+                                                <label className="text">
+                                                    <span className="me-3">
+                                                        <span className="text-dark">:</span>
+                                                    </span>
+                                                    {supplierShowData?.city_id || "-"}
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
+                                            <div className="col-6 ">
+                                                <label>Department</label>
+                                            </div>
+                                            <div className="col-6">
+                                                <label className="text">
+                                                    <span className="me-3">
+                                                        <span className="text-dark">:</span>
+                                                    </span>
+                                                    {supplierShowData?.department_id || "-"}
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
+                                            <div className="col-6 ">
+                                                <label>Invited By</label>
+                                            </div>
+                                            <div className="col-6">
+                                                <label className="text">
+                                                    <span className="me-3">
+                                                        <span className="text-dark">:</span>
+                                                    </span>
+                                                    {supplierShowData?.contact_person_name || "-"}
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
+                                            <div className="col-6 ">
+                                                <label>Contact Number</label>
+                                            </div>
+                                            <div className="col-6">
+                                                <label className="text">
+                                                    <span className="me-3">
+                                                        <span className="text-dark">:</span>
+                                                    </span>
+                                                    {supplierShowData?.mobile || "-"}
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                            {/* Step 1: Basic Info Card (readonly, full UI) */}
+                            <div className="card mx-4 pb-4 mt-5">
+                                <div className="card-header3">
+                                    <h3 className="card-title">Basic Information</h3>
+                                </div>
+                                <div className="card-body mt-0">
+                                    <div className="row">
+                                        <div className="col-md-4">
+                                            <div className="form-group">
+                                                <label>
+                                                    Vendor Organization Name <span>*</span>
+                                                    <TooltipIcon message="Enter the full legal name of the vendor organization." />
+                                                </label>
+                                                <input
+                                                    className="form-control"
+                                                    type="text"
+                                                    value={basicInfo.vendorOrganizationName}
+                                                    disabled
+                                                    readOnly
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="col-md-4">
+                                            <div className="form-group">
+                                                <label>
+                                                    Type of Organization <span>*</span>
+                                                    <TooltipIcon message="Choose the type of your organization from the options provided to help us better understand your profile." />
+                                                </label>
+                                                <SingleSelector
+                                                    options={organizationTypeOptions}
+                                                    placeholder="Select Organization Type"
+                                                    value={basicInfo.organizationType}
+                                                    onChange={() => {}}
+                                                    isDisabled={true}
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="col-md-4">
+                                            <div className="form-group">
+                                                <label>
+                                                    Nature of Business <span>*</span>
+                                                </label>
+                                                <SingleSelector
+                                                    options={[{ label: 'Finance Vendor', value: 'finance_vendor' }]}
+                                                    placeholder="Select Nature of Business"
+                                                    value={basicInfo.natureOfBusiness}
+                                                    onChange={() => {}}
+                                                    isDisabled={true}
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="col-md-4 mt-2">
+                                            <div className="form-group">
+                                                <label>
+                                                    Vendor Type  <span>*</span>
+                                                </label>
+                                                <SingleSelector
+                                                    options={[{ label: 'Import Supplier', value: 'import_supplier' }]}
+                                                    placeholder="Select Vendor Type"
+                                                    value={basicInfo.vendorType}
+                                                    onChange={() => {}}
+                                                    isDisabled={true}
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="col-md-4 mt-2">
+                                            <div className="form-group">
+                                                <label>
+                                                    Type of Industry  <span>*</span>
+                                                    <TooltipIcon message="Choose the industry that your organization operates in. This helps us better understand your sector." />
+                                                </label>
+                                                <SingleSelector
+                                                    options={industryTypeOptions || []}
+                                                    placeholder="Select Type of Industry"
+                                                    value={basicInfo.industryType}
+                                                    onChange={() => {}}
+                                                    isDisabled={true}
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="col-md-4 mt-2">
+                                            <div className="form-group">
+                                                <label>
+                                                    Type of Work (Scope of work with Panchshil)<span>*</span>
+                                                    <TooltipIcon message="Write the Type of Work that your organization operates in.This helps us better understand your sector." />
+                                                </label>
+                                                <input
+                                                    className="form-control"
+                                                    type="text"
+                                                    placeholder="Enter Address"
+                                                    value={basicInfo.typeOfWork}
+                                                    disabled
+                                                    readOnly
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="col-md-4 mt-2">
+                                            <div className="form-group">
+                                                <label>
+                                                    Full Name  <span>*</span>
+                                                </label>
+                                                <input
+                                                    className="form-control"
+                                                    type="text"
+                                                    value={basicInfo.fullName}
+                                                    disabled
+                                                    readOnly
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="col-md-4 mt-2">
+                                            <div className="form-group">
+                                                <label>
+                                                    Email <span>*</span>
+                                                </label>
+                                                <input
+                                                    className="form-control"
+                                                    type="text"
+                                                    value={basicInfo.email}
+                                                    disabled
+                                                    readOnly
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="col-md-4 mt-2">
+                                            <div className="form-group">
+                                                <label>
+                                                    Mobile <span>*</span>
+                                                </label>
+                                                <input
+                                                    className="form-control"
+                                                    type="text"
+                                                    value={basicInfo.mobile}
+                                                    disabled
+                                                    readOnly
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="col-md-4 mt-2">
+                                            <div className="form-group">
+                                                <label>
+                                                    Key Market <span>*</span>
+                                                    <TooltipIcon message="Write the Key Market that your organization operates in. This helps us better understand your sector." />
+                                                </label>
+                                                <input
+                                                    className="form-control"
+                                                    type="text"
+                                                    value={basicInfo.keyMarket}
+                                                    disabled
+                                                    readOnly
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="col-md-4 mt-2">
+                                            <div className="form-group">
+                                                <label>
+                                                    PAN No. <span>*</span>
+                                                </label>
+                                                <input
+                                                    className="form-control"
+                                                    type="text"
+                                                    value={basicInfo.panNo}
+                                                    disabled
+                                                    readOnly
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="col-md-4 mt-2">
+                                            <div className="form-group">
+                                                <label>
+                                                    PAN Attachment <span>*</span>
+                                                    <TooltipIcon message="Please attach a clear PDF of your organization's PAN certificate. This is required for identity and tax verification." />
+                                                </label>
+                                                <input
+                                                    className="form-control"
+                                                    type="file"
+                                                    disabled
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="col-md-4 mt-2">
+                                            <div className="form-group">
+                                                <label>
+                                                    Schema Group
+                                                </label>
+                                                <SingleSelector
+                                                    options={[{ label: 'Domestic', value: 'domestic' }]}
+                                                    value={basicInfo.schemaGroup}
+                                                    onChange={() => {}}
+                                                    placeholder="Select Schema Group"
+                                                    isDisabled={true}
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="col-md-4 mt-2">
+                                            <div className="form-group">
+                                                <label>
+                                                    Date of Incorporation
+                                                    <TooltipIcon message="Provide the date when your organization was officially incorporated. Use the format (DD-MM-YYYY) and refer to your incorporation certificate if needed." />
+                                                </label>
+                                                <input
+                                                    className="form-control"
+                                                    type="date"
+                                                    value={basicInfo.dateOfIncorporation}
+                                                    disabled
+                                                    readOnly
+                                                />
+                                            </div>
+                                        </div>
+                                        {(basicInfo.organizationType.label === 'Private Limited' || basicInfo.organizationType.label === 'Public Limited') && (
+                                            <>
+                                                <div className="col-md-4 mt-2">
+                                                    <div className="form-group">
+                                                        <label>
+                                                            Corporate Identification Number <span>*</span>
+                                                            <TooltipIcon message="Enter your organization's Corporate Identification Number\n(MCA), which is issued by the Ministry of Corporate Affairs\n(MCA) in India. This number uniquely identifies\u00A0your\u00A0company." />
+                                                        </label>
+                                                        <input
+                                                            className="form-control"
+                                                            type="text"
+                                                            value={basicInfo.cin}
+                                                            disabled
+                                                            readOnly
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div className="col-md-4 mt-2">
+                                                    <div className="form-group">
+                                                        <label>
+                                                            Corporate Identification Number Attachment  <span>*</span>
+                                                            <TooltipIcon message="Upload the official document or certificate to verify the details you have submitted. The document must be uploaded in PDF format.\nCorporate Identification Number\u00A0Attachment." />
+                                                        </label>
+                                                        <input
+                                                            className="form-control"
+                                                            type="file"
+                                                            accept="application/pdf"
+                                                            disabled
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </>
+                                        )}
+                                        {(basicInfo.organizationType.label === 'Limited Liability Partnership (LLP)') && (
+                                            <>
+                                                <div className="col-md-4 mt-2">
+                                                    <div className="form-group">
+                                                        <label>
+                                                            LLP No. <span>*</span>
+                                                            <TooltipIcon message="Enter your organization's Corporate Identification Number\n(MCA), which is issued by the Ministry of Corporate Affairs\n(MCA) in India. This number uniquely identifies\u00A0your\u00A0company." />
+                                                        </label>
+                                                        <input
+                                                            className="form-control"
+                                                            type="text"
+                                                            value={basicInfo.llp}
+                                                            disabled
+                                                            readOnly
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div className="col-md-4 mt-2">
+                                                    <div className="form-group">
+                                                        <label>
+                                                            LLP No. Attachment  <span>*</span>
+                                                            <TooltipIcon message="Upload the official document or certificate to verify the details you have submitted. The document must be uploaded in PDF format.\nCorporate Identification Number\u00A0Attachment." />
+                                                        </label>
+                                                        <input
+                                                            className="form-control"
+                                                            type="file"
+                                                            accept="application/pdf"
+                                                            disabled
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </>
+                                        )}
+                                        <div className="col-md-4 mt-2">
+                                            <div className="form-group">
+                                                <label>
+                                                    GSTIN Applicable <span>*</span>
+                                                    <TooltipIcon message="Indicate whether your organization is registered under the Goods and Services Tax (GST) Act. Select 'Yes' if GSTIN is applicable to your organization" />
+                                                </label>
+                                                <SingleSelector
+                                                    placeholder="Select Yes or No"
+                                                    options={gstinApplicableOptions}
+                                                    value={basicInfo.gstinApplicable}
+                                                    onChange={() => {}}
+                                                    isDisabled={true}
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="col-md-4 mt-2">
+                                            <div className="form-group">
+                                                <label>
+                                                    GSTIN Classification
+                                                </label>
+                                                <SingleSelector
+                                                    value={basicInfo.gstinClassification}
+                                                    onChange={() => {}}
+                                                    placeholder="Select Country"
+                                                    isDisabled={true}
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="row">
+                                            {basicInfo.gstinApplicable.label === 'Yes' && (
+                                                <>
+                                                    <div className="col-md-4 mt-2">
+                                                        <div className="form-group">
+                                                            <label>
+                                                                GSTIN No. <span>*</span>
+                                                            </label>
+                                                            <input
+                                                                className="form-control"
+                                                                type="text"
+                                                                value={basicInfo.gstinNo}
+                                                                disabled
+                                                                readOnly
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                    <div className="col-md-4 mt-2">
+                                                        <div className="form-group">
+                                                            <label>
+                                                                GSTIN Attachment <span>*</span>
+                                                                <TooltipIcon message="Upload a digital copy of the official GSTIN certificate or document showing your GST registration number. Ensure the document is legible and valid." />
+                                                            </label>
+                                                            <input
+                                                                className="form-control"
+                                                                type="file"
+                                                                disabled
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                </>
+                                            )}
+                                            {basicInfo.gstinApplicable.label === 'No' && (
+                                                <>
+                                                    <div className="col-md-4 mt-2">
+                                                        <div className="form-group">
+                                                            <label>
+                                                                Download Specimen
+                                                            </label>
+                                                            <span className="ms-2">
+                                                                <a download className="text-primary d-flex align-items-center">
+                                                                    <svg
+                                                                        xmlns="http://www.w3.org/2000/svg"
+                                                                        width={24}
+                                                                        height={24}
+                                                                        fill="#DE7008"
+                                                                        className="bi bi-download"
+                                                                        viewBox="0 0 16 16"
+                                                                    >
+                                                                        <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                                                                        <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                                                                    </svg>
+                                                                </a>
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    <div className="col-md-4 mt-2">
+                                                        <div className="form-group">
+                                                            <label>
+                                                                Upload GSTIN Declaration  <span>*</span>
+                                                            </label>
+                                                            <input
+                                                                className="form-control"
+                                                                type="file"
+                                                                disabled
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                </>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {/* Step 2: Additional Details Card (readonly) */}
+                            <div className="card mx-4 pb-4 mt-4">
+                                <div className="row mt-4 mx-3">
+                                    <div className="col-md-12">
+                                        <h5>Additional Vendor Details</h5>
+                                        <div className="row">
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>CIN</label>
+                                                    <input className="form-control" type="text" value={additionalDetails.cin} disabled readOnly />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>LLP</label>
+                                                    <input className="form-control" type="text" value={additionalDetails.llp} disabled readOnly />
+                                                </div>
+                                            </div>
+                                            {/* ...add more fields as in the original card... */}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {/* Step 3: Registered/Communication Address Card (readonly) */}
+                            <div className="card mx-4 pb-4 mt-4">
+                                <div className="row mt-4 mx-3">
+                                    <div className="col-md-12">
+                                        <h5>Registered Address</h5>
+                                        <div className="row">
+                                            <div className="col-md-6">
+                                                <div className="form-group">
+                                                    <label>Address</label>
+                                                    <input className="form-control" type="text" value={registeredAddress.addressLine1} disabled readOnly />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-2">
+                                                <div className="form-group">
+                                                    <label>City</label>
+                                                    <input className="form-control" type="text" value={registeredAddress.city} disabled readOnly />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-2">
+                                                <div className="form-group">
+                                                    <label>State</label>
+                                                    <input className="form-control" type="text" value={registeredAddress.state} disabled readOnly />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-2">
+                                                <div className="form-group">
+                                                    <label>Pincode</label>
+                                                    <input className="form-control" type="text" value={registeredAddress.pincode} disabled readOnly />
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <h5 className="mt-3">Communication Address</h5>
+                                        <div className="row">
+                                            <div className="col-md-6">
+                                                <div className="form-group">
+                                                    <label>Address</label>
+                                                    <input className="form-control" type="text" value={communicationAddress.addressLine1} disabled readOnly />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-2">
+                                                <div className="form-group">
+                                                    <label>City</label>
+                                                    <input className="form-control" type="text" value={communicationAddress.city} disabled readOnly />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-2">
+                                                <div className="form-group">
+                                                    <label>State</label>
+                                                    <input className="form-control" type="text" value={communicationAddress.state} disabled readOnly />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-2">
+                                                <div className="form-group">
+                                                    <label>Pincode</label>
+                                                    <input className="form-control" type="text" value={communicationAddress.pincode} disabled readOnly />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {/* Step 4: Dynamic Sections Cards (readonly) */}
+                            {owners.length > 0 && owners.map((owner, idx) => (
+                                <div className="card mx-4 pb-4 mt-4" key={owner.id}>
+                                    <div className="row mt-4 mx-3">
+                                        <div className="col-md-12">
+                                            <h5>Owner / Director {owners.length > 1 ? idx + 1 : ''}</h5>
+                                            <div className="row">
+                                                <div className="col-md-4">
+                                                    <div className="form-group">
+                                                        <label>First Name <span>*</span></label>
+                                                        <input className="form-control" type="text" value={owner.firstName} disabled readOnly />
+                                                    </div>
+                                                </div>
+                                                <div className="col-md-4">
+                                                    <div className="form-group">
+                                                        <label>Last Name <span>*</span></label>
+                                                        <input className="form-control" type="text" value={owner.lastName} disabled readOnly />
+                                                    </div>
+                                                </div>
+                                                <div className="col-md-4">
+                                                    <div className="form-group">
+                                                        <label>Designation <span>*</span></label>
+                                                        <input className="form-control" type="text" value={owner.designation} disabled readOnly />
+                                                    </div>
+                                                </div>
+                                                <div className="col-md-4">
+                                                    <div className="form-group">
+                                                        <label>Email <span>*</span></label>
+                                                        <input className="form-control" type="text" value={owner.email} disabled readOnly />
+                                                    </div>
+                                                </div>
+                                                <div className="col-md-4">
+                                                    <div className="form-group">
+                                                        <label>Mobile Number <span>*</span></label>
+                                                        <input className="form-control" type="text" value={owner.mobile} disabled readOnly />
+                                                    </div>
+                                                </div>
+                                                {/* ...add more fields as in the original card... */}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                            {/* Repeat for all other dynamic sections: relatedEmployees, groupCompanies, supervisoryManpower, majorCustomers, workingSites, etc. Use the same card structure as in the form, with all fields disabled and filled. */}
+                            {/* --- Declaration Section --- */}
+                            <div className="card mx-4 pb-4 mt-4">
+                                <div className="row mt-4 mx-3">
+                                    <div className="col-md-12">
+                                        <h5 className=" ">
+                                            Declaration <span style={{ color: " #DE7008" }}>*</span>
+                                        </h5>
+                                        <p>
+                                            <span className="me-2 mt-2">
+                                                <input
+                                                    type="checkbox"
+                                                    id="declaration-checkbox"
+                                                    required=""
+                                                    onChange={handleCheckboxChange}
+                                                />
+                                            </span>{" "}
+                                            I, undersigned, on behalf of M/S Test 20/9/2025/ new hereby certify that the information provided in this documents are the best of my knowledge & particulars given in this submission are true and correct. I authorize M/S A2Z Online Services Private Limited to make direct inquiries and references to any person, firm, public official or organization named in this Form to verify information submitted herein or regarding the competence of the Organization.
+                                        </p>
+                                        {errors.declaration && (
+                                            <div className="ValidationColor">{errors.declaration}</div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </>
                     )}
 
 
