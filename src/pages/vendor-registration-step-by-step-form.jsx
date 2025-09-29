@@ -1,5 +1,7 @@
-
-
+       
+       
+       
+       
 
 
 import React, { useState, useEffect, useRef } from "react";
@@ -24,6 +26,12 @@ import CollapsedCardKYC from "../components/base/Card/CollapsedCardKYC";
 import { MultiSelector } from "../components";
 
 const VendorRegistrationStepByStepForm = () => {
+    // Annual Turnover state (for preview and form)
+    const [turnover, setTurnover] = useState({
+        "2024-2025": { amount: '', attachment: '', markets: '' },
+        "2023-2024": { amount: '', attachment: '', markets: '' },
+        "2022-2023": { amount: '', attachment: '', markets: '' },
+    });
     // Major Customer Served by You dynamic section state and handlers
 
 
@@ -2573,23 +2581,21 @@ const VendorRegistrationStepByStepForm = () => {
                 console.log("Response:", response.data); // Check the response data
                 // await fetchSupplierData();
                 if (response.status === 200) {
-                    // console.log('Update successful:', data);
-                    // alert("Updated successfully");
                     toast.success("Updated successfully");
-                    navigate("/confirmation"); // This will navigate to the confirmation page
-                    // await fetchSupplierData();
-                    // Optionally handle success (e.g., show a success message or redirect)
+                    navigate("/confirmation");
                     console.log("success");
                 }
             } catch (error) {
-                console.error(
-                    "Error:",
-                    error.response ? error.response.data : error.message
-                );
-
-
-                // alert("Something went wrong! ");
-                toast.error("Something went wrong!");
+                // If 422 and error message present, show it in toast
+                if (error.response && error.response.status === 422 && error.response.data && error.response.data.error) {
+                    toast.error(error.response.data.error);
+                } else {
+                    console.error(
+                        "Error:",
+                        error.response ? error.response.data : error.message
+                    );
+                    toast.error("Something went wrong!");
+                }
             } finally {
                 setLoading(false);
             }
@@ -7060,133 +7066,1463 @@ const VendorRegistrationStepByStepForm = () => {
                                     </div>
                                 </div>
                             </div>
+                            
                             {/* Step 2: Additional Details Card (readonly) */}
-                            <div className="card mx-4 pb-4 mt-4">
-                                <div className="row mt-4 mx-3">
-                                    <div className="col-md-12">
-                                        <h5>Additional Vendor Details</h5>
-                                        <div className="row">
-                                            <div className="col-md-4">
-                                                <div className="form-group">
-                                                    <label>CIN</label>
-                                                    <input className="form-control" type="text" value={additionalDetails.cin} disabled readOnly />
-                                                </div>
-                                            </div>
-                                            <div className="col-md-4">
-                                                <div className="form-group">
-                                                    <label>LLP</label>
-                                                    <input className="form-control" type="text" value={additionalDetails.llp} disabled readOnly />
-                                                </div>
-                                            </div>
-                                            {/* ...add more fields as in the original card... */}
-                                        </div>
+    <div className="card mx-4 pb-4 mt-4">
+                <div className="card-header3">
+                    <h3 className="card-title">Additional Vendor Details</h3>
+                </div>
+                <div className="card-body mt-0">
+                    <div className="row">
+                        <div className="col-md-4">
+                            <div className="form-group">
+                                <label>
+                                    Delivery Lead Period (In Days)
+                                    <TooltipIcon message="Enter the number of days required to deliver the product or service from the date of order confirmation." />
+                                </label>
+                                <input
+                                    className="form-control"
+                                    type="text"
+                                    value={additionalDetails.deliveryLeadPeriod || ''}
+                                    disabled
+                                    readOnly
+                                />
+                            </div>
+                        </div>
+                        <div className="col-md-4">
+                            <div className="form-group">
+                                <label>
+                                    Specify Warranty Period (In Years)
+                                    <TooltipIcon message="Enter the duration of the warranty for the product or service, in years. This is the period during which the item will be covered for repairs or replacement." />
+                                </label>
+                                <input
+                                    className="form-control"
+                                    type="text"
+                                    value={additionalDetails.warrantyPeriod || ''}
+                                    disabled
+                                    readOnly
+                                />
+                            </div>
+                        </div>
+                        <div className="col-md-4">
+                            <div className="form-group">
+                                <label>
+                                    AMC Provided
+                                    <TooltipIcon message="Please specify if an Annual Maintenance Contract (AMC) is included with the product or service. Select 'Yes if AMC is provided." />
+                                </label>
+                                <SingleSelector
+                                    options={[]}
+                                    value={additionalDetails.amcProvided}
+                                    isDisabled={true}
+                                />
+                            </div>
+                        </div>
+                        <div className="col-md-4 mt-2">
+                            <div className="form-group">
+                                <label>
+                                    Website
+                                    <TooltipIcon message="Enter the URL of your company's website where users can lear more about your products or services." />
+                                </label>
+                                <input
+                                    className="form-control"
+                                    type="text"
+                                    value={additionalDetails.website || ''}
+                                    disabled
+                                    readOnly
+                                />
+                            </div>
+                        </div>
+                        <div className="col-md-4  mt-2">
+                            <div className="form-group">
+                                <label>
+                                    Currency Type <span>*</span>
+                                </label>
+                                <SingleSelector
+                                    options={[{ label: 'INR', value: 'inr' }]}
+                                    placeholder="Select Currency Type"
+                                    value={additionalDetails.currencyType}
+                                    isDisabled={true}
+                                />
+                            </div>
+                        </div>
+                        <div className="col-md-4 mt-2">
+                            <div className="form-group">
+                                <label>
+                                    MSME/Udyam Number Applicable  <span>*</span>
+                                    <TooltipIcon message="Select whether your organization is registered under the MSME (Micro, Small, and Medium Enterprises) or Udyam scheme. Choose 'Yes' if applicable, otherwise select 'No.' By selecting 'No,' you confirm that your organization does not hold a valid MSME/Udyam registration number. A declaration is required, and this response will be timestamped to record the submission date and time." />
+                                </label>
+                                <SingleSelector
+                                    value={additionalDetails.msmeUdyamApplicable}
+                                    options={options}
+                                    className="form-control"
+                                    placeholder="Select MSME/Udyam Number Applicable"
+                                    isDisabled={true}
+                                />
+                            </div>
+                        </div>
+                        {additionalDetails.msmeUdyamApplicable?.value === "Yes" && (
+                            <>
+                                <div className="col-md-4 mt-2">
+                                    <div className="form-group">
+                                        <label>
+                                            MSME/Udyam Number <span>*</span>
+                                            <TooltipIcon message="Enter your organization's valid MSME or Udyam registration number. This number is issued by the Ministry of Micro, Small, and Medium Enterprises (MSME) under the Udyam registration scheme" />
+                                        </label>
+                                        <input
+                                            className="form-control"
+                                            type="text"
+                                            value={additionalDetails.msmeNo || ''}
+                                            disabled
+                                            readOnly
+                                        />
+                                    </div>
+                                </div>
+                                <div className="col-md-4 mt-2">
+                                    <div className="form-group">
+                                        <label>Classifiction Year <span>*</span></label>
+                                        <SingleSelector
+                                            value={additionalDetails.classificationYear}
+                                            options={optionsClassificationYear}
+                                            className="form-control"
+                                            placeholder="Select Classification Year"
+                                            isDisabled={true}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="col-md-4 mt-2">
+                                    <div className="form-group">
+                                        <label>Major Activity <span>*</span></label>
+                                        <SingleSelector
+                                            value={additionalDetails.majorActivity}
+                                            options={optionsMajorActivity}
+                                            className="form-control"
+                                            placeholder="Select Major Activity"
+                                            isDisabled={true}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="col-md-4 mt-2">
+                                    <div className="form-group">
+                                        <label>MSME/Udyam Valid From <span>*</span>
+                                            <TooltipIcon message="Enter the date when your MSME/Udyam registration became valid. This is the start date mentioned on your MSME/Udyam registration certificate for the financial year." />
+                                        </label>
+                                        <input
+                                            className="form-control"
+                                            type="date"
+                                            value={additionalDetails.validFrom || ''}
+                                            disabled
+                                            readOnly
+                                        />
+                                    </div>
+                                </div>
+                                <div className="col-md-4 mt-2">
+                                    <div className="form-group">
+                                        <label>MSME/Udyam Valid Till <span>*</span>
+                                            <TooltipIcon message="Enter the date when your MSME/Udyam registration became valid. This is the end date mentioned on your MSME/Udyam registration certificate for the financial year." />
+                                        </label>
+                                        <input
+                                            className="form-control"
+                                            type="date"
+                                            value={additionalDetails.validTill || ''}
+                                            disabled
+                                            readOnly
+                                        />
+                                    </div>
+                                </div>
+                                <div className="col-md-4 mt-2">
+                                    <div className="form-group">
+                                        <label>MSME Enterprise Type <span>*</span>
+                                            <TooltipIcon message="Select the type of your organization under the MSME (Micro, Small, and Medium Enterprises) scheme. Choose from 'Micro,'Small,' or 'Medium' based on your organization's annual turnover and investment in plant and machinery." />
+                                        </label>
+                                        <SingleSelector
+                                            value={additionalDetails.msmeEnterpriseType}
+                                            options={optionsEnterPrise}
+                                            className="form-control"
+                                            placeholder="Select option..."
+                                            isDisabled={true}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="col-md-4 mt-2">
+                                    <div className="form-group">
+                                        <label>Download Specimen <span>*</span></label>
+                                        <a
+                                            download="Specimen_E-Invoicing_Declaration.docx"
+                                            className="text-primary d-flex align-items-center"
+                                            href={`${baseURL}/assets/Yes%20_%20msme.pdf`}
+                                        >
+                                            <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                width={24}
+                                                height={24}
+                                                fill="#DE7008"
+                                                className="bi bi-download"
+                                                viewBox="0 0 16 16"
+                                            >
+                                                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                                                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                                            </svg>
+                                            <span className="mt-2 ms-2">Specimen For Yes Msme.pdf</span>
+                                        </a>
+                                    </div>
+                                </div>
+                            </>
+                        )}
+                        {additionalDetails.msmeUdyamApplicable?.value === "No" && (
+                            <>
+                                <div className="col-md-4 mt-2 ms-3">
+                                    <div className="form-group">
+                                        <label>Download Specimen <span>*</span></label>
+                                        <TooltipIcon message="If you choose 'No' for e-invoicing, a specimen format will be available for download. This is for businesses not subject to e-invoicing under GST regulations. Please upload a signed declaration stating that your organization is not registered.The document must be uploaded in PDF format" />
+                                        <a
+                                            download="Specimen_E-Invoicing_Declaration.docx"
+                                            className="text-primary d-flex align-items-center"
+                                            href={`${baseURL}/assets/NO_%20MSME.pdf`}
+                                            target="_self"
+                                        >
+                                            <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                width={24}
+                                                height={24}
+                                                fill="#DE7008"
+                                                className="bi bi-download"
+                                                viewBox="0 0 16 16"
+                                            >
+                                                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" style={{ fill: "#de7008!important" }} />
+                                                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" style={{ fill: "#de7008!important" }} />
+                                            </svg>
+                                            <span className="mt-2 ms-2">Specimen For No Msme.pdf</span>
+                                        </a>
+                                    </div>
+                                </div>
+                            </>
+                        )}
+                        {basicInfo.gstinApplicable?.label === 'Yes' && (
+                            <div className="col-md-4 mt-2">
+                                <div className="form-group">
+                                    <label>
+                                        E-invoicing Applicable  <span>*</span>
+                                    </label>
+                                    <SingleSelector
+                                        value={additionalDetails.einvoice}
+                                        options={options}
+                                        className="form-control"
+                                        placeholder="Selec E-invoicing Applicable ."
+                                        isDisabled={true}
+                                    />
+                                </div>
+                            </div>
+                        )}
+                        {additionalDetails.einvoice?.value === "No" && (
+                            <>
+                                <div className="col-md-4 mt-2 ms-3">
+                                    <div className="form-group">
+                                        <label>Download Specimen <span>*</span></label>
+                                        <TooltipIcon message="If you choose 'No' for e-invoicing, a specimen format will be available for download. This is for businesses not subject to e-invoicing under GST regulations. Please upload a signed declaration stating that your organization is not registered.The document must be uploaded in PDF format" />
+                                        <a
+                                            download="Specimen_E-Invoicing_Declaration.docx"
+                                            className="text-primary d-flex align-items-center"
+                                            href={`${baseURL}/assets/NO_%20MSME.pdf`}
+                                            target="_self"
+                                        >
+                                            <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                width={24}
+                                                height={24}
+                                                fill="#DE7008"
+                                                className="bi bi-download"
+                                                viewBox="0 0 16 16"
+                                            >
+                                                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" style={{ fill: "#de7008!important" }} />
+                                                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" style={{ fill: "#de7008!important" }} />
+                                            </svg>
+                                            <span className="mt-2 ms-2">Specimen For No Msme.pdf</span>
+                                        </a>
+                                    </div>
+                                </div>
+                            </>
+                        )}
+                    </div>
+                </div>
+            </div>
+
+
+            <div className="card mx-3 pb-4 mt-4">
+                <div className="card-header3">
+                    <h3 className="card-title">Billing / Registered Office</h3>
+                </div>
+                <div className="card-body mt-0">
+                    <div className="row">
+                        <div className="col-md-4">
+                            <div className="form-group">
+                                <label>
+                                    Address <span>*</span>
+                                    <TooltipIcon message="Please enter your address using a maximum of 40 characters." />
+                                </label>
+                                <input className="form-control" type="text" value={registeredAddress.address1 || ''} disabled readOnly />
+                            </div>
+                        </div>
+                        <div className="col-md-4">
+                            <div className="form-group">
+                                <label>
+                                    Address Line 2
+                                    <TooltipIcon message="Please enter your address line 2 using a maximum of 40 characters." />
+                                </label>
+                                <input className="form-control" type="text" value={registeredAddress.address2 || ''} disabled readOnly />
+                            </div>
+                        </div>
+                        <div className="col-md-4">
+                            <div className="form-group">
+                                <label>
+                                    Address Line 3
+                                    <TooltipIcon message="Please enter your address line 3 using a maximum of 40 characters." />
+                                </label>
+                                <input className="form-control" type="text" value={registeredAddress.address3 || ''} disabled readOnly />
+                            </div>
+                        </div>
+                        <div className="col-md-4 mt-2">
+                            <div className="form-group">
+                                <label>
+                                    Address Line 4
+                                    <TooltipIcon message=" Please enter your address line 4 using a maximum of 40 characters." />
+                                </label>
+                                <input className="form-control" type="text" value={registeredAddress.address4 || ''} disabled readOnly />
+                            </div>
+                        </div>
+                        <div className="col-md-4 mt-2">
+                            <div className="form-group">
+                                <label>
+                                    Address Line 5
+                                    <TooltipIcon message=" Please enter your address line 5 using a maximum of 40 characters." />
+                                </label>
+                                <input className="form-control" type="text" value={registeredAddress.address5 || ''} disabled readOnly />
+                            </div>
+                        </div>
+                        <div className="col-md-4 mt-2">
+                            <div className="form-group">
+                                <label>
+                                    Country<span>*</span>
+                                    <TooltipIcon message="Please choose your country from the list. This helps us identify the location of your organization." />
+                                </label>
+                                <SingleSelector options={countryOptions} value={registeredAddress.country} isDisabled={true} />
+                            </div>
+                        </div>
+                        <div className="col-md-4 mt-2">
+                            <div className="form-group">
+                                <label>
+                                    State <span>*</span>
+                                    <TooltipIcon message="Please choose your state from the list. This helps us determine your organization's regional location." />
+                                </label>
+                                <SingleSelector options={stateOptions} value={registeredAddress.state} isDisabled={true} />
+                            </div>
+                        </div>
+                        <div className="col-md-4 mt-2">
+                            <div className="form-group">
+                                <label>
+                                    City <span>*</span>
+                                    <TooltipIcon message="Please provide the name of the city where your business is based." />
+                                </label>
+                                <input className="form-control" type="text" value={registeredAddress.city || ''} disabled readOnly />
+                            </div>
+                        </div>
+                        <div className="col-md-4 mt-2">
+                            <div className="form-group">
+                                <label>
+                                    Pin Code<span>*</span>
+                                    <TooltipIcon message="Enter the postal code (Pin Code) for your organization's location. This is required for address verification." />
+                                </label>
+                                <input className="form-control" type="text" value={registeredAddress.pincode || ''} disabled readOnly />
+                            </div>
+                        </div>
+                        <div className="col-md-4 mt-2">
+                            <div className="form-group">
+                                <label>
+                                    Telephone Phone No.
+                                    <TooltipIcon message="Enter your organization's primary telephone number, including the country code and area code (e.g., + 1-123-4567890)." />
+                                </label>
+                                <input className="form-control" type="text" value={registeredAddress.telephone || ''} disabled readOnly />
+                            </div>
+                        </div>
+                        <div className="col-md-4 mt-2">
+                            <div className="form-group">
+                                <label>
+                                    Mobile Number <span>*</span>
+                                    <TooltipIcon message="Please provide the full mobile number, including the country code. Ensure the number is correct and formatted properly.." />
+                                </label>
+                                <input className="form-control" type="text" value={registeredAddress.mobile || ''} disabled readOnly />
+                            </div>
+                        </div>
+                        <div className="col-md-4 mt-2">
+                            <div className="form-group">
+                                <label>
+                                    Ordering Email ID <span>*</span>
+                                    <TooltipIcon message="Please provide the email address used by your organization for processing orders. Make sure the email ID is accurate and valid ." />
+                                </label>
+                                <input className="form-control" type="text" value={registeredAddress.orderingEmail || ''} disabled readOnly />
+                            </div>
+                        </div>
+                        <div className="col-md-4 mt-2">
+                            <div className="form-group">
+                                <label>
+                                    Billing & Accounting Email ID
+                                    <TooltipIcon message="Enter the email address your organization uses for billing and accounting communications. Ensure it is a valid email format (e.g., example@domain.com)." />
+                                </label>
+                                <input className="form-control" type="text" value={registeredAddress.billingEmail || ''} disabled readOnly />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <div className="card mx-3 pb-4 mt-4">
+                <div className="card-header3">
+                    <h3 className="card-title">Communication Address</h3>
+                </div>
+                <div className="card-body mt-0">
+                    <div className="row ms-1">
+                        <div className="form-check mb-2">
+                            <input
+                                className="form-check-input"
+                                type="checkbox"
+                                id="sameAsRegisteredAddress"
+                                checked={sameAsRegistered}
+                                disabled
+                            />
+                            <label className="form-check-label" htmlFor="sameAsRegisteredAddress">
+                                Same as Registered Address
+                            </label>
+                        </div>
+                    </div>
+                    <div className="row">
+                        <div className="col-md-4">
+                            <div className="form-group">
+                                <label>
+                                    Address <span>*</span>
+                                    <TooltipIcon message="Please enter your address using a maximum of 40 characters." />
+                                </label>
+                                <input className="form-control" type="text" value={communicationAddress.address1 || ''} disabled readOnly />
+                            </div>
+                        </div>
+                        <div className="col-md-4">
+                            <div className="form-group">
+                                <label>
+                                    Address Line 2
+                                    <TooltipIcon message="Please enter your address line 2 using a maximum of 40 characters." />
+                                </label>
+                                <input className="form-control" type="text" value={communicationAddress.address2 || ''} disabled readOnly />
+                            </div>
+                        </div>
+                        <div className="col-md-4">
+                            <div className="form-group">
+                                <label>
+                                    Address Line 3
+                                    <TooltipIcon message="Please enter your address line 3 using a maximum of 40 characters." />
+                                </label>
+                                <input className="form-control" type="text" value={communicationAddress.address3 || ''} disabled readOnly />
+                            </div>
+                        </div>
+                        <div className="col-md-4 mt-2">
+                            <div className="form-group">
+                                <label>
+                                    Address Line 4
+                                    <TooltipIcon message=" Please enter your address line 4 using a maximum of 40 characters." />
+                                </label>
+                                <input className="form-control" type="text" value={communicationAddress.address4 || ''} disabled readOnly />
+                            </div>
+                        </div>
+                        <div className="col-md-4 mt-2">
+                            <div className="form-group">
+                                <label>
+                                    Address Line 5
+                                    <TooltipIcon message=" Please enter your address line 5 using a maximum of 40 characters." />
+                                </label>
+                                <input className="form-control" type="text" value={communicationAddress.address5 || ''} disabled readOnly />
+                            </div>
+                        </div>
+                        <div className="col-md-4 mt-2">
+                            <div className="form-group">
+                                <label>
+                                    Country<span>*</span>
+                                </label>
+                                <SingleSelector options={countryOptions} value={communicationAddress.country} isDisabled={true} />
+                            </div>
+                        </div>
+                        <div className="col-md-4 mt-2">
+                            <div className="form-group">
+                                <label>
+                                    State <span>*</span>
+                                </label>
+                                <SingleSelector options={commStateOptions} value={communicationAddress.state} isDisabled={true} />
+                            </div>
+                        </div>
+                        <div className="col-md-4 mt-2">
+                            <div className="form-group">
+                                <label>
+                                    City <span>*</span>
+                                </label>
+                                <input className="form-control" type="text" value={communicationAddress.city || ''} disabled readOnly />
+                            </div>
+                        </div>
+                        <div className="col-md-4 mt-2">
+                            <div className="form-group">
+                                <label>
+                                    Pin Code<span>*</span>
+                                </label>
+                                <input className="form-control" type="text" value={communicationAddress.pincode || ''} disabled readOnly />
+                            </div>
+                        </div>
+                        <div className="col-md-4 mt-2">
+                            <div className="form-group">
+                                <label>
+                                    Telephone Phone No.
+                                </label>
+                                <input className="form-control" type="text" value={communicationAddress.telephone || ''} disabled readOnly />
+                            </div>
+                        </div>
+                        <div className="col-md-4 mt-2">
+                            <div className="form-group">
+                                <label>
+                                    Mobile Number <span>*</span>
+                                </label>
+                                <input className="form-control" type="text" value={communicationAddress.mobile || ''} disabled readOnly />
+                            </div>
+                        </div>
+                        <div className="col-md-4 mt-2">
+                            <div className="form-group">
+                                <label>
+                                    Email ID <span>*</span>
+                                </label>
+                                <input className="form-control" type="text" value={communicationAddress.orderingEmail || ''} disabled readOnly />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+ {/* <div className="card mx-4 pb-4 mt-4"> */}
+                {bankDetailsList?.map((bankDetail) => (
+                    <CollapsedCardKYC
+                        key={bankDetail.id}
+                        title="Bank Details"
+                        // No delete in preview
+                    >
+                        <div className="row">
+                            {/* Bank Name */}
+                            <div className="col-md-4">
+                                <div className="form-group">
+                                    <label>
+                                        Bank Name <span>*</span>
+                                        <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
+                                    </label>
+                                    <input className="form-control" type="text" value={bankDetail.bank_name || ''} disabled readOnly />
+                                </div>
+                            </div>
+                            {/* Address */}
+                            <div className="col-md-4">
+                                <div className="form-group">
+                                    <label>
+                                        Address <span>*</span>
+                                        <TooltipIcon message="Please provide the complete address of your bank branch,including the street address,city and postal code." />
+                                    </label>
+                                    <input className="form-control" type="text" value={bankDetail.address || ''} disabled readOnly />
+                                </div>
+                            </div>
+                            {/* Country */}
+                            <div className="col-md-4">
+                                <div className="form-group">
+                                    <label>
+                                        Country <span>*</span>
+                                        <TooltipIcon message="Please choose your country from the list" />
+                                    </label>
+                                    <SingleSelector
+                                        options={countries}
+                                        value={countries.find((c) => c.value === bankDetail.country_id) || null}
+                                        isDisabled={true}
+                                    />
+                                </div>
+                            </div>
+                            {/* State */}
+                            <div className="col-md-4">
+                                <div className="form-group mt-2">
+                                    <label>
+                                        State <span>*</span>
+                                        <TooltipIcon message="Please choose your State from the list" />
+                                    </label>
+                                    <SingleSelector
+                                        options={states}
+                                        value={states.find((s) => s.value === bankDetail.state_id) || null}
+                                        isDisabled={true}
+                                    />
+                                </div>
+                            </div>
+                            {/* City */}
+                            <div className="col-md-4 mt-2">
+                                <div className="form-group">
+                                    <label>
+                                        City <span>*</span>
+                                        <TooltipIcon message="Enter the city where your bank branch is located" />
+                                    </label>
+                                    <input className="form-control" type="text" value={bankDetail.city_name || ''} disabled readOnly />
+                                </div>
+                            </div>
+                            {/* Pin Code */}
+                            <div className="col-md-4 mt-2">
+                                <div className="form-group">
+                                    <label>
+                                        Pin Code <span>*</span>
+                                        <TooltipIcon message="Enter the postal code (Pin Code) for the bank branch location" />
+                                    </label>
+                                    <input className="form-control" type="text" value={bankDetail.pincode || ''} disabled readOnly />
+                                </div>
+                            </div>
+                            {/* Account Type */}
+                            <div className="col-md-4 mt-2">
+                                <div className="form-group">
+                                    <label>
+                                        Account Type <span>*</span>
+                                        <TooltipIcon message="Select the type of bank account your organization holds,such as Savings,Current,or any other relevant type" />
+                                    </label>
+                                    <SingleSelector
+                                        options={accountTypeOptions}
+                                        value={accountTypeOptions.find((option) => option.value === bankDetail.account_type) || null}
+                                        isDisabled={true}
+                                    />
+                                </div>
+                            </div>
+                            {/* Account Number */}
+                            <div className="col-md-4 mt-2">
+                                <div className="form-group">
+                                    <label>
+                                        Account Number <span>*</span>
+                                        <TooltipIcon message="Please provide your organization's bank account number.Make sure it is correct and matches the details at your bank" />
+                                    </label>
+                                    <input className="form-control" type="text" value={bankDetail.account_number || ''} disabled readOnly />
+                                </div>
+                            </div>
+                            {/* Confirm Account Number */}
+                            <div className="col-md-4 mt-2">
+                                <div className="form-group">
+                                    <label>
+                                        Confirm Account Number <span>*</span>
+                                        <TooltipIcon message="Re-enter the bank account number to confirm accuracy. Ensure it matches the original account number entered above." />
+                                    </label>
+                                    <input className="form-control" type="text" value={bankDetail.confirm_account_number || ''} disabled readOnly />
+                                </div>
+                            </div>
+                            {/* Branch Name */}
+                            <div className="col-md-4 mt-2">
+                                <div className="form-group">
+                                    <label>
+                                        Branch Name <span>*</span>
+                                        <TooltipIcon message="Enter the name of the bank branch where your organization's account is held. " />
+                                    </label>
+                                    <input className="form-control" type="text" value={bankDetail.branch_name || ''} disabled readOnly />
+                                </div>
+                            </div>
+                            {/* MICR No. */}
+                            <div className="col-md-4 mt-2">
+                                <div className="form-group">
+                                    <label>
+                                        MICR No. <span>*</span>
+                                        <TooltipIcon message="MICR: Enter the MICR (Magnetic Ink Character Recognition) number of your  bank branch. This number is typically found on your cheque leaf" />
+                                    </label>
+                                    <input className="form-control" type="text" value={bankDetail.micr_number || ''} disabled readOnly />
+                                </div>
+                            </div>
+                            {/* IFSC Code */}
+                            <div className="col-md-4 mt-2">
+                                <div className="form-group">
+                                    <label>
+                                        IFSC Code <span>*</span>
+                                        <TooltipIcon message="Enter the IFSC (Indian Financial System Code) of your bank branch. This is required for electronic fund transfers like NEFT and RTGS" />
+                                    </label>
+                                    <input className="form-control" type="text" value={bankDetail.ifsc_code || ''} maxLength={11} disabled readOnly />
+                                </div>
+                            </div>
+                            {/* Beneficiary Name */}
+                            <div className="col-md-4 mt-2">
+                                <div className="form-group">
+                                    <label>
+                                        Beneficiary Name <span>*</span>
+                                        <TooltipIcon message="Enter the full legel name of the beneficiary." />
+                                    </label>
+                                    <input className="form-control" type="text" value={bankDetail.benficary_name || ''} disabled readOnly />
+                                </div>
+                            </div>
+                            {/* Virtual Account */}
+                            <div className="col-md-4 mt-2">
+                                <div className="form-group">
+                                    <label>
+                                        Virtual Account
+                                    </label>
+                                    <SingleSelector
+                                        options={[{ label: 'Yes', value: 'Yes' }, { label: 'No', value: 'No' }]}
+                                        value={[{ label: 'Yes', value: 'Yes' }, { label: 'No', value: 'No' }].find(opt => opt.value === virtualAccount) || null}
+                                        isDisabled={true}
+                                    />
+                                </div>
+                            </div>
+                            {/* Select Company (if Virtual Account is Yes) */}
+                            {virtualAccount === 'Yes' && (
+                                <div className="col-md-4 mt-2">
+                                    <div className="form-group">
+                                        <label>
+                                            Select Company <span>*</span>
+                                        </label>
+                                        <SingleSelector
+                                            options={companyOptions}
+                                            value={selectedCompany}
+                                            isDisabled={true}
+                                        />
+                                    </div>
+                                </div>
+                            )}
+                            {/* Generated Virtual Account Code */}
+                            <div className="col-md-4 mt-2">
+                                <div className="form-group">
+                                    <label>
+                                        Generated Virtual Account Code
+                                    </label>
+                                    <input className="form-control" type="text" value={bankDetail.generated_virtual_account_code || ''} disabled readOnly />
+                                </div>
+                            </div>
+                            {/* Cancelled Cheque / Bank Copy */}
+                            <div className="col-md-4 mt-2">
+                                <div className="form-group">
+                                    <label>
+                                        Cancelled Cheque / Bank Copy <span>*</span>
+                                        <TooltipIcon message="Provide a cancelled cheque or a bank statement copy that clearly displays your bank account details.This helps verify your account information. The document must be uploaded in PDF format" />
+                                    </label>
+                                    {bankDetail?.attachment && (
+                                        <span className="ms-2">
+                                            <a
+                                                href={`${baseURL}${bankDetail.attachment}`}
+                                                download
+                                                className="text-primary d-flex align-items-center"
+                                            >
+                                                <span className="me-2">Existing File:</span>
+                                                <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} fill="#DE7008" className="bi bi-download" viewBox="0 0 16 16">
+                                                    <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                                                    <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                                                </svg>
+                                            </a>
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+                            {/* Remark */}
+                            <div className="col-md-4 mt-2">
+                                <div className="form-group">
+                                    <label>
+                                        Remark
+                                    </label>
+                                    <textarea className="form-control" rows="3" value={bankDetail.remark || ''} disabled readOnly />
+                                </div>
+                            </div>
+                        </div>
+                    </CollapsedCardKYC>
+                ))}
+            {/* </div> */}
+
+
+
+
+ 
+                {branchOffices.map((branch, idx) => (
+                    <CollapsedCardKYC
+                        key={branch.id}
+                        title={`Branch Office${branchOffices.length > 1 ? ` (${idx + 1})` : ''}`}
+                    >
+                        <div className="card-body mt-0">
+                            <div className="row">
+                                <div className="col-md-4">
+                                    <div className="form-group">
+                                        <label>Address</label>
+                                        <input className="form-control" type="text" value={branch.address || ''} disabled readOnly />
+                                    </div>
+                                </div>
+                                <div className="col-md-4 ">
+                                    <div className="form-group">
+                                        <label>Country<span>*</span></label>
+                                        <SingleSelector options={countries} value={countries.find(opt => opt.value === branch.country) || null} isDisabled={true} />
+                                    </div>
+                                </div>
+                                <div className="col-md-4 ">
+                                    <div className="form-group">
+                                        <label>State <span>*</span></label>
+                                        <SingleSelector options={states} value={states.find(opt => opt.value === branch.state) || null} isDisabled={true} />
+                                    </div>
+                                </div>
+                                <div className="col-md-4 mt-2">
+                                    <div className="form-group">
+                                        <label>City <span>*</span></label>
+                                        <input className="form-control" type="text" value={branch.city || ''} disabled readOnly />
+                                    </div>
+                                </div>
+                                <div className="col-md-4 mt-2">
+                                    <div className="form-group">
+                                        <label>Pin Code<span>*</span></label>
+                                        <input className="form-control" type="text" value={branch.pincode || ''} disabled readOnly />
+                                    </div>
+                                </div>
+                                <div className="col-md-4 mt-2">
+                                    <div className="form-group">
+                                        <label>Telephone Phone No.</label>
+                                        <input className="form-control" type="text" value={branch.telephone || ''} disabled readOnly />
+                                    </div>
+                                </div>
+                                <div className="col-md-4 mt-2">
+                                    <div className="form-group">
+                                        <label>Mobile Number</label>
+                                        <input className="form-control" type="text" value={branch.mobile || ''} disabled readOnly />
                                     </div>
                                 </div>
                             </div>
-                            {/* Step 3: Registered/Communication Address Card (readonly) */}
-                            <div className="card mx-4 pb-4 mt-4">
-                                <div className="row mt-4 mx-3">
-                                    <div className="col-md-12">
-                                        <h5>Registered Address</h5>
-                                        <div className="row">
-                                            <div className="col-md-6">
-                                                <div className="form-group">
-                                                    <label>Address</label>
-                                                    <input className="form-control" type="text" value={registeredAddress.addressLine1} disabled readOnly />
-                                                </div>
-                                            </div>
-                                            <div className="col-md-2">
-                                                <div className="form-group">
-                                                    <label>City</label>
-                                                    <input className="form-control" type="text" value={registeredAddress.city} disabled readOnly />
-                                                </div>
-                                            </div>
-                                            <div className="col-md-2">
-                                                <div className="form-group">
-                                                    <label>State</label>
-                                                    <input className="form-control" type="text" value={registeredAddress.state} disabled readOnly />
-                                                </div>
-                                            </div>
-                                            <div className="col-md-2">
-                                                <div className="form-group">
-                                                    <label>Pincode</label>
-                                                    <input className="form-control" type="text" value={registeredAddress.pincode} disabled readOnly />
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <h5 className="mt-3">Communication Address</h5>
-                                        <div className="row">
-                                            <div className="col-md-6">
-                                                <div className="form-group">
-                                                    <label>Address</label>
-                                                    <input className="form-control" type="text" value={communicationAddress.addressLine1} disabled readOnly />
-                                                </div>
-                                            </div>
-                                            <div className="col-md-2">
-                                                <div className="form-group">
-                                                    <label>City</label>
-                                                    <input className="form-control" type="text" value={communicationAddress.city} disabled readOnly />
-                                                </div>
-                                            </div>
-                                            <div className="col-md-2">
-                                                <div className="form-group">
-                                                    <label>State</label>
-                                                    <input className="form-control" type="text" value={communicationAddress.state} disabled readOnly />
-                                                </div>
-                                            </div>
-                                            <div className="col-md-2">
-                                                <div className="form-group">
-                                                    <label>Pincode</label>
-                                                    <input className="form-control" type="text" value={communicationAddress.pincode} disabled readOnly />
-                                                </div>
-                                            </div>
-                                        </div>
+                        </div>
+                    </CollapsedCardKYC>
+                ))}
+          
+            
+                {contactPersons.map((person, idx) => (
+                    <CollapsedCardKYC
+                        key={person.id}
+                        title={`Contact Person${contactPersons.length > 1 ? ` ${idx + 1}` : ""}`}
+                    >
+                        <div className="card-body mt-0">
+                            <div className="row">
+                                <div className="col-md-4">
+                                    <div className="form-group">
+                                        <label>Escalation Level<span>*</span></label>
+                                        <SingleSelector options={[]} value={person.escalationLevel} isDisabled={true} />
+                                    </div>
+                                </div>
+                                <div className="col-md-4 ">
+                                    <div className="form-group">
+                                        <label>Name Title <span>*</span></label>
+                                        <SingleSelector options={[]} value={person.nameTitle} isDisabled={true} />
+                                    </div>
+                                </div>
+                                <div className="col-md-4">
+                                    <div className="form-group">
+                                        <label>First Name <span>*</span></label>
+                                        <input className="form-control" type="text" value={person.firstName || ''} disabled readOnly />
+                                    </div>
+                                </div>
+                                <div className="col-md-4 mt-2">
+                                    <div className="form-group">
+                                        <label>Last Name<span>*</span></label>
+                                        <input className="form-control" type="text" value={person.lastName || ''} disabled readOnly />
+                                    </div>
+                                </div>
+                                <div className="col-md-4  mt-2">
+                                    <div className="form-group">
+                                        <label>Designation<span>*</span></label>
+                                        <SingleSelector options={[]} value={person.designation} isDisabled={true} />
+                                    </div>
+                                </div>
+                                <div className="col-md-4  mt-2">
+                                    <div className="form-group">
+                                        <label>Primary Email ID <span>*</span></label>
+                                        <input className="form-control" type="text" value={person.primaryEmail || ''} disabled readOnly />
+                                    </div>
+                                </div>
+                                <div className="col-md-4  mt-2">
+                                    <div className="form-group">
+                                        <label>Secondary Email ID</label>
+                                        <input className="form-control" type="text" value={person.secondaryEmail || ''} disabled readOnly />
+                                    </div>
+                                </div>
+                                <div className="col-md-4  mt-2">
+                                    <div className="form-group">
+                                        <label>Primary Mobile No. <span>*</span></label>
+                                        <input className="form-control" type="text" value={person.primaryMobile || ''} disabled readOnly />
+                                    </div>
+                                </div>
+                                <div className="col-md-4  mt-2">
+                                    <div className="form-group">
+                                        <label>Secondary Mobile No.</label>
+                                        <input className="form-control" type="text" value={person.secondaryMobile || ''} disabled readOnly />
+                                    </div>
+                                </div>
+                                <div className="col-md-4  mt-2">
+                                    <div className="form-group">
+                                        <label>Nationality</label>
+                                        <SingleSelector options={[]} value={person.nationality} isDisabled={true} />
+                                    </div>
+                                </div>
+                                <div className="col-md-4  mt-2">
+                                    <div className="form-group">
+                                        <label>Gender</label>
+                                        <SingleSelector options={[]} value={person.gender} isDisabled={true} />
+                                    </div>
+                                </div>
+                                <div className="col-md-4  mt-2">
+                                    <div className="form-group">
+                                        <label>Date of Birth</label>
+                                        <input className="form-control" type="date" value={person.dob || ''} disabled readOnly />
+                                    </div>
+                                </div>
+                                <div className="col-md-4  mt-2">
+                                    <div className="form-group">
+                                        <label>Attachment</label>
+                                        {person.attachment && (
+                                            <a href={typeof person.attachment === 'string' ? `${baseURL}${person.attachment}` : '#'} download className="text-primary d-flex align-items-center">
+                                                <span className="me-2">Existing File</span>
+                                            </a>
+                                        )}
                                     </div>
                                 </div>
                             </div>
-                            {/* Step 4: Dynamic Sections Cards (readonly) */}
-                            {owners.length > 0 && owners.map((owner, idx) => (
-                                <div className="card mx-4 pb-4 mt-4" key={owner.id}>
-                                    <div className="row mt-4 mx-3">
-                                        <div className="col-md-12">
-                                            <h5>Owner / Director {owners.length > 1 ? idx + 1 : ''}</h5>
-                                            <div className="row">
-                                                <div className="col-md-4">
-                                                    <div className="form-group">
-                                                        <label>First Name <span>*</span></label>
-                                                        <input className="form-control" type="text" value={owner.firstName} disabled readOnly />
-                                                    </div>
-                                                </div>
-                                                <div className="col-md-4">
-                                                    <div className="form-group">
-                                                        <label>Last Name <span>*</span></label>
-                                                        <input className="form-control" type="text" value={owner.lastName} disabled readOnly />
-                                                    </div>
-                                                </div>
-                                                <div className="col-md-4">
-                                                    <div className="form-group">
-                                                        <label>Designation <span>*</span></label>
-                                                        <input className="form-control" type="text" value={owner.designation} disabled readOnly />
-                                                    </div>
-                                                </div>
-                                                <div className="col-md-4">
-                                                    <div className="form-group">
-                                                        <label>Email <span>*</span></label>
-                                                        <input className="form-control" type="text" value={owner.email} disabled readOnly />
-                                                    </div>
-                                                </div>
-                                                <div className="col-md-4">
-                                                    <div className="form-group">
-                                                        <label>Mobile Number <span>*</span></label>
-                                                        <input className="form-control" type="text" value={owner.mobile} disabled readOnly />
-                                                    </div>
-                                                </div>
-                                                {/* ...add more fields as in the original card... */}
+                        </div>
+                    </CollapsedCardKYC>
+                ))}
+           
+
+
+          
+                {warehouses.map((warehouse, idx) => (
+                    <CollapsedCardKYC
+                        key={warehouse.id}
+                        title={`Factory Warehouse${warehouses.length > 1 ? ` ${idx + 1}` : ''}`}
+                    >
+                        <div className="card-body mt-0">
+                            <div className="row">
+                                <div className="col-md-4">
+                                    <div className="form-group">
+                                        <label>Address</label>
+                                        <input className="form-control" type="text" value={warehouse.address || ''} disabled readOnly />
+                                    </div>
+                                </div>
+                                <div className="col-md-4  ">
+                                    <div className="form-group">
+                                        <label>Country<span>*</span></label>
+                                        <SingleSelector options={[]} value={warehouse.country} isDisabled={true} />
+                                    </div>
+                                </div>
+                                <div className="col-md-4  mt-2">
+                                    <div className="form-group">
+                                        <label>State <span>*</span></label>
+                                        <SingleSelector options={[]} value={warehouse.state} isDisabled={true} />
+                                    </div>
+                                </div>
+                                <div className="col-md-4  mt-2">
+                                    <div className="form-group">
+                                        <label>City <span>*</span></label>
+                                        <input className="form-control" type="text" value={warehouse.city || ''} disabled readOnly />
+                                    </div>
+                                </div>
+                                <div className="col-md-4  mt-2">
+                                    <div className="form-group">
+                                        <label>Telephone Phone No.</label>
+                                        <input className="form-control" type="text" value={warehouse.telephone || ''} disabled readOnly />
+                                    </div>
+                                </div>
+                                <div className="col-md-4  mt-2">
+                                    <div className="form-group">
+                                        <label>Mobile Number</label>
+                                        <input className="form-control" type="text" value={warehouse.mobile || ''} disabled readOnly />
+                                    </div>
+                                </div>
+                                <div className="col-md-4  mt-2">
+                                    <div className="form-group">
+                                        <label>Attachment</label>
+                                        {warehouse.attachment && (
+                                            <a href={typeof warehouse.attachment === 'string' ? `${baseURL}${warehouse.attachment}` : '#'} download className="text-primary d-flex align-items-center">
+                                                <span className="me-2">Existing File</span>
+                                            </a>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </CollapsedCardKYC>
+                ))}
+            
+
+             
+                {owners.map((owner, idx) => (
+                    <CollapsedCardKYC
+                        key={owner.id}
+                        title={`Owner / Director${owners.length > 1 ? ` ${idx + 1}` : ''}`}
+                    >
+                        <div className="card-body mt-0">
+                            <div className="row">
+                                <div className="col-md-4">
+                                    <div className="form-group">
+                                        <label>First Name <span>*</span></label>
+                                        <input className="form-control" type="text" value={owner.firstName || ''} disabled readOnly />
+                                    </div>
+                                </div>
+                                <div className="col-md-4">
+                                    <div className="form-group">
+                                        <label>Last Name <span>*</span></label>
+                                        <input className="form-control" type="text" value={owner.lastName || ''} disabled readOnly />
+                                    </div>
+                                </div>
+                                <div className="col-md-4  ">
+                                    <div className="form-group">
+                                        <label>Designation <span>*</span></label>
+                                        <SingleSelector options={[]} value={owner.designation} isDisabled={true} />
+                                    </div>
+                                </div>
+                                <div className="col-md-4  ">
+                                    <div className="form-group">
+                                        <label>Qualification</label>
+                                        <SingleSelector options={[]} value={owner.qualification} isDisabled={true} />
+                                    </div>
+                                </div>
+                                <div className="col-md-4">
+                                    <div className="form-group">
+                                        <label>Experience</label>
+                                        <input className="form-control" type="text" value={owner.experience || ''} disabled readOnly />
+                                    </div>
+                                </div>
+                                <div className="col-md-4">
+                                    <div className="form-group">
+                                        <label>Email <span>*</span></label>
+                                        <input className="form-control" type="text" value={owner.email || ''} disabled readOnly />
+                                    </div>
+                                </div>
+                                <div className="col-md-4">
+                                    <div className="form-group">
+                                        <label>Mobile Number <span>*</span></label>
+                                        <input className="form-control" type="text" value={owner.mobile || ''} disabled readOnly />
+                                    </div>
+                                </div>
+                                <div className="col-md-4">
+                                    <div className="form-group">
+                                        <label>Attachment</label>
+                                        {owner.attachment && (
+                                            <a href={typeof owner.attachment === 'string' ? `${baseURL}${owner.attachment}` : '#'} download className="text-primary d-flex align-items-center">
+                                                <span className="me-2">Existing File</span>
+                                            </a>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </CollapsedCardKYC>
+                ))}
+            
+
+            
+                {relatedEmployees.map((employee, idx) => (
+                    <CollapsedCardKYC
+                        key={employee.id}
+                        title={`Are you related to any employee of Panchshil ?${relatedEmployees.length > 1 ? ` ${idx + 1}` : ''}`}
+                    >
+                        <div className="card-body mt-0">
+                            <div className="row">
+                                <div className="col-md-4">
+                                    <div className="form-group">
+                                        <label>First Name <span>*</span></label>
+                                        <input className="form-control" type="text" value={employee.firstName || ''} disabled readOnly />
+                                    </div>
+                                </div>
+                                <div className="col-md-4">
+                                    <div className="form-group">
+                                        <label>Last Name <span>*</span></label>
+                                        <input className="form-control" type="text" value={employee.lastName || ''} disabled readOnly />
+                                    </div>
+                                </div>
+                                <div className="col-md-4">
+                                    <div className="form-group">
+                                        <label>Employee Email Id <span>*</span></label>
+                                        <input className="form-control" type="text" value={employee.email || ''} disabled readOnly />
+                                    </div>
+                                </div>
+                                <div className="col-md-4">
+                                    <div className="form-group">
+                                        <label>Mobile Number</label>
+                                        <input className="form-control" type="text" value={employee.mobile || ''} disabled readOnly />
+                                    </div>
+                                </div>
+                                <div className="col-md-4  ">
+                                    <div className="form-group">
+                                        <label>Designation</label>
+                                        <SingleSelector options={[]} value={employee.designation} isDisabled={true} />
+                                    </div>
+                                </div>
+                                <div className="col-md-4  ">
+                                    <div className="form-group">
+                                        <label>Department</label>
+                                        <SingleSelector options={[]} value={employee.department} isDisabled={true} />
+                                    </div>
+                                </div>
+                                <div className="col-md-4  ">
+                                    <div className="form-group">
+                                        <label>Relationship</label>
+                                        <SingleSelector options={[]} value={employee.relationship} isDisabled={true} />
+                                    </div>
+                                </div>
+                                <div className="col-md-4 mb-3 mt-2">
+                                    <div className="form-group mb-0">
+                                        <label className="mb-1">Currently Working </label>
+                                        <div>
+                                            <div className="form-check form-check-inline">
+                                                <input className="form-check-input" type="radio" name={`currentlyWorking${employee.id}`} id={`currentlyWorkingYes${employee.id}`} value="yes" checked={employee.currentlyWorking === 'yes'} disabled readOnly />
+                                                <label className="form-check-label" htmlFor={`currentlyWorkingYes${employee.id}`}>Yes</label>
+                                            </div>
+                                            <div className="form-check form-check-inline">
+                                                <input className="form-check-input" type="radio" name={`currentlyWorking${employee.id}`} id={`currentlyWorkingNo${employee.id}`} value="no" checked={employee.currentlyWorking === 'no'} disabled readOnly />
+                                                <label className="form-check-label" htmlFor={`currentlyWorkingNo${employee.id}`}>No</label>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                            ))}
+                                <div className="col-md-4">
+                                    <div className="form-group">
+                                        <label>Attachment</label>
+                                        {employee.attachment && (
+                                            <a href={typeof employee.attachment === 'string' ? `${baseURL}${employee.attachment}` : '#'} download className="text-primary d-flex align-items-center">
+                                                <span className="me-2">Existing File</span>
+                                            </a>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </CollapsedCardKYC>
+                ))}
+            
+
+
+                {groupCompanies.map((company, idx) => (
+                    <CollapsedCardKYC
+                        key={company.id}
+                        title={`Sister Concern / Group Company${groupCompanies.length > 1 ? ` ${idx + 1}` : ''}`}
+                    >
+                        <div className="card-body mt-0">
+                            <div className="row">
+                                <div className="col-md-4">
+                                    <div className="form-group">
+                                        <label>Name <span>*</span></label>
+                                        <input className="form-control" type="text" value={company.name || ''} disabled readOnly />
+                                    </div>
+                                </div>
+                                <div className="col-md-4  ">
+                                    <div className="form-group">
+                                        <label>Nature Of Business <span>*</span></label>
+                                        <SingleSelector options={[]} value={company.natureOfBusiness} isDisabled={true} />
+                                    </div>
+                                </div>
+                                <div className="col-md-4">
+                                    <div className="form-group">
+                                        <label>PAN No. <span>*</span></label>
+                                        <input className="form-control" type="text" value={company.pan || ''} disabled readOnly />
+                                    </div>
+                                </div>
+                                <div className="col-md-4">
+                                    <div className="form-group">
+                                        <label>GSTIN No. <span>*</span></label>
+                                        <input className="form-control" type="text" value={company.gstin || ''} disabled readOnly />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </CollapsedCardKYC>
+                ))}
+           
+
+
+            
+                {supervisoryManpower.map((item, idx) => (
+                    <CollapsedCardKYC
+                        key={item.id}
+                        title={`Supervisory Manpower${supervisoryManpower.length > 1 ? ` ${idx + 1}` : ''}`}
+                    >
+                        <div className="card-body mt-0">
+                            <div className="row">
+                                <div className="col-md-4">
+                                    <div className="form-group">
+                                        <label>Supervisory Manpower Details <span>*</span></label>
+                                        <input className="form-control" type="text" value={item.details || ''} disabled readOnly />
+                                    </div>
+                                </div>
+                                <div className="col-md-4">
+                                    <div className="form-group">
+                                        <label>Total Numbers <span>*</span></label>
+                                        <input className="form-control" type="text" value={item.totalNumbers || ''} disabled readOnly />
+                                    </div>
+                                </div>
+                                <div className="col-md-4">
+                                    <div className="form-group">
+                                        <label>Remark</label>
+                                        <input className="form-control" type="text" value={item.remark || ''} disabled readOnly />
+                                    </div>
+                                </div>
+                                <div className="col-md-4">
+                                    <div className="form-group">
+                                        <label>Attachment</label>
+                                        {item.attachment && (
+                                            <a href={typeof item.attachment === 'string' ? `${baseURL}${item.attachment}` : '#'} download className="text-primary d-flex align-items-center">
+                                                <span className="me-2">Existing File</span>
+                                            </a>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </CollapsedCardKYC>
+                ))}
+           
+
+           
+                {majorCustomers.map((customer, idx) => (
+                    <CollapsedCardKYC
+                        key={customer.id}
+                        title={`Major Customer${majorCustomers.length > 1 ? ` ${idx + 1}` : ''}`}
+                    >
+                        <div className="card-body mt-0">
+                            <div className="row">
+                                <div className="col-md-4">
+                                    <div className="form-group">
+                                        <label>Company Name <span>*</span></label>
+                                        <input className="form-control" type="text" value={customer.companyName || ''} disabled readOnly />
+                                    </div>
+                                </div>
+                                <div className="col-md-4">
+                                    <div className="form-group">
+                                        <label>Work Done <span>*</span></label>
+                                        <input className="form-control" type="text" value={customer.workDone || ''} disabled readOnly />
+                                    </div>
+                                </div>
+                                <div className="col-md-4">
+                                    <div className="form-group">
+                                        <label>Contact Person <span>*</span></label>
+                                        <input className="form-control" type="text" value={customer.contactPerson || ''} disabled readOnly />
+                                    </div>
+                                </div>
+                                <div className="col-md-4  ">
+                                    <div className="form-group">
+                                        <label>Designation <span>*</span></label>
+                                        <SingleSelector options={[]} value={customer.designation} isDisabled={true} />
+                                    </div>
+                                </div>
+                                <div className="col-md-4  ">
+                                    <div className="form-group">
+                                        <label>Country <span>*</span></label>
+                                        <SingleSelector options={[]} value={customer.country} isDisabled={true} />
+                                    </div>
+                                </div>
+                                <div className="col-md-4">
+                                    <div className="form-group">
+                                        <label>Phone No.</label>
+                                        <input className="form-control" type="text" value={customer.phone || ''} disabled readOnly />
+                                    </div>
+                                </div>
+                                <div className="col-md-4">
+                                    <div className="form-group">
+                                        <label>Mobile No. <span>*</span></label>
+                                        <input className="form-control" type="text" value={customer.mobile || ''} disabled readOnly />
+                                    </div>
+                                </div>
+                                <div className="col-md-4">
+                                    <div className="form-group">
+                                        <label>Year of Association <span>*</span></label>
+                                        <input className="form-control" type="text" value={customer.yearOfAssociation || ''} disabled readOnly />
+                                    </div>
+                                </div>
+                                <div className="col-md-4">
+                                    <div className="form-group">
+                                        <label>Business done in Last 12 month in lacs <span>*</span></label>
+                                        <input className="form-control" type="text" value={customer.businessLast12Months || ''} disabled readOnly />
+                                    </div>
+                                </div>
+                                <div className="col-md-4">
+                                    <div className="form-group">
+                                        <label>Service Provided From <span>*</span></label>
+                                        <input className="form-control" type="date" value={customer.serviceFrom || ''} disabled readOnly />
+                                    </div>
+                                </div>
+                                <div className="col-md-4">
+                                    <div className="form-group">
+                                        <label>Service Provided To <span>*</span></label>
+                                        <input className="form-control" type="date" value={customer.serviceTo || ''} disabled readOnly />
+                                    </div>
+                                </div>
+                                <div className="col-md-4">
+                                    <div className="form-group">
+                                        <label>Stage Of Project</label>
+                                        <input className="form-control" type="text" value={customer.stageOfProject || ''} disabled readOnly />
+                                    </div>
+                                </div>
+                                <div className="col-md-4">
+                                    <div className="form-group">
+                                        <label>Major Competitors</label>
+                                        <input className="form-control" type="text" value={customer.majorCompetitors || ''} disabled readOnly />
+                                    </div>
+                                </div>
+                                <div className="col-md-4">
+                                    <div className="form-group">
+                                        <label>Attachment</label>
+                                        {customer.attachment && (
+                                            <a href={typeof customer.attachment === 'string' ? `${baseURL}${customer.attachment}` : '#'} download className="text-primary d-flex align-items-center">
+                                                <span className="me-2">Existing File</span>
+                                            </a>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </CollapsedCardKYC>
+                ))}
+            
+
+
+             
+                {workingSites.map((site, idx) => (
+                    <CollapsedCardKYC
+                        key={site.id}
+                        title={`Working Site${workingSites.length > 1 ? ` ${idx + 1}` : ''}`}
+                    >
+                        <div className="card-body mt-0">
+                            <div className="row">
+                                <div className="col-md-4">
+                                    <div className="form-group">
+                                        <label>Builder / Client Name <span>*</span></label>
+                                        <input className="form-control" type="text" value={site.builderName || ''} disabled readOnly />
+                                    </div>
+                                </div>
+                                <div className="col-md-4">
+                                    <div className="form-group">
+                                        <label>Brief Details <span>*</span></label>
+                                        <input className="form-control" type="text" value={site.briefDetails || ''} disabled readOnly />
+                                    </div>
+                                </div>
+                                <div className="col-md-4">
+                                    <div className="form-group">
+                                        <label>Area (Sq ft.) <span>*</span></label>
+                                        <input className="form-control" type="text" value={site.area || ''} disabled readOnly />
+                                    </div>
+                                </div>
+                                <div className="col-md-4">
+                                    <div className="form-group">
+                                        <label>Manpower employed at Site</label>
+                                        <input className="form-control" type="text" value={site.manpower || ''} disabled readOnly />
+                                    </div>
+                                </div>
+                                <div className="col-md-4">
+                                    <div className="form-group">
+                                        <label>Stage Of Project</label>
+                                        <input className="form-control" type="text" value={site.stageOfProject || ''} disabled readOnly />
+                                    </div>
+                                </div>
+                                <div className="col-md-4">
+                                    <div className="form-group">
+                                        <label>Likely Compl. Date</label>
+                                        <input className="form-control" type="date" value={site.likelyCompletion || ''} disabled readOnly />
+                                    </div>
+                                </div>
+                                <div className="col-md-4">
+                                    <div className="form-group">
+                                        <label>Attachment</label>
+                                        {site.attachment && (
+                                            <a href={typeof site.attachment === 'string' ? `${baseURL}${site.attachment}` : '#'} download className="text-primary d-flex align-items-center">
+                                                <span className="me-2">Existing File</span>
+                                            </a>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </CollapsedCardKYC>
+                ))}
+           
+
+             {/* Preview: Product & Services (readonly) */}
+       
+            <div className="row mb-3 mx-2 mt-4">
+                <div className="col-md-6">
+                    <div className="form-group">
+                        <label>Product & Services </label>
+                        <MultiSelector options={[]} 
+                        // value={selectedProductServices || []} 
+                        isDisabled={true} placeholder="Select Product & Services" />
+                    </div>
+                </div>
+            </div>
+       
+
+        {/* Preview: Turnover Table (readonly) */}
+       
+            <div className="mx-3 mt-4">
+                <div className="col-md-12">
+                    <h5 className="mb-3">Annual Turnover
+                        <TooltipIcon message="Enter the value of Turnover in Lacs." />
+                    </h5>
+                </div>
+                <div className="tbl-container mt-3 ">
+                    <table className=" w-100">
+                        <thead>
+                            <tr>
+                                <th>FY</th>
+                                <th>Turnover in Lacs</th>
+                                <th>Attachment</th>
+                                <th>Key Markets</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>2024-2025</td>
+                                <td>
+                                    <input className="form-control" type="number" value={turnover["2024-2025"]?.amount || ''} disabled readOnly />
+                                </td>
+                                <td>
+                                    {turnover["2024-2025"]?.attachment && (
+                                        <a href={typeof turnover["2024-2025"].attachment === 'string' ? `${baseURL}${turnover["2024-2025"].attachment}` : '#'} download className="text-primary d-flex align-items-center">
+                                            <span className="me-2">Existing File</span>
+                                        </a>
+                                    )}
+                                </td>
+                                <td>
+                                    <input className="form-control" type="text" value={turnover["2024-2025"]?.markets || ''} disabled readOnly />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>2023-2024</td>
+                                <td>
+                                    <input className="form-control" type="number" value={turnover["2023-2024"]?.amount || ''} disabled readOnly />
+                                </td>
+                                <td>
+                                    {turnover["2023-2024"]?.attachment && (
+                                        <a href={typeof turnover["2023-2024"].attachment === 'string' ? `${baseURL}${turnover["2023-2024"].attachment}` : '#'} download className="text-primary d-flex align-items-center">
+                                            <span className="me-2">Existing File</span>
+                                        </a>
+                                    )}
+                                </td>
+                                <td>
+                                    <input className="form-control" type="text" value={turnover["2023-2024"]?.markets || ''} disabled readOnly />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>2022-2023</td>
+                                <td>
+                                    <input className="form-control" type="number" value={turnover["2022-2023"]?.amount || ''} disabled readOnly />
+                                </td>
+                                <td>
+                                    {turnover["2022-2023"]?.attachment && (
+                                        <a href={typeof turnover["2022-2023"].attachment === 'string' ? `${baseURL}${turnover["2022-2023"].attachment}` : '#'} download className="text-primary d-flex align-items-center">
+                                            <span className="me-2">Existing File</span>
+                                        </a>
+                                    )}
+                                </td>
+                                <td>
+                                    <input className="form-control" type="text" value={turnover["2022-2023"]?.markets || ''} disabled readOnly />
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            ******
+                          
+                            
+                           
+                           
                             {/* Repeat for all other dynamic sections: relatedEmployees, groupCompanies, supervisoryManpower, majorCustomers, workingSites, etc. Use the same card structure as in the form, with all fields disabled and filled. */}
                             {/* --- Declaration Section --- */}
                             <div className="card mx-4 pb-4 mt-4">
@@ -7276,6 +8612,9 @@ const VendorRegistrationStepByStepForm = () => {
                         </div>
                     )}
                 </div>
+
+
+
 
 
 
