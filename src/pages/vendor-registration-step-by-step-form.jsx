@@ -26,6 +26,182 @@ import CollapsedCardKYC from "../components/base/Card/CollapsedCardKYC";
 import { MultiSelector } from "../components";
 
 const VendorRegistrationStepByStepForm = () => {
+    // Name Title options for contact person
+    const nameTitleOptions = [
+        { label: 'Select', value: '' },
+        { label: 'Mr', value: 'Mr' },
+        { label: 'Ms', value: 'Ms' },
+        { label: 'Mrs', value: 'Mrs' },
+        { label: 'Dr', value: 'Dr' },
+        { label: 'M/s', value: 'M/s' },
+        { label: 'Company', value: 'Company' },
+    ];
+    // Escalation Level options for contact person
+    const escalationLevelOptions = [
+        { label: 'Level 1', value: 'Level 1' },
+        { label: 'Level 2', value: 'Level 2' },
+        { label: 'Level 3', value: 'Level 3' },
+        { label: 'Level 4', value: 'Level 4' },
+        { label: 'Level 5', value: 'Level 5' },
+    ];
+    // Currency options for currency type selector
+    const currencyOptions = [
+        { label: 'Select Currency', value: '' },
+        { label: 'AED', value: 'AED' },
+        { label: 'AFN', value: 'AFN' },
+        { label: 'ALL', value: 'ALL' },
+        { label: 'AMD', value: 'AMD' },
+        { label: 'ANG', value: 'ANG' },
+        { label: 'AOA', value: 'AOA' },
+        { label: 'ARS', value: 'ARS' },
+        { label: 'AUD', value: 'AUD' },
+        { label: 'AWG', value: 'AWG' },
+        { label: 'AZN', value: 'AZN' },
+        { label: 'BAM', value: 'BAM' },
+        { label: 'BBD', value: 'BBD' },
+        { label: 'BDT', value: 'BDT' },
+        { label: 'BGN', value: 'BGN' },
+        { label: 'BHD', value: 'BHD' },
+        { label: 'BIF', value: 'BIF' },
+        { label: 'BMD', value: 'BMD' },
+        { label: 'BND', value: 'BND' },
+        { label: 'BOB', value: 'BOB' },
+        { label: 'BRL', value: 'BRL' },
+        { label: 'BSD', value: 'BSD' },
+        { label: 'BTN', value: 'BTN' },
+        { label: 'BWP', value: 'BWP' },
+        { label: 'BYN', value: 'BYN' },
+        { label: 'BZD', value: 'BZD' },
+        { label: 'CAD', value: 'CAD' },
+        { label: 'CDF', value: 'CDF' },
+        { label: 'CHF', value: 'CHF' },
+        { label: 'CLP', value: 'CLP' },
+        { label: 'CNY', value: 'CNY' },
+        { label: 'COP', value: 'COP' },
+        { label: 'CRC', value: 'CRC' },
+        { label: 'CUP', value: 'CUP' },
+        { label: 'CVE', value: 'CVE' },
+        { label: 'CZK', value: 'CZK' },
+        { label: 'DJF', value: 'DJF' },
+        { label: 'DKK', value: 'DKK' },
+        { label: 'DOP', value: 'DOP' },
+        { label: 'DZD', value: 'DZD' },
+        { label: 'EGP', value: 'EGP' },
+        { label: 'ERN', value: 'ERN' },
+        { label: 'ETB', value: 'ETB' },
+        { label: 'EUR', value: 'EUR' },
+        { label: 'FJD', value: 'FJD' },
+        { label: 'FKP', value: 'FKP' },
+        { label: 'GBP', value: 'GBP' },
+        { label: 'GEL', value: 'GEL' },
+        { label: 'GHS', value: 'GHS' },
+        { label: 'GIP', value: 'GIP' },
+        { label: 'GMD', value: 'GMD' },
+        { label: 'GNF', value: 'GNF' },
+        { label: 'GTQ', value: 'GTQ' },
+        { label: 'GYD', value: 'GYD' },
+        { label: 'HKD', value: 'HKD' },
+        { label: 'HNL', value: 'HNL' },
+        { label: 'HRK', value: 'HRK' },
+        { label: 'HTG', value: 'HTG' },
+        { label: 'HUF', value: 'HUF' },
+        { label: 'IDR', value: 'IDR' },
+        { label: 'ILS', value: 'ILS' },
+        { label: 'INR', value: 'INR' },
+        { label: 'IQD', value: 'IQD' },
+        { label: 'IRR', value: 'IRR' },
+        { label: 'ISK', value: 'ISK' },
+        { label: 'JMD', value: 'JMD' },
+        { label: 'JOD', value: 'JOD' },
+        { label: 'JPY', value: 'JPY' },
+        { label: 'KES', value: 'KES' },
+        { label: 'KGS', value: 'KGS' },
+        { label: 'KHR', value: 'KHR' },
+        { label: 'KMF', value: 'KMF' },
+        { label: 'KRW', value: 'KRW' },
+        { label: 'KWD', value: 'KWD' },
+        { label: 'KYD', value: 'KYD' },
+        { label: 'KZT', value: 'KZT' },
+        { label: 'LAK', value: 'LAK' },
+        { label: 'LBP', value: 'LBP' },
+        { label: 'LKR', value: 'LKR' },
+        { label: 'LRD', value: 'LRD' },
+        { label: 'LSL', value: 'LSL' },
+        { label: 'LYD', value: 'LYD' },
+        { label: 'MAD', value: 'MAD' },
+        { label: 'MDL', value: 'MDL' },
+        { label: 'MGA', value: 'MGA' },
+        { label: 'MKD', value: 'MKD' },
+        { label: 'MMK', value: 'MMK' },
+        { label: 'MNT', value: 'MNT' },
+        { label: 'MOP', value: 'MOP' },
+        { label: 'MRU', value: 'MRU' },
+        { label: 'MUR', value: 'MUR' },
+        { label: 'MVR', value: 'MVR' },
+        { label: 'MWK', value: 'MWK' },
+        { label: 'MXN', value: 'MXN' },
+        { label: 'MYR', value: 'MYR' },
+        { label: 'MZN', value: 'MZN' },
+        { label: 'NAD', value: 'NAD' },
+        { label: 'NGN', value: 'NGN' },
+        { label: 'NIO', value: 'NIO' },
+        { label: 'NOK', value: 'NOK' },
+        { label: 'NPR', value: 'NPR' },
+        { label: 'NZD', value: 'NZD' },
+        { label: 'OMR', value: 'OMR' },
+        { label: 'PAB', value: 'PAB' },
+        { label: 'PEN', value: 'PEN' },
+        { label: 'PGK', value: 'PGK' },
+        { label: 'PHP', value: 'PHP' },
+        { label: 'PKR', value: 'PKR' },
+        { label: 'PLN', value: 'PLN' },
+        { label: 'PYG', value: 'PYG' },
+        { label: 'QAR', value: 'QAR' },
+        { label: 'RON', value: 'RON' },
+        { label: 'RSD', value: 'RSD' },
+        { label: 'RUB', value: 'RUB' },
+        { label: 'RWF', value: 'RWF' },
+        { label: 'SAR', value: 'SAR' },
+        { label: 'SBD', value: 'SBD' },
+        { label: 'SCR', value: 'SCR' },
+        { label: 'SDG', value: 'SDG' },
+        { label: 'SEK', value: 'SEK' },
+        { label: 'SGD', value: 'SGD' },
+        { label: 'SHP', value: 'SHP' },
+        { label: 'SLL', value: 'SLL' },
+        { label: 'SOS', value: 'SOS' },
+        { label: 'SRD', value: 'SRD' },
+        { label: 'SSP', value: 'SSP' },
+        { label: 'STN', value: 'STN' },
+        { label: 'SYP', value: 'SYP' },
+        { label: 'SZL', value: 'SZL' },
+        { label: 'THB', value: 'THB' },
+        { label: 'TJS', value: 'TJS' },
+        { label: 'TMT', value: 'TMT' },
+        { label: 'TND', value: 'TND' },
+        { label: 'TOP', value: 'TOP' },
+        { label: 'TRY', value: 'TRY' },
+        { label: 'TTD', value: 'TTD' },
+        { label: 'TWD', value: 'TWD' },
+        { label: 'TZS', value: 'TZS' },
+        { label: 'UAH', value: 'UAH' },
+        { label: 'UGX', value: 'UGX' },
+        { label: 'USD', value: 'USD' },
+        { label: 'UYU', value: 'UYU' },
+        { label: 'UZS', value: 'UZS' },
+        { label: 'VES', value: 'VES' },
+        { label: 'VND', value: 'VND' },
+        { label: 'VUV', value: 'VUV' },
+        { label: 'WST', value: 'WST' },
+        { label: 'XAF', value: 'XAF' },
+        { label: 'XCD', value: 'XCD' },
+        { label: 'XOF', value: 'XOF' },
+        { label: 'XPF', value: 'XPF' },
+        { label: 'YER', value: 'YER' },
+        { label: 'ZAR', value: 'ZAR' },
+        { label: 'ZMW', value: 'ZMW' },
+        { label: 'ZWL', value: 'ZWL' },
+    ];
     // Annual Turnover state (for preview and form)
     const [turnover, setTurnover] = useState({
         "2024-2025": { amount: '', attachment: '', markets: '' },
@@ -557,12 +733,32 @@ const VendorRegistrationStepByStepForm = () => {
 
     const [virtualAccount, setVirtualAccount] = useState("");
     const [selectedCompany, setSelectedCompany] = useState(null);
-    // Example company options, replace with API if needed
-    const companyOptions = [
-        { label: "Company A", value: "company_a" },
-        { label: "Company B", value: "company_b" },
-        { label: "Company C", value: "company_c" },
-    ];
+    // Company options fetched from API
+    const [companyOptions, setCompanyOptions] = useState([]);
+    useEffect(() => {
+        const fetchCompanyOptions = async () => {
+            try {
+                const response = await axios.get("https://vendors.lockated.com/pms/suppliers/pms_company_list");
+                if (Array.isArray(response.data)) {
+                    setCompanyOptions(response.data.pms_company.map(company => ({
+                        label: company.company_name || company.name || company.label || "",
+                        value: company.id || company.value || company.company_id || ""
+                    })));
+                } else if (Array.isArray(response.data?.pms_company)) {
+                    setCompanyOptions(response.data.pms_company.map(company => ({
+                        label: company.company_name || company.name || company.label || "",
+                        value: company.id || company.value || company.company_id || ""
+                    })));
+                } else {
+                    setCompanyOptions([]);
+                }
+            } catch (error) {
+                setCompanyOptions([]);
+                // Optionally log error
+            }
+        };
+        fetchCompanyOptions();
+    }, []);
 
 // --- Step 3 Validation: Bank Details ---
     const [bankErrors, setBankErrors] = useState({});
@@ -3427,7 +3623,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                     <TooltipIcon message="Please specify if an Annual Maintenance Contract (AMC) is included with the product or service. Select 'Yes if AMC is provided." />
                                                 </label>
                                                 <SingleSelector
-                                                    options={[]}
+                                                    options={gstinApplicableOptions}
                                                     value={additionalDetails.amcProvided}
                                                     onChange={val => updateAdditionalDetails('amcProvided', val)}
                                                 />
@@ -3454,12 +3650,12 @@ const VendorRegistrationStepByStepForm = () => {
                                                     Currency Type <span>*</span>
                                                     {/* <TooltipIcon message="Please choose your country from the list" /> */}
                                                 </label>
-                                                <SingleSelector
-                                                    options={[{ label: 'INR', value: 'inr' }]}
-                                                    placeholder="Select Currency Type"
-                                                    value={additionalDetails.currencyType}
-                                                    onChange={val => updateAdditionalDetails('currencyType', val)}
-                                                />
+                                                 <SingleSelector
+                                                     options={currencyOptions}
+                                                     placeholder="Select Currency Type"
+                                                     value={additionalDetails.currencyType}
+                                                     onChange={val => updateAdditionalDetails('currencyType', val)}
+                                                 />
                                                 {errors.currencyType && (
                                                     <div className="ValidationColor">{errors.currencyType}</div>
                                                 )}
@@ -5196,7 +5392,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                                                     <TooltipIcon message="Select the escalation level for the contact person. This indicates the priority or seniority in the escalation process for any issues or concerns." />
                                                                                 </label>
                                                                                 <SingleSelector
-                                                                                    options={[]}
+                                                                                    options={escalationLevelOptions}
                                                                                     value={person.escalationLevel}
                                                                                     onChange={(selected) =>
                                                                                         handleContactPersonChange(idx, "escalationLevel", selected)
@@ -5215,7 +5411,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                                                     <TooltipIcon message="Select the appropriate title for the employee (e.g. Mr., Mrs., Dr. Ms.). This helps in addressing the employee correctly in formal communications." />
                                                                                 </label>
                                                                                 <SingleSelector
-                                                                                    options={[]}
+                                                                                    options={nameTitleOptions}
                                                                                     value={person.nameTitle}
                                                                                     onChange={(selected) =>
                                                                                         handleContactPersonChange(idx, "nameTitle", selected)
