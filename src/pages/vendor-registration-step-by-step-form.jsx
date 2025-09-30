@@ -303,7 +303,16 @@ const VendorRegistrationStepByStepForm = () => {
     const handleOtpSubmit = () => {
         if (!emailOtp && !mobileOtp) {
             toast.error("Please enter at least one OTP to proceed.");
-            // setTimeout(() => setToastMsg(""), 2500);
+            return;
+        }
+        // OTP must be 5 digits
+        const otpRegex = /^\d{5}$/;
+        if (emailOtp && !otpRegex.test(emailOtp)) {
+            toast.error("Email OTP must be exactly 5 digits.");
+            return;
+        }
+        if (mobileOtp && !otpRegex.test(mobileOtp)) {
+            toast.error("Mobile OTP must be exactly 5 digits.");
             return;
         }
         setCompleted((arr) => {
@@ -3233,6 +3242,16 @@ const VendorRegistrationStepByStepForm = () => {
                                                     type="text"
                                                     value={basicInfo.email}
                                                     onChange={e => updateBasicInfo('email', e.target.value)}
+                                                    onBlur={e => {
+                                                        const value = e.target.value.trim();
+                                                        let error = '';
+                                                        if (!value) {
+                                                            error = 'This field is required.';
+                                                        } else if (!/^\S+@\S+\.\S+$/.test(value)) {
+                                                            error = 'Invalid email format.';
+                                                        }
+                                                        setBasicInfoErrors(prev => ({ ...prev, email: error }));
+                                                    }}
                                                 />
                                                 {basicInfoErrors.email && (
                                                     <div className="ValidationColor">{basicInfoErrors.email}</div>
@@ -3247,9 +3266,19 @@ const VendorRegistrationStepByStepForm = () => {
                                                 </label>
                                                 <input
                                                     className="form-control"
-                                                    type="text"
+                                                    type="number"
                                                     value={basicInfo.mobile}
                                                     onChange={e => updateBasicInfo('mobile', e.target.value)}
+                                                    onBlur={e => {
+                                                        const value = e.target.value.trim();
+                                                        let error = '';
+                                                        if (!value) {
+                                                            error = 'This field is required.';
+                                                        } else if (!/^\d{10}$/.test(value)) {
+                                                            error = 'Mobile number must be exactly 10 digits.';
+                                                        }
+                                                        setBasicInfoErrors(prev => ({ ...prev, mobile: error }));
+                                                    }}
                                                 />
                                                 {basicInfoErrors.mobile && (
                                                     <div className="ValidationColor">{basicInfoErrors.mobile}</div>
@@ -4359,7 +4388,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                 </label>
                                                 <input
                                                     className="form-control"
-                                                    type="text"
+                                                    type="number"
                                                     value={registeredAddress.mobile}
                                                     onChange={e => handleRegisteredAddressChange('mobile', e.target.value)}
                                                 />
@@ -8714,7 +8743,7 @@ const VendorRegistrationStepByStepForm = () => {
                 </div>
             </div>
 
-            ******
+            {/* ****** */}
                           
                             
                            
@@ -8771,18 +8800,18 @@ const VendorRegistrationStepByStepForm = () => {
                                 onClick={() => {
                                     // Step-wise validation logic
                                     let isValid = true;
-                                    // if (currentStep === 1) {
-                                    //     // Step 1: Basic Info validation
-                                    //     isValid = validateBasicInfo();
-                                    //     if (!isValid) return;
-                                    // }
-                                    // // Add more step validations as needed
-                                    // else 
-                                    //     if (currentStep === 2) {
-                                    //     isValid = validateStep2();
-                                    //     if (!isValid) return;
-                                    // }
-                                    // else 
+                                    if (currentStep === 1) {
+                                        // Step 1: Basic Info validation
+                                        isValid = validateBasicInfo();
+                                        if (!isValid) return;
+                                    }
+                                    // Add more step validations as needed
+                                    else 
+                                        if (currentStep === 2) {
+                                        isValid = validateStep2();
+                                        if (!isValid) return;
+                                    }
+                                    else 
                                     if (currentStep === 3) {
                                         isValid = validateStep3();
                                         if (!isValid) return;
