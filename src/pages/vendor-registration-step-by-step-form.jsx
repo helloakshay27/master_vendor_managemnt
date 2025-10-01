@@ -4378,6 +4378,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                     value={registeredAddress.telephone}
                                                     onChange={e => handleRegisteredAddressChange('telephone', e.target.value)}
                                                 />
+
                                             </div>
                                         </div>
                                         <div className="col-md-4  mt-2">
@@ -8800,27 +8801,27 @@ const VendorRegistrationStepByStepForm = () => {
                                 onClick={() => {
                                     // Step-wise validation logic
                                     let isValid = true;
-                                    if (currentStep === 1) {
-                                        // Step 1: Basic Info validation
-                                        isValid = validateBasicInfo();
-                                        if (!isValid) return;
-                                    }
+                                    // if (currentStep === 1) {
+                                    //     // Step 1: Basic Info validation
+                                    //     isValid = validateBasicInfo();
+                                    //     if (!isValid) return;
+                                    // }
                                     // Add more step validations as needed
-                                    else 
-                                        if (currentStep === 2) {
-                                        isValid = validateStep2();
-                                        if (!isValid) return;
-                                    }
-                                    else 
-                                    if (currentStep === 3) {
-                                        isValid = validateStep3();
-                                        if (!isValid) return;
-                                    }
-                                     else 
-                                    if (currentStep === 4) {
-                                        isValid = validateStep4();
-                                        if (!isValid) return;
-                                    }
+                                    // else 
+                                    //     if (currentStep === 2) {
+                                    //     isValid = validateStep2();
+                                    //     if (!isValid) return;
+                                    // }
+                                    // else 
+                                    // if (currentStep === 3) {
+                                    //     isValid = validateStep3();
+                                    //     if (!isValid) return;
+                                    // }
+                                    //  else 
+                                    // if (currentStep === 4) {
+                                    //     isValid = validateStep4();
+                                    //     if (!isValid) return;
+                                    // }
                                     // ...
 
                                     setCompleted((arr) => {
