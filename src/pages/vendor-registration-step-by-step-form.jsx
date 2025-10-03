@@ -5,6 +5,8 @@
 
 
 
+
+
 import React, { useState, useEffect, useRef } from "react";
 // import CollapsedCardKYC from "../../../components/base/Card/CollapsedCardKYC";
 import CardBodyKYC from "../components/base/Card/CardBodyKYC";
@@ -211,6 +213,19 @@ const VendorRegistrationStepByStepForm = () => {
     });
     // Major Customer Served by You dynamic section state and handlers
 
+    // Checklist configuration state
+    const [checklistConfig, setChecklistConfig] = useState([]);
+    useEffect(() => {
+        const fetchChecklistConfig = async () => {
+            try {
+                const response = await axios.get('https://vendors.lockated.com/pms/suppliers/8898/checklist_configuration');
+                setChecklistConfig(response.data || []);
+            } catch (error) {
+                setChecklistConfig([]);
+            }
+        };
+        fetchChecklistConfig();
+    }, []);
 
     const navigate = useNavigate(); // Initialize navigate
     const fileInputRef = useRef(null);
@@ -1324,7 +1339,7 @@ const VendorRegistrationStepByStepForm = () => {
 
     // *****************************************
 
-  
+
     const handleFileChange = (file) => {
         const reader = new FileReader();
         reader.onloadend = () => {
@@ -1414,7 +1429,7 @@ const VendorRegistrationStepByStepForm = () => {
     const [classificationDate, setClassificationDate] = useState("");
 
 
-  
+
 
 
     // console.log("supplier data:", supplierData);
@@ -3067,7 +3082,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                     type="text"
                                                     value={basicInfo.email}
                                                     onChange={e => updateBasicInfo('email', e.target.value)}
-                                                     disabled
+                                                    disabled
                                                     onBlur={e => {
                                                         const value = e.target.value.trim();
                                                         let error = '';
@@ -3096,10 +3111,10 @@ const VendorRegistrationStepByStepForm = () => {
                                                         style={{ width: '110px', marginRight: '8px' }}
                                                         value={basicInfo.countryCode || '+91'}
                                                         onChange={e => updateBasicInfo('countryCode', e.target.value)}
-                                                         disabled
+                                                        disabled
                                                     >
                                                         <option value="+91">🇮🇳 +91</option>
-                                                       
+
                                                     </select>
                                                     <input
                                                         className="form-control"
@@ -3107,7 +3122,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                         style={{ flex: 1 }}
                                                         value={basicInfo.mobile}
                                                         onChange={e => updateBasicInfo('mobile', e.target.value)}
-                                                         disabled
+                                                        disabled
                                                         onBlur={e => {
                                                             const value = e.target.value.trim();
                                                             let error = '';
@@ -3154,7 +3169,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                     type="text"
                                                     value={basicInfo.panNo}
                                                     onChange={e => updateBasicInfo('panNo', e.target.value)}
-                                                     disabled
+                                                    disabled
                                                 />
                                                 {basicInfoErrors.panNo && (
                                                     <div className="ValidationColor">{basicInfoErrors.panNo}</div>
@@ -3196,7 +3211,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                     value={basicInfo.schemaGroup}
                                                     onChange={val => updateBasicInfo('schemaGroup', val)}
                                                     placeholder="Select Schema Group"
-                                                    
+
                                                 />
                                                 {basicInfoErrors.schemaGroup && (
                                                     <div className="ValidationColor">{basicInfoErrors.schemaGroup}</div>
@@ -6543,7 +6558,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                                     />
                                                                 </svg>
                                                                 {/* {field?.name ? field.name : "No Document Available"} */}
-                                                            {/* </a>
+                            {/* </a>
                                                         </span>
                                                     )}
                                                 </div>
@@ -6592,69 +6607,134 @@ const VendorRegistrationStepByStepForm = () => {
 
                     {currentStep === 6 && (
                         <div className="card mx-4 pb-4 mt-4">
-                            <div className="card mx-3 pb-4 mt-4">
-                                <div className="card-header3">
-                                    <h3 className="card-title">Financial Pre-Qualification </h3>
-                                </div>
-                                <div className="card-body mt-0">
-
-
-                                    <div className="tbl-container mt-3 ">
-                                        <table className=" w-100">
-                                            <thead>
-                                                <tr>
-                                                    <th>Sr. No.</th>
-                                                    <th>Particulars</th>
-                                                    <th>Response</th>
-                                                    <th>Required Documents</th>
-                                                    <th>Remark if any</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <tr>
-                                                    <td></td>
-                                                    <td></td>
-                                                    <td></td>
-                                                    <td></td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
+                            {/* Financial Pre-Qualification Table */}
+                            {checklistConfig.filter(cat => cat.snag_cat_name === "Financial Pre-Qualification").map((cat, catIdx) => (
+                                <div className="card mx-3 pb-4 mt-4" key={cat.snag_category}>
+                                    <div className="card-header3">
+                                        <h3 className="card-title">{cat.snag_cat_name}</h3>
                                     </div>
-
-                                </div>
-                            </div>
-
-                            <div className="card mx-3 pb-4 mt-4">
-                                <div className="card-header3">
-                                    <h3 className="card-title">Technical Pre-Qualification</h3>
-                                </div>
-                                <div className="card-body mt-0">
-
-
-                                    <div className="tbl-container mt-3 ">
-                                        <table className=" w-100">
-                                            <thead>
-                                                <tr>
-                                                    <th>Sr. No.</th>
-                                                    <th>Particulars</th>
-                                                    <th>Response</th>
-                                                    <th>Required Documents</th>
-                                                    <th>Remark if any</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <tr>
-                                                    <td></td>
-                                                    <td></td>
-                                                    <td></td>
-                                                    <td></td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
+                                    <div className="card-body mt-0">
+                                        <div className="tbl-container mt-3 ">
+                                            <table className="w-100">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Sr. No.</th>
+                                                        <th>Particulars</th>
+                                                        <th>Response</th>
+                                                        <th>Required Documents</th>
+                                                        <th>Remark if any</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {cat.subcats.map((subcat, subIdx) => (
+                                                        <React.Fragment key={subcat.id}>
+                                                            <tr>
+                                                                <td>{subIdx + 1}</td>
+                                                                <td ><b>{subcat.name}</b></td>
+                                                                <td></td>
+                                                                <td></td>
+                                                                <td></td>
+                                                            </tr>
+                                                            {subcat.questions.map((q, qIdx) => (
+                                                                <tr key={q.id}>
+                                                                    <td>{`${subIdx + 1}.${qIdx + 1}`}</td>
+                                                                    <td>{q.descr}</td>
+                                                                    <td>
+                                                                        {q.qtype === 'multiple' ? (
+                                                                            <SingleSelector
+                                                                                options={[{ label: 'Yes', value: 'Yes' }, { label: 'No', value: 'No' }]}
+                                                                                value={q.response || null}
+                                                                                onChange={selected => {/* handle response change if needed */ }}
+                                                                                placeholder="Select"
+                                                                            />
+                                                                        ) : (
+                                                                            <input className="form-control" type="text" placeholder="Enter response" />
+                                                                        )}
+                                                                    </td>
+                                                                    <td>
+                                                                        {/* File upload for required documents */}
+                                                                        <input className="form-control" type="file" />
+                                                                    </td>
+                                                                    <td>
+                                                                        <textarea className="form-control" type="text" placeholder=" Enter Remark" />
+                                                                    </td>
+                                                                </tr>
+                                                            ))}
+                                                        </React.Fragment>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
                                     </div>
-
                                 </div>
-                            </div>
+                            ))}
+
+                            {/* Technical Pre-Qualification Table */}
+                            {checklistConfig.filter(cat => cat.snag_cat_name === "Technical Pre-Qualification").map((cat, catIdx) => (
+                                <div className="card mx-3 pb-4 mt-4" key={cat.snag_category}>
+                                    <div className="card-header3">
+                                        <h3 className="card-title">{cat.snag_cat_name}</h3>
+                                    </div>
+                                    <div className="card-body mt-0">
+                                        <div className="tbl-container mt-3 ">
+                                            <table className="w-100">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Sr. No.</th>
+                                                        <th>Particulars</th>
+                                                        <th>Response</th>
+                                                        <th>Required Documents</th>
+                                                        <th>Remark if any</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {cat.subcats.map((subcat, subIdx) => (
+                                                        <React.Fragment key={subcat.id}>
+                                                            <tr>
+                                                                <td>{subIdx + 1}</td>
+                                                                <td><b>{subcat.name}</b></td>
+                                                                <td></td>
+                                                                <td></td>
+                                                                <td></td>
+                                                            </tr>
+                                                            {subcat.questions.map((q, qIdx) => (
+                                                                <tr key={q.id}>
+                                                                    <td>{`${subIdx + 1}.${qIdx + 1}`}</td>
+                                                                    <td>{q.descr}</td>
+                                                                    <td style={{ minWidth: '150px' }}>
+                                                                        {/* Response input type can be customized based on q.qtype */}
+
+                                                                        {q.qtype === 'multiple' ? (
+
+
+
+                                                                            <SingleSelector
+                                                                                options={[{ label: 'Yes', value: 'Yes' }, { label: 'No', value: 'No' }]}
+                                                                                value={q.response || null}
+                                                                                onChange={selected => {/* handle response change if needed */ }}
+                                                                                placeholder="Select"
+                                                                            />
+                                                                        ) : (
+                                                                            <input className="form-control" type="text" placeholder="Enter response" />
+                                                                        )}
+                                                                    </td>
+                                                                    <td>
+                                                                        {/* File upload for required documents */}
+                                                                        <input className="form-control" type="file" />
+                                                                    </td>
+                                                                    <td>
+                                                                        <textarea className="form-control" type="text" placeholder=" Enter Remark" />
+                                                                    </td>
+                                                                </tr>
+                                                            ))}
+                                                        </React.Fragment>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     )}
 
@@ -8583,14 +8663,195 @@ const VendorRegistrationStepByStepForm = () => {
 
 
 
-                            {/* Repeat for all other dynamic sections: relatedEmployees, groupCompanies, supervisoryManpower, majorCustomers, workingSites, etc. Use the same card structure as in the form, with all fields disabled and filled. */}
+                        
+                        
+                        
+                        
+                        
+                        {/* ...existing code... */}
+
+                            {/* Financial Pre-Qualification Table Preview */}
+                            {checklistConfig.filter(cat => cat.snag_cat_name === "Financial Pre-Qualification").map((cat, catIdx) => (
+                                <div className="card mx-3 pb-4 mt-4" key={cat.snag_category}>
+                                    <div className="card-header3">
+                                        <h3 className="card-title">{cat.snag_cat_name} (Preview)</h3>
+                                    </div>
+                                    <div className="card-body mt-0">
+                                        <div className="tbl-container mt-3 ">
+                                            <table className="w-100">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Sr. No.</th>
+                                                        <th>Particulars</th>
+                                                        <th>Response</th>
+                                                        <th>Required Documents</th>
+                                                        <th>Remark if any</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {cat.subcats.map((subcat, subIdx) => (
+                                                        <React.Fragment key={subcat.id}>
+                                                            <tr>
+                                                                <td>{subIdx + 1}</td>
+                                                                <td ><b>{subcat.name}</b></td>
+                                                                <td></td>
+                                                                <td></td>
+                                                                <td></td>
+                                                            </tr>
+                                                            {subcat.questions.map((q, qIdx) => (
+                                                                <tr key={q.id}>
+                                                                    <td>{`${subIdx + 1}.${qIdx + 1}`}</td>
+                                                                    <td>{q.descr}</td>
+                                                                    <td>
+                                                                        {q.qtype === 'multiple' ? (
+                                                                            <SingleSelector
+                                                                                options={[{ label: 'Yes', value: 'Yes' }, { label: 'No', value: 'No' }]}
+                                                                                value={q.response || null}
+                                                                                onChange={() => { }}
+                                                                                placeholder="Select"
+                                                                                isDisabled={true}
+                                                                            />
+                                                                        ) : (
+                                                                            <input className="form-control" type="text" placeholder="Enter response" value={q.response || ''} disabled />
+                                                                        )}
+                                                                    </td>
+                                                                    <td>
+                                                                        <input className="form-control" type="file" disabled />
+                                                                    </td>
+                                                                    <td>
+                                                                        <textarea className="form-control" type="text" placeholder=" Enter Remark" value={q.remark || ''} disabled />
+                                                                    </td>
+                                                                </tr>
+                                                            ))}
+                                                        </React.Fragment>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+
+                            {/* Technical Pre-Qualification Table Preview */}
+                            {checklistConfig.filter(cat => cat.snag_cat_name === "Technical Pre-Qualification").map((cat, catIdx) => (
+                                <div className="card mx-3 pb-4 mt-4" key={cat.snag_category}>
+                                    <div className="card-header3">
+                                        <h3 className="card-title">{cat.snag_cat_name} (Preview)</h3>
+                                    </div>
+                                    <div className="card-body mt-0">
+                                        <div className="tbl-container mt-3 ">
+                                            <table className="w-100">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Sr. No.</th>
+                                                        <th>Particulars</th>
+                                                        <th>Response</th>
+                                                        <th>Required Documents</th>
+                                                        <th>Remark if any</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {cat.subcats.map((subcat, subIdx) => (
+                                                        <React.Fragment key={subcat.id}>
+                                                            <tr>
+                                                                <td>{subIdx + 1}</td>
+                                                                <td ><b>{subcat.name}</b></td>
+                                                                <td></td>
+                                                                <td></td>
+                                                                <td></td>
+                                                            </tr>
+                                                            {subcat.questions.map((q, qIdx) => (
+                                                                <tr key={q.id}>
+                                                                    <td>{`${subIdx + 1}.${qIdx + 1}`}</td>
+                                                                    <td>{q.descr}</td>
+                                                                    <td style={{ minWidth: '150px' }}>
+                                                                        {q.qtype === 'multiple' ? (
+                                                                            <SingleSelector
+                                                                                options={[{ label: 'Yes', value: 'Yes' }, { label: 'No', value: 'No' }]}
+                                                                                value={q.response || null}
+                                                                                onChange={() => { }}
+                                                                                placeholder="Select"
+                                                                                isDisabled={true}
+                                                                            />
+                                                                        ) : (
+                                                                            <input className="form-control" type="text" placeholder="Enter response" value={q.response || ''} disabled />
+                                                                        )}
+                                                                    </td>
+                                                                    <td>
+                                                                        <input className="form-control" type="file" disabled />
+                                                                    </td>
+                                                                    <td>
+                                                                        <textarea className="form-control" type="text" placeholder=" Enter Remark" value={q.remark || ''} disabled />
+                                                                    </td>
+                                                                </tr>
+                                                            ))}
+                                                        </React.Fragment>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+
+                        
+                     
+
+                         {/* Repeat for all other dynamic sections: relatedEmployees, groupCompanies, supervisoryManpower, majorCustomers, workingSites, etc. Use the same card structure as in the form, with all fields disabled and filled. */}
                             {/* --- Declaration Section --- */}
                             <div className="card mx-4 pb-4 mt-4">
                                 <div className="row mt-4 mx-3">
                                     <div className="col-md-12">
-                                        <h5 className=" ">
-                                            Declaration <span style={{ color: " #DE7008" }}>*</span>
-                                        </h5>
+                                        <h5 className=" ">Declaration <span style={{ color: " #DE7008" }}>*</span></h5>
+
+                                        {/* Additional Declaration Questions */}
+                                        <div className="mb-3">
+                                            <p>
+                                                <span className="me-2 mt-2">
+                                                    <input type="checkbox" id="declaration-q1" />
+                                                </span>
+                                                1. Has the Vendor ever faced any bribery/corruption case/legal/court cases? If yes, please explain.
+                                            </p>
+                                            {/* <textarea className="form-control mb-2" placeholder="Explain if yes" style={{ minHeight: '40px' }} /> */}
+                                        </div>
+                                        <div className="mb-3">
+                                            <p>
+                                                <span className="me-2 mt-2">
+                                                    <input type="checkbox" id="declaration-q2" />
+                                                </span>
+                                                2. Has the Vendor ever worked with Panchshil Group or had any personal or family connections with anyone there, past or present? If yes, please explain.
+                                            </p>
+                                            {/* <textarea className="form-control mb-2" placeholder="Explain if yes" style={{ minHeight: '40px' }} /> */}
+                                        </div>
+                                        <div className="mb-3">
+                                            <p>
+                                                <span className="me-2 mt-2">
+                                                    <input type="checkbox" id="declaration-q3" />
+                                                </span>
+                                                3. Has the vendor ever faced or is currently facing any bankruptcy or insolvency issue?
+                                            </p>
+                                            {/* <textarea className="form-control mb-2" placeholder="Explain if yes" style={{ minHeight: '40px' }} /> */}
+                                        </div>
+                                        <div className="mb-3">
+                                            <p>
+                                                <span className="me-2 mt-2">
+                                                    <input type="checkbox" id="declaration-q4" />
+                                                </span>
+                                                4. Has the vendor provided any gifts, favors, sponsorships, or hospitality to Panchshil employees?
+                                            </p>
+                                            {/* <textarea className="form-control mb-2" placeholder="Explain if yes" style={{ minHeight: '40px' }} /> */}
+                                        </div>
+                                        <div className="mb-3">
+                                            <p>
+                                                <span className="me-2 mt-2">
+                                                    <input type="checkbox" id="declaration-q5" />
+                                                </span>
+                                                5. Has the vendor submitted audited financial statements for last preceding 3 financial years?
+                                            </p>
+                                            {/* <textarea className="form-control mb-2" placeholder="Explain if yes" style={{ minHeight: '40px' }} /> */}
+                                        </div>
+
+                                        {/* Main Declaration Checkbox and Statement */}
                                         <p>
                                             <span className="me-2 mt-2">
                                                 <input
@@ -8600,7 +8861,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                     onChange={handleCheckboxChange}
                                                 />
                                             </span>{" "}
-                                            I, undersigned, on behalf of M/S Test 20/9/2025/ new hereby certify that the information provided in this documents are the best of my knowledge & particulars given in this submission are true and correct. I authorize M/S A2Z Online Services Private Limited to make direct inquiries and references to any person, firm, public official or organization named in this Form to verify information submitted herein or regarding the competence of the Organization.
+                                           6. I, undersigned, on behalf of M/S Test 20/9/2025/ new hereby certify that the information provided in this documents are the best of my knowledge & particulars given in this submission are true and correct. I authorize M/S A2Z Online Services Private Limited to make direct inquiries and references to any person, firm, public official or organization named in this Form to verify information submitted herein or regarding the competence of the Organization.
                                         </p>
                                         {errors.declaration && (
                                             <div className="ValidationColor">{errors.declaration}</div>
@@ -8608,6 +8869,9 @@ const VendorRegistrationStepByStepForm = () => {
                                     </div>
                                 </div>
                             </div>
+                            
+                           
+    
                         </>
                     )}
 
