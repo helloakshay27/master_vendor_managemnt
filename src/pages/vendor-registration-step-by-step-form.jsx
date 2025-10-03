@@ -1,12 +1,4 @@
 
-
-
-
-
-
-
-
-
 import React, { useState, useEffect, useRef } from "react";
 // import CollapsedCardKYC from "../../../components/base/Card/CollapsedCardKYC";
 import CardBodyKYC from "../components/base/Card/CardBodyKYC";
@@ -218,7 +210,7 @@ const VendorRegistrationStepByStepForm = () => {
     useEffect(() => {
         const fetchChecklistConfig = async () => {
             try {
-                const response = await axios.get('https://vendors.lockated.com/pms/suppliers/8898/checklist_configuration');
+                const response = await axios.get(`https://vendors.lockated.com/pms/suppliers/${id}/checklist_configuration`);
                 setChecklistConfig(response.data || []);
             } catch (error) {
                 setChecklistConfig([]);
@@ -399,7 +391,7 @@ const VendorRegistrationStepByStepForm = () => {
         };
         fetchSupplierShowData();
     }, []);
-    // console.log("supplier data bankDetailsList:", bankDetailsList)
+    console.log("statutory dedeatils:", statutoryDetails)
 
 
     // Map supplierShowData to basicInfo when supplierShowData changes
@@ -6741,7 +6733,7 @@ const VendorRegistrationStepByStepForm = () => {
 
                     {currentStep === 7 && (
                         <>
-
+<div className="card mx-4 pb-4 mt-4">
                             <div className="card mx-4 pb-4 mt-4 mt-5">
                                 <div className="card-header3">
                                     <h3 className="card-title">Organization Details</h3>
@@ -8860,7 +8852,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                     required=""
                                                     onChange={handleCheckboxChange}
                                                 />
-                                            </span>{" "}
+                                            </span>
                                            6. I, undersigned, on behalf of M/S Test 20/9/2025/ new hereby certify that the information provided in this documents are the best of my knowledge & particulars given in this submission are true and correct. I authorize M/S A2Z Online Services Private Limited to make direct inquiries and references to any person, firm, public official or organization named in this Form to verify information submitted herein or regarding the competence of the Organization.
                                         </p>
                                         {errors.declaration && (
@@ -8871,7 +8863,7 @@ const VendorRegistrationStepByStepForm = () => {
                             </div>
                             
                            
-    
+    </div>
                         </>
                     )}
 
@@ -8898,28 +8890,28 @@ const VendorRegistrationStepByStepForm = () => {
                                 className="purple-btn2"
                                 onClick={() => {
                                     // Step-wise validation logic
-                                    let isValid = true;
-                                    if (currentStep === 1) {
-                                        // Step 1: Basic Info validation
-                                        isValid = validateBasicInfo();
-                                        if (!isValid) return;
-                                    }
+                                    // let isValid = true;
+                                    // if (currentStep === 1) {
+                                    //     // Step 1: Basic Info validation
+                                    //     isValid = validateBasicInfo();
+                                    //     if (!isValid) return;
+                                    // }
                                     // Add more step validations as needed
-                                    else 
-                                        if (currentStep === 2) {
-                                        isValid = validateStep2();
-                                        if (!isValid) return;
-                                    }
-                                    else 
-                                    if (currentStep === 3) {
-                                        isValid = validateStep3();
-                                        if (!isValid) return;
-                                    }
-                                     else 
-                                    if (currentStep === 4) {
-                                        isValid = validateStep4();
-                                        if (!isValid) return;
-                                    }
+                                    // else 
+                                    //     if (currentStep === 2) {
+                                    //     isValid = validateStep2();
+                                    //     if (!isValid) return;
+                                    // }
+                                    // else 
+                                    // if (currentStep === 3) {
+                                    //     isValid = validateStep3();
+                                    //     if (!isValid) return;
+                                    // }
+                                    //  else 
+                                    // if (currentStep === 4) {
+                                    //     isValid = validateStep4();
+                                    //     if (!isValid) return;
+                                    // }
                                     // ...
 
                                     setCompleted((arr) => {
