@@ -1,7 +1,8 @@
-       
-       
-       
-       
+
+
+
+
+
 
 
 import React, { useState, useEffect, useRef } from "react";
@@ -300,7 +301,23 @@ const VendorRegistrationStepByStepForm = () => {
     const [emailOtp, setEmailOtp] = useState("");
     const [mobileOtp, setMobileOtp] = useState("");
 
-    const handleOtpSubmit = () => {
+
+    // Handler for Get OTP button
+    const handleGetOtp = async () => {
+        try {
+            const response = await axios.post(`https://vendors.lockated.com/pms/suppliers/${id}/generate_otp_api`);
+            // You can handle response here, e.g. show toast or set OTP state
+            // toast.success('OTP sent successfully!');
+            console.log("responce otp:", response)
+        } catch (error) {
+            toast.error('Failed to send OTP.');
+        }
+    };
+
+    console.log("mail otp:", emailOtp)
+    console.log("mobile otp:", mobileOtp)
+
+    const handleOtpSubmit = async () => {
         if (!emailOtp && !mobileOtp) {
             toast.error("Please enter at least one OTP to proceed.");
             return;
@@ -315,12 +332,40 @@ const VendorRegistrationStepByStepForm = () => {
             toast.error("Mobile OTP must be exactly 5 digits.");
             return;
         }
+
         setCompleted((arr) => {
             const copy = [...arr];
             copy[currentStep] = true;
             return copy;
         });
         setCurrentStep((s) => Math.min(s + 1, steps.length - 1));
+        // try {
+        //     const response = await axios.post(
+        //         `http://vendors.lockated.com/pms/suppliers/${id}/verify_otp_api`,
+        //         {
+        //             email_otp: emailOtp || null,
+        //             mobile_otp: mobileOtp || null,
+        //             rekyc_id: null
+        //         },
+        //         {
+        //             headers: { 'Content-Type': 'application/json' }
+        //         }
+        //     );
+
+        //     console.log("responce otp  verification:",response)
+        //     if (response.status === 200) {
+        //         setCompleted((arr) => {
+        //             const copy = [...arr];
+        //             copy[currentStep] = true;
+        //             return copy;
+        //         });
+        //         setCurrentStep((s) => Math.min(s + 1, steps.length - 1));
+        //     } else {
+        //         toast.error('OTP verification failed.');
+        //     }
+        // } catch (error) {
+        //     toast.error('OTP verification failed.');
+        // }
     };
 
     const [supplierShowData, setSupplierShowData] = useState(null);
@@ -328,16 +373,18 @@ const VendorRegistrationStepByStepForm = () => {
     useEffect(() => {
         const fetchSupplierShowData = async () => {
             try {
-                const response = await axios.get('https://vendors.lockated.com/pms/suppliers/4009/supplier_show.json');
+                const response = await axios.get(`https://vendors.lockated.com/pms/suppliers/${id}/supplier_show.json`);
                 setSupplierShowData(response.data);
-                  setBankDetailsList(response.data?.bank_details || [])
+                setBankDetailsList(response.data?.bank_details || [])
+                setStatutoryDetails(response.data?.vendor_statutory_details)
+
             } catch (error) {
                 console.error('Error fetching supplier show data:', error);
             }
         };
         fetchSupplierShowData();
     }, []);
-    console.log("supplier data bankDetailsList:", bankDetailsList)
+    // console.log("supplier data bankDetailsList:", bankDetailsList)
 
 
     // Map supplierShowData to basicInfo when supplierShowData changes
@@ -451,7 +498,7 @@ const VendorRegistrationStepByStepForm = () => {
     // Validation function for step 1
 
     // console.log("pan att:",basicInfo.panAttachment)
-    console.log("gst att:",basicInfo.gstinAttachment)
+    // console.log("gst att:",basicInfo.gstinAttachment)
 
     const validateBasicInfo = () => {
         // Validate basic info fields
@@ -511,7 +558,7 @@ const VendorRegistrationStepByStepForm = () => {
             if (!basicInfo.llpAttachment) errors.llpAttachment = 'This field is required.';
         }
 
-        console.log("errors***************:",errors)
+        console.log("errors***************:", errors)
         setBasicInfoErrors(errors);
 
         // --- Additional Vendor Details validation (for * fields) ---
@@ -586,11 +633,11 @@ const VendorRegistrationStepByStepForm = () => {
         };
         fetchCountries();
     }, []);
-   
 
 
 
-     // Address state and handlers
+
+    // Address state and handlers
     const [registeredAddress, setRegisteredAddress] = useState({
         address1: "",
         address2: "",
@@ -620,11 +667,11 @@ const VendorRegistrationStepByStepForm = () => {
         telephone: "",
         mobile: "",
         // email: "",
-        orderingEmail:""
+        orderingEmail: ""
     });
 
-    console.log("reg add :",registeredAddress)
-    console.log("comm add:",communicationAddress)
+    // console.log("reg add :",registeredAddress)
+    // console.log("comm add:",communicationAddress)
 
 
     // State options for address selectors
@@ -677,7 +724,7 @@ const VendorRegistrationStepByStepForm = () => {
         };
         fetchStates();
     }, [communicationAddress.country]);
-    
+
 
     const [sameAsRegistered, setSameAsRegistered] = useState(false);
 
@@ -699,7 +746,7 @@ const VendorRegistrationStepByStepForm = () => {
 
 
 
-     // --- Step 2 Validation: Registered & Communication Address ---
+    // --- Step 2 Validation: Registered & Communication Address ---
     const [addressErrors, setAddressErrors] = useState({ registered: {}, communication: {} });
 
     const validateStep2 = () => {
@@ -738,7 +785,7 @@ const VendorRegistrationStepByStepForm = () => {
         setAddressErrors({ registered: regErrs, communication: commErrs });
         return Object.keys(regErrs).length === 0 && Object.keys(commErrs).length === 0;
     };
-    
+
 
     const [virtualAccount, setVirtualAccount] = useState("");
     const [selectedCompany, setSelectedCompany] = useState(null);
@@ -769,7 +816,7 @@ const VendorRegistrationStepByStepForm = () => {
         fetchCompanyOptions();
     }, []);
 
-// --- Step 3 Validation: Bank Details ---
+    // --- Step 3 Validation: Bank Details ---
     const [bankErrors, setBankErrors] = useState({});
 
     const validateStep3 = () => {
@@ -851,7 +898,7 @@ const VendorRegistrationStepByStepForm = () => {
         setBankErrors(validationErrors);
         return Object.keys(validationErrors).length === 0;
     };
-   
+
 
 
 
@@ -887,7 +934,7 @@ const VendorRegistrationStepByStepForm = () => {
 
 
     const [contactPersons, setContactPersons] = useState([
-        
+
     ]);
     const addContactPerson = () => {
         setContactPersons((prev) => [
@@ -927,7 +974,7 @@ const VendorRegistrationStepByStepForm = () => {
 
     // Owners / Directors Information dynamic section state and handlers
     const [owners, setOwners] = useState([
-      
+
     ]);
 
     const addOwner = () => {
@@ -956,7 +1003,7 @@ const VendorRegistrationStepByStepForm = () => {
     };
     // Factory Warehouse Details dynamic section state and handlers
     const [warehouses, setWarehouses] = useState([
-        
+
     ]);
 
     const addWarehouse = () => {
@@ -985,7 +1032,7 @@ const VendorRegistrationStepByStepForm = () => {
 
 
     const [majorCustomers, setMajorCustomers] = useState([
-        
+
     ]);
 
     const addMajorCustomer = () => {
@@ -1020,7 +1067,7 @@ const VendorRegistrationStepByStepForm = () => {
     };
     // Supervisory Manpower & Resources Details dynamic section state and handlers
     const [supervisoryManpower, setSupervisoryManpower] = useState([
-      
+
     ]);
 
     const addSupervisoryManpower = () => {
@@ -1045,7 +1092,7 @@ const VendorRegistrationStepByStepForm = () => {
     };
     // Sister Concern / Group Company dynamic section state and handlers
     const [groupCompanies, setGroupCompanies] = useState([
-       
+
     ]);
 
     const addGroupCompany = () => {
@@ -1070,7 +1117,7 @@ const VendorRegistrationStepByStepForm = () => {
     };
     // Related Employee dynamic section state and handlers
     const [relatedEmployees, setRelatedEmployees] = useState([
-      
+
     ]);
 
     const addRelatedEmployee = () => {
@@ -1101,7 +1148,7 @@ const VendorRegistrationStepByStepForm = () => {
 
     // Current Working Sites dynamic section state and handlers
     const [workingSites, setWorkingSites] = useState([
-        
+
     ]);
 
     const addWorkingSite = () => {
@@ -1134,11 +1181,11 @@ const VendorRegistrationStepByStepForm = () => {
     const [cinAttachment, setCinAttachment] = useState(null);
 
 
-// --- Step 4 Validation: Branch Offices, Contact Persons, Warehouses ---
+    // --- Step 4 Validation: Branch Offices, Contact Persons, Warehouses ---
     const [branchErrors, setBranchErrors] = useState([]);
     const [contactPersonErrors, setContactPersonErrors] = useState([]);
     const [warehouseErrors, setWarehouseErrors] = useState([]);
-     // --- Step 4 (cont): Owners, Related Employees, Group Companies, Supervisory Manpower, Major Customers, Working Sites ---
+    // --- Step 4 (cont): Owners, Related Employees, Group Companies, Supervisory Manpower, Major Customers, Working Sites ---
     const [ownerErrors, setOwnerErrors] = useState([]);
     const [relatedEmployeeErrors, setRelatedEmployeeErrors] = useState([]);
     const [groupCompanyErrors, setGroupCompanyErrors] = useState([]);
@@ -1148,7 +1195,7 @@ const VendorRegistrationStepByStepForm = () => {
 
 
 
-     
+
 
     const validateStep4 = () => {
         // Branch Offices
@@ -1185,7 +1232,7 @@ const VendorRegistrationStepByStepForm = () => {
             return err;
         });
         setWarehouseErrors(warehouseErrs);
-          // Owners
+        // Owners
         const ownerErrs = owners.map(owner => {
             const err = {};
             if (!owner.firstName) err.firstName = 'First Name is required.';
@@ -1258,7 +1305,7 @@ const VendorRegistrationStepByStepForm = () => {
         const allBranchesValid = branchErrs.every(e => Object.keys(e).length === 0);
         const allContactsValid = contactErrs.every(e => Object.keys(e).length === 0);
         const allWarehousesValid = warehouseErrs.every(e => Object.keys(e).length === 0);
-          // Combine all validations
+        // Combine all validations
         // ...existing checks...
         const allOwnersValid = ownerErrs.every(e => Object.keys(e).length === 0);
         const allRelEmpValid = relEmpErrs.every(e => Object.keys(e).length === 0);
@@ -1269,40 +1316,15 @@ const VendorRegistrationStepByStepForm = () => {
         // ...existing return...
 
         return allBranchesValid && allContactsValid && allWarehousesValid && allOwnersValid && allRelEmpValid && allGroupValid && allSupValid && allCustValid && allSiteValid;
-       
+
     };
-    
+
 
 
 
     // *****************************************
 
-    const encryptFileContent = (file) => {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-
-            // Read the file as base64 string
-            reader.readAsDataURL(file);
-
-            reader.onload = () => {
-                const fileContent = reader.result.split(",")[1]; // Extract the base64 content (without the prefix "data:...")
-
-                // Encrypt the base64 content using a secret key (make sure to store the key securely in a real-world scenario)
-                const secretKey = "your-secret-key"; // Use a secure secret key
-                const encryptedContent = CryptoJS.AES.encrypt(
-                    fileContent,
-                    secretKey
-                ).toString();
-
-                resolve(encryptedContent);
-            };
-
-            reader.onerror = (error) => {
-                reject(error);
-            };
-        });
-    };
-
+  
     const handleFileChange = (file) => {
         const reader = new FileReader();
         reader.onloadend = () => {
@@ -1391,223 +1413,12 @@ const VendorRegistrationStepByStepForm = () => {
     const [classificationYear, setClassificationYear] = useState("");
     const [classificationDate, setClassificationDate] = useState("");
 
-    // Function to fetch supplier data
-    const fetchSupplierData = async () => {
-        // setLoading2(true);
-        try {
-            const response = await axios.get(
-                `${baseURL}/pms/suppliers/${id}/rekyc_by_sections.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&rekyc_id=${rekyc_id}`
-            );
 
-            // Update the state with the response data
-            setSupplierData(response.data);
-            setEInvoicingApplicable(response.data?.einvoicing);
-            setMsmeUdyamApplicable(response.data?.msme_details?.msme);
-            setMsmeEnterpriseType(response.data?.msme_details?.enterprise);
-            // setBankDetailsList(response.data?.bank_details);
-            setMsmeNo(response.data?.msme_details?.msme_no);
-            setValidFrom(response.data?.msme_details?.valid_from);
-            setValidTill(response.data?.msme_details?.valid_till);
-            setMajorActivity(response.data?.msme_details?.major_activity);
-            setClassificationYear(response.data?.msme_details?.classification_year);
-            setRekycStatus(response.data?.rekyc_status);
-            // setStatutoryDetails(response.data.statutory_details)
-            // setClassificationDate(response.data?.msme_details?.classification_date);
-            setClassificationDate(
-                response.data?.msme_details?.classification_date
-                    ? response.data.msme_details.classification_date.split("T")[0]
-                    : ""
-            );
+  
 
-            setRekycId(response.data?.id);
-            setRekycType(response.data?.rekyc_type);
-            // setRekycType(["MSME Rekyc", "Name Rekyc", "E-invoicing Rekyc"]);
-
-            // setGstApplicable(response.data?.gstin_applicable);
-            // setGstClassification(response.data?.gst_classification);
-            setGstinNumber(response.data?.gstin || ""); // Set GSTIN
-            // setSelectedCountry(response.data?.bank_details.country)
-            // setGstinAttachments(
-            //   response.data?.basic_information?.gstin_attachments || []
-            // );
-            setContactNumber(response.data?.mobile || ""); // Set Contact Number
-            setEmailAddress(response.data?.email || ""); // Set Email Address
-
-            setGstApplicable(
-                response.data?.gstin_applicable === "Yes" ? "Yes" : "No"
-            );
-
-            const selectedClassification = gstClassifications.find(
-                (item) => item.value === response.data?.gst_classification
-            );
-
-            setGstClassification(selectedClassification || null);
-            setOrganizationName(response.data?.organization_name)
-            // console.log("enterprise:", response.data?.msme_details?.enterprise);
-            setLoading2(false);
-        } catch (error) {
-            console.error("There was an error fetching the data!", error);
-            setLoading2(false);
-        }
-    };
-
-    useEffect(() => {
-        // Fetch data from the API
-        // console.log("fetch.........");
-
-        fetchSupplierData(id);
-    }, [id]);
-
-
-    useEffect(() => {
-        const fetchStatutoryData = async () => {
-            try {
-                const response = await axios.get(
-                    `${baseURL}/pms/suppliers/${supplierData?.id}/statutory_detail_by_supplier.json`,
-                    {
-                        params: {
-                            token: "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414",
-                            rekyc_id: rekycId,
-                        },
-                    }
-                );
-
-                const data = response.data || {};
-                setStatutoryDetails(data.additional_statutory_details)
-                // console.log("data api...", data)
-
-                // Transform API response into statutoryInputs format
-                const inputs = {};
-
-                // Object.entries(data).forEach(([id, detail]) => {
-                //   inputs[detail.code] = {
-                //     input: detail.statutory_detail_value || "",
-                //     file: detail.statutory_detail_attachment || null,
-                //     id: parseInt(id),
-                //   };
-                // });
-
-                (data.additional_statutory_details || []).forEach((detail) => {
-                    inputs[detail.code] = {
-                        input: detail.statutory_detail_value || "",
-                        file: detail.statutory_detail_attachment || null,
-                        id: detail.id,
-                    };
-                });
-
-                setStatutoryInputs(inputs); // ✅ now safe to set
-
-                // setStatutoryInputs(inputs);
-                setLoading(false);
-
-
-            } catch (error) {
-                // console.error("Failed to fetch statutory details:", error);
-                setLoading(false);
-            }
-        };
-
-        fetchStatutoryData();
-    }, [supplierData?.id]);
-
-    // console.log("statutory details:", statutoryDetails)
-
-    // Empty dependency array ensures this runs once on mount
-
-    const [gstClassifications, setGstClassifications] = useState([]);
-
-    const fetchGstClassifications = async () => {
-        try {
-            const response = await axios.get(
-                `${baseURL}/pms/suppliers/gst_classification_dropdown`
-            );
-            setGstClassifications(response.data.gst_classifications || []);
-        } catch (error) {
-            console.error("Error fetching GST classifications", error);
-        }
-    };
-
-    useEffect(() => {
-        fetchGstClassifications();
-    }, []);
-
-    useEffect(() => {
-        if (gstClassifications.length > 0) {
-            fetchSupplierData();
-        }
-    }, [gstClassifications, id]);
 
     // console.log("supplier data:", supplierData);
 
-    const checkGstinExists = async (gstin) => {
-        try {
-            // console.log(`Checking GSTIN: ${gstin}`);
-
-            const response = await fetch(
-                `${baseURL}/pms/suppliers/check_existing_pan_gstin?gstin=${gstin}`,
-                {
-                    method: "GET",
-                    headers: {
-                        Accept: "application/json",
-                        "Content-Type": "application/json",
-                    },
-                }
-            );
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
-            }
-
-            const data = await response.json();
-            // console.log("API Response:", data);
-
-            if (data.exists) {
-                // console.log("GSTIN already exists:", gstin);
-                setErrors((prevErrors) => ({
-                    ...prevErrors,
-                    gstinNumber: "GSTIN already exists!",
-                }));
-            } else {
-                console.log("GSTIN is available:", gstin);
-                setErrors((prevErrors) => {
-                    const newErrors = { ...prevErrors };
-                    delete newErrors.gstinNumber;
-                    return newErrors;
-                });
-            }
-        } catch (error) {
-            console.error("Error checking GSTIN:", error);
-        }
-    };
-
-    // Debounce effect to check GSTIN after user stops typing
-    useEffect(() => {
-        if (gstinNumber.length === 15) {
-            const timer = setTimeout(() => {
-                checkGstinExists(gstinNumber);
-            }, 500); // 500ms delay
-
-            return () => clearTimeout(timer);
-        }
-    }, [gstinNumber]);
-
-    const handleGstinChange = (e) => {
-        const value = e.target.value;
-        setGstinNumber(value);
-
-        if (value.length !== 15) {
-            setErrors((prevErrors) => ({
-                ...prevErrors,
-                gstinNumber: "Enter a valid 15-character GSTIN!",
-            }));
-        } else {
-            setErrors((prevErrors) => {
-                const newErrors = { ...prevErrors };
-                delete newErrors.gstinNumber;
-                return newErrors;
-            });
-        }
-    };
 
     // country and state
 
@@ -2935,21 +2746,35 @@ const VendorRegistrationStepByStepForm = () => {
                                 <div className="card-body mt-0">
                                     <div className="row justify-content-center">
                                         <div className="col-md-8">
-                                            <div className="form-group mb-3">
-                                                <label>Contact Person Name</label>
-                                                <input className="form-control" type="email" value="ajay.ghenand@lockated.com" readOnly />
-                                            </div>
+
                                             <div className="row mb-3">
                                                 <div className="col-md-6">
-                                                    <div className="form-group">
-                                                        <label>Primary Email ID</label>
-                                                        <input className="form-control" type="email" value="ajay.ghenand@lockated.com" readOnly />
+                                                    <div className="form-group mb-2">
+                                                        <label>Contact Person First Name</label>
+                                                        <input className="form-control" type="text"
+                                                            value={supplierShowData?.first_name || "-"} readOnly disabled
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div className="col-md-6">
+                                                    <div className="form-group mb-3">
+                                                        <label>Contact Person Last Name</label>
+                                                        <input className="form-control" type="text"
+                                                            value={supplierShowData?.last_name || "-"} readOnly disabled
+                                                        />
                                                     </div>
                                                 </div>
                                                 <div className="col-md-6">
                                                     <div className="form-group">
+                                                        <label>Primary Email ID</label>
+                                                        <input className="form-control" type="email" value={supplierShowData?.email || "-"} readOnly disabled />
+                                                    </div>
+                                                </div>
+                                                <div className="col-md-6">
+
+                                                    <div className="form-group">
                                                         <label>Secondary Email ID</label>
-                                                        <input className="form-control" type="email" value="ghenandajay1010@gmail.com" readOnly />
+                                                        <input className="form-control" type="email" value={supplierShowData?.alternate_email || "-"} readOnly disabled />
                                                     </div>
                                                 </div>
                                             </div>
@@ -2957,20 +2782,19 @@ const VendorRegistrationStepByStepForm = () => {
                                                 <div className="col-md-6">
                                                     <div className="form-group">
                                                         <label>Primary Mobile No.</label>
-                                                        <input className="form-control" type="text" value="9623636187" readOnly />
+                                                        <input className="form-control" type="text" value={supplierShowData?.mobile || "-"} readOnly disabled />
                                                     </div>
                                                 </div>
                                                 <div className="col-md-6">
                                                     <div className="form-group">
                                                         <label>Secondary Mobile No.</label>
-                                                        <input className="form-control" type="text" value="" placeholder="Enter secondary mobile number" />
+                                                        <input className="form-control" type="text" value={supplierShowData?.mobile || "-"} placeholder="Enter secondary mobile number" disabled />
                                                     </div>
                                                 </div>
                                             </div>
                                             <div className="row mb-3">
                                                 <div className="col-md-6 d-flex align-items-center">
-                                                    <button className="purple-btn2 me-3">Get OTP</button>
-
+                                                    <button className="purple-btn2 me-3" type="button" onClick={handleGetOtp}>Get OTP</button>
                                                 </div>
 
 
@@ -3225,6 +3049,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                     type="text"
                                                     value={basicInfo.fullName}
                                                     onChange={e => updateBasicInfo('fullName', e.target.value)}
+                                                    disabled
                                                 />
                                                 {basicInfoErrors.fullName && (
                                                     <div className="ValidationColor">{basicInfoErrors.fullName}</div>
@@ -3242,6 +3067,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                     type="text"
                                                     value={basicInfo.email}
                                                     onChange={e => updateBasicInfo('email', e.target.value)}
+                                                     disabled
                                                     onBlur={e => {
                                                         const value = e.target.value.trim();
                                                         let error = '';
@@ -3264,22 +3090,36 @@ const VendorRegistrationStepByStepForm = () => {
                                                     Mobile <span>*</span>
                                                     {/* <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." /> */}
                                                 </label>
-                                                <input
-                                                    className="form-control"
-                                                    type="number"
-                                                    value={basicInfo.mobile}
-                                                    onChange={e => updateBasicInfo('mobile', e.target.value)}
-                                                    onBlur={e => {
-                                                        const value = e.target.value.trim();
-                                                        let error = '';
-                                                        if (!value) {
-                                                            error = 'This field is required.';
-                                                        } else if (!/^\d{10}$/.test(value)) {
-                                                            error = 'Mobile number must be exactly 10 digits.';
-                                                        }
-                                                        setBasicInfoErrors(prev => ({ ...prev, mobile: error }));
-                                                    }}
-                                                />
+                                                <div style={{ display: 'flex', alignItems: 'center' }}>
+                                                    <select
+                                                        className="form-select"
+                                                        style={{ width: '110px', marginRight: '8px' }}
+                                                        value={basicInfo.countryCode || '+91'}
+                                                        onChange={e => updateBasicInfo('countryCode', e.target.value)}
+                                                         disabled
+                                                    >
+                                                        <option value="+91">🇮🇳 +91</option>
+                                                       
+                                                    </select>
+                                                    <input
+                                                        className="form-control"
+                                                        type="number"
+                                                        style={{ flex: 1 }}
+                                                        value={basicInfo.mobile}
+                                                        onChange={e => updateBasicInfo('mobile', e.target.value)}
+                                                         disabled
+                                                        onBlur={e => {
+                                                            const value = e.target.value.trim();
+                                                            let error = '';
+                                                            if (!value) {
+                                                                error = 'This field is required.';
+                                                            } else if (!/^\d{10}$/.test(value)) {
+                                                                error = 'Mobile number must be exactly 10 digits.';
+                                                            }
+                                                            setBasicInfoErrors(prev => ({ ...prev, mobile: error }));
+                                                        }}
+                                                    />
+                                                </div>
                                                 {basicInfoErrors.mobile && (
                                                     <div className="ValidationColor">{basicInfoErrors.mobile}</div>
                                                 )}
@@ -3314,6 +3154,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                     type="text"
                                                     value={basicInfo.panNo}
                                                     onChange={e => updateBasicInfo('panNo', e.target.value)}
+                                                     disabled
                                                 />
                                                 {basicInfoErrors.panNo && (
                                                     <div className="ValidationColor">{basicInfoErrors.panNo}</div>
@@ -3335,7 +3176,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                     //         setBasicInfoErrors(prev => ({ ...prev, panAttachment: undefined }));
                                                     //     }
                                                     // }}
-                                                onChange={e => updateBasicInfo('panAttachment', e.target.files[0])}
+                                                    onChange={e => updateBasicInfo('panAttachment', e.target.files[0])}
                                                 />
                                                 {basicInfoErrors.panAttachment && (
                                                     <div className="ValidationColor">{basicInfoErrors.panAttachment}</div>
@@ -3355,6 +3196,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                     value={basicInfo.schemaGroup}
                                                     onChange={val => updateBasicInfo('schemaGroup', val)}
                                                     placeholder="Select Schema Group"
+                                                    
                                                 />
                                                 {basicInfoErrors.schemaGroup && (
                                                     <div className="ValidationColor">{basicInfoErrors.schemaGroup}</div>
@@ -3679,12 +3521,12 @@ const VendorRegistrationStepByStepForm = () => {
                                                     Currency Type <span>*</span>
                                                     {/* <TooltipIcon message="Please choose your country from the list" /> */}
                                                 </label>
-                                                 <SingleSelector
-                                                     options={currencyOptions}
-                                                     placeholder="Select Currency Type"
-                                                     value={additionalDetails.currencyType}
-                                                     onChange={val => updateAdditionalDetails('currencyType', val)}
-                                                 />
+                                                <SingleSelector
+                                                    options={currencyOptions}
+                                                    placeholder="Select Currency Type"
+                                                    value={additionalDetails.currencyType}
+                                                    onChange={val => updateAdditionalDetails('currencyType', val)}
+                                                />
                                                 {errors.currencyType && (
                                                     <div className="ValidationColor">{errors.currencyType}</div>
                                                 )}
@@ -4699,13 +4541,13 @@ const VendorRegistrationStepByStepForm = () => {
                                                     disabled={!bankDetail.isNew}
                                                 />
 
-                                                    {bankDetail.isNew &&
-                                                        bankErrors.bank_name &&
-                                                        !bankDetail.bank_name && (
-                                                            <div className="ValidationColor">
-                                                                {bankErrors.bank_name}
-                                                            </div>
-                                                        )}
+                                                {bankDetail.isNew &&
+                                                    bankErrors.bank_name &&
+                                                    !bankDetail.bank_name && (
+                                                        <div className="ValidationColor">
+                                                            {bankErrors.bank_name}
+                                                        </div>
+                                                    )}
 
 
                                             </div>
@@ -4729,13 +4571,13 @@ const VendorRegistrationStepByStepForm = () => {
                                                     }
                                                     disabled={!bankDetail.isNew}
                                                 />
-                                                    {bankDetail.isNew &&
-                                                        bankErrors.address &&
-                                                        !bankDetail.address && (
-                                                            <div className="ValidationColor">
-                                                                {bankErrors.address}
-                                                            </div>
-                                                        )}
+                                                {bankDetail.isNew &&
+                                                    bankErrors.address &&
+                                                    !bankDetail.address && (
+                                                        <div className="ValidationColor">
+                                                            {bankErrors.address}
+                                                        </div>
+                                                    )}
 
                                             </div>
                                         </div>
@@ -4769,13 +4611,13 @@ const VendorRegistrationStepByStepForm = () => {
                                                 />
 
                                                 {/* Validation Error Message */}
-                                                    {bankDetail.isNew &&
-                                                        bankErrors.country_id &&
-                                                        !bankDetail.country_id && (
-                                                            <div className="ValidationColor">
-                                                                {bankErrors.country_id}
-                                                            </div>
-                                                        )}
+                                                {bankDetail.isNew &&
+                                                    bankErrors.country_id &&
+                                                    !bankDetail.country_id && (
+                                                        <div className="ValidationColor">
+                                                            {bankErrors.country_id}
+                                                        </div>
+                                                    )}
 
                                             </div>
                                         </div>
@@ -4805,13 +4647,13 @@ const VendorRegistrationStepByStepForm = () => {
                                                     isDisabled={!bankDetail.isNew}
                                                 />
 
-                                                    {bankDetail.isNew &&
-                                                        bankErrors.state_id &&
-                                                        !bankDetail.state_id && (
-                                                            <div className="ValidationColor">
-                                                                {bankErrors.state_id}
-                                                            </div>
-                                                        )}
+                                                {bankDetail.isNew &&
+                                                    bankErrors.state_id &&
+                                                    !bankDetail.state_id && (
+                                                        <div className="ValidationColor">
+                                                            {bankErrors.state_id}
+                                                        </div>
+                                                    )}
                                             </div>
                                         </div>
                                         {/* City */}
@@ -4833,13 +4675,13 @@ const VendorRegistrationStepByStepForm = () => {
                                                     }
                                                     disabled={!bankDetail.isNew}
                                                 />
-                                                    {bankDetail.isNew &&
-                                                        bankErrors.city_name &&
-                                                        !bankDetail.city_name && (
-                                                            <div className="ValidationColor">
-                                                                {bankErrors.city_name}
-                                                            </div>
-                                                        )}
+                                                {bankDetail.isNew &&
+                                                    bankErrors.city_name &&
+                                                    !bankDetail.city_name && (
+                                                        <div className="ValidationColor">
+                                                            {bankErrors.city_name}
+                                                        </div>
+                                                    )}
                                             </div>
                                         </div>
                                         {/* Pin Code */}
@@ -4862,20 +4704,20 @@ const VendorRegistrationStepByStepForm = () => {
                                                     disabled={!bankDetail.isNew}
                                                 />
 
-                                                    {bankDetail.isNew && (
-                                                        <>
-                                                            {inputErrors[bankDetail.id]?.pincode && (
-                                                                <div className="ValidationColor">
-                                                                    {inputErrors[bankDetail.id].pincode}
-                                                                </div>
-                                                            )}
-                                                            {bankErrors.pincode && !bankDetail.pincode && (
-                                                                <div className="ValidationColor">
-                                                                    {bankErrors.pincode}
-                                                                </div>
-                                                            )}
-                                                        </>
-                                                    )}
+                                                {bankDetail.isNew && (
+                                                    <>
+                                                        {inputErrors[bankDetail.id]?.pincode && (
+                                                            <div className="ValidationColor">
+                                                                {inputErrors[bankDetail.id].pincode}
+                                                            </div>
+                                                        )}
+                                                        {bankErrors.pincode && !bankDetail.pincode && (
+                                                            <div className="ValidationColor">
+                                                                {bankErrors.pincode}
+                                                            </div>
+                                                        )}
+                                                    </>
+                                                )}
                                             </div>
                                         </div>
                                         {/* Account Type */}
@@ -4907,13 +4749,13 @@ const VendorRegistrationStepByStepForm = () => {
                                                     placeholder="Select Account Type"
                                                     isDisabled={!bankDetail.isNew}
                                                 />
-                                                    {bankDetail.isNew &&
-                                                        bankErrors.account_type &&
-                                                        !bankDetail.account_type && (
-                                                            <div className="ValidationColor">
-                                                                {bankErrors.account_type}
-                                                            </div>
-                                                        )}
+                                                {bankDetail.isNew &&
+                                                    bankErrors.account_type &&
+                                                    !bankDetail.account_type && (
+                                                        <div className="ValidationColor">
+                                                            {bankErrors.account_type}
+                                                        </div>
+                                                    )}
                                             </div>
                                         </div>
                                         {/* Account Number */}
@@ -4940,13 +4782,13 @@ const VendorRegistrationStepByStepForm = () => {
                                                     disabled={!bankDetail.isNew}
                                                 />
 
-                                                    {bankDetail.isNew &&
-                                                        bankErrors.account_number &&
-                                                        !bankDetail.account_number && (
-                                                            <div className="ValidationColor">
-                                                                {bankErrors.account_number}
-                                                            </div>
-                                                        )}
+                                                {bankDetail.isNew &&
+                                                    bankErrors.account_number &&
+                                                    !bankDetail.account_number && (
+                                                        <div className="ValidationColor">
+                                                            {bankErrors.account_number}
+                                                        </div>
+                                                    )}
                                             </div>
                                         </div>
 
@@ -4992,11 +4834,11 @@ const VendorRegistrationStepByStepForm = () => {
                                                     }}
                                                     disabled={!bankDetail.isNew}
                                                 />
-                                                    {bankDetail.isNew && bankErrors.confirm_account_number && (
-                                                        <div className="ValidationColor">
-                                                            {bankErrors.confirm_account_number}
-                                                        </div>
-                                                    )}
+                                                {bankDetail.isNew && bankErrors.confirm_account_number && (
+                                                    <div className="ValidationColor">
+                                                        {bankErrors.confirm_account_number}
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                         {/* Branch Name */}
@@ -5018,13 +4860,13 @@ const VendorRegistrationStepByStepForm = () => {
                                                     }
                                                     disabled={!bankDetail.isNew}
                                                 />
-                                                    {bankDetail.isNew &&
-                                                        bankErrors.branch_name &&
-                                                        !bankDetail.branch_name && (
-                                                            <div className="ValidationColor">
-                                                                {bankErrors.branch_name}
-                                                            </div>
-                                                        )}
+                                                {bankDetail.isNew &&
+                                                    bankErrors.branch_name &&
+                                                    !bankDetail.branch_name && (
+                                                        <div className="ValidationColor">
+                                                            {bankErrors.branch_name}
+                                                        </div>
+                                                    )}
                                             </div>
                                         </div>
                                         {/* MICR No. */}
@@ -5046,11 +4888,11 @@ const VendorRegistrationStepByStepForm = () => {
                                                     }
                                                     disabled={!bankDetail.isNew}
                                                 />
-                                                    {bankDetail.isNew && bankErrors.micr_number && !bankDetail.micr_number && (
-                                                        <div className="ValidationColor">
-                                                            {bankErrors.micr_number}
-                                                        </div>
-                                                    )}
+                                                {bankDetail.isNew && bankErrors.micr_number && !bankDetail.micr_number && (
+                                                    <div className="ValidationColor">
+                                                        {bankErrors.micr_number}
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                         {/* IFSC Code */}
@@ -5074,20 +4916,20 @@ const VendorRegistrationStepByStepForm = () => {
                                                     disabled={!bankDetail.isNew}
                                                 />
 
-                                                    {bankDetail.isNew && (
-                                                        <>
-                                                            {inputErrors[bankDetail.id]?.ifsc && (
-                                                                <div className="ValidationColor">
-                                                                    {inputErrors[bankDetail.id].ifsc}
-                                                                </div>
-                                                            )}
-                                                            {bankErrors.ifsc_code && !bankDetail.ifsc_code && (
-                                                                <div className="ValidationColor">
-                                                                    {bankErrors.ifsc_code}
-                                                                </div>
-                                                            )}
-                                                        </>
-                                                    )}
+                                                {bankDetail.isNew && (
+                                                    <>
+                                                        {inputErrors[bankDetail.id]?.ifsc && (
+                                                            <div className="ValidationColor">
+                                                                {inputErrors[bankDetail.id].ifsc}
+                                                            </div>
+                                                        )}
+                                                        {bankErrors.ifsc_code && !bankDetail.ifsc_code && (
+                                                            <div className="ValidationColor">
+                                                                {bankErrors.ifsc_code}
+                                                            </div>
+                                                        )}
+                                                    </>
+                                                )}
                                             </div>
                                         </div>
                                         {/* Beneficiary Name */}
@@ -5113,13 +4955,13 @@ const VendorRegistrationStepByStepForm = () => {
                                                     }
                                                     disabled={!bankDetail.isNew}
                                                 />
-                                                    {bankDetail.isNew &&
-                                                        bankErrors.benficary_name &&
-                                                        !bankDetail.benficary_name && (
-                                                            <div className="ValidationColor">
-                                                                {bankErrors.benficary_name}
-                                                            </div>
-                                                        )}
+                                                {bankDetail.isNew &&
+                                                    bankErrors.benficary_name &&
+                                                    !bankDetail.benficary_name && (
+                                                        <div className="ValidationColor">
+                                                            {bankErrors.benficary_name}
+                                                        </div>
+                                                    )}
                                             </div>
                                         </div>
 
@@ -5264,13 +5106,13 @@ const VendorRegistrationStepByStepForm = () => {
                                                 />
 
 
-                                                    {bankDetail.isNew &&
-                                                        bankErrors.cancelled_cheque &&
-                                                        !bankDetail.attachment && (
-                                                            <div className="ValidationColor">
-                                                                {bankErrors.cancelled_cheque}
-                                                            </div>
-                                                        )}
+                                                {bankDetail.isNew &&
+                                                    bankErrors.cancelled_cheque &&
+                                                    !bankDetail.attachment && (
+                                                        <div className="ValidationColor">
+                                                            {bankErrors.cancelled_cheque}
+                                                        </div>
+                                                    )}
                                             </div>
                                         </div>
                                         {/* Remark */}
@@ -5416,120 +5258,120 @@ const VendorRegistrationStepByStepForm = () => {
                                         <div className="row">
                                             {/* Escalation Level */}
                                             <div className="col-md-4  ">
-                                                                            <div className="form-group">
-                                                                                <label>
-                                                                                    Escalation Level<span>*</span>
-                                                                                    <TooltipIcon message="Select the escalation level for the contact person. This indicates the priority or seniority in the escalation process for any issues or concerns." />
-                                                                                </label>
-                                                                                <SingleSelector
-                                                                                    options={escalationLevelOptions}
-                                                                                    value={person.escalationLevel}
-                                                                                    onChange={(selected) =>
-                                                                                        handleContactPersonChange(idx, "escalationLevel", selected)
-                                                                                    }
-                                                                                />
-                                                                                {contactPersonErrors[idx]?.escalationLevel && (
-                                                                                    <div className="ValidationColor">{contactPersonErrors[idx].escalationLevel}</div>
-                                                                                )}
-                                                                            </div>
+                                                <div className="form-group">
+                                                    <label>
+                                                        Escalation Level<span>*</span>
+                                                        <TooltipIcon message="Select the escalation level for the contact person. This indicates the priority or seniority in the escalation process for any issues or concerns." />
+                                                    </label>
+                                                    <SingleSelector
+                                                        options={escalationLevelOptions}
+                                                        value={person.escalationLevel}
+                                                        onChange={(selected) =>
+                                                            handleContactPersonChange(idx, "escalationLevel", selected)
+                                                        }
+                                                    />
+                                                    {contactPersonErrors[idx]?.escalationLevel && (
+                                                        <div className="ValidationColor">{contactPersonErrors[idx].escalationLevel}</div>
+                                                    )}
+                                                </div>
                                             </div>
                                             {/* Name Title */}
                                             <div className="col-md-4 ">
-                                                                            <div className="form-group">
-                                                                                <label>
-                                                                                    Name Title <span>*</span>
-                                                                                    <TooltipIcon message="Select the appropriate title for the employee (e.g. Mr., Mrs., Dr. Ms.). This helps in addressing the employee correctly in formal communications." />
-                                                                                </label>
-                                                                                <SingleSelector
-                                                                                    options={nameTitleOptions}
-                                                                                    value={person.nameTitle}
-                                                                                    onChange={(selected) =>
-                                                                                        handleContactPersonChange(idx, "nameTitle", selected)
-                                                                                    }
-                                                                                />
-                                                                                {contactPersonErrors[idx]?.nameTitle && (
-                                                                                    <div className="ValidationColor">{contactPersonErrors[idx].nameTitle}</div>
-                                                                                )}
-                                                                            </div>
+                                                <div className="form-group">
+                                                    <label>
+                                                        Name Title <span>*</span>
+                                                        <TooltipIcon message="Select the appropriate title for the employee (e.g. Mr., Mrs., Dr. Ms.). This helps in addressing the employee correctly in formal communications." />
+                                                    </label>
+                                                    <SingleSelector
+                                                        options={nameTitleOptions}
+                                                        value={person.nameTitle}
+                                                        onChange={(selected) =>
+                                                            handleContactPersonChange(idx, "nameTitle", selected)
+                                                        }
+                                                    />
+                                                    {contactPersonErrors[idx]?.nameTitle && (
+                                                        <div className="ValidationColor">{contactPersonErrors[idx].nameTitle}</div>
+                                                    )}
+                                                </div>
                                             </div>
                                             {/* First Name */}
                                             <div className="col-md-4">
-                                                                            <div className="form-group">
-                                                                                <label>
-                                                                                    First Name <span>*</span>
-                                                                                    <TooltipIcon message="Please provide the first name Of the designated contact person for your organization. This is required for direct correspondence." />
-                                                                                </label>
-                                                                                <input
-                                                                                    className="form-control"
-                                                                                    type="text"
-                                                                                    value={person.firstName}
-                                                                                    onChange={(e) =>
-                                                                                        handleContactPersonChange(idx, "firstName", e.target.value)
-                                                                                    }
-                                                                                />
-                                                                                {contactPersonErrors[idx]?.firstName && (
-                                                                                    <div className="ValidationColor">{contactPersonErrors[idx].firstName}</div>
-                                                                                )}
-                                                                            </div>
+                                                <div className="form-group">
+                                                    <label>
+                                                        First Name <span>*</span>
+                                                        <TooltipIcon message="Please provide the first name Of the designated contact person for your organization. This is required for direct correspondence." />
+                                                    </label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="text"
+                                                        value={person.firstName}
+                                                        onChange={(e) =>
+                                                            handleContactPersonChange(idx, "firstName", e.target.value)
+                                                        }
+                                                    />
+                                                    {contactPersonErrors[idx]?.firstName && (
+                                                        <div className="ValidationColor">{contactPersonErrors[idx].firstName}</div>
+                                                    )}
+                                                </div>
                                             </div>
                                             {/* Last Name */}
                                             <div className="col-md-4 mt-2">
-                                                                            <div className="form-group">
-                                                                                <label>
-                                                                                    Last Name<span>*</span>
-                                                                                    <TooltipIcon message="Please provide the last name of the designated contact person for your organization. This is required for direct correspondence." />
-                                                                                </label>
-                                                                                <input
-                                                                                    className="form-control"
-                                                                                    type="text"
-                                                                                    value={person.lastName}
-                                                                                    onChange={(e) =>
-                                                                                        handleContactPersonChange(idx, "lastName", e.target.value)
-                                                                                    }
-                                                                                />
-                                                                                {contactPersonErrors[idx]?.lastName && (
-                                                                                    <div className="ValidationColor">{contactPersonErrors[idx].lastName}</div>
-                                                                                )}
-                                                                            </div>
+                                                <div className="form-group">
+                                                    <label>
+                                                        Last Name<span>*</span>
+                                                        <TooltipIcon message="Please provide the last name of the designated contact person for your organization. This is required for direct correspondence." />
+                                                    </label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="text"
+                                                        value={person.lastName}
+                                                        onChange={(e) =>
+                                                            handleContactPersonChange(idx, "lastName", e.target.value)
+                                                        }
+                                                    />
+                                                    {contactPersonErrors[idx]?.lastName && (
+                                                        <div className="ValidationColor">{contactPersonErrors[idx].lastName}</div>
+                                                    )}
+                                                </div>
                                             </div>
                                             {/* Designation */}
                                             <div className="col-md-4  mt-2">
-                                                                            <div className="form-group">
-                                                                                <label>
-                                                                                    Designation<span>*</span>
-                                                                                    <TooltipIcon message="Enter the official designation or job title of the contact person within the organization." />
-                                                                                </label>
-                                                                                <SingleSelector
-                                                                                    options={[]}
-                                                                                    value={person.designation}
-                                                                                    onChange={(selected) =>
-                                                                                        handleContactPersonChange(idx, "designation", selected)
-                                                                                    }
-                                                                                />
-                                                                                {contactPersonErrors[idx]?.designation && (
-                                                                                    <div className="ValidationColor">{contactPersonErrors[idx].designation}</div>
-                                                                                )}
-                                                                            </div>
+                                                <div className="form-group">
+                                                    <label>
+                                                        Designation<span>*</span>
+                                                        <TooltipIcon message="Enter the official designation or job title of the contact person within the organization." />
+                                                    </label>
+                                                    <SingleSelector
+                                                        options={[]}
+                                                        value={person.designation}
+                                                        onChange={(selected) =>
+                                                            handleContactPersonChange(idx, "designation", selected)
+                                                        }
+                                                    />
+                                                    {contactPersonErrors[idx]?.designation && (
+                                                        <div className="ValidationColor">{contactPersonErrors[idx].designation}</div>
+                                                    )}
+                                                </div>
                                             </div>
                                             {/* Primary Email */}
                                             <div className="col-md-4  mt-2">
-                                                                            <div className="form-group">
-                                                                                <label>
-                                                                                    Primary Email ID <span>*</span>
-                                                                                    <TooltipIcon message=" Enter the primary email address of the contact person. This will be used for communication and correspondence." />
-                                                                                </label>
-                                                                                <input
-                                                                                    className="form-control"
-                                                                                    type="text"
-                                                                                    value={person.primaryEmail}
-                                                                                    onChange={(e) =>
-                                                                                        handleContactPersonChange(idx, "primaryEmail", e.target.value)
-                                                                                    }
-                                                                                />
-                                                                                {contactPersonErrors[idx]?.primaryEmail && (
-                                                                                    <div className="ValidationColor">{contactPersonErrors[idx].primaryEmail}</div>
-                                                                                )}
-                                                                            </div>
+                                                <div className="form-group">
+                                                    <label>
+                                                        Primary Email ID <span>*</span>
+                                                        <TooltipIcon message=" Enter the primary email address of the contact person. This will be used for communication and correspondence." />
+                                                    </label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="text"
+                                                        value={person.primaryEmail}
+                                                        onChange={(e) =>
+                                                            handleContactPersonChange(idx, "primaryEmail", e.target.value)
+                                                        }
+                                                    />
+                                                    {contactPersonErrors[idx]?.primaryEmail && (
+                                                        <div className="ValidationColor">{contactPersonErrors[idx].primaryEmail}</div>
+                                                    )}
+                                                </div>
                                             </div>
                                             {/* Secondary Email */}
                                             <div className="col-md-4  mt-2">
@@ -5547,23 +5389,23 @@ const VendorRegistrationStepByStepForm = () => {
                                             </div>
                                             {/* Primary Mobile */}
                                             <div className="col-md-4  mt-2">
-                                                                            <div className="form-group">
-                                                                                <label>
-                                                                                    Primary Mobile No. <span>*</span>
-                                                                                    <TooltipIcon message="Enter the contact person's primary mobile number. This will be used for urgent communication and notifications." />
-                                                                                </label>
-                                                                                <input
-                                                                                    className="form-control"
-                                                                                    type="text"
-                                                                                    value={person.primaryMobile}
-                                                                                    onChange={(e) =>
-                                                                                        handleContactPersonChange(idx, "primaryMobile", e.target.value)
-                                                                                    }
-                                                                                />
-                                                                                {contactPersonErrors[idx]?.primaryMobile && (
-                                                                                    <div className="ValidationColor">{contactPersonErrors[idx].primaryMobile}</div>
-                                                                                )}
-                                                                            </div>
+                                                <div className="form-group">
+                                                    <label>
+                                                        Primary Mobile No. <span>*</span>
+                                                        <TooltipIcon message="Enter the contact person's primary mobile number. This will be used for urgent communication and notifications." />
+                                                    </label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="text"
+                                                        value={person.primaryMobile}
+                                                        onChange={(e) =>
+                                                            handleContactPersonChange(idx, "primaryMobile", e.target.value)
+                                                        }
+                                                    />
+                                                    {contactPersonErrors[idx]?.primaryMobile && (
+                                                        <div className="ValidationColor">{contactPersonErrors[idx].primaryMobile}</div>
+                                                    )}
+                                                </div>
                                             </div>
                                             {/* Secondary Mobile */}
                                             <div className="col-md-4  mt-2">
@@ -5673,44 +5515,44 @@ const VendorRegistrationStepByStepForm = () => {
                                                 </div>
                                             </div>
                                             <div className="col-md-4  ">
-                                                                                                        <div className="form-group">
-                                                                                                            <label>Country<span>*</span></label>
-                                                                                                            <SingleSelector
-                                                                                                                options={[]}
-                                                                                                                value={warehouse.country}
-                                                                                                                onChange={selected => handleWarehouseChange(idx, 'country', selected)}
-                                                                                                            />
-                                                                                                            {warehouseErrors[idx]?.country && (
-                                                                                                                <div className="ValidationColor">{warehouseErrors[idx].country}</div>
-                                                                                                            )}
-                                                                                                        </div>
+                                                <div className="form-group">
+                                                    <label>Country<span>*</span></label>
+                                                    <SingleSelector
+                                                        options={[]}
+                                                        value={warehouse.country}
+                                                        onChange={selected => handleWarehouseChange(idx, 'country', selected)}
+                                                    />
+                                                    {warehouseErrors[idx]?.country && (
+                                                        <div className="ValidationColor">{warehouseErrors[idx].country}</div>
+                                                    )}
+                                                </div>
                                             </div>
                                             <div className="col-md-4  mt-2">
-                                                                                                        <div className="form-group">
-                                                                                                            <label>State <span>*</span></label>
-                                                                                                            <SingleSelector
-                                                                                                                options={[]}
-                                                                                                                value={warehouse.state}
-                                                                                                                onChange={selected => handleWarehouseChange(idx, 'state', selected)}
-                                                                                                            />
-                                                                                                            {warehouseErrors[idx]?.state && (
-                                                                                                                <div className="ValidationColor">{warehouseErrors[idx].state}</div>
-                                                                                                            )}
-                                                                                                        </div>
+                                                <div className="form-group">
+                                                    <label>State <span>*</span></label>
+                                                    <SingleSelector
+                                                        options={[]}
+                                                        value={warehouse.state}
+                                                        onChange={selected => handleWarehouseChange(idx, 'state', selected)}
+                                                    />
+                                                    {warehouseErrors[idx]?.state && (
+                                                        <div className="ValidationColor">{warehouseErrors[idx].state}</div>
+                                                    )}
+                                                </div>
                                             </div>
                                             <div className="col-md-4  mt-2">
-                                                                                                        <div className="form-group">
-                                                                                                            <label>City <span>*</span></label>
-                                                                                                            <input
-                                                                                                                className="form-control"
-                                                                                                                type="text"
-                                                                                                                value={warehouse.city}
-                                                                                                                onChange={e => handleWarehouseChange(idx, 'city', e.target.value)}
-                                                                                                            />
-                                                                                                            {warehouseErrors[idx]?.city && (
-                                                                                                                <div className="ValidationColor">{warehouseErrors[idx].city}</div>
-                                                                                                            )}
-                                                                                                        </div>
+                                                <div className="form-group">
+                                                    <label>City <span>*</span></label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="text"
+                                                        value={warehouse.city}
+                                                        onChange={e => handleWarehouseChange(idx, 'city', e.target.value)}
+                                                    />
+                                                    {warehouseErrors[idx]?.city && (
+                                                        <div className="ValidationColor">{warehouseErrors[idx].city}</div>
+                                                    )}
+                                                </div>
                                             </div>
                                             <div className="col-md-4  mt-2">
                                                 <div className="form-group">
@@ -5893,46 +5735,46 @@ const VendorRegistrationStepByStepForm = () => {
                                     <div className="card-body mt-0">
                                         <div className="row">
                                             <div className="col-md-4">
-                                                                                <div className="form-group">
-                                                                                    <label>First Name <span>*</span><TooltipIcon message="Enter the employee's first name." /></label>
-                                                                                    <input
-                                                                                        className="form-control"
-                                                                                        type="text"
-                                                                                        value={employee.firstName}
-                                                                                        onChange={e => handleRelatedEmployeeChange(idx, 'firstName', e.target.value)}
-                                                                                    />
-                                                                                    {relatedEmployeeErrors[idx]?.firstName && (
-                                                                                        <div className="ValidationColor">{relatedEmployeeErrors[idx].firstName}</div>
-                                                                                    )}
-                                                                                </div>
+                                                <div className="form-group">
+                                                    <label>First Name <span>*</span><TooltipIcon message="Enter the employee's first name." /></label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="text"
+                                                        value={employee.firstName}
+                                                        onChange={e => handleRelatedEmployeeChange(idx, 'firstName', e.target.value)}
+                                                    />
+                                                    {relatedEmployeeErrors[idx]?.firstName && (
+                                                        <div className="ValidationColor">{relatedEmployeeErrors[idx].firstName}</div>
+                                                    )}
+                                                </div>
                                             </div>
                                             <div className="col-md-4">
-                                                                                <div className="form-group">
-                                                                                    <label>Last Name <span>*</span><TooltipIcon message="Enter the employee's last name." /></label>
-                                                                                    <input
-                                                                                        className="form-control"
-                                                                                        type="text"
-                                                                                        value={employee.lastName}
-                                                                                        onChange={e => handleRelatedEmployeeChange(idx, 'lastName', e.target.value)}
-                                                                                    />
-                                                                                    {relatedEmployeeErrors[idx]?.lastName && (
-                                                                                        <div className="ValidationColor">{relatedEmployeeErrors[idx].lastName}</div>
-                                                                                    )}
-                                                                                </div>
+                                                <div className="form-group">
+                                                    <label>Last Name <span>*</span><TooltipIcon message="Enter the employee's last name." /></label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="text"
+                                                        value={employee.lastName}
+                                                        onChange={e => handleRelatedEmployeeChange(idx, 'lastName', e.target.value)}
+                                                    />
+                                                    {relatedEmployeeErrors[idx]?.lastName && (
+                                                        <div className="ValidationColor">{relatedEmployeeErrors[idx].lastName}</div>
+                                                    )}
+                                                </div>
                                             </div>
                                             <div className="col-md-4">
-                                                                                <div className="form-group">
-                                                                                    <label>Employee Email Id <span>*</span><TooltipIcon message=" Enter the employee 's official email address" /></label>
-                                                                                    <input
-                                                                                        className="form-control"
-                                                                                        type="text"
-                                                                                        value={employee.email}
-                                                                                        onChange={e => handleRelatedEmployeeChange(idx, 'email', e.target.value)}
-                                                                                    />
-                                                                                    {relatedEmployeeErrors[idx]?.email && (
-                                                                                        <div className="ValidationColor">{relatedEmployeeErrors[idx].email}</div>
-                                                                                    )}
-                                                                                </div>
+                                                <div className="form-group">
+                                                    <label>Employee Email Id <span>*</span><TooltipIcon message=" Enter the employee 's official email address" /></label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="text"
+                                                        value={employee.email}
+                                                        onChange={e => handleRelatedEmployeeChange(idx, 'email', e.target.value)}
+                                                    />
+                                                    {relatedEmployeeErrors[idx]?.email && (
+                                                        <div className="ValidationColor">{relatedEmployeeErrors[idx].email}</div>
+                                                    )}
+                                                </div>
                                             </div>
                                             <div className="col-md-4">
                                                 <div className="form-group">
@@ -6026,59 +5868,59 @@ const VendorRegistrationStepByStepForm = () => {
                                     <div className="card-body mt-0">
                                         <div className="row">
                                             <div className="col-md-4">
-                                                                                                                <div className="form-group">
-                                                                                                                    <label>Name <span>*</span></label>
-                                                                                                                    <input
-                                                                                                                        className="form-control"
-                                                                                                                        type="text"
-                                                                                                                        value={company.name}
-                                                                                                                        onChange={e => handleGroupCompanyChange(idx, 'name', e.target.value)}
-                                                                                                                    />
-                                                                                                                    {groupCompanyErrors[idx]?.name && (
-                                                                                                                        <div className="ValidationColor">{groupCompanyErrors[idx].name}</div>
-                                                                                                                    )}
-                                                                                                                </div>
+                                                <div className="form-group">
+                                                    <label>Name <span>*</span></label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="text"
+                                                        value={company.name}
+                                                        onChange={e => handleGroupCompanyChange(idx, 'name', e.target.value)}
+                                                    />
+                                                    {groupCompanyErrors[idx]?.name && (
+                                                        <div className="ValidationColor">{groupCompanyErrors[idx].name}</div>
+                                                    )}
+                                                </div>
                                             </div>
                                             <div className="col-md-4  ">
-                                                                                                                <div className="form-group">
-                                                                                                                    <label>Nature Of Business <span>*</span></label>
-                                                                                                                    <SingleSelector
-                                                                                                                        options={[]}
-                                                                                                                        value={company.natureOfBusiness}
-                                                                                                                        onChange={selected => handleGroupCompanyChange(idx, 'natureOfBusiness', selected)}
-                                                                                                                    />
-                                                                                                                    {groupCompanyErrors[idx]?.natureOfBusiness && (
-                                                                                                                        <div className="ValidationColor">{groupCompanyErrors[idx].natureOfBusiness}</div>
-                                                                                                                    )}
-                                                                                                                </div>
+                                                <div className="form-group">
+                                                    <label>Nature Of Business <span>*</span></label>
+                                                    <SingleSelector
+                                                        options={[]}
+                                                        value={company.natureOfBusiness}
+                                                        onChange={selected => handleGroupCompanyChange(idx, 'natureOfBusiness', selected)}
+                                                    />
+                                                    {groupCompanyErrors[idx]?.natureOfBusiness && (
+                                                        <div className="ValidationColor">{groupCompanyErrors[idx].natureOfBusiness}</div>
+                                                    )}
+                                                </div>
                                             </div>
                                             <div className="col-md-4">
-                                                                                                                <div className="form-group">
-                                                                                                                    <label>PAN No. <span>*</span></label>
-                                                                                                                    <input
-                                                                                                                        className="form-control"
-                                                                                                                        type="text"
-                                                                                                                        value={company.pan}
-                                                                                                                        onChange={e => handleGroupCompanyChange(idx, 'pan', e.target.value)}
-                                                                                                                    />
-                                                                                                                    {groupCompanyErrors[idx]?.pan && (
-                                                                                                                        <div className="ValidationColor">{groupCompanyErrors[idx].pan}</div>
-                                                                                                                    )}
-                                                                                                                </div>
+                                                <div className="form-group">
+                                                    <label>PAN No. <span>*</span></label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="text"
+                                                        value={company.pan}
+                                                        onChange={e => handleGroupCompanyChange(idx, 'pan', e.target.value)}
+                                                    />
+                                                    {groupCompanyErrors[idx]?.pan && (
+                                                        <div className="ValidationColor">{groupCompanyErrors[idx].pan}</div>
+                                                    )}
+                                                </div>
                                             </div>
                                             <div className="col-md-4">
-                                                                                                                <div className="form-group">
-                                                                                                                    <label>GSTIN No. <span>*</span></label>
-                                                                                                                    <input
-                                                                                                                        className="form-control"
-                                                                                                                        type="text"
-                                                                                                                        value={company.gstin}
-                                                                                                                        onChange={e => handleGroupCompanyChange(idx, 'gstin', e.target.value)}
-                                                                                                                    />
-                                                                                                                    {groupCompanyErrors[idx]?.gstin && (
-                                                                                                                        <div className="ValidationColor">{groupCompanyErrors[idx].gstin}</div>
-                                                                                                                    )}
-                                                                                                                </div>
+                                                <div className="form-group">
+                                                    <label>GSTIN No. <span>*</span></label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="text"
+                                                        value={company.gstin}
+                                                        onChange={e => handleGroupCompanyChange(idx, 'gstin', e.target.value)}
+                                                    />
+                                                    {groupCompanyErrors[idx]?.gstin && (
+                                                        <div className="ValidationColor">{groupCompanyErrors[idx].gstin}</div>
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -6106,32 +5948,32 @@ const VendorRegistrationStepByStepForm = () => {
                                     <div className="card-body mt-0">
                                         <div className="row">
                                             <div className="col-md-4">
-                                                                                                                                                <div className="form-group">
-                                                                                                                                                    <label>Supervisory Manpower Details <span>*</span></label>
-                                                                                                                                                    <input
-                                                                                                                                                        className="form-control"
-                                                                                                                                                        type="text"
-                                                                                                                                                        value={item.details}
-                                                                                                                                                        onChange={e => handleSupervisoryManpowerChange(idx, 'details', e.target.value)}
-                                                                                                                                                    />
-                                                                                                                                                    {supervisoryManpowerErrors[idx]?.details && (
-                                                                                                                                                        <div className="ValidationColor">{supervisoryManpowerErrors[idx].details}</div>
-                                                                                                                                                    )}
-                                                                                                                                                </div>
+                                                <div className="form-group">
+                                                    <label>Supervisory Manpower Details <span>*</span></label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="text"
+                                                        value={item.details}
+                                                        onChange={e => handleSupervisoryManpowerChange(idx, 'details', e.target.value)}
+                                                    />
+                                                    {supervisoryManpowerErrors[idx]?.details && (
+                                                        <div className="ValidationColor">{supervisoryManpowerErrors[idx].details}</div>
+                                                    )}
+                                                </div>
                                             </div>
                                             <div className="col-md-4">
-                                                                                                                                                <div className="form-group">
-                                                                                                                                                    <label>Total Numbers <span>*</span></label>
-                                                                                                                                                    <input
-                                                                                                                                                        className="form-control"
-                                                                                                                                                        type="text"
-                                                                                                                                                        value={item.totalNumbers}
-                                                                                                                                                        onChange={e => handleSupervisoryManpowerChange(idx, 'totalNumbers', e.target.value)}
-                                                                                                                                                    />
-                                                                                                                                                    {supervisoryManpowerErrors[idx]?.totalNumbers && (
-                                                                                                                                                        <div className="ValidationColor">{supervisoryManpowerErrors[idx].totalNumbers}</div>
-                                                                                                                                                    )}
-                                                                                                                                                </div>
+                                                <div className="form-group">
+                                                    <label>Total Numbers <span>*</span></label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="text"
+                                                        value={item.totalNumbers}
+                                                        onChange={e => handleSupervisoryManpowerChange(idx, 'totalNumbers', e.target.value)}
+                                                    />
+                                                    {supervisoryManpowerErrors[idx]?.totalNumbers && (
+                                                        <div className="ValidationColor">{supervisoryManpowerErrors[idx].totalNumbers}</div>
+                                                    )}
+                                                </div>
                                             </div>
                                             <div className="col-md-4">
                                                 <div className="form-group">
@@ -6179,72 +6021,72 @@ const VendorRegistrationStepByStepForm = () => {
                                     <div className="card-body mt-0">
                                         <div className="row">
                                             <div className="col-md-4">
-                                                                                                                                                                                <div className="form-group">
-                                                                                                                                                                                    <label>Company Name <span>*</span></label>
-                                                                                                                                                                                    <input
-                                                                                                                                                                                        className="form-control"
-                                                                                                                                                                                        type="text"
-                                                                                                                                                                                        value={customer.companyName}
-                                                                                                                                                                                        onChange={e => handleMajorCustomerChange(idx, 'companyName', e.target.value)}
-                                                                                                                                                                                    />
-                                                                                                                                                                                    {majorCustomerErrors[idx]?.companyName && (
-                                                                                                                                                                                        <div className="ValidationColor">{majorCustomerErrors[idx].companyName}</div>
-                                                                                                                                                                                    )}
-                                                                                                                                                                                </div>
+                                                <div className="form-group">
+                                                    <label>Company Name <span>*</span></label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="text"
+                                                        value={customer.companyName}
+                                                        onChange={e => handleMajorCustomerChange(idx, 'companyName', e.target.value)}
+                                                    />
+                                                    {majorCustomerErrors[idx]?.companyName && (
+                                                        <div className="ValidationColor">{majorCustomerErrors[idx].companyName}</div>
+                                                    )}
+                                                </div>
                                             </div>
                                             <div className="col-md-4">
-                                                                                                                                                                                <div className="form-group">
-                                                                                                                                                                                    <label>Work Done <span>*</span></label>
-                                                                                                                                                                                    <input
-                                                                                                                                                                                        className="form-control"
-                                                                                                                                                                                        type="text"
-                                                                                                                                                                                        value={customer.workDone}
-                                                                                                                                                                                        onChange={e => handleMajorCustomerChange(idx, 'workDone', e.target.value)}
-                                                                                                                                                                                    />
-                                                                                                                                                                                    {majorCustomerErrors[idx]?.workDone && (
-                                                                                                                                                                                        <div className="ValidationColor">{majorCustomerErrors[idx].workDone}</div>
-                                                                                                                                                                                    )}
-                                                                                                                                                                                </div>
+                                                <div className="form-group">
+                                                    <label>Work Done <span>*</span></label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="text"
+                                                        value={customer.workDone}
+                                                        onChange={e => handleMajorCustomerChange(idx, 'workDone', e.target.value)}
+                                                    />
+                                                    {majorCustomerErrors[idx]?.workDone && (
+                                                        <div className="ValidationColor">{majorCustomerErrors[idx].workDone}</div>
+                                                    )}
+                                                </div>
                                             </div>
                                             <div className="col-md-4">
-                                                                                                                                                                                <div className="form-group">
-                                                                                                                                                                                    <label>Contact Person <span>*</span></label>
-                                                                                                                                                                                    <input
-                                                                                                                                                                                        className="form-control"
-                                                                                                                                                                                        type="text"
-                                                                                                                                                                                        value={customer.contactPerson}
-                                                                                                                                                                                        onChange={e => handleMajorCustomerChange(idx, 'contactPerson', e.target.value)}
-                                                                                                                                                                                    />
-                                                                                                                                                                                    {majorCustomerErrors[idx]?.contactPerson && (
-                                                                                                                                                                                        <div className="ValidationColor">{majorCustomerErrors[idx].contactPerson}</div>
-                                                                                                                                                                                    )}
-                                                                                                                                                                                </div>
+                                                <div className="form-group">
+                                                    <label>Contact Person <span>*</span></label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="text"
+                                                        value={customer.contactPerson}
+                                                        onChange={e => handleMajorCustomerChange(idx, 'contactPerson', e.target.value)}
+                                                    />
+                                                    {majorCustomerErrors[idx]?.contactPerson && (
+                                                        <div className="ValidationColor">{majorCustomerErrors[idx].contactPerson}</div>
+                                                    )}
+                                                </div>
                                             </div>
                                             <div className="col-md-4  ">
-                                                                                                                                                                                <div className="form-group">
-                                                                                                                                                                                    <label>Designation <span>*</span></label>
-                                                                                                                                                                                    <SingleSelector
-                                                                                                                                                                                        options={[]}
-                                                                                                                                                                                        value={customer.designation}
-                                                                                                                                                                                        onChange={selected => handleMajorCustomerChange(idx, 'designation', selected)}
-                                                                                                                                                                                    />
-                                                                                                                                                                                    {majorCustomerErrors[idx]?.designation && (
-                                                                                                                                                                                        <div className="ValidationColor">{majorCustomerErrors[idx].designation}</div>
-                                                                                                                                                                                    )}
-                                                                                                                                                                                </div>
+                                                <div className="form-group">
+                                                    <label>Designation <span>*</span></label>
+                                                    <SingleSelector
+                                                        options={[]}
+                                                        value={customer.designation}
+                                                        onChange={selected => handleMajorCustomerChange(idx, 'designation', selected)}
+                                                    />
+                                                    {majorCustomerErrors[idx]?.designation && (
+                                                        <div className="ValidationColor">{majorCustomerErrors[idx].designation}</div>
+                                                    )}
+                                                </div>
                                             </div>
                                             <div className="col-md-4  ">
-                                                                                                                                                                                <div className="form-group">
-                                                                                                                                                                                    <label>Country <span>*</span></label>
-                                                                                                                                                                                    <SingleSelector
-                                                                                                                                                                                        options={[]}
-                                                                                                                                                                                        value={customer.country}
-                                                                                                                                                                                        onChange={selected => handleMajorCustomerChange(idx, 'country', selected)}
-                                                                                                                                                                                    />
-                                                                                                                                                                                    {majorCustomerErrors[idx]?.country && (
-                                                                                                                                                                                        <div className="ValidationColor">{majorCustomerErrors[idx].country}</div>
-                                                                                                                                                                                    )}
-                                                                                                                                                                                </div>
+                                                <div className="form-group">
+                                                    <label>Country <span>*</span></label>
+                                                    <SingleSelector
+                                                        options={[]}
+                                                        value={customer.country}
+                                                        onChange={selected => handleMajorCustomerChange(idx, 'country', selected)}
+                                                    />
+                                                    {majorCustomerErrors[idx]?.country && (
+                                                        <div className="ValidationColor">{majorCustomerErrors[idx].country}</div>
+                                                    )}
+                                                </div>
                                             </div>
                                             <div className="col-md-4">
                                                 <div className="form-group">
@@ -6258,74 +6100,74 @@ const VendorRegistrationStepByStepForm = () => {
                                                 </div>
                                             </div>
                                             <div className="col-md-4">
-                                                                                                                                                                                <div className="form-group">
-                                                                                                                                                                                    <label>Mobile No. <span>*</span></label>
-                                                                                                                                                                                    <input
-                                                                                                                                                                                        className="form-control"
-                                                                                                                                                                                        type="text"
-                                                                                                                                                                                        value={customer.mobile}
-                                                                                                                                                                                        onChange={e => handleMajorCustomerChange(idx, 'mobile', e.target.value)}
-                                                                                                                                                                                    />
-                                                                                                                                                                                    {majorCustomerErrors[idx]?.mobile && (
-                                                                                                                                                                                        <div className="ValidationColor">{majorCustomerErrors[idx].mobile}</div>
-                                                                                                                                                                                    )}
-                                                                                                                                                                                </div>
+                                                <div className="form-group">
+                                                    <label>Mobile No. <span>*</span></label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="text"
+                                                        value={customer.mobile}
+                                                        onChange={e => handleMajorCustomerChange(idx, 'mobile', e.target.value)}
+                                                    />
+                                                    {majorCustomerErrors[idx]?.mobile && (
+                                                        <div className="ValidationColor">{majorCustomerErrors[idx].mobile}</div>
+                                                    )}
+                                                </div>
                                             </div>
                                             <div className="col-md-4">
-                                                                                                                                                                                <div className="form-group">
-                                                                                                                                                                                    <label>Year of Association <span>*</span></label>
-                                                                                                                                                                                    <input
-                                                                                                                                                                                        className="form-control"
-                                                                                                                                                                                        type="text"
-                                                                                                                                                                                        value={customer.yearOfAssociation}
-                                                                                                                                                                                        onChange={e => handleMajorCustomerChange(idx, 'yearOfAssociation', e.target.value)}
-                                                                                                                                                                                    />
-                                                                                                                                                                                    {majorCustomerErrors[idx]?.yearOfAssociation && (
-                                                                                                                                                                                        <div className="ValidationColor">{majorCustomerErrors[idx].yearOfAssociation}</div>
-                                                                                                                                                                                    )}
-                                                                                                                                                                                </div>
+                                                <div className="form-group">
+                                                    <label>Year of Association <span>*</span></label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="text"
+                                                        value={customer.yearOfAssociation}
+                                                        onChange={e => handleMajorCustomerChange(idx, 'yearOfAssociation', e.target.value)}
+                                                    />
+                                                    {majorCustomerErrors[idx]?.yearOfAssociation && (
+                                                        <div className="ValidationColor">{majorCustomerErrors[idx].yearOfAssociation}</div>
+                                                    )}
+                                                </div>
                                             </div>
                                             <div className="col-md-4">
-                                                                                                                                                                                <div className="form-group">
-                                                                                                                                                                                    <label>Business done in Last 12 month in lacs <span>*</span></label>
-                                                                                                                                                                                    <input
-                                                                                                                                                                                        className="form-control"
-                                                                                                                                                                                        type="text"
-                                                                                                                                                                                        value={customer.businessLast12Months}
-                                                                                                                                                                                        onChange={e => handleMajorCustomerChange(idx, 'businessLast12Months', e.target.value)}
-                                                                                                                                                                                    />
-                                                                                                                                                                                    {majorCustomerErrors[idx]?.businessLast12Months && (
-                                                                                                                                                                                        <div className="ValidationColor">{majorCustomerErrors[idx].businessLast12Months}</div>
-                                                                                                                                                                                    )}
-                                                                                                                                                                                </div>
+                                                <div className="form-group">
+                                                    <label>Business done in Last 12 month in lacs <span>*</span></label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="text"
+                                                        value={customer.businessLast12Months}
+                                                        onChange={e => handleMajorCustomerChange(idx, 'businessLast12Months', e.target.value)}
+                                                    />
+                                                    {majorCustomerErrors[idx]?.businessLast12Months && (
+                                                        <div className="ValidationColor">{majorCustomerErrors[idx].businessLast12Months}</div>
+                                                    )}
+                                                </div>
                                             </div>
                                             <div className="col-md-4">
-                                                                                                                                                                                <div className="form-group">
-                                                                                                                                                                                    <label>Service Provided From <span>*</span></label>
-                                                                                                                                                                                    <input
-                                                                                                                                                                                        className="form-control"
-                                                                                                                                                                                        type="date"
-                                                                                                                                                                                        value={customer.serviceFrom}
-                                                                                                                                                                                        onChange={e => handleMajorCustomerChange(idx, 'serviceFrom', e.target.value)}
-                                                                                                                                                                                    />
-                                                                                                                                                                                    {majorCustomerErrors[idx]?.serviceFrom && (
-                                                                                                                                                                                        <div className="ValidationColor">{majorCustomerErrors[idx].serviceFrom}</div>
-                                                                                                                                                                                    )}
-                                                                                                                                                                                </div>
+                                                <div className="form-group">
+                                                    <label>Service Provided From <span>*</span></label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="date"
+                                                        value={customer.serviceFrom}
+                                                        onChange={e => handleMajorCustomerChange(idx, 'serviceFrom', e.target.value)}
+                                                    />
+                                                    {majorCustomerErrors[idx]?.serviceFrom && (
+                                                        <div className="ValidationColor">{majorCustomerErrors[idx].serviceFrom}</div>
+                                                    )}
+                                                </div>
                                             </div>
                                             <div className="col-md-4">
-                                                                                                                                                                                <div className="form-group">
-                                                                                                                                                                                    <label>Service Provided To <span>*</span></label>
-                                                                                                                                                                                    <input
-                                                                                                                                                                                        className="form-control"
-                                                                                                                                                                                        type="date"
-                                                                                                                                                                                        value={customer.serviceTo}
-                                                                                                                                                                                        onChange={e => handleMajorCustomerChange(idx, 'serviceTo', e.target.value)}
-                                                                                                                                                                                    />
-                                                                                                                                                                                    {majorCustomerErrors[idx]?.serviceTo && (
-                                                                                                                                                                                        <div className="ValidationColor">{majorCustomerErrors[idx].serviceTo}</div>
-                                                                                                                                                                                    )}
-                                                                                                                                                                                </div>
+                                                <div className="form-group">
+                                                    <label>Service Provided To <span>*</span></label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="date"
+                                                        value={customer.serviceTo}
+                                                        onChange={e => handleMajorCustomerChange(idx, 'serviceTo', e.target.value)}
+                                                    />
+                                                    {majorCustomerErrors[idx]?.serviceTo && (
+                                                        <div className="ValidationColor">{majorCustomerErrors[idx].serviceTo}</div>
+                                                    )}
+                                                </div>
                                             </div>
                                             <div className="col-md-4">
                                                 <div className="form-group">
@@ -6383,46 +6225,46 @@ const VendorRegistrationStepByStepForm = () => {
                                     <div className="card-body mt-0">
                                         <div className="row">
                                             <div className="col-md-4">
-                                                                                                                                                                                                            <div className="form-group">
-                                                                                                                                                                                                                <label>Builder / Client Name <span>*</span></label>
-                                                                                                                                                                                                                <input
-                                                                                                                                                                                                                    className="form-control"
-                                                                                                                                                                                                                    type="text"
-                                                                                                                                                                                                                    value={site.builderName}
-                                                                                                                                                                                                                    onChange={e => handleWorkingSiteChange(idx, 'builderName', e.target.value)}
-                                                                                                                                                                                                                />
-                                                                                                                                                                                                                {workingSiteErrors[idx]?.builderName && (
-                                                                                                                                                                                                                    <div className="ValidationColor">{workingSiteErrors[idx].builderName}</div>
-                                                                                                                                                                                                                )}
-                                                                                                                                                                                                            </div>
+                                                <div className="form-group">
+                                                    <label>Builder / Client Name <span>*</span></label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="text"
+                                                        value={site.builderName}
+                                                        onChange={e => handleWorkingSiteChange(idx, 'builderName', e.target.value)}
+                                                    />
+                                                    {workingSiteErrors[idx]?.builderName && (
+                                                        <div className="ValidationColor">{workingSiteErrors[idx].builderName}</div>
+                                                    )}
+                                                </div>
                                             </div>
                                             <div className="col-md-4">
-                                                                                                                                                                                                            <div className="form-group">
-                                                                                                                                                                                                                <label>Brief Details <span>*</span></label>
-                                                                                                                                                                                                                <input
-                                                                                                                                                                                                                    className="form-control"
-                                                                                                                                                                                                                    type="text"
-                                                                                                                                                                                                                    value={site.briefDetails}
-                                                                                                                                                                                                                    onChange={e => handleWorkingSiteChange(idx, 'briefDetails', e.target.value)}
-                                                                                                                                                                                                                />
-                                                                                                                                                                                                                {workingSiteErrors[idx]?.briefDetails && (
-                                                                                                                                                                                                                    <div className="ValidationColor">{workingSiteErrors[idx].briefDetails}</div>
-                                                                                                                                                                                                                )}
-                                                                                                                                                                                                            </div>
+                                                <div className="form-group">
+                                                    <label>Brief Details <span>*</span></label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="text"
+                                                        value={site.briefDetails}
+                                                        onChange={e => handleWorkingSiteChange(idx, 'briefDetails', e.target.value)}
+                                                    />
+                                                    {workingSiteErrors[idx]?.briefDetails && (
+                                                        <div className="ValidationColor">{workingSiteErrors[idx].briefDetails}</div>
+                                                    )}
+                                                </div>
                                             </div>
                                             <div className="col-md-4">
-                                                                                                                                                                                                            <div className="form-group">
-                                                                                                                                                                                                                <label>Area (Sq ft.) <span>*</span></label>
-                                                                                                                                                                                                                <input
-                                                                                                                                                                                                                    className="form-control"
-                                                                                                                                                                                                                    type="text"
-                                                                                                                                                                                                                    value={site.area}
-                                                                                                                                                                                                                    onChange={e => handleWorkingSiteChange(idx, 'area', e.target.value)}
-                                                                                                                                                                                                                />
-                                                                                                                                                                                                                {workingSiteErrors[idx]?.area && (
-                                                                                                                                                                                                                    <div className="ValidationColor">{workingSiteErrors[idx].area}</div>
-                                                                                                                                                                                                                )}
-                                                                                                                                                                                                            </div>
+                                                <div className="form-group">
+                                                    <label>Area (Sq ft.) <span>*</span></label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="text"
+                                                        value={site.area}
+                                                        onChange={e => handleWorkingSiteChange(idx, 'area', e.target.value)}
+                                                    />
+                                                    {workingSiteErrors[idx]?.area && (
+                                                        <div className="ValidationColor">{workingSiteErrors[idx].area}</div>
+                                                    )}
+                                                </div>
                                             </div>
                                             <div className="col-md-4">
                                                 <div className="form-group">
@@ -6481,7 +6323,7 @@ const VendorRegistrationStepByStepForm = () => {
                             </div>
 
 
-                                                        <div className="row mb-3 mx-2 mt-4">
+                            <div className="row mb-3 mx-2 mt-4">
                                 <div className="col-md-6">
                                     <div className="form-group">
                                         <label>Product & Services </label>
@@ -6494,7 +6336,7 @@ const VendorRegistrationStepByStepForm = () => {
                                     </div>
                                 </div>
                             </div>
-  {/* Turnover Table */}
+                            {/* Turnover Table */}
                             <div className="mx-3 mt-4">
                                 <div className="col-md-12">
                                     <h5 className="mb-3">Annual Turnover
@@ -6646,14 +6488,10 @@ const VendorRegistrationStepByStepForm = () => {
                             </div>
 
 
-                            <div className="row mt-5 mx-2">
+                            {/* <div className="row mt-5 mx-2">
                                 <div className="col-md-12">
                                     <h5 className="mb-3">Other Statutory Details</h5>
                                 </div>
-
-
-
-                                {/* <div>{"*********************************************************"} </div> */}
 
                                 {statutoryDetails?.map((field, index) => (
                                     <div className="row" key={`${field.id}-${index}`}>
@@ -6705,7 +6543,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                                     />
                                                                 </svg>
                                                                 {/* {field?.name ? field.name : "No Document Available"} */}
-                                                            </a>
+                                                            {/* </a>
                                                         </span>
                                                     )}
                                                 </div>
@@ -6726,7 +6564,7 @@ const VendorRegistrationStepByStepForm = () => {
                                         </div>
                                     </div>
                                 ))}
-                            </div>
+                            </div> */}
 
                             <div className="mb-3 mx-3 mt-5">
                                 <h5 className="mb-3">Questions</h5>
@@ -6751,10 +6589,6 @@ const VendorRegistrationStepByStepForm = () => {
                             </div>
                         </div>
                     )}
-
-
-
-
 
                     {currentStep === 6 && (
                         <div className="card mx-4 pb-4 mt-4">
@@ -6828,7 +6662,7 @@ const VendorRegistrationStepByStepForm = () => {
                     {currentStep === 7 && (
                         <>
 
-                        <div className="card mx-4 pb-4 mt-4 mt-5">
+                            <div className="card mx-4 pb-4 mt-4 mt-5">
                                 <div className="card-header3">
                                     <h3 className="card-title">Organization Details</h3>
                                 </div>
@@ -6947,7 +6781,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                     options={organizationTypeOptions}
                                                     placeholder="Select Organization Type"
                                                     value={basicInfo.organizationType}
-                                                    onChange={() => {}}
+                                                    onChange={() => { }}
                                                     isDisabled={true}
                                                 />
                                             </div>
@@ -6961,7 +6795,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                     options={[{ label: 'Finance Vendor', value: 'finance_vendor' }]}
                                                     placeholder="Select Nature of Business"
                                                     value={basicInfo.natureOfBusiness}
-                                                    onChange={() => {}}
+                                                    onChange={() => { }}
                                                     isDisabled={true}
                                                 />
                                             </div>
@@ -6975,7 +6809,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                     options={[{ label: 'Import Supplier', value: 'import_supplier' }]}
                                                     placeholder="Select Vendor Type"
                                                     value={basicInfo.vendorType}
-                                                    onChange={() => {}}
+                                                    onChange={() => { }}
                                                     isDisabled={true}
                                                 />
                                             </div>
@@ -6990,7 +6824,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                     options={industryTypeOptions || []}
                                                     placeholder="Select Type of Industry"
                                                     value={basicInfo.industryType}
-                                                    onChange={() => {}}
+                                                    onChange={() => { }}
                                                     isDisabled={true}
                                                 />
                                             </div>
@@ -7103,7 +6937,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                 <SingleSelector
                                                     options={[{ label: 'Domestic', value: 'domestic' }]}
                                                     value={basicInfo.schemaGroup}
-                                                    onChange={() => {}}
+                                                    onChange={() => { }}
                                                     placeholder="Select Schema Group"
                                                     isDisabled={true}
                                                 />
@@ -7200,7 +7034,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                     placeholder="Select Yes or No"
                                                     options={gstinApplicableOptions}
                                                     value={basicInfo.gstinApplicable}
-                                                    onChange={() => {}}
+                                                    onChange={() => { }}
                                                     isDisabled={true}
                                                 />
                                             </div>
@@ -7212,7 +7046,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                 </label>
                                                 <SingleSelector
                                                     value={basicInfo.gstinClassification}
-                                                    onChange={() => {}}
+                                                    onChange={() => { }}
                                                     placeholder="Select Country"
                                                     isDisabled={true}
                                                 />
@@ -7292,1463 +7126,1463 @@ const VendorRegistrationStepByStepForm = () => {
                                     </div>
                                 </div>
                             </div>
-                            
+
                             {/* Step 2: Additional Details Card (readonly) */}
-    <div className="card mx-4 pb-4 mt-4">
-                <div className="card-header3">
-                    <h3 className="card-title">Additional Vendor Details</h3>
-                </div>
-                <div className="card-body mt-0">
-                    <div className="row">
-                        <div className="col-md-4">
-                            <div className="form-group">
-                                <label>
-                                    Delivery Lead Period (In Days)
-                                    <TooltipIcon message="Enter the number of days required to deliver the product or service from the date of order confirmation." />
-                                </label>
-                                <input
-                                    className="form-control"
-                                    type="text"
-                                    value={additionalDetails.deliveryLeadPeriod || ''}
-                                    disabled
-                                    readOnly
-                                />
-                            </div>
-                        </div>
-                        <div className="col-md-4">
-                            <div className="form-group">
-                                <label>
-                                    Specify Warranty Period (In Years)
-                                    <TooltipIcon message="Enter the duration of the warranty for the product or service, in years. This is the period during which the item will be covered for repairs or replacement." />
-                                </label>
-                                <input
-                                    className="form-control"
-                                    type="text"
-                                    value={additionalDetails.warrantyPeriod || ''}
-                                    disabled
-                                    readOnly
-                                />
-                            </div>
-                        </div>
-                        <div className="col-md-4">
-                            <div className="form-group">
-                                <label>
-                                    AMC Provided
-                                    <TooltipIcon message="Please specify if an Annual Maintenance Contract (AMC) is included with the product or service. Select 'Yes if AMC is provided." />
-                                </label>
-                                <SingleSelector
-                                    options={[]}
-                                    value={additionalDetails.amcProvided}
-                                    isDisabled={true}
-                                />
-                            </div>
-                        </div>
-                        <div className="col-md-4 mt-2">
-                            <div className="form-group">
-                                <label>
-                                    Website
-                                    <TooltipIcon message="Enter the URL of your company's website where users can lear more about your products or services." />
-                                </label>
-                                <input
-                                    className="form-control"
-                                    type="text"
-                                    value={additionalDetails.website || ''}
-                                    disabled
-                                    readOnly
-                                />
-                            </div>
-                        </div>
-                        <div className="col-md-4  mt-2">
-                            <div className="form-group">
-                                <label>
-                                    Currency Type <span>*</span>
-                                </label>
-                                <SingleSelector
-                                    options={[{ label: 'INR', value: 'inr' }]}
-                                    placeholder="Select Currency Type"
-                                    value={additionalDetails.currencyType}
-                                    isDisabled={true}
-                                />
-                            </div>
-                        </div>
-                        <div className="col-md-4 mt-2">
-                            <div className="form-group">
-                                <label>
-                                    MSME/Udyam Number Applicable  <span>*</span>
-                                    <TooltipIcon message="Select whether your organization is registered under the MSME (Micro, Small, and Medium Enterprises) or Udyam scheme. Choose 'Yes' if applicable, otherwise select 'No.' By selecting 'No,' you confirm that your organization does not hold a valid MSME/Udyam registration number. A declaration is required, and this response will be timestamped to record the submission date and time." />
-                                </label>
-                                <SingleSelector
-                                    value={additionalDetails.msmeUdyamApplicable}
-                                    options={options}
-                                    className="form-control"
-                                    placeholder="Select MSME/Udyam Number Applicable"
-                                    isDisabled={true}
-                                />
-                            </div>
-                        </div>
-                        {additionalDetails.msmeUdyamApplicable?.value === "Yes" && (
-                            <>
-                                <div className="col-md-4 mt-2">
-                                    <div className="form-group">
-                                        <label>
-                                            MSME/Udyam Number <span>*</span>
-                                            <TooltipIcon message="Enter your organization's valid MSME or Udyam registration number. This number is issued by the Ministry of Micro, Small, and Medium Enterprises (MSME) under the Udyam registration scheme" />
-                                        </label>
-                                        <input
-                                            className="form-control"
-                                            type="text"
-                                            value={additionalDetails.msmeNo || ''}
-                                            disabled
-                                            readOnly
-                                        />
-                                    </div>
-                                </div>
-                                <div className="col-md-4 mt-2">
-                                    <div className="form-group">
-                                        <label>Classifiction Year <span>*</span></label>
-                                        <SingleSelector
-                                            value={additionalDetails.classificationYear}
-                                            options={optionsClassificationYear}
-                                            className="form-control"
-                                            placeholder="Select Classification Year"
-                                            isDisabled={true}
-                                        />
-                                    </div>
-                                </div>
-                                <div className="col-md-4 mt-2">
-                                    <div className="form-group">
-                                        <label>Major Activity <span>*</span></label>
-                                        <SingleSelector
-                                            value={additionalDetails.majorActivity}
-                                            options={optionsMajorActivity}
-                                            className="form-control"
-                                            placeholder="Select Major Activity"
-                                            isDisabled={true}
-                                        />
-                                    </div>
-                                </div>
-                                <div className="col-md-4 mt-2">
-                                    <div className="form-group">
-                                        <label>MSME/Udyam Valid From <span>*</span>
-                                            <TooltipIcon message="Enter the date when your MSME/Udyam registration became valid. This is the start date mentioned on your MSME/Udyam registration certificate for the financial year." />
-                                        </label>
-                                        <input
-                                            className="form-control"
-                                            type="date"
-                                            value={additionalDetails.validFrom || ''}
-                                            disabled
-                                            readOnly
-                                        />
-                                    </div>
-                                </div>
-                                <div className="col-md-4 mt-2">
-                                    <div className="form-group">
-                                        <label>MSME/Udyam Valid Till <span>*</span>
-                                            <TooltipIcon message="Enter the date when your MSME/Udyam registration became valid. This is the end date mentioned on your MSME/Udyam registration certificate for the financial year." />
-                                        </label>
-                                        <input
-                                            className="form-control"
-                                            type="date"
-                                            value={additionalDetails.validTill || ''}
-                                            disabled
-                                            readOnly
-                                        />
-                                    </div>
-                                </div>
-                                <div className="col-md-4 mt-2">
-                                    <div className="form-group">
-                                        <label>MSME Enterprise Type <span>*</span>
-                                            <TooltipIcon message="Select the type of your organization under the MSME (Micro, Small, and Medium Enterprises) scheme. Choose from 'Micro,'Small,' or 'Medium' based on your organization's annual turnover and investment in plant and machinery." />
-                                        </label>
-                                        <SingleSelector
-                                            value={additionalDetails.msmeEnterpriseType}
-                                            options={optionsEnterPrise}
-                                            className="form-control"
-                                            placeholder="Select option..."
-                                            isDisabled={true}
-                                        />
-                                    </div>
-                                </div>
-                                <div className="col-md-4 mt-2">
-                                    <div className="form-group">
-                                        <label>Download Specimen <span>*</span></label>
-                                        <a
-                                            download="Specimen_E-Invoicing_Declaration.docx"
-                                            className="text-primary d-flex align-items-center"
-                                            href={`${baseURL}/assets/Yes%20_%20msme.pdf`}
-                                        >
-                                            <svg
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                width={24}
-                                                height={24}
-                                                fill="#DE7008"
-                                                className="bi bi-download"
-                                                viewBox="0 0 16 16"
-                                            >
-                                                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
-                                                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
-                                            </svg>
-                                            <span className="mt-2 ms-2">Specimen For Yes Msme.pdf</span>
-                                        </a>
-                                    </div>
-                                </div>
-                            </>
-                        )}
-                        {additionalDetails.msmeUdyamApplicable?.value === "No" && (
-                            <>
-                                <div className="col-md-4 mt-2 ms-3">
-                                    <div className="form-group">
-                                        <label>Download Specimen <span>*</span></label>
-                                        <TooltipIcon message="If you choose 'No' for e-invoicing, a specimen format will be available for download. This is for businesses not subject to e-invoicing under GST regulations. Please upload a signed declaration stating that your organization is not registered.The document must be uploaded in PDF format" />
-                                        <a
-                                            download="Specimen_E-Invoicing_Declaration.docx"
-                                            className="text-primary d-flex align-items-center"
-                                            href={`${baseURL}/assets/NO_%20MSME.pdf`}
-                                            target="_self"
-                                        >
-                                            <svg
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                width={24}
-                                                height={24}
-                                                fill="#DE7008"
-                                                className="bi bi-download"
-                                                viewBox="0 0 16 16"
-                                            >
-                                                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" style={{ fill: "#de7008!important" }} />
-                                                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" style={{ fill: "#de7008!important" }} />
-                                            </svg>
-                                            <span className="mt-2 ms-2">Specimen For No Msme.pdf</span>
-                                        </a>
-                                    </div>
-                                </div>
-                            </>
-                        )}
-                        {basicInfo.gstinApplicable?.label === 'Yes' && (
-                            <div className="col-md-4 mt-2">
-                                <div className="form-group">
-                                    <label>
-                                        E-invoicing Applicable  <span>*</span>
-                                    </label>
-                                    <SingleSelector
-                                        value={additionalDetails.einvoice}
-                                        options={options}
-                                        className="form-control"
-                                        placeholder="Selec E-invoicing Applicable ."
-                                        isDisabled={true}
-                                    />
-                                </div>
-                            </div>
-                        )}
-                        {additionalDetails.einvoice?.value === "No" && (
-                            <>
-                                <div className="col-md-4 mt-2 ms-3">
-                                    <div className="form-group">
-                                        <label>Download Specimen <span>*</span></label>
-                                        <TooltipIcon message="If you choose 'No' for e-invoicing, a specimen format will be available for download. This is for businesses not subject to e-invoicing under GST regulations. Please upload a signed declaration stating that your organization is not registered.The document must be uploaded in PDF format" />
-                                        <a
-                                            download="Specimen_E-Invoicing_Declaration.docx"
-                                            className="text-primary d-flex align-items-center"
-                                            href={`${baseURL}/assets/NO_%20MSME.pdf`}
-                                            target="_self"
-                                        >
-                                            <svg
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                width={24}
-                                                height={24}
-                                                fill="#DE7008"
-                                                className="bi bi-download"
-                                                viewBox="0 0 16 16"
-                                            >
-                                                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" style={{ fill: "#de7008!important" }} />
-                                                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" style={{ fill: "#de7008!important" }} />
-                                            </svg>
-                                            <span className="mt-2 ms-2">Specimen For No Msme.pdf</span>
-                                        </a>
-                                    </div>
-                                </div>
-                            </>
-                        )}
-                    </div>
-                </div>
-            </div>
-
-
-            <div className="card mx-3 pb-4 mt-4">
-                <div className="card-header3">
-                    <h3 className="card-title">Billing / Registered Office</h3>
-                </div>
-                <div className="card-body mt-0">
-                    <div className="row">
-                        <div className="col-md-4">
-                            <div className="form-group">
-                                <label>
-                                    Address <span>*</span>
-                                    <TooltipIcon message="Please enter your address using a maximum of 40 characters." />
-                                </label>
-                                <input className="form-control" type="text" value={registeredAddress.address1 || ''} disabled readOnly />
-                            </div>
-                        </div>
-                        <div className="col-md-4">
-                            <div className="form-group">
-                                <label>
-                                    Address Line 2
-                                    <TooltipIcon message="Please enter your address line 2 using a maximum of 40 characters." />
-                                </label>
-                                <input className="form-control" type="text" value={registeredAddress.address2 || ''} disabled readOnly />
-                            </div>
-                        </div>
-                        <div className="col-md-4">
-                            <div className="form-group">
-                                <label>
-                                    Address Line 3
-                                    <TooltipIcon message="Please enter your address line 3 using a maximum of 40 characters." />
-                                </label>
-                                <input className="form-control" type="text" value={registeredAddress.address3 || ''} disabled readOnly />
-                            </div>
-                        </div>
-                        <div className="col-md-4 mt-2">
-                            <div className="form-group">
-                                <label>
-                                    Address Line 4
-                                    <TooltipIcon message=" Please enter your address line 4 using a maximum of 40 characters." />
-                                </label>
-                                <input className="form-control" type="text" value={registeredAddress.address4 || ''} disabled readOnly />
-                            </div>
-                        </div>
-                        <div className="col-md-4 mt-2">
-                            <div className="form-group">
-                                <label>
-                                    Address Line 5
-                                    <TooltipIcon message=" Please enter your address line 5 using a maximum of 40 characters." />
-                                </label>
-                                <input className="form-control" type="text" value={registeredAddress.address5 || ''} disabled readOnly />
-                            </div>
-                        </div>
-                        <div className="col-md-4 mt-2">
-                            <div className="form-group">
-                                <label>
-                                    Country<span>*</span>
-                                    <TooltipIcon message="Please choose your country from the list. This helps us identify the location of your organization." />
-                                </label>
-                                <SingleSelector options={countryOptions} value={registeredAddress.country} isDisabled={true} />
-                            </div>
-                        </div>
-                        <div className="col-md-4 mt-2">
-                            <div className="form-group">
-                                <label>
-                                    State <span>*</span>
-                                    <TooltipIcon message="Please choose your state from the list. This helps us determine your organization's regional location." />
-                                </label>
-                                <SingleSelector options={stateOptions} value={registeredAddress.state} isDisabled={true} />
-                            </div>
-                        </div>
-                        <div className="col-md-4 mt-2">
-                            <div className="form-group">
-                                <label>
-                                    City <span>*</span>
-                                    <TooltipIcon message="Please provide the name of the city where your business is based." />
-                                </label>
-                                <input className="form-control" type="text" value={registeredAddress.city || ''} disabled readOnly />
-                            </div>
-                        </div>
-                        <div className="col-md-4 mt-2">
-                            <div className="form-group">
-                                <label>
-                                    Pin Code<span>*</span>
-                                    <TooltipIcon message="Enter the postal code (Pin Code) for your organization's location. This is required for address verification." />
-                                </label>
-                                <input className="form-control" type="text" value={registeredAddress.pincode || ''} disabled readOnly />
-                            </div>
-                        </div>
-                        <div className="col-md-4 mt-2">
-                            <div className="form-group">
-                                <label>
-                                    Telephone Phone No.
-                                    <TooltipIcon message="Enter your organization's primary telephone number, including the country code and area code (e.g., + 1-123-4567890)." />
-                                </label>
-                                <input className="form-control" type="text" value={registeredAddress.telephone || ''} disabled readOnly />
-                            </div>
-                        </div>
-                        <div className="col-md-4 mt-2">
-                            <div className="form-group">
-                                <label>
-                                    Mobile Number <span>*</span>
-                                    <TooltipIcon message="Please provide the full mobile number, including the country code. Ensure the number is correct and formatted properly.." />
-                                </label>
-                                <input className="form-control" type="text" value={registeredAddress.mobile || ''} disabled readOnly />
-                            </div>
-                        </div>
-                        <div className="col-md-4 mt-2">
-                            <div className="form-group">
-                                <label>
-                                    Ordering Email ID <span>*</span>
-                                    <TooltipIcon message="Please provide the email address used by your organization for processing orders. Make sure the email ID is accurate and valid ." />
-                                </label>
-                                <input className="form-control" type="text" value={registeredAddress.orderingEmail || ''} disabled readOnly />
-                            </div>
-                        </div>
-                        <div className="col-md-4 mt-2">
-                            <div className="form-group">
-                                <label>
-                                    Billing & Accounting Email ID
-                                    <TooltipIcon message="Enter the email address your organization uses for billing and accounting communications. Ensure it is a valid email format (e.g., example@domain.com)." />
-                                </label>
-                                <input className="form-control" type="text" value={registeredAddress.billingEmail || ''} disabled readOnly />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-
-            <div className="card mx-3 pb-4 mt-4">
-                <div className="card-header3">
-                    <h3 className="card-title">Communication Address</h3>
-                </div>
-                <div className="card-body mt-0">
-                    <div className="row ms-1">
-                        <div className="form-check mb-2">
-                            <input
-                                className="form-check-input"
-                                type="checkbox"
-                                id="sameAsRegisteredAddress"
-                                checked={sameAsRegistered}
-                                disabled
-                            />
-                            <label className="form-check-label" htmlFor="sameAsRegisteredAddress">
-                                Same as Registered Address
-                            </label>
-                        </div>
-                    </div>
-                    <div className="row">
-                        <div className="col-md-4">
-                            <div className="form-group">
-                                <label>
-                                    Address <span>*</span>
-                                    <TooltipIcon message="Please enter your address using a maximum of 40 characters." />
-                                </label>
-                                <input className="form-control" type="text" value={communicationAddress.address1 || ''} disabled readOnly />
-                            </div>
-                        </div>
-                        <div className="col-md-4">
-                            <div className="form-group">
-                                <label>
-                                    Address Line 2
-                                    <TooltipIcon message="Please enter your address line 2 using a maximum of 40 characters." />
-                                </label>
-                                <input className="form-control" type="text" value={communicationAddress.address2 || ''} disabled readOnly />
-                            </div>
-                        </div>
-                        <div className="col-md-4">
-                            <div className="form-group">
-                                <label>
-                                    Address Line 3
-                                    <TooltipIcon message="Please enter your address line 3 using a maximum of 40 characters." />
-                                </label>
-                                <input className="form-control" type="text" value={communicationAddress.address3 || ''} disabled readOnly />
-                            </div>
-                        </div>
-                        <div className="col-md-4 mt-2">
-                            <div className="form-group">
-                                <label>
-                                    Address Line 4
-                                    <TooltipIcon message=" Please enter your address line 4 using a maximum of 40 characters." />
-                                </label>
-                                <input className="form-control" type="text" value={communicationAddress.address4 || ''} disabled readOnly />
-                            </div>
-                        </div>
-                        <div className="col-md-4 mt-2">
-                            <div className="form-group">
-                                <label>
-                                    Address Line 5
-                                    <TooltipIcon message=" Please enter your address line 5 using a maximum of 40 characters." />
-                                </label>
-                                <input className="form-control" type="text" value={communicationAddress.address5 || ''} disabled readOnly />
-                            </div>
-                        </div>
-                        <div className="col-md-4 mt-2">
-                            <div className="form-group">
-                                <label>
-                                    Country<span>*</span>
-                                </label>
-                                <SingleSelector options={countryOptions} value={communicationAddress.country} isDisabled={true} />
-                            </div>
-                        </div>
-                        <div className="col-md-4 mt-2">
-                            <div className="form-group">
-                                <label>
-                                    State <span>*</span>
-                                </label>
-                                <SingleSelector options={commStateOptions} value={communicationAddress.state} isDisabled={true} />
-                            </div>
-                        </div>
-                        <div className="col-md-4 mt-2">
-                            <div className="form-group">
-                                <label>
-                                    City <span>*</span>
-                                </label>
-                                <input className="form-control" type="text" value={communicationAddress.city || ''} disabled readOnly />
-                            </div>
-                        </div>
-                        <div className="col-md-4 mt-2">
-                            <div className="form-group">
-                                <label>
-                                    Pin Code<span>*</span>
-                                </label>
-                                <input className="form-control" type="text" value={communicationAddress.pincode || ''} disabled readOnly />
-                            </div>
-                        </div>
-                        <div className="col-md-4 mt-2">
-                            <div className="form-group">
-                                <label>
-                                    Telephone Phone No.
-                                </label>
-                                <input className="form-control" type="text" value={communicationAddress.telephone || ''} disabled readOnly />
-                            </div>
-                        </div>
-                        <div className="col-md-4 mt-2">
-                            <div className="form-group">
-                                <label>
-                                    Mobile Number <span>*</span>
-                                </label>
-                                <input className="form-control" type="text" value={communicationAddress.mobile || ''} disabled readOnly />
-                            </div>
-                        </div>
-                        <div className="col-md-4 mt-2">
-                            <div className="form-group">
-                                <label>
-                                    Email ID <span>*</span>
-                                </label>
-                                <input className="form-control" type="text" value={communicationAddress.orderingEmail || ''} disabled readOnly />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-
- {/* <div className="card mx-4 pb-4 mt-4"> */}
-                {bankDetailsList?.map((bankDetail) => (
-                    <CollapsedCardKYC
-                        key={bankDetail.id}
-                        title="Bank Details"
-                        // No delete in preview
-                    >
-                        <div className="row">
-                            {/* Bank Name */}
-                            <div className="col-md-4">
-                                <div className="form-group">
-                                    <label>
-                                        Bank Name <span>*</span>
-                                        <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
-                                    </label>
-                                    <input className="form-control" type="text" value={bankDetail.bank_name || ''} disabled readOnly />
-                                </div>
-                            </div>
-                            {/* Address */}
-                            <div className="col-md-4">
-                                <div className="form-group">
-                                    <label>
-                                        Address <span>*</span>
-                                        <TooltipIcon message="Please provide the complete address of your bank branch,including the street address,city and postal code." />
-                                    </label>
-                                    <input className="form-control" type="text" value={bankDetail.address || ''} disabled readOnly />
-                                </div>
-                            </div>
-                            {/* Country */}
-                            <div className="col-md-4">
-                                <div className="form-group">
-                                    <label>
-                                        Country <span>*</span>
-                                        <TooltipIcon message="Please choose your country from the list" />
-                                    </label>
-                                    <SingleSelector
-                                        options={countries}
-                                        value={countries.find((c) => c.value === bankDetail.country_id) || null}
-                                        isDisabled={true}
-                                    />
-                                </div>
-                            </div>
-                            {/* State */}
-                            <div className="col-md-4">
-                                <div className="form-group mt-2">
-                                    <label>
-                                        State <span>*</span>
-                                        <TooltipIcon message="Please choose your State from the list" />
-                                    </label>
-                                    <SingleSelector
-                                        options={states}
-                                        value={states.find((s) => s.value === bankDetail.state_id) || null}
-                                        isDisabled={true}
-                                    />
-                                </div>
-                            </div>
-                            {/* City */}
-                            <div className="col-md-4 mt-2">
-                                <div className="form-group">
-                                    <label>
-                                        City <span>*</span>
-                                        <TooltipIcon message="Enter the city where your bank branch is located" />
-                                    </label>
-                                    <input className="form-control" type="text" value={bankDetail.city_name || ''} disabled readOnly />
-                                </div>
-                            </div>
-                            {/* Pin Code */}
-                            <div className="col-md-4 mt-2">
-                                <div className="form-group">
-                                    <label>
-                                        Pin Code <span>*</span>
-                                        <TooltipIcon message="Enter the postal code (Pin Code) for the bank branch location" />
-                                    </label>
-                                    <input className="form-control" type="text" value={bankDetail.pincode || ''} disabled readOnly />
-                                </div>
-                            </div>
-                            {/* Account Type */}
-                            <div className="col-md-4 mt-2">
-                                <div className="form-group">
-                                    <label>
-                                        Account Type <span>*</span>
-                                        <TooltipIcon message="Select the type of bank account your organization holds,such as Savings,Current,or any other relevant type" />
-                                    </label>
-                                    <SingleSelector
-                                        options={accountTypeOptions}
-                                        value={accountTypeOptions.find((option) => option.value === bankDetail.account_type) || null}
-                                        isDisabled={true}
-                                    />
-                                </div>
-                            </div>
-                            {/* Account Number */}
-                            <div className="col-md-4 mt-2">
-                                <div className="form-group">
-                                    <label>
-                                        Account Number <span>*</span>
-                                        <TooltipIcon message="Please provide your organization's bank account number.Make sure it is correct and matches the details at your bank" />
-                                    </label>
-                                    <input className="form-control" type="text" value={bankDetail.account_number || ''} disabled readOnly />
-                                </div>
-                            </div>
-                            {/* Confirm Account Number */}
-                            <div className="col-md-4 mt-2">
-                                <div className="form-group">
-                                    <label>
-                                        Confirm Account Number <span>*</span>
-                                        <TooltipIcon message="Re-enter the bank account number to confirm accuracy. Ensure it matches the original account number entered above." />
-                                    </label>
-                                    <input className="form-control" type="text" value={bankDetail.confirm_account_number || ''} disabled readOnly />
-                                </div>
-                            </div>
-                            {/* Branch Name */}
-                            <div className="col-md-4 mt-2">
-                                <div className="form-group">
-                                    <label>
-                                        Branch Name <span>*</span>
-                                        <TooltipIcon message="Enter the name of the bank branch where your organization's account is held. " />
-                                    </label>
-                                    <input className="form-control" type="text" value={bankDetail.branch_name || ''} disabled readOnly />
-                                </div>
-                            </div>
-                            {/* MICR No. */}
-                            <div className="col-md-4 mt-2">
-                                <div className="form-group">
-                                    <label>
-                                        MICR No. <span>*</span>
-                                        <TooltipIcon message="MICR: Enter the MICR (Magnetic Ink Character Recognition) number of your  bank branch. This number is typically found on your cheque leaf" />
-                                    </label>
-                                    <input className="form-control" type="text" value={bankDetail.micr_number || ''} disabled readOnly />
-                                </div>
-                            </div>
-                            {/* IFSC Code */}
-                            <div className="col-md-4 mt-2">
-                                <div className="form-group">
-                                    <label>
-                                        IFSC Code <span>*</span>
-                                        <TooltipIcon message="Enter the IFSC (Indian Financial System Code) of your bank branch. This is required for electronic fund transfers like NEFT and RTGS" />
-                                    </label>
-                                    <input className="form-control" type="text" value={bankDetail.ifsc_code || ''} maxLength={11} disabled readOnly />
-                                </div>
-                            </div>
-                            {/* Beneficiary Name */}
-                            <div className="col-md-4 mt-2">
-                                <div className="form-group">
-                                    <label>
-                                        Beneficiary Name <span>*</span>
-                                        <TooltipIcon message="Enter the full legel name of the beneficiary." />
-                                    </label>
-                                    <input className="form-control" type="text" value={bankDetail.benficary_name || ''} disabled readOnly />
-                                </div>
-                            </div>
-                            {/* Virtual Account */}
-                            <div className="col-md-4 mt-2">
-                                <div className="form-group">
-                                    <label>
-                                        Virtual Account
-                                    </label>
-                                    <SingleSelector
-                                        options={[{ label: 'Yes', value: 'Yes' }, { label: 'No', value: 'No' }]}
-                                        value={[{ label: 'Yes', value: 'Yes' }, { label: 'No', value: 'No' }].find(opt => opt.value === virtualAccount) || null}
-                                        isDisabled={true}
-                                    />
-                                </div>
-                            </div>
-                            {/* Select Company (if Virtual Account is Yes) */}
-                            {virtualAccount === 'Yes' && (
-                                <div className="col-md-4 mt-2">
-                                    <div className="form-group">
-                                        <label>
-                                            Select Company <span>*</span>
-                                        </label>
-                                        <SingleSelector
-                                            options={companyOptions}
-                                            value={selectedCompany}
-                                            isDisabled={true}
-                                        />
-                                    </div>
-                                </div>
-                            )}
-                            {/* Generated Virtual Account Code */}
-                            <div className="col-md-4 mt-2">
-                                <div className="form-group">
-                                    <label>
-                                        Generated Virtual Account Code
-                                    </label>
-                                    <input className="form-control" type="text" value={bankDetail.generated_virtual_account_code || ''} disabled readOnly />
-                                </div>
-                            </div>
-                            {/* Cancelled Cheque / Bank Copy */}
-                            <div className="col-md-4 mt-2">
-                                <div className="form-group">
-                                    <label>
-                                        Cancelled Cheque / Bank Copy <span>*</span>
-                                        <TooltipIcon message="Provide a cancelled cheque or a bank statement copy that clearly displays your bank account details.This helps verify your account information. The document must be uploaded in PDF format" />
-                                    </label>
-                                    {bankDetail?.attachment && (
-                                        <span className="ms-2">
-                                            <a
-                                                href={`${baseURL}${bankDetail.attachment}`}
-                                                download
-                                                className="text-primary d-flex align-items-center"
-                                            >
-                                                <span className="me-2">Existing File:</span>
-                                                <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} fill="#DE7008" className="bi bi-download" viewBox="0 0 16 16">
-                                                    <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
-                                                    <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
-                                                </svg>
-                                            </a>
-                                        </span>
-                                    )}
-                                </div>
-                            </div>
-                            {/* Remark */}
-                            <div className="col-md-4 mt-2">
-                                <div className="form-group">
-                                    <label>
-                                        Remark
-                                    </label>
-                                    <textarea className="form-control" rows="3" value={bankDetail.remark || ''} disabled readOnly />
-                                </div>
-                            </div>
-                        </div>
-                    </CollapsedCardKYC>
-                ))}
-            {/* </div> */}
-
-
-
-
- 
-                {branchOffices.map((branch, idx) => (
-                    <CollapsedCardKYC
-                        key={branch.id}
-                        title={`Branch Office${branchOffices.length > 1 ? ` (${idx + 1})` : ''}`}
-                    >
-                        <div className="card-body mt-0">
-                            <div className="row">
-                                <div className="col-md-4">
-                                    <div className="form-group">
-                                        <label>Address</label>
-                                        <input className="form-control" type="text" value={branch.address || ''} disabled readOnly />
-                                    </div>
-                                </div>
-                                <div className="col-md-4 ">
-                                    <div className="form-group">
-                                        <label>Country<span>*</span></label>
-                                        <SingleSelector options={countries} value={countries.find(opt => opt.value === branch.country) || null} isDisabled={true} />
-                                    </div>
-                                </div>
-                                <div className="col-md-4 ">
-                                    <div className="form-group">
-                                        <label>State <span>*</span></label>
-                                        <SingleSelector options={states} value={states.find(opt => opt.value === branch.state) || null} isDisabled={true} />
-                                    </div>
-                                </div>
-                                <div className="col-md-4 mt-2">
-                                    <div className="form-group">
-                                        <label>City <span>*</span></label>
-                                        <input className="form-control" type="text" value={branch.city || ''} disabled readOnly />
-                                    </div>
-                                </div>
-                                <div className="col-md-4 mt-2">
-                                    <div className="form-group">
-                                        <label>Pin Code<span>*</span></label>
-                                        <input className="form-control" type="text" value={branch.pincode || ''} disabled readOnly />
-                                    </div>
-                                </div>
-                                <div className="col-md-4 mt-2">
-                                    <div className="form-group">
-                                        <label>Telephone Phone No.</label>
-                                        <input className="form-control" type="text" value={branch.telephone || ''} disabled readOnly />
-                                    </div>
-                                </div>
-                                <div className="col-md-4 mt-2">
-                                    <div className="form-group">
-                                        <label>Mobile Number</label>
-                                        <input className="form-control" type="text" value={branch.mobile || ''} disabled readOnly />
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </CollapsedCardKYC>
-                ))}
-          
-            
-                {contactPersons.map((person, idx) => (
-                    <CollapsedCardKYC
-                        key={person.id}
-                        title={`Contact Person${contactPersons.length > 1 ? ` ${idx + 1}` : ""}`}
-                    >
-                        <div className="card-body mt-0">
-                            <div className="row">
-                                <div className="col-md-4">
-                                    <div className="form-group">
-                                        <label>Escalation Level<span>*</span></label>
-                                        <SingleSelector options={[]} value={person.escalationLevel} isDisabled={true} />
-                                    </div>
-                                </div>
-                                <div className="col-md-4 ">
-                                    <div className="form-group">
-                                        <label>Name Title <span>*</span></label>
-                                        <SingleSelector options={[]} value={person.nameTitle} isDisabled={true} />
-                                    </div>
-                                </div>
-                                <div className="col-md-4">
-                                    <div className="form-group">
-                                        <label>First Name <span>*</span></label>
-                                        <input className="form-control" type="text" value={person.firstName || ''} disabled readOnly />
-                                    </div>
-                                </div>
-                                <div className="col-md-4 mt-2">
-                                    <div className="form-group">
-                                        <label>Last Name<span>*</span></label>
-                                        <input className="form-control" type="text" value={person.lastName || ''} disabled readOnly />
-                                    </div>
-                                </div>
-                                <div className="col-md-4  mt-2">
-                                    <div className="form-group">
-                                        <label>Designation<span>*</span></label>
-                                        <SingleSelector options={[]} value={person.designation} isDisabled={true} />
-                                    </div>
-                                </div>
-                                <div className="col-md-4  mt-2">
-                                    <div className="form-group">
-                                        <label>Primary Email ID <span>*</span></label>
-                                        <input className="form-control" type="text" value={person.primaryEmail || ''} disabled readOnly />
-                                    </div>
-                                </div>
-                                <div className="col-md-4  mt-2">
-                                    <div className="form-group">
-                                        <label>Secondary Email ID</label>
-                                        <input className="form-control" type="text" value={person.secondaryEmail || ''} disabled readOnly />
-                                    </div>
-                                </div>
-                                <div className="col-md-4  mt-2">
-                                    <div className="form-group">
-                                        <label>Primary Mobile No. <span>*</span></label>
-                                        <input className="form-control" type="text" value={person.primaryMobile || ''} disabled readOnly />
-                                    </div>
-                                </div>
-                                <div className="col-md-4  mt-2">
-                                    <div className="form-group">
-                                        <label>Secondary Mobile No.</label>
-                                        <input className="form-control" type="text" value={person.secondaryMobile || ''} disabled readOnly />
-                                    </div>
-                                </div>
-                                <div className="col-md-4  mt-2">
-                                    <div className="form-group">
-                                        <label>Nationality</label>
-                                        <SingleSelector options={[]} value={person.nationality} isDisabled={true} />
-                                    </div>
-                                </div>
-                                <div className="col-md-4  mt-2">
-                                    <div className="form-group">
-                                        <label>Gender</label>
-                                        <SingleSelector options={[]} value={person.gender} isDisabled={true} />
-                                    </div>
-                                </div>
-                                <div className="col-md-4  mt-2">
-                                    <div className="form-group">
-                                        <label>Date of Birth</label>
-                                        <input className="form-control" type="date" value={person.dob || ''} disabled readOnly />
-                                    </div>
-                                </div>
-                                <div className="col-md-4  mt-2">
-                                    <div className="form-group">
-                                        <label>Attachment</label>
-                                        {person.attachment && (
-                                            <a href={typeof person.attachment === 'string' ? `${baseURL}${person.attachment}` : '#'} download className="text-primary d-flex align-items-center">
-                                                <span className="me-2">Existing File</span>
-                                            </a>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </CollapsedCardKYC>
-                ))}
-           
-
-
-          
-                {warehouses.map((warehouse, idx) => (
-                    <CollapsedCardKYC
-                        key={warehouse.id}
-                        title={`Factory Warehouse${warehouses.length > 1 ? ` ${idx + 1}` : ''}`}
-                    >
-                        <div className="card-body mt-0">
-                            <div className="row">
-                                <div className="col-md-4">
-                                    <div className="form-group">
-                                        <label>Address</label>
-                                        <input className="form-control" type="text" value={warehouse.address || ''} disabled readOnly />
-                                    </div>
-                                </div>
-                                <div className="col-md-4  ">
-                                    <div className="form-group">
-                                        <label>Country<span>*</span></label>
-                                        <SingleSelector options={[]} value={warehouse.country} isDisabled={true} />
-                                    </div>
-                                </div>
-                                <div className="col-md-4  mt-2">
-                                    <div className="form-group">
-                                        <label>State <span>*</span></label>
-                                        <SingleSelector options={[]} value={warehouse.state} isDisabled={true} />
-                                    </div>
-                                </div>
-                                <div className="col-md-4  mt-2">
-                                    <div className="form-group">
-                                        <label>City <span>*</span></label>
-                                        <input className="form-control" type="text" value={warehouse.city || ''} disabled readOnly />
-                                    </div>
-                                </div>
-                                <div className="col-md-4  mt-2">
-                                    <div className="form-group">
-                                        <label>Telephone Phone No.</label>
-                                        <input className="form-control" type="text" value={warehouse.telephone || ''} disabled readOnly />
-                                    </div>
-                                </div>
-                                <div className="col-md-4  mt-2">
-                                    <div className="form-group">
-                                        <label>Mobile Number</label>
-                                        <input className="form-control" type="text" value={warehouse.mobile || ''} disabled readOnly />
-                                    </div>
-                                </div>
-                                <div className="col-md-4  mt-2">
-                                    <div className="form-group">
-                                        <label>Attachment</label>
-                                        {warehouse.attachment && (
-                                            <a href={typeof warehouse.attachment === 'string' ? `${baseURL}${warehouse.attachment}` : '#'} download className="text-primary d-flex align-items-center">
-                                                <span className="me-2">Existing File</span>
-                                            </a>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </CollapsedCardKYC>
-                ))}
-            
-
-             
-                {owners.map((owner, idx) => (
-                    <CollapsedCardKYC
-                        key={owner.id}
-                        title={`Owner / Director${owners.length > 1 ? ` ${idx + 1}` : ''}`}
-                    >
-                        <div className="card-body mt-0">
-                            <div className="row">
-                                <div className="col-md-4">
-                                    <div className="form-group">
-                                        <label>First Name <span>*</span></label>
-                                        <input className="form-control" type="text" value={owner.firstName || ''} disabled readOnly />
-                                    </div>
-                                </div>
-                                <div className="col-md-4">
-                                    <div className="form-group">
-                                        <label>Last Name <span>*</span></label>
-                                        <input className="form-control" type="text" value={owner.lastName || ''} disabled readOnly />
-                                    </div>
-                                </div>
-                                <div className="col-md-4  ">
-                                    <div className="form-group">
-                                        <label>Designation <span>*</span></label>
-                                        <SingleSelector options={[]} value={owner.designation} isDisabled={true} />
-                                    </div>
-                                </div>
-                                <div className="col-md-4  ">
-                                    <div className="form-group">
-                                        <label>Qualification</label>
-                                        <SingleSelector options={[]} value={owner.qualification} isDisabled={true} />
-                                    </div>
-                                </div>
-                                <div className="col-md-4">
-                                    <div className="form-group">
-                                        <label>Experience</label>
-                                        <input className="form-control" type="text" value={owner.experience || ''} disabled readOnly />
-                                    </div>
-                                </div>
-                                <div className="col-md-4">
-                                    <div className="form-group">
-                                        <label>Email <span>*</span></label>
-                                        <input className="form-control" type="text" value={owner.email || ''} disabled readOnly />
-                                    </div>
-                                </div>
-                                <div className="col-md-4">
-                                    <div className="form-group">
-                                        <label>Mobile Number <span>*</span></label>
-                                        <input className="form-control" type="text" value={owner.mobile || ''} disabled readOnly />
-                                    </div>
-                                </div>
-                                <div className="col-md-4">
-                                    <div className="form-group">
-                                        <label>Attachment</label>
-                                        {owner.attachment && (
-                                            <a href={typeof owner.attachment === 'string' ? `${baseURL}${owner.attachment}` : '#'} download className="text-primary d-flex align-items-center">
-                                                <span className="me-2">Existing File</span>
-                                            </a>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </CollapsedCardKYC>
-                ))}
-            
-
-            
-                {relatedEmployees.map((employee, idx) => (
-                    <CollapsedCardKYC
-                        key={employee.id}
-                        title={`Are you related to any employee of Panchshil ?${relatedEmployees.length > 1 ? ` ${idx + 1}` : ''}`}
-                    >
-                        <div className="card-body mt-0">
-                            <div className="row">
-                                <div className="col-md-4">
-                                    <div className="form-group">
-                                        <label>First Name <span>*</span></label>
-                                        <input className="form-control" type="text" value={employee.firstName || ''} disabled readOnly />
-                                    </div>
-                                </div>
-                                <div className="col-md-4">
-                                    <div className="form-group">
-                                        <label>Last Name <span>*</span></label>
-                                        <input className="form-control" type="text" value={employee.lastName || ''} disabled readOnly />
-                                    </div>
-                                </div>
-                                <div className="col-md-4">
-                                    <div className="form-group">
-                                        <label>Employee Email Id <span>*</span></label>
-                                        <input className="form-control" type="text" value={employee.email || ''} disabled readOnly />
-                                    </div>
-                                </div>
-                                <div className="col-md-4">
-                                    <div className="form-group">
-                                        <label>Mobile Number</label>
-                                        <input className="form-control" type="text" value={employee.mobile || ''} disabled readOnly />
-                                    </div>
-                                </div>
-                                <div className="col-md-4  ">
-                                    <div className="form-group">
-                                        <label>Designation</label>
-                                        <SingleSelector options={[]} value={employee.designation} isDisabled={true} />
-                                    </div>
-                                </div>
-                                <div className="col-md-4  ">
-                                    <div className="form-group">
-                                        <label>Department</label>
-                                        <SingleSelector options={[]} value={employee.department} isDisabled={true} />
-                                    </div>
-                                </div>
-                                <div className="col-md-4  ">
-                                    <div className="form-group">
-                                        <label>Relationship</label>
-                                        <SingleSelector options={[]} value={employee.relationship} isDisabled={true} />
-                                    </div>
-                                </div>
-                                <div className="col-md-4 mb-3 mt-2">
-                                    <div className="form-group mb-0">
-                                        <label className="mb-1">Currently Working </label>
-                                        <div>
-                                            <div className="form-check form-check-inline">
-                                                <input className="form-check-input" type="radio" name={`currentlyWorking${employee.id}`} id={`currentlyWorkingYes${employee.id}`} value="yes" checked={employee.currentlyWorking === 'yes'} disabled readOnly />
-                                                <label className="form-check-label" htmlFor={`currentlyWorkingYes${employee.id}`}>Yes</label>
+                            <div className="card mx-4 pb-4 mt-4">
+                                <div className="card-header3">
+                                    <h3 className="card-title">Additional Vendor Details</h3>
+                                </div>
+                                <div className="card-body mt-0">
+                                    <div className="row">
+                                        <div className="col-md-4">
+                                            <div className="form-group">
+                                                <label>
+                                                    Delivery Lead Period (In Days)
+                                                    <TooltipIcon message="Enter the number of days required to deliver the product or service from the date of order confirmation." />
+                                                </label>
+                                                <input
+                                                    className="form-control"
+                                                    type="text"
+                                                    value={additionalDetails.deliveryLeadPeriod || ''}
+                                                    disabled
+                                                    readOnly
+                                                />
                                             </div>
-                                            <div className="form-check form-check-inline">
-                                                <input className="form-check-input" type="radio" name={`currentlyWorking${employee.id}`} id={`currentlyWorkingNo${employee.id}`} value="no" checked={employee.currentlyWorking === 'no'} disabled readOnly />
-                                                <label className="form-check-label" htmlFor={`currentlyWorkingNo${employee.id}`}>No</label>
+                                        </div>
+                                        <div className="col-md-4">
+                                            <div className="form-group">
+                                                <label>
+                                                    Specify Warranty Period (In Years)
+                                                    <TooltipIcon message="Enter the duration of the warranty for the product or service, in years. This is the period during which the item will be covered for repairs or replacement." />
+                                                </label>
+                                                <input
+                                                    className="form-control"
+                                                    type="text"
+                                                    value={additionalDetails.warrantyPeriod || ''}
+                                                    disabled
+                                                    readOnly
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="col-md-4">
+                                            <div className="form-group">
+                                                <label>
+                                                    AMC Provided
+                                                    <TooltipIcon message="Please specify if an Annual Maintenance Contract (AMC) is included with the product or service. Select 'Yes if AMC is provided." />
+                                                </label>
+                                                <SingleSelector
+                                                    options={[]}
+                                                    value={additionalDetails.amcProvided}
+                                                    isDisabled={true}
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="col-md-4 mt-2">
+                                            <div className="form-group">
+                                                <label>
+                                                    Website
+                                                    <TooltipIcon message="Enter the URL of your company's website where users can lear more about your products or services." />
+                                                </label>
+                                                <input
+                                                    className="form-control"
+                                                    type="text"
+                                                    value={additionalDetails.website || ''}
+                                                    disabled
+                                                    readOnly
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="col-md-4  mt-2">
+                                            <div className="form-group">
+                                                <label>
+                                                    Currency Type <span>*</span>
+                                                </label>
+                                                <SingleSelector
+                                                    options={[{ label: 'INR', value: 'inr' }]}
+                                                    placeholder="Select Currency Type"
+                                                    value={additionalDetails.currencyType}
+                                                    isDisabled={true}
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="col-md-4 mt-2">
+                                            <div className="form-group">
+                                                <label>
+                                                    MSME/Udyam Number Applicable  <span>*</span>
+                                                    <TooltipIcon message="Select whether your organization is registered under the MSME (Micro, Small, and Medium Enterprises) or Udyam scheme. Choose 'Yes' if applicable, otherwise select 'No.' By selecting 'No,' you confirm that your organization does not hold a valid MSME/Udyam registration number. A declaration is required, and this response will be timestamped to record the submission date and time." />
+                                                </label>
+                                                <SingleSelector
+                                                    value={additionalDetails.msmeUdyamApplicable}
+                                                    options={options}
+                                                    className="form-control"
+                                                    placeholder="Select MSME/Udyam Number Applicable"
+                                                    isDisabled={true}
+                                                />
+                                            </div>
+                                        </div>
+                                        {additionalDetails.msmeUdyamApplicable?.value === "Yes" && (
+                                            <>
+                                                <div className="col-md-4 mt-2">
+                                                    <div className="form-group">
+                                                        <label>
+                                                            MSME/Udyam Number <span>*</span>
+                                                            <TooltipIcon message="Enter your organization's valid MSME or Udyam registration number. This number is issued by the Ministry of Micro, Small, and Medium Enterprises (MSME) under the Udyam registration scheme" />
+                                                        </label>
+                                                        <input
+                                                            className="form-control"
+                                                            type="text"
+                                                            value={additionalDetails.msmeNo || ''}
+                                                            disabled
+                                                            readOnly
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div className="col-md-4 mt-2">
+                                                    <div className="form-group">
+                                                        <label>Classifiction Year <span>*</span></label>
+                                                        <SingleSelector
+                                                            value={additionalDetails.classificationYear}
+                                                            options={optionsClassificationYear}
+                                                            className="form-control"
+                                                            placeholder="Select Classification Year"
+                                                            isDisabled={true}
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div className="col-md-4 mt-2">
+                                                    <div className="form-group">
+                                                        <label>Major Activity <span>*</span></label>
+                                                        <SingleSelector
+                                                            value={additionalDetails.majorActivity}
+                                                            options={optionsMajorActivity}
+                                                            className="form-control"
+                                                            placeholder="Select Major Activity"
+                                                            isDisabled={true}
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div className="col-md-4 mt-2">
+                                                    <div className="form-group">
+                                                        <label>MSME/Udyam Valid From <span>*</span>
+                                                            <TooltipIcon message="Enter the date when your MSME/Udyam registration became valid. This is the start date mentioned on your MSME/Udyam registration certificate for the financial year." />
+                                                        </label>
+                                                        <input
+                                                            className="form-control"
+                                                            type="date"
+                                                            value={additionalDetails.validFrom || ''}
+                                                            disabled
+                                                            readOnly
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div className="col-md-4 mt-2">
+                                                    <div className="form-group">
+                                                        <label>MSME/Udyam Valid Till <span>*</span>
+                                                            <TooltipIcon message="Enter the date when your MSME/Udyam registration became valid. This is the end date mentioned on your MSME/Udyam registration certificate for the financial year." />
+                                                        </label>
+                                                        <input
+                                                            className="form-control"
+                                                            type="date"
+                                                            value={additionalDetails.validTill || ''}
+                                                            disabled
+                                                            readOnly
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div className="col-md-4 mt-2">
+                                                    <div className="form-group">
+                                                        <label>MSME Enterprise Type <span>*</span>
+                                                            <TooltipIcon message="Select the type of your organization under the MSME (Micro, Small, and Medium Enterprises) scheme. Choose from 'Micro,'Small,' or 'Medium' based on your organization's annual turnover and investment in plant and machinery." />
+                                                        </label>
+                                                        <SingleSelector
+                                                            value={additionalDetails.msmeEnterpriseType}
+                                                            options={optionsEnterPrise}
+                                                            className="form-control"
+                                                            placeholder="Select option..."
+                                                            isDisabled={true}
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div className="col-md-4 mt-2">
+                                                    <div className="form-group">
+                                                        <label>Download Specimen <span>*</span></label>
+                                                        <a
+                                                            download="Specimen_E-Invoicing_Declaration.docx"
+                                                            className="text-primary d-flex align-items-center"
+                                                            href={`${baseURL}/assets/Yes%20_%20msme.pdf`}
+                                                        >
+                                                            <svg
+                                                                xmlns="http://www.w3.org/2000/svg"
+                                                                width={24}
+                                                                height={24}
+                                                                fill="#DE7008"
+                                                                className="bi bi-download"
+                                                                viewBox="0 0 16 16"
+                                                            >
+                                                                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                                                                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                                                            </svg>
+                                                            <span className="mt-2 ms-2">Specimen For Yes Msme.pdf</span>
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </>
+                                        )}
+                                        {additionalDetails.msmeUdyamApplicable?.value === "No" && (
+                                            <>
+                                                <div className="col-md-4 mt-2 ms-3">
+                                                    <div className="form-group">
+                                                        <label>Download Specimen <span>*</span></label>
+                                                        <TooltipIcon message="If you choose 'No' for e-invoicing, a specimen format will be available for download. This is for businesses not subject to e-invoicing under GST regulations. Please upload a signed declaration stating that your organization is not registered.The document must be uploaded in PDF format" />
+                                                        <a
+                                                            download="Specimen_E-Invoicing_Declaration.docx"
+                                                            className="text-primary d-flex align-items-center"
+                                                            href={`${baseURL}/assets/NO_%20MSME.pdf`}
+                                                            target="_self"
+                                                        >
+                                                            <svg
+                                                                xmlns="http://www.w3.org/2000/svg"
+                                                                width={24}
+                                                                height={24}
+                                                                fill="#DE7008"
+                                                                className="bi bi-download"
+                                                                viewBox="0 0 16 16"
+                                                            >
+                                                                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" style={{ fill: "#de7008!important" }} />
+                                                                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" style={{ fill: "#de7008!important" }} />
+                                                            </svg>
+                                                            <span className="mt-2 ms-2">Specimen For No Msme.pdf</span>
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </>
+                                        )}
+                                        {basicInfo.gstinApplicable?.label === 'Yes' && (
+                                            <div className="col-md-4 mt-2">
+                                                <div className="form-group">
+                                                    <label>
+                                                        E-invoicing Applicable  <span>*</span>
+                                                    </label>
+                                                    <SingleSelector
+                                                        value={additionalDetails.einvoice}
+                                                        options={options}
+                                                        className="form-control"
+                                                        placeholder="Selec E-invoicing Applicable ."
+                                                        isDisabled={true}
+                                                    />
+                                                </div>
+                                            </div>
+                                        )}
+                                        {additionalDetails.einvoice?.value === "No" && (
+                                            <>
+                                                <div className="col-md-4 mt-2 ms-3">
+                                                    <div className="form-group">
+                                                        <label>Download Specimen <span>*</span></label>
+                                                        <TooltipIcon message="If you choose 'No' for e-invoicing, a specimen format will be available for download. This is for businesses not subject to e-invoicing under GST regulations. Please upload a signed declaration stating that your organization is not registered.The document must be uploaded in PDF format" />
+                                                        <a
+                                                            download="Specimen_E-Invoicing_Declaration.docx"
+                                                            className="text-primary d-flex align-items-center"
+                                                            href={`${baseURL}/assets/NO_%20MSME.pdf`}
+                                                            target="_self"
+                                                        >
+                                                            <svg
+                                                                xmlns="http://www.w3.org/2000/svg"
+                                                                width={24}
+                                                                height={24}
+                                                                fill="#DE7008"
+                                                                className="bi bi-download"
+                                                                viewBox="0 0 16 16"
+                                                            >
+                                                                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" style={{ fill: "#de7008!important" }} />
+                                                                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" style={{ fill: "#de7008!important" }} />
+                                                            </svg>
+                                                            <span className="mt-2 ms-2">Specimen For No Msme.pdf</span>
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+
+
+                            <div className="card mx-3 pb-4 mt-4">
+                                <div className="card-header3">
+                                    <h3 className="card-title">Billing / Registered Office</h3>
+                                </div>
+                                <div className="card-body mt-0">
+                                    <div className="row">
+                                        <div className="col-md-4">
+                                            <div className="form-group">
+                                                <label>
+                                                    Address <span>*</span>
+                                                    <TooltipIcon message="Please enter your address using a maximum of 40 characters." />
+                                                </label>
+                                                <input className="form-control" type="text" value={registeredAddress.address1 || ''} disabled readOnly />
+                                            </div>
+                                        </div>
+                                        <div className="col-md-4">
+                                            <div className="form-group">
+                                                <label>
+                                                    Address Line 2
+                                                    <TooltipIcon message="Please enter your address line 2 using a maximum of 40 characters." />
+                                                </label>
+                                                <input className="form-control" type="text" value={registeredAddress.address2 || ''} disabled readOnly />
+                                            </div>
+                                        </div>
+                                        <div className="col-md-4">
+                                            <div className="form-group">
+                                                <label>
+                                                    Address Line 3
+                                                    <TooltipIcon message="Please enter your address line 3 using a maximum of 40 characters." />
+                                                </label>
+                                                <input className="form-control" type="text" value={registeredAddress.address3 || ''} disabled readOnly />
+                                            </div>
+                                        </div>
+                                        <div className="col-md-4 mt-2">
+                                            <div className="form-group">
+                                                <label>
+                                                    Address Line 4
+                                                    <TooltipIcon message=" Please enter your address line 4 using a maximum of 40 characters." />
+                                                </label>
+                                                <input className="form-control" type="text" value={registeredAddress.address4 || ''} disabled readOnly />
+                                            </div>
+                                        </div>
+                                        <div className="col-md-4 mt-2">
+                                            <div className="form-group">
+                                                <label>
+                                                    Address Line 5
+                                                    <TooltipIcon message=" Please enter your address line 5 using a maximum of 40 characters." />
+                                                </label>
+                                                <input className="form-control" type="text" value={registeredAddress.address5 || ''} disabled readOnly />
+                                            </div>
+                                        </div>
+                                        <div className="col-md-4 mt-2">
+                                            <div className="form-group">
+                                                <label>
+                                                    Country<span>*</span>
+                                                    <TooltipIcon message="Please choose your country from the list. This helps us identify the location of your organization." />
+                                                </label>
+                                                <SingleSelector options={countryOptions} value={registeredAddress.country} isDisabled={true} />
+                                            </div>
+                                        </div>
+                                        <div className="col-md-4 mt-2">
+                                            <div className="form-group">
+                                                <label>
+                                                    State <span>*</span>
+                                                    <TooltipIcon message="Please choose your state from the list. This helps us determine your organization's regional location." />
+                                                </label>
+                                                <SingleSelector options={stateOptions} value={registeredAddress.state} isDisabled={true} />
+                                            </div>
+                                        </div>
+                                        <div className="col-md-4 mt-2">
+                                            <div className="form-group">
+                                                <label>
+                                                    City <span>*</span>
+                                                    <TooltipIcon message="Please provide the name of the city where your business is based." />
+                                                </label>
+                                                <input className="form-control" type="text" value={registeredAddress.city || ''} disabled readOnly />
+                                            </div>
+                                        </div>
+                                        <div className="col-md-4 mt-2">
+                                            <div className="form-group">
+                                                <label>
+                                                    Pin Code<span>*</span>
+                                                    <TooltipIcon message="Enter the postal code (Pin Code) for your organization's location. This is required for address verification." />
+                                                </label>
+                                                <input className="form-control" type="text" value={registeredAddress.pincode || ''} disabled readOnly />
+                                            </div>
+                                        </div>
+                                        <div className="col-md-4 mt-2">
+                                            <div className="form-group">
+                                                <label>
+                                                    Telephone Phone No.
+                                                    <TooltipIcon message="Enter your organization's primary telephone number, including the country code and area code (e.g., + 1-123-4567890)." />
+                                                </label>
+                                                <input className="form-control" type="text" value={registeredAddress.telephone || ''} disabled readOnly />
+                                            </div>
+                                        </div>
+                                        <div className="col-md-4 mt-2">
+                                            <div className="form-group">
+                                                <label>
+                                                    Mobile Number <span>*</span>
+                                                    <TooltipIcon message="Please provide the full mobile number, including the country code. Ensure the number is correct and formatted properly.." />
+                                                </label>
+                                                <input className="form-control" type="text" value={registeredAddress.mobile || ''} disabled readOnly />
+                                            </div>
+                                        </div>
+                                        <div className="col-md-4 mt-2">
+                                            <div className="form-group">
+                                                <label>
+                                                    Ordering Email ID <span>*</span>
+                                                    <TooltipIcon message="Please provide the email address used by your organization for processing orders. Make sure the email ID is accurate and valid ." />
+                                                </label>
+                                                <input className="form-control" type="text" value={registeredAddress.orderingEmail || ''} disabled readOnly />
+                                            </div>
+                                        </div>
+                                        <div className="col-md-4 mt-2">
+                                            <div className="form-group">
+                                                <label>
+                                                    Billing & Accounting Email ID
+                                                    <TooltipIcon message="Enter the email address your organization uses for billing and accounting communications. Ensure it is a valid email format (e.g., example@domain.com)." />
+                                                </label>
+                                                <input className="form-control" type="text" value={registeredAddress.billingEmail || ''} disabled readOnly />
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                                <div className="col-md-4">
-                                    <div className="form-group">
-                                        <label>Attachment</label>
-                                        {employee.attachment && (
-                                            <a href={typeof employee.attachment === 'string' ? `${baseURL}${employee.attachment}` : '#'} download className="text-primary d-flex align-items-center">
-                                                <span className="me-2">Existing File</span>
-                                            </a>
+                            </div>
+
+
+                            <div className="card mx-3 pb-4 mt-4">
+                                <div className="card-header3">
+                                    <h3 className="card-title">Communication Address</h3>
+                                </div>
+                                <div className="card-body mt-0">
+                                    <div className="row ms-1">
+                                        <div className="form-check mb-2">
+                                            <input
+                                                className="form-check-input"
+                                                type="checkbox"
+                                                id="sameAsRegisteredAddress"
+                                                checked={sameAsRegistered}
+                                                disabled
+                                            />
+                                            <label className="form-check-label" htmlFor="sameAsRegisteredAddress">
+                                                Same as Registered Address
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div className="row">
+                                        <div className="col-md-4">
+                                            <div className="form-group">
+                                                <label>
+                                                    Address <span>*</span>
+                                                    <TooltipIcon message="Please enter your address using a maximum of 40 characters." />
+                                                </label>
+                                                <input className="form-control" type="text" value={communicationAddress.address1 || ''} disabled readOnly />
+                                            </div>
+                                        </div>
+                                        <div className="col-md-4">
+                                            <div className="form-group">
+                                                <label>
+                                                    Address Line 2
+                                                    <TooltipIcon message="Please enter your address line 2 using a maximum of 40 characters." />
+                                                </label>
+                                                <input className="form-control" type="text" value={communicationAddress.address2 || ''} disabled readOnly />
+                                            </div>
+                                        </div>
+                                        <div className="col-md-4">
+                                            <div className="form-group">
+                                                <label>
+                                                    Address Line 3
+                                                    <TooltipIcon message="Please enter your address line 3 using a maximum of 40 characters." />
+                                                </label>
+                                                <input className="form-control" type="text" value={communicationAddress.address3 || ''} disabled readOnly />
+                                            </div>
+                                        </div>
+                                        <div className="col-md-4 mt-2">
+                                            <div className="form-group">
+                                                <label>
+                                                    Address Line 4
+                                                    <TooltipIcon message=" Please enter your address line 4 using a maximum of 40 characters." />
+                                                </label>
+                                                <input className="form-control" type="text" value={communicationAddress.address4 || ''} disabled readOnly />
+                                            </div>
+                                        </div>
+                                        <div className="col-md-4 mt-2">
+                                            <div className="form-group">
+                                                <label>
+                                                    Address Line 5
+                                                    <TooltipIcon message=" Please enter your address line 5 using a maximum of 40 characters." />
+                                                </label>
+                                                <input className="form-control" type="text" value={communicationAddress.address5 || ''} disabled readOnly />
+                                            </div>
+                                        </div>
+                                        <div className="col-md-4 mt-2">
+                                            <div className="form-group">
+                                                <label>
+                                                    Country<span>*</span>
+                                                </label>
+                                                <SingleSelector options={countryOptions} value={communicationAddress.country} isDisabled={true} />
+                                            </div>
+                                        </div>
+                                        <div className="col-md-4 mt-2">
+                                            <div className="form-group">
+                                                <label>
+                                                    State <span>*</span>
+                                                </label>
+                                                <SingleSelector options={commStateOptions} value={communicationAddress.state} isDisabled={true} />
+                                            </div>
+                                        </div>
+                                        <div className="col-md-4 mt-2">
+                                            <div className="form-group">
+                                                <label>
+                                                    City <span>*</span>
+                                                </label>
+                                                <input className="form-control" type="text" value={communicationAddress.city || ''} disabled readOnly />
+                                            </div>
+                                        </div>
+                                        <div className="col-md-4 mt-2">
+                                            <div className="form-group">
+                                                <label>
+                                                    Pin Code<span>*</span>
+                                                </label>
+                                                <input className="form-control" type="text" value={communicationAddress.pincode || ''} disabled readOnly />
+                                            </div>
+                                        </div>
+                                        <div className="col-md-4 mt-2">
+                                            <div className="form-group">
+                                                <label>
+                                                    Telephone Phone No.
+                                                </label>
+                                                <input className="form-control" type="text" value={communicationAddress.telephone || ''} disabled readOnly />
+                                            </div>
+                                        </div>
+                                        <div className="col-md-4 mt-2">
+                                            <div className="form-group">
+                                                <label>
+                                                    Mobile Number <span>*</span>
+                                                </label>
+                                                <input className="form-control" type="text" value={communicationAddress.mobile || ''} disabled readOnly />
+                                            </div>
+                                        </div>
+                                        <div className="col-md-4 mt-2">
+                                            <div className="form-group">
+                                                <label>
+                                                    Email ID <span>*</span>
+                                                </label>
+                                                <input className="form-control" type="text" value={communicationAddress.orderingEmail || ''} disabled readOnly />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+
+                            {/* <div className="card mx-4 pb-4 mt-4"> */}
+                            {bankDetailsList?.map((bankDetail) => (
+                                <CollapsedCardKYC
+                                    key={bankDetail.id}
+                                    title="Bank Details"
+                                // No delete in preview
+                                >
+                                    <div className="row">
+                                        {/* Bank Name */}
+                                        <div className="col-md-4">
+                                            <div className="form-group">
+                                                <label>
+                                                    Bank Name <span>*</span>
+                                                    <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
+                                                </label>
+                                                <input className="form-control" type="text" value={bankDetail.bank_name || ''} disabled readOnly />
+                                            </div>
+                                        </div>
+                                        {/* Address */}
+                                        <div className="col-md-4">
+                                            <div className="form-group">
+                                                <label>
+                                                    Address <span>*</span>
+                                                    <TooltipIcon message="Please provide the complete address of your bank branch,including the street address,city and postal code." />
+                                                </label>
+                                                <input className="form-control" type="text" value={bankDetail.address || ''} disabled readOnly />
+                                            </div>
+                                        </div>
+                                        {/* Country */}
+                                        <div className="col-md-4">
+                                            <div className="form-group">
+                                                <label>
+                                                    Country <span>*</span>
+                                                    <TooltipIcon message="Please choose your country from the list" />
+                                                </label>
+                                                <SingleSelector
+                                                    options={countries}
+                                                    value={countries.find((c) => c.value === bankDetail.country_id) || null}
+                                                    isDisabled={true}
+                                                />
+                                            </div>
+                                        </div>
+                                        {/* State */}
+                                        <div className="col-md-4">
+                                            <div className="form-group mt-2">
+                                                <label>
+                                                    State <span>*</span>
+                                                    <TooltipIcon message="Please choose your State from the list" />
+                                                </label>
+                                                <SingleSelector
+                                                    options={states}
+                                                    value={states.find((s) => s.value === bankDetail.state_id) || null}
+                                                    isDisabled={true}
+                                                />
+                                            </div>
+                                        </div>
+                                        {/* City */}
+                                        <div className="col-md-4 mt-2">
+                                            <div className="form-group">
+                                                <label>
+                                                    City <span>*</span>
+                                                    <TooltipIcon message="Enter the city where your bank branch is located" />
+                                                </label>
+                                                <input className="form-control" type="text" value={bankDetail.city_name || ''} disabled readOnly />
+                                            </div>
+                                        </div>
+                                        {/* Pin Code */}
+                                        <div className="col-md-4 mt-2">
+                                            <div className="form-group">
+                                                <label>
+                                                    Pin Code <span>*</span>
+                                                    <TooltipIcon message="Enter the postal code (Pin Code) for the bank branch location" />
+                                                </label>
+                                                <input className="form-control" type="text" value={bankDetail.pincode || ''} disabled readOnly />
+                                            </div>
+                                        </div>
+                                        {/* Account Type */}
+                                        <div className="col-md-4 mt-2">
+                                            <div className="form-group">
+                                                <label>
+                                                    Account Type <span>*</span>
+                                                    <TooltipIcon message="Select the type of bank account your organization holds,such as Savings,Current,or any other relevant type" />
+                                                </label>
+                                                <SingleSelector
+                                                    options={accountTypeOptions}
+                                                    value={accountTypeOptions.find((option) => option.value === bankDetail.account_type) || null}
+                                                    isDisabled={true}
+                                                />
+                                            </div>
+                                        </div>
+                                        {/* Account Number */}
+                                        <div className="col-md-4 mt-2">
+                                            <div className="form-group">
+                                                <label>
+                                                    Account Number <span>*</span>
+                                                    <TooltipIcon message="Please provide your organization's bank account number.Make sure it is correct and matches the details at your bank" />
+                                                </label>
+                                                <input className="form-control" type="text" value={bankDetail.account_number || ''} disabled readOnly />
+                                            </div>
+                                        </div>
+                                        {/* Confirm Account Number */}
+                                        <div className="col-md-4 mt-2">
+                                            <div className="form-group">
+                                                <label>
+                                                    Confirm Account Number <span>*</span>
+                                                    <TooltipIcon message="Re-enter the bank account number to confirm accuracy. Ensure it matches the original account number entered above." />
+                                                </label>
+                                                <input className="form-control" type="text" value={bankDetail.confirm_account_number || ''} disabled readOnly />
+                                            </div>
+                                        </div>
+                                        {/* Branch Name */}
+                                        <div className="col-md-4 mt-2">
+                                            <div className="form-group">
+                                                <label>
+                                                    Branch Name <span>*</span>
+                                                    <TooltipIcon message="Enter the name of the bank branch where your organization's account is held. " />
+                                                </label>
+                                                <input className="form-control" type="text" value={bankDetail.branch_name || ''} disabled readOnly />
+                                            </div>
+                                        </div>
+                                        {/* MICR No. */}
+                                        <div className="col-md-4 mt-2">
+                                            <div className="form-group">
+                                                <label>
+                                                    MICR No. <span>*</span>
+                                                    <TooltipIcon message="MICR: Enter the MICR (Magnetic Ink Character Recognition) number of your  bank branch. This number is typically found on your cheque leaf" />
+                                                </label>
+                                                <input className="form-control" type="text" value={bankDetail.micr_number || ''} disabled readOnly />
+                                            </div>
+                                        </div>
+                                        {/* IFSC Code */}
+                                        <div className="col-md-4 mt-2">
+                                            <div className="form-group">
+                                                <label>
+                                                    IFSC Code <span>*</span>
+                                                    <TooltipIcon message="Enter the IFSC (Indian Financial System Code) of your bank branch. This is required for electronic fund transfers like NEFT and RTGS" />
+                                                </label>
+                                                <input className="form-control" type="text" value={bankDetail.ifsc_code || ''} maxLength={11} disabled readOnly />
+                                            </div>
+                                        </div>
+                                        {/* Beneficiary Name */}
+                                        <div className="col-md-4 mt-2">
+                                            <div className="form-group">
+                                                <label>
+                                                    Beneficiary Name <span>*</span>
+                                                    <TooltipIcon message="Enter the full legel name of the beneficiary." />
+                                                </label>
+                                                <input className="form-control" type="text" value={bankDetail.benficary_name || ''} disabled readOnly />
+                                            </div>
+                                        </div>
+                                        {/* Virtual Account */}
+                                        <div className="col-md-4 mt-2">
+                                            <div className="form-group">
+                                                <label>
+                                                    Virtual Account
+                                                </label>
+                                                <SingleSelector
+                                                    options={[{ label: 'Yes', value: 'Yes' }, { label: 'No', value: 'No' }]}
+                                                    value={[{ label: 'Yes', value: 'Yes' }, { label: 'No', value: 'No' }].find(opt => opt.value === virtualAccount) || null}
+                                                    isDisabled={true}
+                                                />
+                                            </div>
+                                        </div>
+                                        {/* Select Company (if Virtual Account is Yes) */}
+                                        {virtualAccount === 'Yes' && (
+                                            <div className="col-md-4 mt-2">
+                                                <div className="form-group">
+                                                    <label>
+                                                        Select Company <span>*</span>
+                                                    </label>
+                                                    <SingleSelector
+                                                        options={companyOptions}
+                                                        value={selectedCompany}
+                                                        isDisabled={true}
+                                                    />
+                                                </div>
+                                            </div>
                                         )}
+                                        {/* Generated Virtual Account Code */}
+                                        <div className="col-md-4 mt-2">
+                                            <div className="form-group">
+                                                <label>
+                                                    Generated Virtual Account Code
+                                                </label>
+                                                <input className="form-control" type="text" value={bankDetail.generated_virtual_account_code || ''} disabled readOnly />
+                                            </div>
+                                        </div>
+                                        {/* Cancelled Cheque / Bank Copy */}
+                                        <div className="col-md-4 mt-2">
+                                            <div className="form-group">
+                                                <label>
+                                                    Cancelled Cheque / Bank Copy <span>*</span>
+                                                    <TooltipIcon message="Provide a cancelled cheque or a bank statement copy that clearly displays your bank account details.This helps verify your account information. The document must be uploaded in PDF format" />
+                                                </label>
+                                                {bankDetail?.attachment && (
+                                                    <span className="ms-2">
+                                                        <a
+                                                            href={`${baseURL}${bankDetail.attachment}`}
+                                                            download
+                                                            className="text-primary d-flex align-items-center"
+                                                        >
+                                                            <span className="me-2">Existing File:</span>
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} fill="#DE7008" className="bi bi-download" viewBox="0 0 16 16">
+                                                                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                                                                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                                                            </svg>
+                                                        </a>
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                        {/* Remark */}
+                                        <div className="col-md-4 mt-2">
+                                            <div className="form-group">
+                                                <label>
+                                                    Remark
+                                                </label>
+                                                <textarea className="form-control" rows="3" value={bankDetail.remark || ''} disabled readOnly />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </CollapsedCardKYC>
+                            ))}
+                            {/* </div> */}
+
+
+
+
+
+                            {branchOffices.map((branch, idx) => (
+                                <CollapsedCardKYC
+                                    key={branch.id}
+                                    title={`Branch Office${branchOffices.length > 1 ? ` (${idx + 1})` : ''}`}
+                                >
+                                    <div className="card-body mt-0">
+                                        <div className="row">
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>Address</label>
+                                                    <input className="form-control" type="text" value={branch.address || ''} disabled readOnly />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4 ">
+                                                <div className="form-group">
+                                                    <label>Country<span>*</span></label>
+                                                    <SingleSelector options={countries} value={countries.find(opt => opt.value === branch.country) || null} isDisabled={true} />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4 ">
+                                                <div className="form-group">
+                                                    <label>State <span>*</span></label>
+                                                    <SingleSelector options={states} value={states.find(opt => opt.value === branch.state) || null} isDisabled={true} />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4 mt-2">
+                                                <div className="form-group">
+                                                    <label>City <span>*</span></label>
+                                                    <input className="form-control" type="text" value={branch.city || ''} disabled readOnly />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4 mt-2">
+                                                <div className="form-group">
+                                                    <label>Pin Code<span>*</span></label>
+                                                    <input className="form-control" type="text" value={branch.pincode || ''} disabled readOnly />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4 mt-2">
+                                                <div className="form-group">
+                                                    <label>Telephone Phone No.</label>
+                                                    <input className="form-control" type="text" value={branch.telephone || ''} disabled readOnly />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4 mt-2">
+                                                <div className="form-group">
+                                                    <label>Mobile Number</label>
+                                                    <input className="form-control" type="text" value={branch.mobile || ''} disabled readOnly />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </CollapsedCardKYC>
+                            ))}
+
+
+                            {contactPersons.map((person, idx) => (
+                                <CollapsedCardKYC
+                                    key={person.id}
+                                    title={`Contact Person${contactPersons.length > 1 ? ` ${idx + 1}` : ""}`}
+                                >
+                                    <div className="card-body mt-0">
+                                        <div className="row">
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>Escalation Level<span>*</span></label>
+                                                    <SingleSelector options={[]} value={person.escalationLevel} isDisabled={true} />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4 ">
+                                                <div className="form-group">
+                                                    <label>Name Title <span>*</span></label>
+                                                    <SingleSelector options={[]} value={person.nameTitle} isDisabled={true} />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>First Name <span>*</span></label>
+                                                    <input className="form-control" type="text" value={person.firstName || ''} disabled readOnly />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4 mt-2">
+                                                <div className="form-group">
+                                                    <label>Last Name<span>*</span></label>
+                                                    <input className="form-control" type="text" value={person.lastName || ''} disabled readOnly />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4  mt-2">
+                                                <div className="form-group">
+                                                    <label>Designation<span>*</span></label>
+                                                    <SingleSelector options={[]} value={person.designation} isDisabled={true} />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4  mt-2">
+                                                <div className="form-group">
+                                                    <label>Primary Email ID <span>*</span></label>
+                                                    <input className="form-control" type="text" value={person.primaryEmail || ''} disabled readOnly />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4  mt-2">
+                                                <div className="form-group">
+                                                    <label>Secondary Email ID</label>
+                                                    <input className="form-control" type="text" value={person.secondaryEmail || ''} disabled readOnly />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4  mt-2">
+                                                <div className="form-group">
+                                                    <label>Primary Mobile No. <span>*</span></label>
+                                                    <input className="form-control" type="text" value={person.primaryMobile || ''} disabled readOnly />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4  mt-2">
+                                                <div className="form-group">
+                                                    <label>Secondary Mobile No.</label>
+                                                    <input className="form-control" type="text" value={person.secondaryMobile || ''} disabled readOnly />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4  mt-2">
+                                                <div className="form-group">
+                                                    <label>Nationality</label>
+                                                    <SingleSelector options={[]} value={person.nationality} isDisabled={true} />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4  mt-2">
+                                                <div className="form-group">
+                                                    <label>Gender</label>
+                                                    <SingleSelector options={[]} value={person.gender} isDisabled={true} />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4  mt-2">
+                                                <div className="form-group">
+                                                    <label>Date of Birth</label>
+                                                    <input className="form-control" type="date" value={person.dob || ''} disabled readOnly />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4  mt-2">
+                                                <div className="form-group">
+                                                    <label>Attachment</label>
+                                                    {person.attachment && (
+                                                        <a href={typeof person.attachment === 'string' ? `${baseURL}${person.attachment}` : '#'} download className="text-primary d-flex align-items-center">
+                                                            <span className="me-2">Existing File</span>
+                                                        </a>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </CollapsedCardKYC>
+                            ))}
+
+
+
+
+                            {warehouses.map((warehouse, idx) => (
+                                <CollapsedCardKYC
+                                    key={warehouse.id}
+                                    title={`Factory Warehouse${warehouses.length > 1 ? ` ${idx + 1}` : ''}`}
+                                >
+                                    <div className="card-body mt-0">
+                                        <div className="row">
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>Address</label>
+                                                    <input className="form-control" type="text" value={warehouse.address || ''} disabled readOnly />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4  ">
+                                                <div className="form-group">
+                                                    <label>Country<span>*</span></label>
+                                                    <SingleSelector options={[]} value={warehouse.country} isDisabled={true} />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4  mt-2">
+                                                <div className="form-group">
+                                                    <label>State <span>*</span></label>
+                                                    <SingleSelector options={[]} value={warehouse.state} isDisabled={true} />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4  mt-2">
+                                                <div className="form-group">
+                                                    <label>City <span>*</span></label>
+                                                    <input className="form-control" type="text" value={warehouse.city || ''} disabled readOnly />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4  mt-2">
+                                                <div className="form-group">
+                                                    <label>Telephone Phone No.</label>
+                                                    <input className="form-control" type="text" value={warehouse.telephone || ''} disabled readOnly />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4  mt-2">
+                                                <div className="form-group">
+                                                    <label>Mobile Number</label>
+                                                    <input className="form-control" type="text" value={warehouse.mobile || ''} disabled readOnly />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4  mt-2">
+                                                <div className="form-group">
+                                                    <label>Attachment</label>
+                                                    {warehouse.attachment && (
+                                                        <a href={typeof warehouse.attachment === 'string' ? `${baseURL}${warehouse.attachment}` : '#'} download className="text-primary d-flex align-items-center">
+                                                            <span className="me-2">Existing File</span>
+                                                        </a>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </CollapsedCardKYC>
+                            ))}
+
+
+
+                            {owners.map((owner, idx) => (
+                                <CollapsedCardKYC
+                                    key={owner.id}
+                                    title={`Owner / Director${owners.length > 1 ? ` ${idx + 1}` : ''}`}
+                                >
+                                    <div className="card-body mt-0">
+                                        <div className="row">
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>First Name <span>*</span></label>
+                                                    <input className="form-control" type="text" value={owner.firstName || ''} disabled readOnly />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>Last Name <span>*</span></label>
+                                                    <input className="form-control" type="text" value={owner.lastName || ''} disabled readOnly />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4  ">
+                                                <div className="form-group">
+                                                    <label>Designation <span>*</span></label>
+                                                    <SingleSelector options={[]} value={owner.designation} isDisabled={true} />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4  ">
+                                                <div className="form-group">
+                                                    <label>Qualification</label>
+                                                    <SingleSelector options={[]} value={owner.qualification} isDisabled={true} />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>Experience</label>
+                                                    <input className="form-control" type="text" value={owner.experience || ''} disabled readOnly />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>Email <span>*</span></label>
+                                                    <input className="form-control" type="text" value={owner.email || ''} disabled readOnly />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>Mobile Number <span>*</span></label>
+                                                    <input className="form-control" type="text" value={owner.mobile || ''} disabled readOnly />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>Attachment</label>
+                                                    {owner.attachment && (
+                                                        <a href={typeof owner.attachment === 'string' ? `${baseURL}${owner.attachment}` : '#'} download className="text-primary d-flex align-items-center">
+                                                            <span className="me-2">Existing File</span>
+                                                        </a>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </CollapsedCardKYC>
+                            ))}
+
+
+
+                            {relatedEmployees.map((employee, idx) => (
+                                <CollapsedCardKYC
+                                    key={employee.id}
+                                    title={`Are you related to any employee of Panchshil ?${relatedEmployees.length > 1 ? ` ${idx + 1}` : ''}`}
+                                >
+                                    <div className="card-body mt-0">
+                                        <div className="row">
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>First Name <span>*</span></label>
+                                                    <input className="form-control" type="text" value={employee.firstName || ''} disabled readOnly />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>Last Name <span>*</span></label>
+                                                    <input className="form-control" type="text" value={employee.lastName || ''} disabled readOnly />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>Employee Email Id <span>*</span></label>
+                                                    <input className="form-control" type="text" value={employee.email || ''} disabled readOnly />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>Mobile Number</label>
+                                                    <input className="form-control" type="text" value={employee.mobile || ''} disabled readOnly />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4  ">
+                                                <div className="form-group">
+                                                    <label>Designation</label>
+                                                    <SingleSelector options={[]} value={employee.designation} isDisabled={true} />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4  ">
+                                                <div className="form-group">
+                                                    <label>Department</label>
+                                                    <SingleSelector options={[]} value={employee.department} isDisabled={true} />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4  ">
+                                                <div className="form-group">
+                                                    <label>Relationship</label>
+                                                    <SingleSelector options={[]} value={employee.relationship} isDisabled={true} />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4 mb-3 mt-2">
+                                                <div className="form-group mb-0">
+                                                    <label className="mb-1">Currently Working </label>
+                                                    <div>
+                                                        <div className="form-check form-check-inline">
+                                                            <input className="form-check-input" type="radio" name={`currentlyWorking${employee.id}`} id={`currentlyWorkingYes${employee.id}`} value="yes" checked={employee.currentlyWorking === 'yes'} disabled readOnly />
+                                                            <label className="form-check-label" htmlFor={`currentlyWorkingYes${employee.id}`}>Yes</label>
+                                                        </div>
+                                                        <div className="form-check form-check-inline">
+                                                            <input className="form-check-input" type="radio" name={`currentlyWorking${employee.id}`} id={`currentlyWorkingNo${employee.id}`} value="no" checked={employee.currentlyWorking === 'no'} disabled readOnly />
+                                                            <label className="form-check-label" htmlFor={`currentlyWorkingNo${employee.id}`}>No</label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>Attachment</label>
+                                                    {employee.attachment && (
+                                                        <a href={typeof employee.attachment === 'string' ? `${baseURL}${employee.attachment}` : '#'} download className="text-primary d-flex align-items-center">
+                                                            <span className="me-2">Existing File</span>
+                                                        </a>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </CollapsedCardKYC>
+                            ))}
+
+
+
+                            {groupCompanies.map((company, idx) => (
+                                <CollapsedCardKYC
+                                    key={company.id}
+                                    title={`Sister Concern / Group Company${groupCompanies.length > 1 ? ` ${idx + 1}` : ''}`}
+                                >
+                                    <div className="card-body mt-0">
+                                        <div className="row">
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>Name <span>*</span></label>
+                                                    <input className="form-control" type="text" value={company.name || ''} disabled readOnly />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4  ">
+                                                <div className="form-group">
+                                                    <label>Nature Of Business <span>*</span></label>
+                                                    <SingleSelector options={[]} value={company.natureOfBusiness} isDisabled={true} />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>PAN No. <span>*</span></label>
+                                                    <input className="form-control" type="text" value={company.pan || ''} disabled readOnly />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>GSTIN No. <span>*</span></label>
+                                                    <input className="form-control" type="text" value={company.gstin || ''} disabled readOnly />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </CollapsedCardKYC>
+                            ))}
+
+
+
+
+                            {supervisoryManpower.map((item, idx) => (
+                                <CollapsedCardKYC
+                                    key={item.id}
+                                    title={`Supervisory Manpower${supervisoryManpower.length > 1 ? ` ${idx + 1}` : ''}`}
+                                >
+                                    <div className="card-body mt-0">
+                                        <div className="row">
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>Supervisory Manpower Details <span>*</span></label>
+                                                    <input className="form-control" type="text" value={item.details || ''} disabled readOnly />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>Total Numbers <span>*</span></label>
+                                                    <input className="form-control" type="text" value={item.totalNumbers || ''} disabled readOnly />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>Remark</label>
+                                                    <input className="form-control" type="text" value={item.remark || ''} disabled readOnly />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>Attachment</label>
+                                                    {item.attachment && (
+                                                        <a href={typeof item.attachment === 'string' ? `${baseURL}${item.attachment}` : '#'} download className="text-primary d-flex align-items-center">
+                                                            <span className="me-2">Existing File</span>
+                                                        </a>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </CollapsedCardKYC>
+                            ))}
+
+
+
+                            {majorCustomers.map((customer, idx) => (
+                                <CollapsedCardKYC
+                                    key={customer.id}
+                                    title={`Major Customer${majorCustomers.length > 1 ? ` ${idx + 1}` : ''}`}
+                                >
+                                    <div className="card-body mt-0">
+                                        <div className="row">
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>Company Name <span>*</span></label>
+                                                    <input className="form-control" type="text" value={customer.companyName || ''} disabled readOnly />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>Work Done <span>*</span></label>
+                                                    <input className="form-control" type="text" value={customer.workDone || ''} disabled readOnly />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>Contact Person <span>*</span></label>
+                                                    <input className="form-control" type="text" value={customer.contactPerson || ''} disabled readOnly />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4  ">
+                                                <div className="form-group">
+                                                    <label>Designation <span>*</span></label>
+                                                    <SingleSelector options={[]} value={customer.designation} isDisabled={true} />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4  ">
+                                                <div className="form-group">
+                                                    <label>Country <span>*</span></label>
+                                                    <SingleSelector options={[]} value={customer.country} isDisabled={true} />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>Phone No.</label>
+                                                    <input className="form-control" type="text" value={customer.phone || ''} disabled readOnly />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>Mobile No. <span>*</span></label>
+                                                    <input className="form-control" type="text" value={customer.mobile || ''} disabled readOnly />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>Year of Association <span>*</span></label>
+                                                    <input className="form-control" type="text" value={customer.yearOfAssociation || ''} disabled readOnly />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>Business done in Last 12 month in lacs <span>*</span></label>
+                                                    <input className="form-control" type="text" value={customer.businessLast12Months || ''} disabled readOnly />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>Service Provided From <span>*</span></label>
+                                                    <input className="form-control" type="date" value={customer.serviceFrom || ''} disabled readOnly />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>Service Provided To <span>*</span></label>
+                                                    <input className="form-control" type="date" value={customer.serviceTo || ''} disabled readOnly />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>Stage Of Project</label>
+                                                    <input className="form-control" type="text" value={customer.stageOfProject || ''} disabled readOnly />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>Major Competitors</label>
+                                                    <input className="form-control" type="text" value={customer.majorCompetitors || ''} disabled readOnly />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>Attachment</label>
+                                                    {customer.attachment && (
+                                                        <a href={typeof customer.attachment === 'string' ? `${baseURL}${customer.attachment}` : '#'} download className="text-primary d-flex align-items-center">
+                                                            <span className="me-2">Existing File</span>
+                                                        </a>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </CollapsedCardKYC>
+                            ))}
+
+
+
+
+                            {workingSites.map((site, idx) => (
+                                <CollapsedCardKYC
+                                    key={site.id}
+                                    title={`Working Site${workingSites.length > 1 ? ` ${idx + 1}` : ''}`}
+                                >
+                                    <div className="card-body mt-0">
+                                        <div className="row">
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>Builder / Client Name <span>*</span></label>
+                                                    <input className="form-control" type="text" value={site.builderName || ''} disabled readOnly />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>Brief Details <span>*</span></label>
+                                                    <input className="form-control" type="text" value={site.briefDetails || ''} disabled readOnly />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>Area (Sq ft.) <span>*</span></label>
+                                                    <input className="form-control" type="text" value={site.area || ''} disabled readOnly />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>Manpower employed at Site</label>
+                                                    <input className="form-control" type="text" value={site.manpower || ''} disabled readOnly />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>Stage Of Project</label>
+                                                    <input className="form-control" type="text" value={site.stageOfProject || ''} disabled readOnly />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>Likely Compl. Date</label>
+                                                    <input className="form-control" type="date" value={site.likelyCompletion || ''} disabled readOnly />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label>Attachment</label>
+                                                    {site.attachment && (
+                                                        <a href={typeof site.attachment === 'string' ? `${baseURL}${site.attachment}` : '#'} download className="text-primary d-flex align-items-center">
+                                                            <span className="me-2">Existing File</span>
+                                                        </a>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </CollapsedCardKYC>
+                            ))}
+
+
+                            {/* Preview: Product & Services (readonly) */}
+
+                            <div className="row mb-3 mx-2 mt-4">
+                                <div className="col-md-6">
+                                    <div className="form-group">
+                                        <label>Product & Services </label>
+                                        <MultiSelector options={[]}
+                                            // value={selectedProductServices || []} 
+                                            isDisabled={true} placeholder="Select Product & Services" />
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </CollapsedCardKYC>
-                ))}
-            
 
 
-                {groupCompanies.map((company, idx) => (
-                    <CollapsedCardKYC
-                        key={company.id}
-                        title={`Sister Concern / Group Company${groupCompanies.length > 1 ? ` ${idx + 1}` : ''}`}
-                    >
-                        <div className="card-body mt-0">
-                            <div className="row">
-                                <div className="col-md-4">
-                                    <div className="form-group">
-                                        <label>Name <span>*</span></label>
-                                        <input className="form-control" type="text" value={company.name || ''} disabled readOnly />
-                                    </div>
+                            {/* Preview: Turnover Table (readonly) */}
+
+                            <div className="mx-3 mt-4">
+                                <div className="col-md-12">
+                                    <h5 className="mb-3">Annual Turnover
+                                        <TooltipIcon message="Enter the value of Turnover in Lacs." />
+                                    </h5>
                                 </div>
-                                <div className="col-md-4  ">
-                                    <div className="form-group">
-                                        <label>Nature Of Business <span>*</span></label>
-                                        <SingleSelector options={[]} value={company.natureOfBusiness} isDisabled={true} />
-                                    </div>
-                                </div>
-                                <div className="col-md-4">
-                                    <div className="form-group">
-                                        <label>PAN No. <span>*</span></label>
-                                        <input className="form-control" type="text" value={company.pan || ''} disabled readOnly />
-                                    </div>
-                                </div>
-                                <div className="col-md-4">
-                                    <div className="form-group">
-                                        <label>GSTIN No. <span>*</span></label>
-                                        <input className="form-control" type="text" value={company.gstin || ''} disabled readOnly />
-                                    </div>
+                                <div className="tbl-container mt-3 ">
+                                    <table className=" w-100">
+                                        <thead>
+                                            <tr>
+                                                <th>FY</th>
+                                                <th>Turnover in Lacs</th>
+                                                <th>Attachment</th>
+                                                <th>Key Markets</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>2024-2025</td>
+                                                <td>
+                                                    <input className="form-control" type="number" value={turnover["2024-2025"]?.amount || ''} disabled readOnly />
+                                                </td>
+                                                <td>
+                                                    {turnover["2024-2025"]?.attachment && (
+                                                        <a href={typeof turnover["2024-2025"].attachment === 'string' ? `${baseURL}${turnover["2024-2025"].attachment}` : '#'} download className="text-primary d-flex align-items-center">
+                                                            <span className="me-2">Existing File</span>
+                                                        </a>
+                                                    )}
+                                                </td>
+                                                <td>
+                                                    <input className="form-control" type="text" value={turnover["2024-2025"]?.markets || ''} disabled readOnly />
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>2023-2024</td>
+                                                <td>
+                                                    <input className="form-control" type="number" value={turnover["2023-2024"]?.amount || ''} disabled readOnly />
+                                                </td>
+                                                <td>
+                                                    {turnover["2023-2024"]?.attachment && (
+                                                        <a href={typeof turnover["2023-2024"].attachment === 'string' ? `${baseURL}${turnover["2023-2024"].attachment}` : '#'} download className="text-primary d-flex align-items-center">
+                                                            <span className="me-2">Existing File</span>
+                                                        </a>
+                                                    )}
+                                                </td>
+                                                <td>
+                                                    <input className="form-control" type="text" value={turnover["2023-2024"]?.markets || ''} disabled readOnly />
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>2022-2023</td>
+                                                <td>
+                                                    <input className="form-control" type="number" value={turnover["2022-2023"]?.amount || ''} disabled readOnly />
+                                                </td>
+                                                <td>
+                                                    {turnover["2022-2023"]?.attachment && (
+                                                        <a href={typeof turnover["2022-2023"].attachment === 'string' ? `${baseURL}${turnover["2022-2023"].attachment}` : '#'} download className="text-primary d-flex align-items-center">
+                                                            <span className="me-2">Existing File</span>
+                                                        </a>
+                                                    )}
+                                                </td>
+                                                <td>
+                                                    <input className="form-control" type="text" value={turnover["2022-2023"]?.markets || ''} disabled readOnly />
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
-                        </div>
-                    </CollapsedCardKYC>
-                ))}
-           
+
+                            {/* ****** */}
 
 
-            
-                {supervisoryManpower.map((item, idx) => (
-                    <CollapsedCardKYC
-                        key={item.id}
-                        title={`Supervisory Manpower${supervisoryManpower.length > 1 ? ` ${idx + 1}` : ''}`}
-                    >
-                        <div className="card-body mt-0">
-                            <div className="row">
-                                <div className="col-md-4">
-                                    <div className="form-group">
-                                        <label>Supervisory Manpower Details <span>*</span></label>
-                                        <input className="form-control" type="text" value={item.details || ''} disabled readOnly />
-                                    </div>
-                                </div>
-                                <div className="col-md-4">
-                                    <div className="form-group">
-                                        <label>Total Numbers <span>*</span></label>
-                                        <input className="form-control" type="text" value={item.totalNumbers || ''} disabled readOnly />
-                                    </div>
-                                </div>
-                                <div className="col-md-4">
-                                    <div className="form-group">
-                                        <label>Remark</label>
-                                        <input className="form-control" type="text" value={item.remark || ''} disabled readOnly />
-                                    </div>
-                                </div>
-                                <div className="col-md-4">
-                                    <div className="form-group">
-                                        <label>Attachment</label>
-                                        {item.attachment && (
-                                            <a href={typeof item.attachment === 'string' ? `${baseURL}${item.attachment}` : '#'} download className="text-primary d-flex align-items-center">
-                                                <span className="me-2">Existing File</span>
-                                            </a>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </CollapsedCardKYC>
-                ))}
-           
-
-           
-                {majorCustomers.map((customer, idx) => (
-                    <CollapsedCardKYC
-                        key={customer.id}
-                        title={`Major Customer${majorCustomers.length > 1 ? ` ${idx + 1}` : ''}`}
-                    >
-                        <div className="card-body mt-0">
-                            <div className="row">
-                                <div className="col-md-4">
-                                    <div className="form-group">
-                                        <label>Company Name <span>*</span></label>
-                                        <input className="form-control" type="text" value={customer.companyName || ''} disabled readOnly />
-                                    </div>
-                                </div>
-                                <div className="col-md-4">
-                                    <div className="form-group">
-                                        <label>Work Done <span>*</span></label>
-                                        <input className="form-control" type="text" value={customer.workDone || ''} disabled readOnly />
-                                    </div>
-                                </div>
-                                <div className="col-md-4">
-                                    <div className="form-group">
-                                        <label>Contact Person <span>*</span></label>
-                                        <input className="form-control" type="text" value={customer.contactPerson || ''} disabled readOnly />
-                                    </div>
-                                </div>
-                                <div className="col-md-4  ">
-                                    <div className="form-group">
-                                        <label>Designation <span>*</span></label>
-                                        <SingleSelector options={[]} value={customer.designation} isDisabled={true} />
-                                    </div>
-                                </div>
-                                <div className="col-md-4  ">
-                                    <div className="form-group">
-                                        <label>Country <span>*</span></label>
-                                        <SingleSelector options={[]} value={customer.country} isDisabled={true} />
-                                    </div>
-                                </div>
-                                <div className="col-md-4">
-                                    <div className="form-group">
-                                        <label>Phone No.</label>
-                                        <input className="form-control" type="text" value={customer.phone || ''} disabled readOnly />
-                                    </div>
-                                </div>
-                                <div className="col-md-4">
-                                    <div className="form-group">
-                                        <label>Mobile No. <span>*</span></label>
-                                        <input className="form-control" type="text" value={customer.mobile || ''} disabled readOnly />
-                                    </div>
-                                </div>
-                                <div className="col-md-4">
-                                    <div className="form-group">
-                                        <label>Year of Association <span>*</span></label>
-                                        <input className="form-control" type="text" value={customer.yearOfAssociation || ''} disabled readOnly />
-                                    </div>
-                                </div>
-                                <div className="col-md-4">
-                                    <div className="form-group">
-                                        <label>Business done in Last 12 month in lacs <span>*</span></label>
-                                        <input className="form-control" type="text" value={customer.businessLast12Months || ''} disabled readOnly />
-                                    </div>
-                                </div>
-                                <div className="col-md-4">
-                                    <div className="form-group">
-                                        <label>Service Provided From <span>*</span></label>
-                                        <input className="form-control" type="date" value={customer.serviceFrom || ''} disabled readOnly />
-                                    </div>
-                                </div>
-                                <div className="col-md-4">
-                                    <div className="form-group">
-                                        <label>Service Provided To <span>*</span></label>
-                                        <input className="form-control" type="date" value={customer.serviceTo || ''} disabled readOnly />
-                                    </div>
-                                </div>
-                                <div className="col-md-4">
-                                    <div className="form-group">
-                                        <label>Stage Of Project</label>
-                                        <input className="form-control" type="text" value={customer.stageOfProject || ''} disabled readOnly />
-                                    </div>
-                                </div>
-                                <div className="col-md-4">
-                                    <div className="form-group">
-                                        <label>Major Competitors</label>
-                                        <input className="form-control" type="text" value={customer.majorCompetitors || ''} disabled readOnly />
-                                    </div>
-                                </div>
-                                <div className="col-md-4">
-                                    <div className="form-group">
-                                        <label>Attachment</label>
-                                        {customer.attachment && (
-                                            <a href={typeof customer.attachment === 'string' ? `${baseURL}${customer.attachment}` : '#'} download className="text-primary d-flex align-items-center">
-                                                <span className="me-2">Existing File</span>
-                                            </a>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </CollapsedCardKYC>
-                ))}
-            
 
 
-             
-                {workingSites.map((site, idx) => (
-                    <CollapsedCardKYC
-                        key={site.id}
-                        title={`Working Site${workingSites.length > 1 ? ` ${idx + 1}` : ''}`}
-                    >
-                        <div className="card-body mt-0">
-                            <div className="row">
-                                <div className="col-md-4">
-                                    <div className="form-group">
-                                        <label>Builder / Client Name <span>*</span></label>
-                                        <input className="form-control" type="text" value={site.builderName || ''} disabled readOnly />
-                                    </div>
-                                </div>
-                                <div className="col-md-4">
-                                    <div className="form-group">
-                                        <label>Brief Details <span>*</span></label>
-                                        <input className="form-control" type="text" value={site.briefDetails || ''} disabled readOnly />
-                                    </div>
-                                </div>
-                                <div className="col-md-4">
-                                    <div className="form-group">
-                                        <label>Area (Sq ft.) <span>*</span></label>
-                                        <input className="form-control" type="text" value={site.area || ''} disabled readOnly />
-                                    </div>
-                                </div>
-                                <div className="col-md-4">
-                                    <div className="form-group">
-                                        <label>Manpower employed at Site</label>
-                                        <input className="form-control" type="text" value={site.manpower || ''} disabled readOnly />
-                                    </div>
-                                </div>
-                                <div className="col-md-4">
-                                    <div className="form-group">
-                                        <label>Stage Of Project</label>
-                                        <input className="form-control" type="text" value={site.stageOfProject || ''} disabled readOnly />
-                                    </div>
-                                </div>
-                                <div className="col-md-4">
-                                    <div className="form-group">
-                                        <label>Likely Compl. Date</label>
-                                        <input className="form-control" type="date" value={site.likelyCompletion || ''} disabled readOnly />
-                                    </div>
-                                </div>
-                                <div className="col-md-4">
-                                    <div className="form-group">
-                                        <label>Attachment</label>
-                                        {site.attachment && (
-                                            <a href={typeof site.attachment === 'string' ? `${baseURL}${site.attachment}` : '#'} download className="text-primary d-flex align-items-center">
-                                                <span className="me-2">Existing File</span>
-                                            </a>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </CollapsedCardKYC>
-                ))}
-           
-
-             {/* Preview: Product & Services (readonly) */}
-       
-            <div className="row mb-3 mx-2 mt-4">
-                <div className="col-md-6">
-                    <div className="form-group">
-                        <label>Product & Services </label>
-                        <MultiSelector options={[]} 
-                        // value={selectedProductServices || []} 
-                        isDisabled={true} placeholder="Select Product & Services" />
-                    </div>
-                </div>
-            </div>
-       
-
-        {/* Preview: Turnover Table (readonly) */}
-       
-            <div className="mx-3 mt-4">
-                <div className="col-md-12">
-                    <h5 className="mb-3">Annual Turnover
-                        <TooltipIcon message="Enter the value of Turnover in Lacs." />
-                    </h5>
-                </div>
-                <div className="tbl-container mt-3 ">
-                    <table className=" w-100">
-                        <thead>
-                            <tr>
-                                <th>FY</th>
-                                <th>Turnover in Lacs</th>
-                                <th>Attachment</th>
-                                <th>Key Markets</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>2024-2025</td>
-                                <td>
-                                    <input className="form-control" type="number" value={turnover["2024-2025"]?.amount || ''} disabled readOnly />
-                                </td>
-                                <td>
-                                    {turnover["2024-2025"]?.attachment && (
-                                        <a href={typeof turnover["2024-2025"].attachment === 'string' ? `${baseURL}${turnover["2024-2025"].attachment}` : '#'} download className="text-primary d-flex align-items-center">
-                                            <span className="me-2">Existing File</span>
-                                        </a>
-                                    )}
-                                </td>
-                                <td>
-                                    <input className="form-control" type="text" value={turnover["2024-2025"]?.markets || ''} disabled readOnly />
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>2023-2024</td>
-                                <td>
-                                    <input className="form-control" type="number" value={turnover["2023-2024"]?.amount || ''} disabled readOnly />
-                                </td>
-                                <td>
-                                    {turnover["2023-2024"]?.attachment && (
-                                        <a href={typeof turnover["2023-2024"].attachment === 'string' ? `${baseURL}${turnover["2023-2024"].attachment}` : '#'} download className="text-primary d-flex align-items-center">
-                                            <span className="me-2">Existing File</span>
-                                        </a>
-                                    )}
-                                </td>
-                                <td>
-                                    <input className="form-control" type="text" value={turnover["2023-2024"]?.markets || ''} disabled readOnly />
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>2022-2023</td>
-                                <td>
-                                    <input className="form-control" type="number" value={turnover["2022-2023"]?.amount || ''} disabled readOnly />
-                                </td>
-                                <td>
-                                    {turnover["2022-2023"]?.attachment && (
-                                        <a href={typeof turnover["2022-2023"].attachment === 'string' ? `${baseURL}${turnover["2022-2023"].attachment}` : '#'} download className="text-primary d-flex align-items-center">
-                                            <span className="me-2">Existing File</span>
-                                        </a>
-                                    )}
-                                </td>
-                                <td>
-                                    <input className="form-control" type="text" value={turnover["2022-2023"]?.markets || ''} disabled readOnly />
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            {/* ****** */}
-                          
-                            
-                           
-                           
                             {/* Repeat for all other dynamic sections: relatedEmployees, groupCompanies, supervisoryManpower, majorCustomers, workingSites, etc. Use the same card structure as in the form, with all fields disabled and filled. */}
                             {/* --- Declaration Section --- */}
                             <div className="card mx-4 pb-4 mt-4">
@@ -8801,27 +8635,27 @@ const VendorRegistrationStepByStepForm = () => {
                                 onClick={() => {
                                     // Step-wise validation logic
                                     let isValid = true;
-                                    // if (currentStep === 1) {
-                                    //     // Step 1: Basic Info validation
-                                    //     isValid = validateBasicInfo();
-                                    //     if (!isValid) return;
-                                    // }
+                                    if (currentStep === 1) {
+                                        // Step 1: Basic Info validation
+                                        isValid = validateBasicInfo();
+                                        if (!isValid) return;
+                                    }
                                     // Add more step validations as needed
-                                    // else 
-                                    //     if (currentStep === 2) {
-                                    //     isValid = validateStep2();
-                                    //     if (!isValid) return;
-                                    // }
-                                    // else 
-                                    // if (currentStep === 3) {
-                                    //     isValid = validateStep3();
-                                    //     if (!isValid) return;
-                                    // }
-                                    //  else 
-                                    // if (currentStep === 4) {
-                                    //     isValid = validateStep4();
-                                    //     if (!isValid) return;
-                                    // }
+                                    else 
+                                        if (currentStep === 2) {
+                                        isValid = validateStep2();
+                                        if (!isValid) return;
+                                    }
+                                    else 
+                                    if (currentStep === 3) {
+                                        isValid = validateStep3();
+                                        if (!isValid) return;
+                                    }
+                                     else 
+                                    if (currentStep === 4) {
+                                        isValid = validateStep4();
+                                        if (!isValid) return;
+                                    }
                                     // ...
 
                                     setCompleted((arr) => {
@@ -8876,7 +8710,7 @@ const VendorRegistrationStepByStepForm = () => {
                 </div>
             </div>
 
-            {loading2 && (
+            {/* {loading2 && (
                 <div className="loader-container">
                     <div className="lds-ring">
                         <div></div>
@@ -8890,7 +8724,7 @@ const VendorRegistrationStepByStepForm = () => {
                     </div>
                     <p>Loading...</p>
                 </div>
-            )}
+            )} */}
 
             <ToastContainer
                 position="top-right"
