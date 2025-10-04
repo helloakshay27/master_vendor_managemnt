@@ -2720,9 +2720,29 @@ const VendorRegistrationStepByStepForm = () => {
                                         }}
                                         onClick={() => setCurrentStep(idx)}
                                     >
-                                        {completed[idx] ? <span style={{ color: '#fff', fontWeight: 'bold', fontSize: 18 }}>✔</span> : idx + 1}
+                                        {idx + 1}
                                     </button>
-                                    <div className="step-label mt-2" style={{ fontSize: 13, minWidth: 60, textAlign: 'center' }}>{step.label}</div>
+                                    <div
+                                        className="step-label mt-2 d-flex align-items-center justify-content-center"
+                                        style={{
+                                            fontSize: 13,
+                                            minWidth: 60,
+                                            textAlign: 'center',
+                                            position: 'relative',
+                                            border: '2px solid #e95420',
+                                            borderRadius: 8,
+                                            padding: '2px 8px',
+                                            background: '#fff',
+                                            boxShadow: completed[idx] ? '0 0 4px #e95420' : 'none',
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                        }}
+                                    >
+                                        {step.label}
+                                        {completed[idx] && (
+                                            <span style={{ color: 'green', fontWeight: 'bold', fontSize: 18, marginLeft: 6, display: 'inline-flex', alignItems: 'center' }}>✔</span>
+                                        )}
+                                    </div>
                                 </div>
                                 {idx < steps.length - 1 && (
                                     <div
@@ -8804,7 +8824,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                 </span>
                                                 1. Has the Vendor ever faced any bribery/corruption case/legal/court cases? If yes, please explain.
                                             </p>
-                                            {/* <textarea className="form-control mb-2" placeholder="Explain if yes" style={{ minHeight: '40px' }} /> */}
+                                            <textarea className="form-control mb-2" placeholder="Explain if yes" style={{ minHeight: '40px' }} />
                                         </div>
                                         <div className="mb-3">
                                             <p>
@@ -8813,7 +8833,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                 </span>
                                                 2. Has the Vendor ever worked with Panchshil Group or had any personal or family connections with anyone there, past or present? If yes, please explain.
                                             </p>
-                                            {/* <textarea className="form-control mb-2" placeholder="Explain if yes" style={{ minHeight: '40px' }} /> */}
+                                            <textarea className="form-control mb-2" placeholder="Explain if yes" style={{ minHeight: '40px' }} />
                                         </div>
                                         <div className="mb-3">
                                             <p>
