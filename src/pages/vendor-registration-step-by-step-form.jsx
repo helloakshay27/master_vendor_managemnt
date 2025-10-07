@@ -1,3 +1,138 @@
+    // Utility function to map majorCustomers state to major_customers_attributes
+    const mapMajorCustomersToPayload = (majorCustomers) => {
+        return majorCustomers.map((c) => ({
+            id: c.isNew ? null : c.id,
+            name: c.companyName || '',
+            company_id: c.companyId || null,
+            work_done: c.workDone || '',
+            attachment: c.attachment || null,
+            contact_person: c.contactPerson || '',
+            designation_id: c.designation?.value || null,
+            country_id: c.country?.value || null,
+            phone: c.phone || '',
+            mobile: c.mobile || '',
+            years_of_association: c.yearOfAssociation || '',
+            service_provided_from: c.serviceFrom || '',
+            service_provided_to: c.serviceTo || '',
+            turn_over: c.businessLast12Months || '',
+            major_competitors: c.majorCompetitors || '',
+            stage_of_project: c.stageOfProject || '',
+            _destroy: c._destroy === true ? true : false
+        }));
+    };
+// Utility: Map contactPersons state to contact_people_attributes
+// Utility: Map owners state to directors_informations_attributes
+const mapOwnersToPayload = (owners) => owners.map((owner) => ({
+    id: owner.id || null,
+    attachment: owner.attachment || '',
+    first_name: owner.firstName || '',
+    last_name: owner.lastName || '',
+    designation_id: owner.designation?.value || null,
+    qualification: owner.qualification || '',
+    experience: owner.experience || '',
+    email: owner.email || '',
+    mobile: owner.mobile || '',
+    _destroy: false
+}));
+const mapContactPersonsToPayload = (contactPersons) => contactPersons.map((person) => ({
+    id: person.id || null,
+    escalation_level: person.escalationLevel?.value || '',
+    attachment: person.attachment || '',
+    name_title_id: person.nameTitle?.value || null,
+    first_name: person.firstName || '',
+    last_name: person.lastName || '',
+    middle_name: person.middleName || '',
+    centeral_posting_block: person.centeralPostingBlock || false,
+    reconciliation_account_id: person.reconciliationAccountId || null,
+    purchasing_block: person.purchasingBlock || false,
+    customer: person.customer || false,
+    payment_block: person.paymentBlock || false,
+    schema_group_id: person.schemaGroupId || null,
+    designation_id: person.designation?.value || null,
+    primary_email: person.primaryEmail || '',
+    secondary_email: person.secondaryEmail || '',
+    primary_mobile: person.primaryMobile || '',
+    secondary_mobile: person.secondaryMobile || '',
+    nationality_string: person.nationality?.label || '',
+    gender: person.gender?.label || '',
+    birth_date: person.dob || '',
+    _destroy: false
+}));
+const mapBranchOfficesToPayload = (branchOffices) => branchOffices.map((office) => ({
+    id:  null,
+    // office.id ||
+    gst_no: office.gst_no || '',
+    gst_cert_file: office.gst_cert_file || '',
+    address: office.address || '',
+    country_id: office.country?.value || null,
+    state_id: office.state?.value || null,
+    city_name: office.city || '',
+    pincode: office.pincode || '',
+    tel_number: office.telephone || '',
+    mobile: office.mobile || '',
+    _destroy: false
+}));
+
+
+// Utility: Map registeredAddress state to office_address_attributes
+const mapRegisteredAddressToPayload = (registeredAddress) => [{
+    id: null,
+    address: registeredAddress.address1 || '',
+    address_type: 'Head Office',
+    email: registeredAddress.billingEmail || '',
+    mobile: registeredAddress.mobile || '',
+    address_line_two: registeredAddress.address2 || '',
+    address_line_three: registeredAddress.address3 || '',
+    address_line_four: registeredAddress.address4 || '',
+    address_line_five: registeredAddress.address5 || '',
+    pms_country_id: registeredAddress.country?.value || null,
+    pms_state_id: registeredAddress.state?.value || null,
+    pms_city_id: null, // Map if city is an object with value, else null
+    pms_location_id: null, // Map if location is available
+    pin_code: registeredAddress.pincode || '',
+    telephone_number: registeredAddress.telephone || '',
+    fax_number: '', // Add if available in state
+    city_name: registeredAddress.city || '',
+    _destroy: false
+}];
+
+// Utility: Map communicationAddress state to communication_address_attributes
+const mapCommunicationAddressToPayload = (communicationAddress) => [{
+    id: null,
+    address: communicationAddress.address1 || '',
+    address_type: 'Factory',
+    email: communicationAddress.orderingEmail || '',
+    mobile: communicationAddress.mobile || '',
+    address_line_two: communicationAddress.address2 || '',
+    address_line_three: communicationAddress.address3 || '',
+    address_line_four: communicationAddress.address4 || '',
+    address_line_five: communicationAddress.address5 || '',
+    pms_country_id: communicationAddress.country?.value || null,
+    pms_state_id: communicationAddress.state?.value || null,
+    pms_city_id: null, // Map if city is an object with value, else null
+    pms_location_id: null, // Map if location is available
+    pin_code: communicationAddress.pincode || '',
+    telephone_number: communicationAddress.telephone || '',
+    fax_number: '', // Add if available in state
+    city_name: communicationAddress.city || '',
+    _destroy: false
+}];
+
+
+const mapWarehousesToPayload = (warehouses) => {
+    return warehouses.map((w) => ({
+        id: w.isNew ? null : w.id,
+        address: w.address || '',
+        country_id: w.country?.value || null,
+        state_id: w.state?.value || null,
+        city_id: w.city?.value || null,
+        pin_code: w.pincode || '',
+        tel_number: w.telephone || '',
+        mobile: w.mobile || '',
+        attachment: w.attachment || null,
+        _destroy: w._destroy === true ? true : false
+    }));
+};
 
 
 
@@ -389,8 +524,8 @@ const VendorRegistrationStepByStepForm = () => {
         }
     };
 
-    console.log("mail otp:", emailOtp)
-    console.log("mobile otp:", mobileOtp)
+    // console.log("mail otp:", emailOtp)
+    // console.log("mobile otp:", mobileOtp)
 
     const handleOtpSubmit = async () => {
         if (!emailOtp && !mobileOtp) {
@@ -486,7 +621,7 @@ const VendorRegistrationStepByStepForm = () => {
         };
         fetchSupplierShowData();
     }, []);
-    console.log("statutory dedeatils:", statutoryDetails)
+    // console.log("statutory dedeatils:", statutoryDetails)
 
 
     // Map supplierShowData to basicInfo when supplierShowData changes
@@ -519,7 +654,7 @@ const VendorRegistrationStepByStepForm = () => {
     }, [supplierShowData]);
 
 
-    console.log("basic info after api:", basicInfo)
+    // console.log("basic info after api:", basicInfo)
 
 
     // Additional Vendor Details state (all fields in one object)
@@ -556,7 +691,7 @@ const VendorRegistrationStepByStepForm = () => {
             try {
                 const response = await axios.get('https://vendors.lockated.com/pms/suppliers/type_of_organization_list');
                 const options = (response.data?.type_of_organizations || []).map(item => ({ label: item.name, value: item.value }));
-                setOrganizationTypeOptions(options);
+                setOrganizationTypeOptions(options );
             } catch (error) {
                 console.error('Error fetching organization types:', error);
             }
@@ -624,6 +759,12 @@ const VendorRegistrationStepByStepForm = () => {
         if (gstinApplicableLabel === 'Yes') {
             if (!basicInfo.gstinNo) {
                 errors.gstinNo = 'This field is required.';
+            } else {
+                // GSTIN format: 15 chars, e.g. 22AAAAA0000A1Z5
+                const gstinRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+                if (!gstinRegex.test(basicInfo.gstinNo)) {
+                    errors.gstinNo = 'Invalid GSTIN format. Example: 22AAAAA0000A1Z5';
+                }
             }
             if (!basicInfo.gstinAttachment) {
                 errors.gstinAttachment = 'This field is required.';
@@ -1420,9 +1561,9 @@ const VendorRegistrationStepByStepForm = () => {
         // const allSiteValid = siteErrs.every(e => Object.keys(e).length === 0);
         // ...existing return...
 
-        return allBranchesValid && allContactsValid && allWarehousesValid && allOwnersValid 
-        // && allRelEmpValid && allGroupValid && allSupValid 
-        && allCustValid 
+        return allBranchesValid && allContactsValid && allWarehousesValid && allOwnersValid
+            // && allRelEmpValid && allGroupValid && allSupValid 
+            && allCustValid
         // && allSiteValid;
 
     };
@@ -2226,475 +2367,131 @@ const VendorRegistrationStepByStepForm = () => {
     };
 
     // console.log("before update")
+
+
+
+
+    const ppayload2 = {
+           
+            
+        pms_supplier: {
+
+            company_id: supplierShowData?.company_id || null,
+            organization_name: basicInfo.vendorOrganizationName,
+
+            cin_number: basicInfo.cin,
+            cin_attachment: basicInfo.cinAttachment,
+
+            llp_number: basicInfo.llp,
+            llp_attachment: basicInfo.llpAttachment,
+
+            type_of_organization_id: basicInfo.organizationType && basicInfo.organizationType.value ? basicInfo.organizationType.value : null,
+            nature_of_business_id: basicInfo.natureOfBusiness,
+            vendor_type: basicInfo.vendorType && basicInfo.vendorType.value ? basicInfo.vendorType.value : null,
+            type_business_id: basicInfo.industryType && basicInfo.industryType.value ? basicInfo.industryType.value : null,
+            type_of_work: basicInfo.typeOfWork,
+            key_market: basicInfo.keyMarket,
+
+            pan_number: basicInfo.panNo,
+            pan_attachment: basicInfo.panAttachment,
+            schema_group_id: basicInfo.schemaGroup,
+            date_of_incorporation: basicInfo.dateOfIncorporation,
+
+
+
+            gstin_applicable:
+                basicInfo.gstinApplicable && basicInfo.gstinApplicable.value === 'Yes' ? true :
+                    basicInfo.gstinApplicable && basicInfo.gstinApplicable.value === 'No' ? false :
+                        null,
+            gst_classification_id: basicInfo.gstinClassification?.value,
+            gstin: basicInfo.gstinNo,
+            gstin_attachment: basicInfo.gstinAttachment,
+            gstin_declaration: basicInfo.gstinDeclaration,
+
+
+
+
+            website: additionalDetails.website,
+            delivery_lead_period: additionalDetails.deliveryLeadPeriod,
+            specify_warranty_period: additionalDetails.warrantyPeriod,
+            amc_provided: additionalDetails.amcProvided,
+            currency: additionalDetails.currencyType && additionalDetails.currencyType.value ? additionalDetails.currencyType.value : null,
+            msme: additionalDetails.msmeUdyamApplicable && additionalDetails.msmeUdyamApplicable.value ? additionalDetails.msmeUdyamApplicable.value : null,
+            einvoicing: additionalDetails.einvoice && additionalDetails.einvoice.value ? additionalDetails.einvoice.value : null,
+            einvoicing_declaration: additionalDetails.einvoiceDeclaration,
+            msme_no: additionalDetails.msmeNo,
+            classification_year: additionalDetails.classificationYear && additionalDetails.classificationYear.value ? additionalDetails.classificationYear.value : null,
+            major_activity: additionalDetails.majorActivity && additionalDetails.majorActivity.value ? additionalDetails.majorActivity.value : null,
+            valid_from: additionalDetails.validFrom,
+            valid_till: additionalDetails.validTill,
+            enterprise: additionalDetails.msmeEnterpriseType && additionalDetails.msmeEnterpriseType.value ? additionalDetails.msmeEnterpriseType.value : null,
+            msme_attachment: additionalDetails.msmeAttachment,
+            msme_declaration: additionalDetails.msmeDeclaration,
+
+            office_address_attributes: mapRegisteredAddressToPayload(registeredAddress),
+            communication_address_attributes: mapCommunicationAddressToPayload(communicationAddress),
+            bank_details_attributes: bankDetailsList.map((item) => ({
+                ...item,
+                id: item.isNew ? null : item.id,
+                attachment: item.isNew
+                    ? bankAttachments[item.id] || null
+                    : bankAttachments[item.id] || (item.attachment ? null : null),
+            })),
+                
+
+  bank_details_attributes: bankDetailsList.map((item) => ({
+        ...item,
+        id: item.isNew ? null : item.id,
+
+        attachment: item.isNew
+          ? bankAttachments[item.id] || null // If new attachment exists, pass it; otherwise, null
+          : bankAttachments[item.id] || (item.attachment ? null : null), // If existing, only pass null if no new file is uploaded
+      })),
+
+      branch_offices_attributes: mapBranchOfficesToPayload(branchOffices),
+      contact_people_attributes: mapContactPersonsToPayload(contactPersons),
+      directors_informations_attributes: mapOwnersToPayload(owners),
+      factory_warehouses_attributes: mapWarehousesToPayload(warehouses),
+    major_customers_attributes: mapMajorCustomersToPayload(majorCustomers),
+
+          
+
+            // annual_turnovers_attributes: [
+            //   {
+            //     id: null,
+            //     financial_year: "2024-25",
+            //     key_markets: "Domestic",
+            //     turnover: "60 Cr",
+            //     attachment: "turnover_statement2.pdf",
+            //     _destroy: false
+            //   }
+            // ],
+
+
+
+            // vendor_re_kyc: {
+            //   status: "completed"
+            // }
+        }
+    }
+
+    console.log("payloaddddddd*********:", ppayload2)
+
+
+    // console.log("basic info:", basicInfo)
+
+
+
+
+
+
+
+
+
+
     // Handle the Update Button Click
     const handleUpdate = async () => {
-        // console.log("innn update")
-        // console.log("rekyc_type:", rekycType);
-
-        // console.log('formSubmitted:', formSubmitted);
-
-        let validationErrors = {};
-        // if (isRekycTypeEmpty || isBankRekyc) {
-        //   bankDetailsList.forEach((bankDetail) => {
-        //     if (bankDetail.isNew) {
-        //       // Only validate if it's a new entry
-        //       if (!bankDetail.bank_name) {
-        //         validationErrors.bank_name = "Bank Name is required.";
-        //       }
-        //       if (!bankDetail.address) {
-        //         validationErrors.address = "Address is required.";
-        //       }
-        //       if (!bankDetail.country_id) {
-        //         validationErrors.country_id = "Country is required.";
-        //       }
-        //       if (!bankDetail.state_id) {
-        //         validationErrors.state_id = "State is required.";
-        //       }
-        //       if (!bankDetail.city_name) {
-        //         validationErrors.city_name = "City is required.";
-        //       }
-        //       // {
-        //       // }
-
-        //       // if (!bankDetail.pincode || isNaN(bankDetail.pincode)) {
-        //       //   validationErrors.pincode = "Valid Pin Code is required.";
-        //       // }
-        //       // For pincode, only validate if there's no input error
-        //       if (!bankDetail.pincode || isNaN(bankDetail.pincode)) {
-        //         if (!inputErrors[bankDetail.id]?.pincode) {
-        //           validationErrors.pincode = "Valid Pin Code is required.";
-        //         }
-        //       }
-
-        //       // if (!bankDetail.account_type) {
-        //       //   validationErrors.account_type = "Account Type is required.";
-        //       // }
-        //       // In your validation section within handleUpdate
-        //       if (!bankDetail.account_type || bankDetail.account_type === "") {
-        //         validationErrors.account_type = "Account Type is required.";
-        //       }
-        //       if (!bankDetail.account_number) {
-        //         validationErrors.account_number = "Account Number is required.";
-        //       }
-        //       // if (!bankDetail.confirm_account_number) {
-        //       //   validationErrors.confirm_account_number =
-        //       //     "Confirm Account Number is required.";
-        //       // }
-        //       if (!bankDetail.confirm_account_number) {
-        //         validationErrors.confirm_account_number =
-        //           "Confirm Account Number is required.";
-        //       } else if (
-        //         bankDetail.account_number !== bankDetail.confirm_account_number
-        //       ) {
-        //         validationErrors.confirm_account_number =
-        //           "Account numbers must match";
-        //         // Show popup alert
-        //         alert("Account Number and Confirm Account Number must match!");
-        //       }
-
-        //       if (bankDetail.account_number !== bankDetail.confirm_account_number) {
-        //         validationErrors.account_match =
-        //           "Account Number and Confirm Account Number must match.";
-        //       }
-        //       if (!bankDetail.branch_name) {
-        //         validationErrors.branch_name = "Branch Name is required.";
-        //       }
-        //       if (!bankDetail.micr_number) {
-        //         validationErrors.micr_number = "MICR Number is required.";
-        //       }
-        //       // if (!bankDetail.ifsc_code) {
-        //       //   validationErrors.ifsc_code = "IFSC Code is required.";
-        //       // } else if (bankDetail.ifsc_code.length > 11) {
-        //       //   validationErrors.ifsc_code =
-        //       //     "IFSC Code cannot be longer than 11 characters.";
-        //       // }
-        //       if (!bankDetail.ifsc_code) {
-        //         if (!inputErrors[bankDetail.id]?.ifsc) {
-        //           validationErrors.ifsc_code = "IFSC Code is required.";
-        //         }
-        //       }
-
-        //       if (!bankDetail.benficary_name) {
-        //         validationErrors.benficary_name = "Beneficiary Name is required.";
-        //       }
-        //       // if (!bankDetail.cancelled_cheque) {
-        //       //   validationErrors.cancelled_cheque =
-        //       //     "Cancelled Cheque / Bank Copy is required.";
-        //       // }
-        //       if (!bankAttachments[bankDetail.id]) {
-        //         validationErrors.cancelled_cheque =
-        //           "Cancelled Cheque / Bank Copy is required.";
-        //       }
-
-        //       // Add other validation checks here
-        //     }
-        //   });
-        // }
-        // In handleUpdate function, modify the bank details validation:
-        if (isRekycTypeEmpty || isBankRekyc) {
-            let hasNewBankDetails = false;
-
-            bankDetailsList.forEach((bankDetail) => {
-                // Only validate if it's a new entry
-                if (bankDetail.isNew) {
-                    hasNewBankDetails = true;
-
-                    if (!bankDetail.bank_name) {
-                        validationErrors.bank_name = "Bank Name is required.";
-                    }
-                    if (!bankDetail.address) {
-                        validationErrors.address = "Address is required.";
-                    }
-                    if (!bankDetail.country_id) {
-                        validationErrors.country_id = "Country is required.";
-                    }
-                    if (!bankDetail.state_id) {
-                        validationErrors.state_id = "State is required.";
-                    }
-                    if (!bankDetail.city_name) {
-                        validationErrors.city_name = "City is required.";
-                    }
-
-                    // For pincode, only validate if it's a new entry and there's no input error
-                    if (!bankDetail.pincode || isNaN(bankDetail.pincode)) {
-                        if (!inputErrors[bankDetail.id]?.pincode) {
-                            validationErrors.pincode = "Valid Pin Code is required.";
-                        }
-                    }
-
-                    if (!bankDetail.account_type || bankDetail.account_type === "") {
-                        validationErrors.account_type = "Account Type is required.";
-                    }
-                    if (!bankDetail.account_number) {
-                        validationErrors.account_number = "Account Number is required.";
-                    }
-                    if (!bankDetail.confirm_account_number) {
-                        validationErrors.confirm_account_number =
-                            "Confirm Account Number is required.";
-                    } else if (
-                        bankDetail.account_number !== bankDetail.confirm_account_number
-                    ) {
-                        validationErrors.confirm_account_number =
-                            "Account numbers must match";
-                    }
-
-                    if (!bankDetail.branch_name) {
-                        validationErrors.branch_name = "Branch Name is required.";
-                    }
-                    if (!bankDetail.micr_number) {
-                        validationErrors.micr_number = "MICR Number is required.";
-                    }
-
-                    // For IFSC code, only validate if it's a new entry and there's no input error
-                    if (!bankDetail.ifsc_code) {
-                        if (!inputErrors[bankDetail.id]?.ifsc) {
-                            validationErrors.ifsc_code = "IFSC Code is required.";
-                        }
-                    }
-
-                    if (!bankDetail.benficary_name) {
-                        validationErrors.benficary_name = "Beneficiary Name is required.";
-                    }
-
-                    if (!bankAttachments[bankDetail.id]) {
-                        validationErrors.cancelled_cheque =
-                            "Cancelled Cheque / Bank Copy is required.";
-                    }
-                }
-            });
-
-            // If there are no new bank details, don't show validation errors
-            if (!hasNewBankDetails) {
-                validationErrors = {};
-            }
-        }
-
-        if (!contactNumber) {
-            validationErrors.contactNumber = "Contact Number is required.";
-        } else if (!/^\d{10}$/.test(contactNumber)) {
-            validationErrors.contactNumber = "Enter a valid 10-digit Contact Number.";
-        }
-
-        if (!emailAddress) {
-            validationErrors.emailAddress = "Email Address is required.";
-        } else if (
-            !/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(emailAddress)
-        ) {
-            validationErrors.emailAddress = "Enter a valid Email Address.";
-        }
-
-        if (isRekycTypeEmpty || isMsmeRekyc) {
-            // Validate MSME/Udyam Number Applicable
-            if (!msmeUdyamApplicable) {
-                validationErrors.msmeUdyamApplicable =
-                    "MSME/Udyam Number Applicable is required.";
-            }
-
-            // Validate MSME/Udyam Number if MSME/Udyam is applicable
-            if (msmeUdyamApplicable === "Yes" && !msmeNo) {
-                validationErrors.msmeNo = "MSME/Udyam Number is required.";
-            }
-
-            // Validate MSME/Udyam Valid From if MSME/Udyam is applicable
-            if (msmeUdyamApplicable === "Yes" && !validFrom) {
-                validationErrors.validFrom = "MSME/Udyam Valid From date is required.";
-            }
-
-            // Validate MSME/Udyam Valid Till if MSME/Udyam is applicable
-            if (msmeUdyamApplicable === "Yes" && !validTill) {
-                validationErrors.validTill = "MSME/Udyam Valid Till date is required.";
-            }
-
-            // Validate MSME Enterprise Type if MSME/Udyam is applicable
-            if (msmeUdyamApplicable === "Yes" && !msmeEnterpriseType) {
-                validationErrors.msmeEnterpriseType =
-                    "MSME Enterprise Type is required.";
-            }
-
-            // Validate Major Activity
-            if (msmeUdyamApplicable === "Yes" && !majorActivity) {
-                validationErrors.majorActivity = "Major Activity is required.";
-            }
-
-            if (msmeUdyamApplicable === "Yes" && !classificationYear) {
-                validationErrors.classificationYear =
-                    "Classification Year is required.";
-            }
-
-            // Validate Classification Date
-            if (msmeUdyamApplicable === "Yes" && !classificationDate) {
-                validationErrors.classificationDate =
-                    "Classification Date is required.";
-            }
-
-            if (
-                msmeUdyamApplicable === "Yes" &&
-                supplierData?.msme_details?.msme_attachments?.length === 0 &&
-                msmeAttachments.length === 0 // Also check msmeAttachments state
-            ) {
-                validationErrors.msmeAttachments = "MSME/Udyam Attachment is required.";
-            }
-        }
-
-        if (isRekycTypeEmpty || isGstinRekyc) {
-            if (!gstApplicable) {
-                validationErrors.gstApplicable = "GST Applicable is required.";
-            } else if (gstApplicable === "Yes") {
-                // if (!gstClassification?.value)
-                //   validationErrors.gstClassification =
-                //     "GST Classification is required.";
-                if (!gstinNumber)
-                    validationErrors.gstinNumber = "GSTIN Number is required.";
-                // if (supplierData?.basic_information?.gstin_attachments.length === 0)
-                //   validationErrors.gstinAttachments = "GSTIN Attachment is required.";
-                if (
-                    (supplierData?.basic_information?.gstin_attachments.length === 0 ||
-                        !supplierData?.basic_information?.gstin_attachments) &&
-                    gstinAttachments.length === 0
-                ) {
-                    validationErrors.gstinAttachments = "GSTIN Attachment is required.";
-                }
-            }
-        }
-
-        // name ekyc
-        if (isRekycTypeEmpty || isNameRekyc) {
-            console.log("is name rekyc true")
-
-            if (!msmeUdyamApplicable) {
-                validationErrors.msmeUdyamApplicable =
-                    "MSME/Udyam Number Applicable is required.";
-            }
-
-            console.log("msme:", !msmeUdyamApplicable)
-
-
-
-            const statutoryErrors = validateStatutoryInputs() || {};
-
-            if (Object.keys(statutoryErrors).length > 0) {
-                setStatutoryErrors(statutoryErrors); // show inline errors if needed
-                // return; // stop submission
-            }
-
-
-
-
-            // if (!isValid) {
-            //   return; // Stop submit if validation failed
-            // }
-            if (!organizationName?.trim()) {
-                validationErrors.organizationName = "Organization Name is required.";
-            }
-
-            // PAN Attachment
-            // const hasExistingPan = supplierData?.basic_information?.pan_attachments?.length > 0;
-            // const hasNewPan = panAttachments.length > 0;
-            // if (!hasExistingPan && !hasNewPan) {
-            //   validationErrors.panAttachments = "PAN Attachment is required.";
-            // }
-            // console.log("has pan :",!hasNewPan)
-
-            // console.log("existingPan:", supplierData?.basic_information?.pan_attachments);
-            // console.log("newPan:", panAttachments);
-            // console.log("hasExistingPan:", hasExistingPan);
-            // console.log("hasNewPan:", hasNewPan);
-            if (
-                // (!supplierData?.basic_information?.pan_attachements?.length || supplierData.basic_information.pan_attachements.length === 0) &&
-                panAttachments.length === 0
-            ) {
-                validationErrors.panAttachments = "PAN Attachment is required.";
-            }
-
-
-            // MSME Attachment
-            if (
-                // (msmeUdyamApplicable === "Yes" && !supplierData?.basic_information?.msme_attachments?.length || supplierData.basic_information.msme_attachments.length === 0) &&
-                // msmeAttachments2.length === 0
-
-                (msmeUdyamApplicable === "Yes" &&
-                    msmeAttachments2.length === 0
-                )
-            ) {
-                validationErrors.msmeAttachments2 = "MSME Attachment is required.";
-            }
-
-            // CIN Attachment
-            if (
-                // (!supplierData?.basic_information?.cin_number_attachments?.length || supplierData?.basic_information?.cin_number_attachments.length === 0) &&
-                cinAttachments.length === 0
-            ) {
-                validationErrors.cinAttachments = "CIN Attachment is required.";
-            }
-
-            // GSTIN Attachment (Name Rekyc)
-            if (
-                // (!supplierData?.basic_information?.gstin_attachments?.length || supplierData.basic_information.gstin_attachments.length === 0) &&
-                gstinAttachments2.length === 0
-            ) {
-                validationErrors.gstinAttachments2 = "GSTIN Attachment is required.";
-            }
-
-            // // Bank Cheque Attachment
-            // if (
-            //   (!supplierData?.basic_information?.bank_attachments_attachments?.length || supplierData.basic_information.bank_attachments_attachments.length === 0) &&
-            //   bankChequeAttachments.length === 0
-            // ) {
-            //   validationErrors.bankChequeAttachments = "Bank Cheque Attachment is required.";
-            // }
-
-
-        }
-
-
-        // Add this inside your validation logic
-        if (!isChecked) {
-            validationErrors.declaration =
-                "Please check the declaration box to proceed.";
-        }
-
-        // Set errors and return if validation fails
-        // setErrors(validationErrors);
-        if (Object.keys(validationErrors).length > 0) {
-            // return false; // Return false if there are validation errors
-            console.log("Validation Errors:", validationErrors);
-            return setErrors(validationErrors);
-        } else {
-            setLoading(true);
-            console.log("Validation passed. Sending API request...");
-
-            // condition wise payload
-            const payload = {
-                authenticity_token: "[FILTERED]", // No quotes for the token value, but the key is a string
-                vendor_re_kyc: {
-                    status: "details_submitted_by_vendor",
-                },
-                pms_supplier: {
-                    rekyc_id: rekyc_id,
-                    mobile: contactNumber, // Add Contact Number
-                    email: emailAddress, // Add Email Address
-                },
-            };
-            // If the condition is met, include only GSTN-related fields
-            if (isRekycTypeEmpty || isGstinRekyc) {
-                payload.pms_supplier = {
-                    ...payload.pms_supplier, // Keep existing keys
-                    gstin_applicable: gstApplicable || null,
-                    ...(gstApplicable === "Yes" && {
-                        gst_classification_id: gstClassification?.value || null,
-                        gstin: gstinNumber || "",
-                        gstin_attachments: gstinAttachments || [],
-                    }),
-                };
-            }
-
-            // If the condition is met, include only Bank Details
-            if (isRekycTypeEmpty || isBankRekyc) {
-                payload.pms_supplier = {
-                    ...payload.pms_supplier, // Keep existing keys
-                    bank_details_attributes: bankDetailsList.map((item) => ({
-                        ...item,
-                        id: item.isNew ? null : item.id,
-                        account_type: item.account_type || "", // Ensure account_type is included
-
-                        attachment: item.isNew
-                            ? bankAttachments[item.id] || null // If new attachment exists, pass it; otherwise, null
-                            : bankAttachments[item.id] || (item.attachment ? null : null), // If existing, only pass null if no new file is uploaded
-                    })),
-
-                    deletedBankDetails: deletedBankDetails || [], // Deleted bank details, if any
-                };
-            }
-
-            // If the condition is met, include only MSME-related fields
-            if (isRekycTypeEmpty || isMsmeRekyc) {
-                payload.pms_supplier = {
-                    ...payload.pms_supplier, // Keep existing keys
-                    msme: msmeUdyamApplicable || "",
-                    msme_no: msmeUdyamApplicable === "No" ? "" : msmeNo || null,
-                    valid_from: msmeUdyamApplicable === "No" ? "" : validFrom || null,
-                    valid_till: msmeUdyamApplicable === "No" ? "" : validTill || null,
-                    enterprise:
-                        msmeUdyamApplicable === "No" ? "" : msmeEnterpriseType || null,
-                    major_activity:
-                        msmeUdyamApplicable === "No" ? "" : majorActivity || null,
-                    classification_year:
-                        msmeUdyamApplicable === "No" ? "" : classificationYear || null,
-                    classification_date:
-                        msmeUdyamApplicable === "No" ? "" : classificationDate || null,
-                    msme_attachments: msmeUdyamApplicable === "No" ? [] : msmeAttachments,
-                };
-            }
-
-            // If the condition is met, include only E-Invoicing-related fields
-            if (isRekycTypeEmpty || isEnvoiceRekyc) {
-                payload.pms_supplier = {
-                    ...payload.pms_supplier, // Keep existing keys
-                    einvoicing: eInvoicingApplicable || "",
-                    einvoicing_attachments:
-                        eInvoicingApplicable === "No" ? einvoicingAttachments || [] : [],
-                };
-            }
-
-
-            // for name rekyc
-            if (isRekycTypeEmpty || isNameRekyc) {
-                payload.pms_supplier = {
-                    ...payload.pms_supplier,
-                    organization_name: organizationName || "",
-                    pan_attachments: panAttachments || [],
-                    msme: msmeUdyamApplicable || "",
-                    msme_attachments: msmeAttachments2 || [],
-                    cin_attachments: cinAttachments || [],
-                    gstin_attachments: gstinAttachments2 || [],
-                    bank_attachments_attachments: bankChequeAttachments || [],
-                    statutory_details: statutoryPayload || [],
-                    einvoicing: eInvoicingApplicable || "",
-                    einvoicing_attachments: eInvoicingApplicable === "No" ? einvoicingAttachments || [] : [],
-                };
-            }
-
-            console.log("payload submition with conditions:", payload);
+      
 
             try {
                 const response = await axios.patch(
@@ -2724,7 +2521,7 @@ const VendorRegistrationStepByStepForm = () => {
                 setLoading(false);
             }
         }
-    };
+    
 
     const options = [
         { value: "", label: "Select" },
@@ -2844,7 +2641,7 @@ const VendorRegistrationStepByStepForm = () => {
                                         }}
                                         title={step.label}
                                     >
-                                        <span style={{overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1}}>{step.label}</span>
+                                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{step.label}</span>
                                         {completed[idx] && (
                                             <span style={{ color: 'green', fontWeight: 'bold', fontSize: 18, marginLeft: 6, display: 'inline-flex', alignItems: 'center' }}>✔</span>
                                         )}
@@ -2925,27 +2722,57 @@ const VendorRegistrationStepByStepForm = () => {
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div className="row mb-3">
-                                                <div className="col-md-6 d-flex align-items-center">
-                                                    <button className="purple-btn2 me-3" type="button" onClick={handleGetOtp}>Get OTP</button>
+                                            <div className="row mb-3 justify-content-center">
+                                                <div className="col-md-6 d-flex justify-content-center">
+                                                    <button className="purple-btn2" type="button" onClick={handleGetOtp}>Get OTP</button>
                                                 </div>
-
-
                                             </div>
 
                                             <div className="row w-100 mb-3">
                                                 <div className="col-md-6">
-                                                    <input className="form-control" type="number" placeholder="Enter Email OTP" value={emailOtp}
-                                                        onChange={e => setEmailOtp(e.target.value)} />
+                                                    <input
+                                                        className="form-control"
+                                                        type="number"
+                                                        placeholder="Enter Email OTP"
+                                                        value={emailOtp}
+                                                        min={0}
+                                                        max={99999}
+                                                        onInput={e => {
+                                                            let val = e.target.value.replace(/[^0-9]/g, '');
+                                                            if (val.length > 5) val = val.slice(0, 5);
+                                                            setEmailOtp(val);
+                                                        }}
+                                                        onKeyDown={e => {
+                                                            if (e.key === '-' || e.key === 'e' || e.keyCode === 109 || e.keyCode === 189) {
+                                                                e.preventDefault();
+                                                            }
+                                                        }}
+                                                    />
                                                     <span style={{ background: '#fff', color: '#e95420', padding: '2px 8px', borderRadius: '4px', fontSize: '0.95em', display: 'inline-block', marginTop: '4px' }}>*Note: Any One OTP Is Mandatory To Proceed</span>
                                                 </div>
                                                 <div className="col-md-6">
-                                                    <input className="form-control" type="number" placeholder="Enter Mobile OTP" value={mobileOtp}
-                                                        onChange={e => setMobileOtp(e.target.value)} />
+                                                    <input
+                                                        className="form-control"
+                                                        type="number"
+                                                        placeholder="Enter Mobile OTP"
+                                                        value={mobileOtp}
+                                                        min={0}
+                                                        max={99999}
+                                                        onInput={e => {
+                                                            let val = e.target.value.replace(/[^0-9]/g, '');
+                                                            if (val.length > 5) val = val.slice(0, 5);
+                                                            setMobileOtp(val);
+                                                        }}
+                                                        onKeyDown={e => {
+                                                            if (e.key === '-' || e.key === 'e' || e.keyCode === 109 || e.keyCode === 189) {
+                                                                e.preventDefault();
+                                                            }
+                                                        }}
+                                                    />
                                                 </div>
                                             </div>
                                             <div className="d-flex justify-content-center mt-3">
-                                                <button className="purple-btn2 w-100" onClick={() => {
+                                                <button className="purple-btn2 " onClick={() => {
                                                     handleOtpSubmit();
                                                 }}>Submit</button>
                                             </div>
@@ -3069,6 +2896,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                     className="form-control"
                                                     type="text"
                                                     value={basicInfo.vendorOrganizationName}
+                                                    disabled
                                                     onChange={e => updateBasicInfo('vendorOrganizationName', e.target.value)}
                                                 />
                                                 {basicInfoErrors.vendorOrganizationName && (
@@ -3083,10 +2911,10 @@ const VendorRegistrationStepByStepForm = () => {
                                                     <TooltipIcon message="Choose the type of your organization from the options provided to help us better understand your profile." />
                                                 </label>
                                                 <SingleSelector
-                                                    options={organizationTypeOptions}
+                                                    options={organizationTypeOptions || []}
                                                     placeholder="Select Organization Type"
                                                     value={basicInfo.organizationType}
-                                                    onChange={val => updateBasicInfo('organizationType', val)}
+                                                    onChange={val => updateBasicInfo('organizationType', val || null)}
                                                 />
                                                 {basicInfoErrors.organizationType && (
                                                     <div className="ValidationColor">{basicInfoErrors.organizationType}</div>
@@ -3106,7 +2934,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                     options={natureOfBusinessOptions || []}
                                                     placeholder="Select Nature of Business"
                                                     isDisabled={true}
-                                                    value={natureOfBusinessOptions.find(opt => opt.value === basicInfo.natureOfBusiness) || null}
+                                                    value={natureOfBusinessOptions.find(opt => opt.value === basicInfo.natureOfBusiness) }
                                                     onChange={val => updateBasicInfo('natureOfBusiness', val)}
                                                 />
                                                 {basicInfoErrors.natureOfBusiness && (
@@ -3358,7 +3186,7 @@ const VendorRegistrationStepByStepForm = () => {
                                         </div>
 
                                         {(
-                                            basicInfo.organizationType.label === 'Private Limited' || basicInfo.organizationType.label === 'Public Limited') && (
+                                            basicInfo?.organizationType?.label === 'Private Limited' || basicInfo?.organizationType?.label === 'Public Limited') && (
                                                 <>
                                                     <div className="col-md-4 mt-2">
                                                         <div className="form-group">
@@ -3398,7 +3226,7 @@ const VendorRegistrationStepByStepForm = () => {
                                             )}
 
                                         {(
-                                            basicInfo.organizationType.label === 'Limited Liability Partnership (LLP)') && (
+                                            basicInfo?.organizationType?.label === 'Limited Liability Partnership (LLP)') && (
                                                 <>
                                                     <div className="col-md-4 mt-2">
                                                         <div className="form-group">
@@ -3468,13 +3296,27 @@ const VendorRegistrationStepByStepForm = () => {
                                                     GSTIN Classification
                                                     {/* <TooltipIcon message="Please choose your country from the list" /> */}
                                                 </label>
-                                                <SingleSelector
+                                                {/* <SingleSelector
                                                     options={gstinClassificationOptions || []}
                                                     value={gstinClassificationOptions.find(opt => opt.value === basicInfo.gstinClassification) || null}
                                                     onChange={val => updateBasicInfo('gstinClassification', val)}
                                                     placeholder="Select Country"
                                                     //  isDisabled={basicInfo.gstinApplicable === 'Yes' ? false : true}
 
+                                                    isDisabled={
+                                                        basicInfo.gstinApplicable === 'Yes' ||
+                                                            basicInfo.gstinApplicable?.value === 'Yes'
+                                                            ? false
+                                                            : true
+                                                    }
+                                                /> */}
+
+
+                                                <SingleSelector
+                                                    options={gstinClassificationOptions || []}
+                                                    value={basicInfo.gstinClassification || null}
+                                                    onChange={val => updateBasicInfo('gstinClassification', val)}
+                                                    placeholder="Select GSTIN Classification"
                                                     isDisabled={
                                                         basicInfo.gstinApplicable === 'Yes' ||
                                                             basicInfo.gstinApplicable?.value === 'Yes'
@@ -3502,7 +3344,18 @@ const VendorRegistrationStepByStepForm = () => {
                                                                 className="form-control"
                                                                 type="text"
                                                                 value={basicInfo.gstinNo}
-                                                                onChange={e => updateBasicInfo('gstinNo', e.target.value)}
+                                                                onChange={e => {
+                                                                    const val = e.target.value.toUpperCase();
+                                                                    updateBasicInfo('gstinNo', val);
+                                                                    // GSTIN format: 15 chars, e.g. 22AAAAA0000A1Z5
+                                                                    const gstinRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+                                                                    if (val && !gstinRegex.test(val)) {
+                                                                        setBasicInfoErrors(prev => ({ ...prev, gstinNo: 'Invalid GSTIN format. Example: 22AAAAA0000A1Z5' }));
+                                                                    } else {
+                                                                        setBasicInfoErrors(prev => ({ ...prev, gstinNo: undefined }));
+                                                                    }
+                                                                }}
+                                                                maxLength={15}
                                                             />
                                                             {basicInfoErrors.gstinNo && (
                                                                 <div className="ValidationColor">{basicInfoErrors.gstinNo}</div>
@@ -9075,20 +8928,22 @@ const VendorRegistrationStepByStepForm = () => {
                     {/* Navigation buttons */}
                     {currentStep !== 0 && (
                         <div className="d-flex justify-content-center mt-4" style={{ gap: '1rem' }}>
-                            <button
-                                className="purple-btn1"
-                                onClick={() => {
-                                    setCompleted((arr) => {
-                                        const copy = [...arr];
-                                        copy[currentStep - 1] = false;
-                                        return copy;
-                                    });
-                                    setCurrentStep((s) => Math.max(s - 1, 0));
-                                }}
-                                disabled={currentStep === 0}
-                            >
-                                Back
-                            </button>
+                            {(currentStep > 1) && (
+                                <button
+                                    className="purple-btn1"
+                                    onClick={() => {
+                                        setCompleted((arr) => {
+                                            const copy = [...arr];
+                                            copy[currentStep - 1] = false;
+                                            return copy;
+                                        });
+                                        setCurrentStep((s) => Math.max(s - 1, 0));
+                                    }}
+                                    disabled={currentStep === 0}
+                                >
+                                    Back
+                                </button>
+                            )}
                             <button
                                 className="purple-btn2 me-2"
                                 // onClick={() => {
@@ -9101,32 +8956,32 @@ const VendorRegistrationStepByStepForm = () => {
                                 // }}
 
 
-                                  onClick={() => {
+                                onClick={() => {
                                     // Step-wise validation logic
                                     let isValid = true;
-                                    if (currentStep === 1) {
-                                        isValid = validateBasicInfo();
-                                        if (!isValid) return;
-                                    }
-                                    // Add more step validations as needed
-                                    else if (currentStep === 2) {
-                                        isValid = validateStep2();
-                                        if (!isValid) return;
-                                    }
-                                    else if (currentStep === 3) {
-                                        isValid = validateStep3();
-                                        if (!isValid) return;
-                                    }
-                                    else if (currentStep === 4) {
-                                        isValid = validateStep4();
-                                        if (!isValid) return;
-                                    }
-                                    // ...
+                                    // if (currentStep === 1) {
+                                    //     isValid = validateBasicInfo();
+                                    //     if (!isValid) return;
+                                    // }
+                                    // // Add more step validations as needed
+                                    // else if (currentStep === 2) {
+                                    //     isValid = validateStep2();
+                                    //     if (!isValid) return;
+                                    // }
+                                    // else if (currentStep === 3) {
+                                    //     isValid = validateStep3();
+                                    //     if (!isValid) return;
+                                    // }
+                                    // else if (currentStep === 4) {
+                                    //     isValid = validateStep4();
+                                    //     if (!isValid) return;
+                                    // }
+                                    // // ...
 
-                                    // Save as draft logic
-                                    if (typeof saveDraft === 'function') {
-                                        saveDraft();
-                                    }
+                                    // // Save as draft logic
+                                    // if (typeof saveDraft === 'function') {
+                                    //     saveDraft();
+                                    // }
                                     setCompleted((arr) => {
                                         const copy = [...arr];
                                         copy[currentStep] = true;
