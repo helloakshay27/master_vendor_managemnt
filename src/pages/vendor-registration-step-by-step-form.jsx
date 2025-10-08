@@ -663,7 +663,7 @@ const VendorRegistrationStepByStepForm = () => {
         warrantyPeriod: "",
         amcProvided: null,
         website: "",
-        currencyType: null,
+        currencyType: { label: 'INR', value: 'INR' },
         msmeUdyamApplicable: null,
         einvoice: null,
         einvoiceDeclaration: null,
@@ -3198,7 +3198,21 @@ const VendorRegistrationStepByStepForm = () => {
                                                                 className="form-control"
                                                                 type="text"
                                                                 value={basicInfo.cin}
-                                                                onChange={e => updateBasicInfo('cin', e.target.value)}
+                                                                maxLength={21}
+                                                                onChange={e => {
+                                                                    let val = e.target.value.toUpperCase();
+                                                                    if (val.length > 21) {
+                                                                        val = val.slice(0, 21);
+                                                                    }
+                                                                    updateBasicInfo('cin', val);
+                                                                    // CIN format: 21 alphanumeric characters
+                                                                    const cinRegex = /^[A-Za-z0-9]{21}$/;
+                                                                    if (val && !cinRegex.test(val)) {
+                                                                        setBasicInfoErrors(prev => ({ ...prev, cin: 'Enter a valid CIN format. Must be 21 alphanumeric characters.' }));
+                                                                    } else {
+                                                                        setBasicInfoErrors(prev => ({ ...prev, cin: undefined }));
+                                                                    }
+                                                                }}
                                                             />
                                                             {basicInfoErrors.cin && (
                                                                 <div className="ValidationColor">{basicInfoErrors.cin}</div>
@@ -3238,7 +3252,17 @@ const VendorRegistrationStepByStepForm = () => {
                                                                 className="form-control"
                                                                 type="text"
                                                                 value={basicInfo.llp}
-                                                                onChange={e => updateBasicInfo('llp', e.target.value)}
+                                                                onChange={e => {
+                                                                    const val = e.target.value.toUpperCase();
+                                                                    updateBasicInfo('llp', val);
+                                                                    // LLP format: 3 uppercase letters, hyphen, 4 digits (e.g. AAA-1234)
+                                                                    const llpRegex = /^[A-Z]{3}-\d{4}$/;
+                                                                    if (val && !llpRegex.test(val)) {
+                                                                        setBasicInfoErrors(prev => ({ ...prev, llp: 'Enter a valid LLP format. e.g.: AAA-1234' }));
+                                                                    } else {
+                                                                        setBasicInfoErrors(prev => ({ ...prev, llp: undefined }));
+                                                                    }
+                                                                }}
                                                             />
                                                             {basicInfoErrors.llp && (
                                                                 <div className="ValidationColor">{basicInfoErrors.llp}</div>
@@ -3350,7 +3374,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                                     // GSTIN format: 15 chars, e.g. 22AAAAA0000A1Z5
                                                                     const gstinRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
                                                                     if (val && !gstinRegex.test(val)) {
-                                                                        setBasicInfoErrors(prev => ({ ...prev, gstinNo: 'Invalid GSTIN format. Example: 22AAAAA0000A1Z5' }));
+                                                                        setBasicInfoErrors(prev => ({ ...prev, gstinNo: 'Enter a valid GSTIN format. e.g.: 22AAAAA0000A1Z5' }));
                                                                     } else {
                                                                         setBasicInfoErrors(prev => ({ ...prev, gstinNo: undefined }));
                                                                     }
@@ -4195,14 +4219,36 @@ const VendorRegistrationStepByStepForm = () => {
                                                     className="form-control"
                                                     type="text"
                                                     value={registeredAddress.pincode}
-                                                    onChange={e => handleRegisteredAddressChange('pincode', e.target.value)}
+                                                    maxLength={6}
+                                                    onChange={e => {
+                                                        const val = e.target.value.replace(/[^0-9]/g, '');
+                                                        handleRegisteredAddressChange('pincode', val);
+                                                        // Pin code must be 6 digits
+                                                        if (val && !/^\d{6}$/.test(val)) {
+                                                            setAddressErrors(prev => ({
+                                                                ...prev,
+                                                                registered: {
+                                                                    ...prev.registered,
+                                                                    pincode: 'Pin code must be 6 digits.'
+                                                                }
+                                                            }));
+                                                        } else {
+                                                            setAddressErrors(prev => ({
+                                                                ...prev,
+                                                                registered: {
+                                                                    ...prev.registered,
+                                                                    pincode: undefined
+                                                                }
+                                                            }));
+                                                        }
+                                                    }}
                                                 />
                                                 {addressErrors.registered.pincode && (
                                                     <div className="ValidationColor">{addressErrors.registered.pincode}</div>
                                                 )}
                                             </div>
                                         </div>
-                                        <div className="col-md-4  mt-2">
+                                        {/* <div className="col-md-4  mt-2">
                                             <div className="form-group">
                                                 <label>
                                                     Telephone Phone No.
@@ -4217,18 +4263,43 @@ const VendorRegistrationStepByStepForm = () => {
                                                 />
 
                                             </div>
-                                        </div>
+                                        </div> */}
                                         <div className="col-md-4  mt-2">
                                             <div className="form-group">
                                                 <label>
-                                                    Mobile Number <span>*</span>
+                                                    Contact Number <span>*</span>
                                                     <TooltipIcon message="Please provide the full mobile number, including the country code. Ensure the number is correct and formatted properly.." />
                                                 </label>
                                                 <input
                                                     className="form-control"
-                                                    type="number"
+                                                    type="text"
                                                     value={registeredAddress.mobile}
-                                                    onChange={e => handleRegisteredAddressChange('mobile', e.target.value)}
+                                                    maxLength={10}
+                                                    onChange={e => {
+                                                        let val = e.target.value.replace(/[^0-9]/g, '');
+                                                        if (val.length > 10) {
+                                                            val = val.slice(0, 10);
+                                                        }
+                                                        handleRegisteredAddressChange('mobile', val);
+                                                        // Mobile number must be exactly 10 digits
+                                                        if (val && val.length !== 10) {
+                                                            setAddressErrors(prev => ({
+                                                                ...prev,
+                                                                registered: {
+                                                                    ...prev.registered,
+                                                                    mobile: 'Contact number must be exactly 10 digits.'
+                                                                }
+                                                            }));
+                                                        } else {
+                                                            setAddressErrors(prev => ({
+                                                                ...prev,
+                                                                registered: {
+                                                                    ...prev.registered,
+                                                                    mobile: undefined
+                                                                }
+                                                            }));
+                                                        }
+                                                    }}
                                                 />
                                                 {addressErrors.registered.mobile && (
                                                     <div className="ValidationColor">{addressErrors.registered.mobile}</div>
@@ -4246,7 +4317,29 @@ const VendorRegistrationStepByStepForm = () => {
                                                     className="form-control"
                                                     type="text"
                                                     value={registeredAddress.orderingEmail}
-                                                    onChange={e => handleRegisteredAddressChange('orderingEmail', e.target.value)}
+                                                    onChange={e => {
+                                                        const val = e.target.value;
+                                                        handleRegisteredAddressChange('orderingEmail', val);
+                                                        // Email format validation
+                                                        const emailRegex = /^[\w-.]+@([\w-]+\.)+[\w-]{2,}$/;
+                                                        if (val && !emailRegex.test(val)) {
+                                                            setAddressErrors(prev => ({
+                                                                ...prev,
+                                                                registered: {
+                                                                    ...prev.registered,
+                                                                    orderingEmail: 'Enter a valid email address. e.g. : abc@gmail.com'
+                                                                }
+                                                            }));
+                                                        } else {
+                                                            setAddressErrors(prev => ({
+                                                                ...prev,
+                                                                registered: {
+                                                                    ...prev.registered,
+                                                                    orderingEmail: undefined
+                                                                }
+                                                            }));
+                                                        }
+                                                    }}
                                                 />
                                                 {addressErrors.registered.orderingEmail && (
                                                     <div className="ValidationColor">{addressErrors.registered.orderingEmail}</div>
@@ -4441,7 +4534,29 @@ const VendorRegistrationStepByStepForm = () => {
                                                     className="form-control"
                                                     type="text"
                                                     value={communicationAddress.pincode}
-                                                    onChange={e => handleCommunicationAddressChange('pincode', e.target.value)}
+                                                    maxLength={6}
+                                                    onChange={e => {
+                                                        const val = e.target.value.replace(/[^0-9]/g, '');
+                                                        handleCommunicationAddressChange('pincode', val);
+                                                        // Pin code must be 6 digits
+                                                        if (val && !/^\d{6}$/.test(val)) {
+                                                            setAddressErrors(prev => ({
+                                                                ...prev,
+                                                                communication: {
+                                                                    ...prev.communication,
+                                                                    pincode: 'Pin code must be 6 digits.'
+                                                                }
+                                                            }));
+                                                        } else {
+                                                            setAddressErrors(prev => ({
+                                                                ...prev,
+                                                                communication: {
+                                                                    ...prev.communication,
+                                                                    pincode: undefined
+                                                                }
+                                                            }));
+                                                        }
+                                                    }}
                                                     disabled={sameAsRegistered}
                                                 />
                                                 {addressErrors.communication.pincode && (
@@ -4449,12 +4564,12 @@ const VendorRegistrationStepByStepForm = () => {
                                                 )}
                                             </div>
                                         </div>
-                                        <div className="col-md-4  mt-2">
+                                        {/* <div className="col-md-4  mt-2">
                                             <div className="form-group">
                                                 <label>
                                                     Telephone Phone No.
                                                     {/* <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." /> */}
-                                                </label>
+                                                {/* </label>
                                                 <input
                                                     className="form-control"
                                                     type="text"
@@ -4463,18 +4578,43 @@ const VendorRegistrationStepByStepForm = () => {
                                                     disabled={sameAsRegistered}
                                                 />
                                             </div>
-                                        </div>
+                                        </div> */} 
                                         <div className="col-md-4  mt-2">
                                             <div className="form-group">
                                                 <label>
-                                                    Mobile Number <span>*</span>
+                                                     Contact  Number <span>*</span>
                                                     {/* <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." /> */}
                                                 </label>
                                                 <input
                                                     className="form-control"
                                                     type="text"
                                                     value={communicationAddress.mobile}
-                                                    onChange={e => handleCommunicationAddressChange('mobile', e.target.value)}
+                                                    maxLength={10}
+                                                    onChange={e => {
+                                                        let val = e.target.value.replace(/[^0-9]/g, '');
+                                                        if (val.length > 10) {
+                                                            val = val.slice(0, 10);
+                                                        }
+                                                        handleCommunicationAddressChange('mobile', val);
+                                                        // Mobile number must be exactly 10 digits
+                                                        if (val && val.length !== 10) {
+                                                            setAddressErrors(prev => ({
+                                                                ...prev,
+                                                                communication: {
+                                                                    ...prev.communication,
+                                                                    mobile: 'Contact number must be exactly 10 digits.'
+                                                                }
+                                                            }));
+                                                        } else {
+                                                            setAddressErrors(prev => ({
+                                                                ...prev,
+                                                                communication: {
+                                                                    ...prev.communication,
+                                                                    mobile: undefined
+                                                                }
+                                                            }));
+                                                        }
+                                                    }}
                                                     disabled={sameAsRegistered}
                                                 />
                                                 {addressErrors.communication.mobile && (
@@ -4492,7 +4632,29 @@ const VendorRegistrationStepByStepForm = () => {
                                                     className="form-control"
                                                     type="text"
                                                     value={communicationAddress.orderingEmail}
-                                                    onChange={e => handleCommunicationAddressChange('orderingEmail', e.target.value)}
+                                                    onChange={e => {
+                                                        const val = e.target.value;
+                                                        handleCommunicationAddressChange('orderingEmail', val);
+                                                        // Email format validation
+                                                        const emailRegex = /^[\w-.]+@([\w-]+\.)+[\w-]{2,}$/;
+                                                        if (val && !emailRegex.test(val)) {
+                                                            setAddressErrors(prev => ({
+                                                                ...prev,
+                                                                communication: {
+                                                                    ...prev.communication,
+                                                                    orderingEmail: 'Enter a valid email address. e.g.: abc@gmail.com'
+                                                                }
+                                                            }));
+                                                        } else {
+                                                            setAddressErrors(prev => ({
+                                                                ...prev,
+                                                                communication: {
+                                                                    ...prev.communication,
+                                                                    orderingEmail: undefined
+                                                                }
+                                                            }));
+                                                        }
+                                                    }}
                                                     disabled={sameAsRegistered}
                                                 />
                                                 {addressErrors.communication.orderingEmail && (

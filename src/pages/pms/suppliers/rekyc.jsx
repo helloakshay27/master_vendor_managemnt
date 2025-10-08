@@ -1391,6 +1391,19 @@ const SectionReKYCDetails = () => {
       ) {
         validationErrors.msmeAttachments = "MSME/Udyam Attachment is required.";
       }
+      // Validate MSME Declaration Attachment if MSME/Udyam is NOT applicable
+      if (
+        msmeUdyamApplicable === "No" 
+        && (!msmeAttachments || msmeAttachments.length === 0)
+      ) {
+        validationErrors.msmeDeclaration = "MSME/Udyam Declaration Attachment is required.";
+      }
+
+      
+
+console.log("msmeAttachments***:", msmeAttachments);
+console.log("supplierData?.msme_details?.msme_attachments:", supplierData?.msme_details?.msme_attachments);
+      
     }
 
     if (isRekycTypeEmpty || isGstinRekyc) {
@@ -1711,7 +1724,7 @@ const SectionReKYCDetails = () => {
           <p>Loading...</p>
         </div>
       ) :
-        rekycStatus === "pending" ? (
+        rekycStatus === "expired" ? (
           <div className="website-content overflowY-auto">
             <div className="card mx-4 pb-4 mt-4">
               <div className="card-header3">
@@ -2808,36 +2821,20 @@ const SectionReKYCDetails = () => {
                     {msmeUdyamApplicable === "No" && (
                       <div className="col-md-4 mt-2">
                         <div className="form-group">
-                          <label
-                          // data-bs-toggle="tooltip"
-                          // data-bs-placement="top"
-                          // title={tooltipMessages.UploadDeclaration}
-                          >
+                          <label>
                             Upload Declaration <span>*</span>
                           </label>
-
                           <span className="ms-2">
-                            {/* <a
-                          href={
-                            supplierData?.msme_details?.msme_attachments[0]
-                              ?.file_url
-                          } // PDF file URL */}
-
                             <a
-                              href={`${baseURL}${supplierData?.msme_details?.msme_attachments[0]?.file_url}`} // Prepend baseURL to the file URL
-                              download // Trigger download when clicked
+                              href={`${baseURL}${supplierData?.msme_details?.msme_attachments[0]?.file_url}`}
+                              download
                               className="text-primary d-flex align-items-center"
                             >
                               <span className="me-2">Existing Files:</span>
                               <TooltipIcon message="If you choose E-Invoice applicable 'No', please upload a signed declaration document to verify the details you have submitted. The document must be uploaded in PDF format.Ensure that the document is clear, legible, and properly signed." />
-
-                              {supplierData?.msme_details?.msme_attachments
-                                ?.length > 0
-                                ? // Display the document name of the first attachment
-                                supplierData?.msme_details?.msme_attachments[0]
-                                  ?.document_name
-                                : // If no attachment is present, show a default message
-                                "No Document Available"}
+                              {supplierData?.msme_details?.msme_attachments?.length > 0
+                                ? supplierData?.msme_details?.msme_attachments[0]?.document_name
+                                : "No Document Available"}
                             </a>
                           </span>
                           <input
@@ -2845,8 +2842,16 @@ const SectionReKYCDetails = () => {
                             type="file"
                             accept=".pdf"
                             name=""
-                            onChange={handleFileChange}
+                            onChange={e => {
+    if (e.target.files && e.target.files[0]) {
+      handleFileChange(e.target.files[0]);
+    }
+  }}
+                            // onChange={handleFileChange}
                           />
+                          {errors.msmeDeclaration && (
+                            <div className="ValidationColor">{errors.msmeDeclaration}</div>
+                          )}
                         </div>
                       </div>
                     )}
