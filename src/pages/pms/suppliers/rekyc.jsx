@@ -1724,7 +1724,7 @@ console.log("supplierData?.msme_details?.msme_attachments:", supplierData?.msme_
           <p>Loading...</p>
         </div>
       ) :
-        rekycStatus === "expired" ? (
+        rekycStatus === "pending" ? (
           <div className="website-content overflowY-auto">
             <div className="card mx-4 pb-4 mt-4">
               <div className="card-header3">
