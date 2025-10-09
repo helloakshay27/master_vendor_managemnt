@@ -640,7 +640,7 @@ const SectionReKYCDetails = () => {
         if (!upperValue) {
           setInputErrors((prev) => ({
             ...prev,
-            [id]: { ...prev[id], ifsc: "IFSC Code is required." },
+            [id]: { ...prev[id], ifsc: "" },
           }));
           // Clear the validation error
           setErrors((prev) => {
@@ -664,7 +664,7 @@ const SectionReKYCDetails = () => {
             ...prev,
             [id]: {
               ...prev[id],
-              ifsc: "Invalid IFSC format. First 4 characters must be capital letters, followed by '0' and 6 alphanumeric characters",
+              ifsc: "Invalid IFSC format. First 4 characters must be capital letters, followed by '0' and 6 alphanumeric characters.(eg., HDFC0001234)",
             },
           }));
           // Clear the validation error
@@ -1350,9 +1350,9 @@ const SectionReKYCDetails = () => {
 
           // IFSC code validation
           if (!bankDetail.ifsc_code) {
-            if (!inputErrors[bankDetail.id]?.ifsc) {
+            // if (!inputErrors[bankDetail.id]?.ifsc) {
               validationErrors.ifsc_code = "IFSC Code is required.";
-            }
+            // }
           } else {
             // IFSC format validation: 4 letters, 0, 6 alphanumeric
             const ifscRegex = /^[A-Z]{4}0[A-Z0-9]{6}$/;
