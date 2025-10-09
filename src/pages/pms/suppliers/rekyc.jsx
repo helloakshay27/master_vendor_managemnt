@@ -235,7 +235,7 @@ const SectionReKYCDetails = () => {
 
       setRekycId(response.data?.id);
       setRekycType(response.data?.rekyc_type);
-      // setRekycType([  "Bank Rekyc"]);
+      // setRekycType([ "GSTIN Rekyc"]);
 
       // setGstApplicable(response.data?.gstin_applicable);
       // setGstClassification(response.data?.gst_classification);
@@ -1476,10 +1476,14 @@ const SectionReKYCDetails = () => {
         validationErrors.gstApplicable = "GST Applicable is required.";
       } else if (gstApplicable === "Yes") {
         // GST Classification validation
-        console.log("gstClassification************:", gstClassification);
+        // console.log("gstClassification************:", gstClassification);
         if (!gstClassification || !gstClassification?.value) {
           validationErrors.gstClassification = "GST Classification is required.";
         }
+
+//         if (!gstClassification || gstClassification.value === "") {
+//   validationErrors.gstClassification = "GST Classification is required.";
+// }
         
         // Unified GSTIN validation: one error for missing, length, or format
         const gstinRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[A-Z0-9]{1}Z[A-Z0-9]{1}$/i;
@@ -2293,7 +2297,7 @@ const SectionReKYCDetails = () => {
 
                             <div className="form-group">
                               <label>
-                                GSTIN Classification<span>*</span>
+                                GSTIN Classification <span>*</span>
                               </label>
                               <SingleSelector
                                 options={gstClassifications}
@@ -2303,6 +2307,11 @@ const SectionReKYCDetails = () => {
                                 // getOptionLabel={(option) => option?.name || ""}
                                 // getOptionValue={(option) => option?.value || ""}
                               />
+                                {errors?.gstClassification && (
+                                  <div className="ValidationColor" >
+                                    {errors.gstClassification}
+                                  </div>
+                                )}
                             </div>
                           </div>
 
