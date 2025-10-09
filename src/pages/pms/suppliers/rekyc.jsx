@@ -1325,6 +1325,7 @@ const SectionReKYCDetails = () => {
         validationErrors = {};
       }
     }
+  
 
     if (!contactNumber) {
       validationErrors.contactNumber = "Contact Number is required.";
@@ -1405,6 +1406,13 @@ console.log("msmeAttachments***:", msmeAttachments);
 console.log("supplierData?.msme_details?.msme_attachments:", supplierData?.msme_details?.msme_attachments);
       
     }
+
+ if (isRekycTypeEmpty || isEnvoiceRekyc) {
+      // E-Invoicing declaration attachment validation
+    if (eInvoicingApplicable === "No" && (!einvoicingAttachments || einvoicingAttachments.length === 0)) {
+      validationErrors.einvoicingDeclaration = "E-Invoicing Declaration Attachment is required.";
+    }
+      }
 
     if (isRekycTypeEmpty || isGstinRekyc) {
       if (!gstApplicable) {
@@ -2952,14 +2960,6 @@ console.log("supplierData?.msme_details?.msme_attachments:", supplierData?.msme_
                             <label>
                               Upload Declaration <span>*</span>
                             </label>
-                            {/* <input
-                          id="attachment"
-                          accept=" "
-                          className="form-control"
-                          type="file"
-                          name=""
-                          onChange={handleEinvoicingFileChange}
-                        /> */}
                             <input
                               className="form-control mt-2"
                               type="file"
@@ -2968,7 +2968,9 @@ console.log("supplierData?.msme_details?.msme_attachments:", supplierData?.msme_
                               multiple
                               accept=".pdf"
                             />
-                            {/* Major Activity * */}
+                            {errors.einvoicingDeclaration && (
+                              <div className="ValidationColor">{errors.einvoicingDeclaration}</div>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -3029,7 +3031,7 @@ console.log("supplierData?.msme_details?.msme_attachments:", supplierData?.msme_
   )} */}
                   </div>
                 </div>
-              )}
+               )} 
 
               {/* name rekyc */}
               {(isRekycTypeEmpty || isNameRekyc) && (
