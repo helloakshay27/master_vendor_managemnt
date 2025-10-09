@@ -158,6 +158,32 @@ const SectionReKYCDetails = () => {
   const handleMsmeUdyamChange = (event) => {
     const newValue = event.target.value;
     setMsmeUdyamApplicable(newValue);
+
+    // Validation logic on value change
+    setErrors((prev) => {
+      const updated = { ...prev };
+      // If changed to 'No', require declaration
+      if (newValue === "No") {
+        // Remove attachment errors
+        delete updated.msmeAttachments;
+        // Require declaration
+        if (!msmeAttachments || msmeAttachments.length === 0) {
+          updated.msmeDeclaration = "MSME/Udyam Declaration Attachment is required.";
+        } else {
+          delete updated.msmeDeclaration;
+        }
+      } else if (newValue === "Yes") {
+        // Remove declaration errors
+        delete updated.msmeDeclaration;
+        // Require attachment
+        if (!msmeAttachments || msmeAttachments.length === 0) {
+          updated.msmeAttachments = "MSME/Udyam Attachment is required.";
+        } else {
+          delete updated.msmeAttachments;
+        }
+      }
+      return updated;
+    });
   };
 
   // Handle changes for MSME Enterprise Type
@@ -209,7 +235,7 @@ const SectionReKYCDetails = () => {
 
       setRekycId(response.data?.id);
       setRekycType(response.data?.rekyc_type);
-      // setRekycType(["MSME Rekyc", "Name Rekyc", "E-invoicing Rekyc"]);
+      // setRekycType([  "Bank Rekyc"]);
 
       // setGstApplicable(response.data?.gstin_applicable);
       // setGstClassification(response.data?.gst_classification);
@@ -228,6 +254,7 @@ const SectionReKYCDetails = () => {
       const selectedClassification = gstClassifications.find(
         (item) => item.value === response.data?.gst_classification
       );
+      console.log("selectedClassification from API:", selectedClassification);
 
       setGstClassification(selectedClassification || null);
       setOrganizationName(response.data?.organization_name)
@@ -290,7 +317,7 @@ const SectionReKYCDetails = () => {
 
 
       } catch (error) {
-        console.error("Failed to fetch statutory details:", error);
+        // console.error("Failed to fetch statutory details:", error);
         setLoading(false);
       }
     };
@@ -298,7 +325,7 @@ const SectionReKYCDetails = () => {
     fetchStatutoryData();
   }, [supplierData?.id]);
 
-  console.log("statutory details:", statutoryDetails)
+  // console.log("statutory details:", statutoryDetails)
 
   // Empty dependency array ensures this runs once on mount
 
@@ -309,19 +336,30 @@ const SectionReKYCDetails = () => {
       const response = await axios.get(
         `${baseURL}/pms/suppliers/gst_classification_dropdown`
       );
-      setGstClassifications(response.data.gst_classifications || []);
+      // Map API data to { label, value } format for dropdowns
+      const mappedOptions = (response.data.gst_classifications || []).map(item => ({
+        label: item.name,
+        value: item.value
+      }));
+      setGstClassifications(mappedOptions);
     } catch (error) {
       console.error("Error fetching GST classifications", error);
     }
   };
 
+
+
   useEffect(() => {
     fetchGstClassifications();
+    console.log("gstClassification changed:", gstClassification);
   }, []);
+
+  // console.log("gst class:", gstClassifications)
 
   useEffect(() => {
     if (gstClassifications.length > 0) {
       fetchSupplierData();
+      console.log("gstClassification changed:", gstClassification);
     }
   }, [gstClassifications, id]);
 
@@ -979,7 +1017,7 @@ const SectionReKYCDetails = () => {
       classification_date:
         msmeUdyamApplicable === "No" ? "" : classificationDate || null,
 
-      msme_attachments: msmeUdyamApplicable === "No" ? [] : msmeAttachments,
+      msme_attachments: msmeUdyamApplicable === "No" ? msmeAttachments : msmeAttachments,
       einvoicing: eInvoicingApplicable || "",
       einvoicing_attachments:
         eInvoicingApplicable === "No" ? einvoicingAttachments : [], //added
@@ -1050,6 +1088,9 @@ const SectionReKYCDetails = () => {
         gstin: gstinNumber || "",
         gstin_attachments: gstinAttachments || [],
       }),
+      ...(gstApplicable === "No" && {
+        gstin_attachments: gstinAttachments || [],
+      }),
     };
   }
 
@@ -1085,7 +1126,7 @@ const SectionReKYCDetails = () => {
         msmeUdyamApplicable === "No" ? "" : classificationYear || null,
       classification_date:
         msmeUdyamApplicable === "No" ? "" : classificationDate || null,
-      msme_attachments: msmeUdyamApplicable === "No" ? [] : msmeAttachments,
+      msme_attachments: msmeUdyamApplicable === "No" ? msmeAttachments : msmeAttachments,
     };
   }
 
@@ -1129,8 +1170,8 @@ const SectionReKYCDetails = () => {
       einvoicing_attachments: eInvoicingApplicable === "No" ? einvoicingAttachments || [] : [],
     };
   }
-  // console.log("payload:", payload);
-  // console.log("payload condition for new rekyc edit:", payloadCondition);
+  // console.log("payload********************:", payload);
+  console.log("payload condition for new rekyc edit:", payloadCondition);
 
   // update api
 
@@ -1142,10 +1183,10 @@ const SectionReKYCDetails = () => {
     setIsChecked(!isChecked);
   };
 
-  console.log("before update")
+  // console.log("before update")
   // Handle the Update Button Click
   const handleUpdate = async () => {
-    console.log("innn update")
+    // console.log("innn update")
     // console.log("rekyc_type:", rekycType);
 
     // console.log('formSubmitted:', formSubmitted);
@@ -1302,10 +1343,21 @@ const SectionReKYCDetails = () => {
             validationErrors.micr_number = "MICR Number is required.";
           }
 
-          // For IFSC code, only validate if it's a new entry and there's no input error
+          // Pin code validation: must be exactly 6 digits
+          if (!bankDetail.pincode || !/^[0-9]{6}$/.test(bankDetail.pincode)) {
+            validationErrors.pincode = "Pin Code must be exactly 6 digits.";
+          }
+
+          // IFSC code validation
           if (!bankDetail.ifsc_code) {
             if (!inputErrors[bankDetail.id]?.ifsc) {
               validationErrors.ifsc_code = "IFSC Code is required.";
+            }
+          } else {
+            // IFSC format validation: 4 letters, 0, 6 alphanumeric
+            const ifscRegex = /^[A-Z]{4}0[A-Z0-9]{6}$/;
+            if (!ifscRegex.test(bankDetail.ifsc_code)) {
+              validationErrors.ifsc_code = "Enter a valid IFSC code (e.g., SBIN0001234)";
             }
           }
 
@@ -1325,7 +1377,7 @@ const SectionReKYCDetails = () => {
         validationErrors = {};
       }
     }
-  
+
 
     if (!contactNumber) {
       validationErrors.contactNumber = "Contact Number is required.";
@@ -1385,47 +1437,56 @@ const SectionReKYCDetails = () => {
           "Classification Date is required.";
       }
 
-      if (
-        msmeUdyamApplicable === "Yes" &&
-        supplierData?.msme_details?.msme_attachments?.length === 0 &&
-        msmeAttachments.length === 0 // Also check msmeAttachments state
-      ) {
-        validationErrors.msmeAttachments = "MSME/Udyam Attachment is required.";
-      }
-      // Validate MSME Declaration Attachment if MSME/Udyam is NOT applicable
-      if (
-        msmeUdyamApplicable === "No" 
-        && (!msmeAttachments || msmeAttachments.length === 0)
-      ) {
-        validationErrors.msmeDeclaration = "MSME/Udyam Declaration Attachment is required.";
+
+      // MSME/Udyam Attachment/Declaration validation (robust)
+      if (msmeUdyamApplicable === "Yes") {
+        // Require MSME/Udyam attachment
+        // const hasExistingMsmeAttachment = supplierData?.msme_details?.msme_attachments?.length > 0;
+        const hasNewMsmeAttachment = msmeAttachments && msmeAttachments.length > 0;
+        if (
+          // !hasExistingMsmeAttachment && 
+          !hasNewMsmeAttachment) {
+          validationErrors.msmeAttachments = "MSME/Udyam Attachment is required.";
+        }
+      } else if (msmeUdyamApplicable === "No") {
+        // Require MSME/Udyam declaration
+        const hasDeclaration = msmeAttachments && msmeAttachments.length > 0;
+        if (!hasDeclaration) {
+          validationErrors.msmeDeclaration = "MSME/Udyam Declaration Attachment is required.";
+        }
       }
 
-      
 
-console.log("msmeAttachments***:", msmeAttachments);
-console.log("supplierData?.msme_details?.msme_attachments:", supplierData?.msme_details?.msme_attachments);
-      
+
+      // console.log("msmeAttachments***:", msmeAttachments);
+      // console.log("supplierData?.msme_details?.msme_attachments:", supplierData?.msme_details?.msme_attachments);
+
     }
 
- if (isRekycTypeEmpty || isEnvoiceRekyc) {
+    if (isRekycTypeEmpty || isEnvoiceRekyc) {
       // E-Invoicing declaration attachment validation
-    if (eInvoicingApplicable === "No" && (!einvoicingAttachments || einvoicingAttachments.length === 0)) {
-      validationErrors.einvoicingDeclaration = "E-Invoicing Declaration Attachment is required.";
-    }
+      if (eInvoicingApplicable === "No" && (!einvoicingAttachments || einvoicingAttachments.length === 0)) {
+        validationErrors.einvoicingDeclaration = "E-Invoicing Declaration Attachment is required.";
       }
+    }
 
     if (isRekycTypeEmpty || isGstinRekyc) {
+      
       if (!gstApplicable) {
         validationErrors.gstApplicable = "GST Applicable is required.";
       } else if (gstApplicable === "Yes") {
+        // GST Classification validation
+        console.log("gstClassification************:", gstClassification);
+        if (!gstClassification || !gstClassification?.value) {
+          validationErrors.gstClassification = "GST Classification is required.";
+        }
+        
         // Unified GSTIN validation: one error for missing, length, or format
         const gstinRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[A-Z0-9]{1}Z[A-Z0-9]{1}$/i;
         if (!gstinNumber || gstinNumber.length !== 15 || !gstinRegex.test(gstinNumber)) {
           validationErrors.gstinNumber = "Enter a valid 15-character GSTIN (e.g., 29ABCDE1234F1Z5)";
         }
 
-        // if (supplierData?.basic_information?.gstin_attachments.length === 0)
-        //   validationErrors.gstinAttachments = "GSTIN Attachment is required.";
         if (
           (
             !supplierData?.basic_information?.gstin_attachments ||
@@ -1434,6 +1495,12 @@ console.log("supplierData?.msme_details?.msme_attachments:", supplierData?.msme_
           gstinAttachments.length === 0
         ) {
           validationErrors.gstinAttachments = "GSTIN Attachment is required.";
+        }
+      } else if (gstApplicable === "No") {
+        // GSTIN Declaration validation (robust, like MSME)
+        const hasDeclaration = gstinAttachments && gstinAttachments.length > 0;
+        if (!hasDeclaration) {
+          validationErrors.gstinDeclaration = "GSTIN Declaration Attachment is required.";
         }
       }
     }
@@ -1542,7 +1609,7 @@ console.log("supplierData?.msme_details?.msme_attachments:", supplierData?.msme_
     // setErrors(validationErrors);
     if (Object.keys(validationErrors).length > 0) {
       // return false; // Return false if there are validation errors
-      console.log("Validation Errors:", validationErrors);
+      // console.log("Validation Errors:", validationErrors);
       return setErrors(validationErrors);
     } else {
       setLoading(true);
@@ -1568,6 +1635,9 @@ console.log("supplierData?.msme_details?.msme_attachments:", supplierData?.msme_
           ...(gstApplicable === "Yes" && {
             gst_classification_id: gstClassification?.value || null,
             gstin: gstinNumber || "",
+            gstin_attachments: gstinAttachments || [],
+          }),
+          ...(gstApplicable === "No" && {
             gstin_attachments: gstinAttachments || [],
           }),
         };
@@ -1607,7 +1677,8 @@ console.log("supplierData?.msme_details?.msme_attachments:", supplierData?.msme_
             msmeUdyamApplicable === "No" ? "" : classificationYear || null,
           classification_date:
             msmeUdyamApplicable === "No" ? "" : classificationDate || null,
-          msme_attachments: msmeUdyamApplicable === "No" ? [] : msmeAttachments,
+          msme_attachments: msmeUdyamApplicable === "No" ? msmeAttachments
+            : msmeAttachments,
         };
       }
 
@@ -2081,7 +2152,20 @@ console.log("supplierData?.msme_details?.msme_attachments:", supplierData?.msme_
                           type="text"
                           placeholder="Enter Contact Number"
                           value={contactNumber}
-                          onChange={(e) => setContactNumber(e.target.value)}
+                          maxLength={10}
+                          onChange={(e) => {
+                            const value = e.target.value.replace(/[^0-9]/g, "");
+                            setContactNumber(value);
+                            if (value.length !== 10) {
+                              setErrors((prev) => ({ ...prev, contactNumber: "Contact Number must be exactly 10 digits." }));
+                            } else {
+                              setErrors((prev) => {
+                                const newErrors = { ...prev };
+                                delete newErrors.contactNumber;
+                                return newErrors;
+                              });
+                            }
+                          }}
                         />
                         {/* {errors.branch_name && !bankDetail.branch_name && (
                           <div className="ValidationColor">
@@ -2102,9 +2186,22 @@ console.log("supplierData?.msme_details?.msme_attachments:", supplierData?.msme_
                         <input
                           className="form-control"
                           type="text"
-                          placeholder="Email Address"
+                          placeholder="Email Address (e.g. user@example.com)"
                           value={emailAddress}
-                          onChange={(e) => setEmailAddress(e.target.value)}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            setEmailAddress(value);
+                            const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+                            if (!emailRegex.test(value)) {
+                              setErrors((prev) => ({ ...prev, emailAddress: "Enter a valid Email Address (e.g. user@example.com)" }));
+                            } else {
+                              setErrors((prev) => {
+                                const newErrors = { ...prev };
+                                delete newErrors.emailAddress;
+                                return newErrors;
+                              });
+                            }
+                          }}
                         />
                         {errors.emailAddress && (
                           <div className="ValidationColor">
@@ -2119,6 +2216,7 @@ console.log("supplierData?.msme_details?.msme_attachments:", supplierData?.msme_
               </div> */}
                 </div>
               </div>
+            
 
               {(isRekycTypeEmpty || isGstinRekyc) && (
                 <div className="card mx-3 pb-4 mt-4">
@@ -2150,7 +2248,32 @@ console.log("supplierData?.msme_details?.msme_attachments:", supplierData?.msme_
                                 : { value: "No", label: "No" }
                             }
                             onChange={(selected) => {
-                              setGstApplicable(selected?.value || "No"); // Ensure it always has a string
+                              const value = selected?.value || "No";
+                              setGstApplicable(value);
+                              setErrors((prev) => {
+                                const updated = { ...prev };
+                                if (value === "Yes") {
+                                  // GSTIN Attachment required
+                                  delete updated.gstinDeclaration;
+                                  if (!gstinAttachments || gstinAttachments.length === 0) {
+                                    updated.gstinAttachments = "GSTIN Attachment is required.";
+                                  } else {
+                                    delete updated.gstinAttachments;
+                                  }
+                                } else if (value === "No") {
+                                  // GSTIN Declaration required
+                                  delete updated.gstinAttachments;
+                                  if (!gstinAttachments || gstinAttachments.length === 0) {
+                                    updated.gstinDeclaration = "GSTIN Declaration Attachment is required.";
+                                  } else {
+                                    delete updated.gstinDeclaration;
+                                  }
+                                  // Optionally clear GSTIN number and classification
+                                  // setGstinNumber("");
+                                  // setGstClassification(null);
+                                }
+                                return updated;
+                              });
                             }}
                           />
 
@@ -2167,64 +2290,19 @@ console.log("supplierData?.msme_details?.msme_attachments:", supplierData?.msme_
                         <>
                           {/* GSTIN Classification */}
                           <div className="col-md-4 mt-2">
-                            {/* <div className="form-group">
-                          <label
 
-                          >
-                            GSTIN Classification<span></span>
-                          </label>
-                          <select
-                            className="form-control"
-                            value={gstClassification?.value || ""}
-                            onChange={(e) => {
-                              const selectedValue = parseInt(
-                                e.target.value,
-                                10
-                              );
-                              const selectedOption = gstClassifications.find(
-                                (item) => item.value === selectedValue
-                              );
-                              setGstClassification(selectedOption || null);
-                            }}
-                          >
-                            <option value="">Select GST Classification</option>
-                            {gstClassifications.map((item) => (
-                              <option key={item.value} value={item.value}>
-                                {item.name}
-                              </option>
-                            ))}
-                          </select>
-                        </div> */}
                             <div className="form-group">
                               <label>
-                                GSTIN Classification<span></span>
+                                GSTIN Classification<span>*</span>
                               </label>
-                              <div style={{ position: "relative" }}>
-                                <select
-                                  className="form-control"
-                                  style={{ width: "100%", appearance: "menulist" }}
-                                  value={gstClassification?.value || ""}
-                                  onChange={(e) => {
-                                    const selectedValue = parseInt(
-                                      e.target.value,
-                                      10
-                                    );
-                                    const selectedOption = gstClassifications.find(
-                                      (item) => item.value === selectedValue
-                                    );
-                                    setGstClassification(selectedOption || null);
-                                  }}
-                                >
-                                  <option value="">
-                                    Select GST Classification
-                                  </option>
-                                  {gstClassifications.map((item) => (
-                                    <option key={item.value} value={item.value}>
-                                      {item.name}
-                                    </option>
-                                  ))}
-                                </select>
-                              </div>
+                              <SingleSelector
+                                options={gstClassifications}
+                                value={gstClassification}
+                                onChange={setGstClassification}
+                                placeholder="Select GST Classification"
+                                // getOptionLabel={(option) => option?.name || ""}
+                                // getOptionValue={(option) => option?.value || ""}
+                              />
                             </div>
                           </div>
 
@@ -2282,10 +2360,7 @@ console.log("supplierData?.msme_details?.msme_attachments:", supplierData?.msme_
                                         download
                                         className="text-primary d-flex align-items-center"
                                       >
-                                        <span className="me-2">
-                                          {file.document_name}
-                                        </span>{" "}
-                                        {/* Show file name */}
+
                                         <svg
                                           xmlns="http://www.w3.org/2000/svg"
                                           width={20}
@@ -2297,6 +2372,11 @@ console.log("supplierData?.msme_details?.msme_attachments:", supplierData?.msme_
                                           <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
                                           <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
                                         </svg>
+                                        <span className="me-2 ms-2">
+                                          {file.document_name}
+                                        </span>{" "}
+                                        {/* Show file name */}
+
                                       </a>
                                     )
                                   )
@@ -2325,6 +2405,111 @@ console.log("supplierData?.msme_details?.msme_attachments:", supplierData?.msme_
                           </div>
                         </>
                       )}
+
+                      {gstApplicable === "No" && (
+                        <>
+                          <div className="col-md-4 mt-2 ms-3">
+                            <div className="form-group">
+                              <label>
+                                Download GSTIN Declaration <span>*</span>
+                              </label>
+                              <TooltipIcon message="If you choose 'No' for GSTIN Applicable, download the specimen format and upload a signed declaration stating your organization is not registered under GST. The document must be uploaded in PDF format." />
+                              <a
+                                download="Specimen_GSTIN_Declaration.pdf"
+                                className="text-primary d-flex align-items-center"
+                                href={`${baseURL}/assets/NO_GSTIN.pdf`}
+                                target="_self"
+                              >
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width={24}
+                                  height={24}
+                                  fill="#DE7008"
+                                  className="bi bi-download"
+                                  viewBox="0 0 16 16"
+                                >
+                                  <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" style={{ fill: "#de7008!important" }} />
+                                  <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" style={{ fill: "#de7008!important" }} />
+                                </svg>
+                                <span className="mt-2 ms-2">Specimen GSTIN Declaration.pdf</span>
+                              </a>
+                            </div>
+                          </div>
+                          <div className="col-md-4 mt-2">
+                            <div className="form-group">
+                              <label>
+                                Upload GSTIN Declaration <span>*</span>
+                              </label>
+                              <div className="existing-files d-flex align-items-center">
+                                <p className="mb-0 me-2">Existing Files:</p>
+                                {supplierData?.basic_information?.gstin_attachments && supplierData?.basic_information?.gstin_attachments.length > 0 ? (
+                                  supplierData?.basic_information?.gstin_attachments.map((file, index) => (
+                                    <a
+                                      key={index}
+                                      href={`${baseURL}${file.file_url}`}
+                                      download
+                                      className="text-primary d-flex align-items-center"
+                                    >
+                                        {/* <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width={20}
+                                        height={20}
+                                        fill="#DE7008"
+                                        className="bi bi-download"
+                                        viewBox="0 0 16 16"
+                                      >
+                                        <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                                        <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                                      </svg> */}
+                                      <span className="me-2 ms-2">{file.document_name}</span>{" "}
+                                    
+                                    </a>
+                                  ))
+                                ) : (
+                                  <p className="mb-0">No attachments found</p>
+                                )}
+                              </div>
+                              <input
+                                className="form-control mt-2"
+                                type="file"
+                                accept=".pdf"
+                                name="gstinDeclaration"
+                                onChange={e => {
+                                  const file = e.target.files && e.target.files[0];
+                                  if (file) {
+                                    const reader = new FileReader();
+                                    reader.onloadend = () => {
+                                      const base64String = reader.result.split(",")[1];
+                                      const attachment = {
+                                        filename: file.name,
+                                        content: base64String,
+                                        content_type: file.type,
+                                      };
+                                      setGstinAttachments([attachment]);
+                                    };
+                                    reader.readAsDataURL(file);
+                                  } else {
+                                    setGstinAttachments([]);
+                                  }
+                                  setErrors(prev => {
+                                    const updated = { ...prev };
+                                    if (!file) {
+                                      updated.gstinDeclaration = "GSTIN Declaration Attachment is required.";
+                                    } else {
+                                      delete updated.gstinDeclaration;
+                                    }
+                                    return updated;
+                                  });
+                                }}
+                              />
+                              {errors.gstinDeclaration && (
+                                <div className="ValidationColor" style={{ marginTop: '4px' }}>{errors.gstinDeclaration}</div>
+                              )}
+                            </div>
+                          </div>
+                        </>
+                      )}
+
                     </div>
                   </div>
                 </div>
@@ -2715,57 +2900,51 @@ console.log("supplierData?.msme_details?.msme_attachments:", supplierData?.msme_
                       {msmeUdyamApplicable === "Yes" && (
                         <div className="col-md-4 mt-2">
                           <div className="form-group">
-                            <label
-                            // data-bs-toggle="tooltip"
-                            // data-bs-placement="top"
-                            // title={tooltipMessages.MSMEUdyamAttachment}
-                            >
+                            <label>
                               MSME/Udyam Attachment <span>*</span>
                               <TooltipIcon message="Attach a clear, scanned copy or digital image of your MSME/Udyam registration certificate to verify your organization's classification under the MSME scheme. The document must be uploaded in PDF format." />
                             </label>
-
-                            {supplierData?.msme_details?.msme_attachments?.length >
-                              0 && (
-                                <span className="ms-2">
-                                  <a
-                                    href={`${baseURL}${supplierData?.msme_details?.msme_attachments[0]?.file_url}`} // Append base URL
-                                    download // Ensure it prompts download
-                                    className="text-primary d-flex align-items-center"
+                            {supplierData?.msme_details?.msme_attachments?.length > 0 && (
+                              <span className="ms-2">
+                                <a
+                                  href={`${baseURL}${supplierData?.msme_details?.msme_attachments[0]?.file_url}`}
+                                  download
+                                  className="text-primary d-flex align-items-center"
+                                >
+                                  <span className="me-2">Existing Files:</span>
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width={24}
+                                    height={24}
+                                    fill="#DE7008"
+                                    className="bi bi-download"
+                                    viewBox="0 0 16 16"
                                   >
-                                    <span className="me-2">Existing Files:</span>
-                                    <svg
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      width={24}
-                                      height={24}
-                                      fill="#DE7008"
-                                      className="bi bi-download"
-                                      viewBox="0 0 16 16"
-                                    >
-                                      <path
-                                        d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
-                                      // style={{ fill: "#de7008!important" }}
-                                      />
-                                      <path
-                                        d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
-                                      // style={{ fill: "#de7008!important" }}
-                                      />
-                                    </svg>
-
-                                    {supplierData?.msme_details?.msme_attachments
-                                      ?.length > 0
-                                      ? // Display the document name of the first attachment
-                                      supplierData?.msme_details
-                                        ?.msme_attachments[0]?.document_name
-                                      : // If no attachment is present, show a default message
-                                      "No Document Available"}
-                                  </a>
-                                </span>
-                              )}
-                            {/* <input className="form-control" type="file" name="" onChange={handleFileChange} /> */}
+                                    <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                                    <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                                  </svg>
+                                  {supplierData?.msme_details?.msme_attachments?.length > 0
+                                    ? supplierData?.msme_details?.msme_attachments[0]?.document_name
+                                    : "No Document Available"}
+                                </a>
+                              </span>
+                            )}
                             <input
                               className="form-control mt-2"
                               type="file"
-                              onChange={(e) => handleFileChange(e.target.files[0])}
+                              onChange={(e) => {
+                                handleFileChange(e.target.files[0]);
+                                // Validate immediately on file change
+                                setErrors((prev) => {
+                                  const updated = { ...prev };
+                                  if (!e.target.files[0]) {
+                                    updated.msmeAttachments = "MSME/Udyam Attachment is required.";
+                                  } else {
+                                    delete updated.msmeAttachments;
+                                  }
+                                  return updated;
+                                });
+                              }}
                               ref={fileInputRef}
                               multiple
                               accept=".pdf"
@@ -2851,11 +3030,20 @@ console.log("supplierData?.msme_details?.msme_attachments:", supplierData?.msme_
                             accept=".pdf"
                             name=""
                             onChange={e => {
-    if (e.target.files && e.target.files[0]) {
-      handleFileChange(e.target.files[0]);
-    }
-  }}
-                            // onChange={handleFileChange}
+                              if (e.target.files && e.target.files[0]) {
+                                handleFileChange(e.target.files[0]);
+                              }
+                              // Validate immediately on file change
+                              setErrors((prev) => {
+                                const updated = { ...prev };
+                                if (!e.target.files[0]) {
+                                  updated.msmeDeclaration = "MSME/Udyam Declaration Attachment is required.";
+                                } else {
+                                  delete updated.msmeDeclaration;
+                                }
+                                return updated;
+                              });
+                            }}
                           />
                           {errors.msmeDeclaration && (
                             <div className="ValidationColor">{errors.msmeDeclaration}</div>
@@ -2960,6 +3148,31 @@ console.log("supplierData?.msme_details?.msme_attachments:", supplierData?.msme_
                             <label>
                               Upload Declaration <span>*</span>
                             </label>
+                             {supplierData?.einvoicing_attachments?.length > 0 && (
+                              <span className="ms-2">
+                                <a
+                                  href={`${baseURL}${supplierData?.einvoicing_attachments[0]?.file_url}`}
+                                  download
+                                  className="text-primary d-flex align-items-center"
+                                >
+                                  <span className="me-2">Existing Files:</span>
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width={24}
+                                    height={24}
+                                    fill="#DE7008"
+                                    className="bi bi-download me-2"
+                                    viewBox="0 0 16 16"
+                                  >
+                                    <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                                    <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                                  </svg>
+                                  {supplierData?.einvoicing_attachments?.length > 0
+                                    ? supplierData?.einvoicing_attachments?.document_name
+                                    : "No Document Available"}
+                                </a>
+                              </span>
+                            )}
                             <input
                               className="form-control mt-2"
                               type="file"
@@ -3031,7 +3244,7 @@ console.log("supplierData?.msme_details?.msme_attachments:", supplierData?.msme_
   )} */}
                   </div>
                 </div>
-               )} 
+              )}
 
               {/* name rekyc */}
               {(isRekycTypeEmpty || isNameRekyc) && (
@@ -3559,6 +3772,44 @@ console.log("supplierData?.msme_details?.msme_attachments:", supplierData?.msme_
                                 accept=".pdf"
                               />
                               {/* Major Activity * */}
+                              {supplierData?.einvoicing_attachments?.length > 0 && (
+
+                               <span className="ms-2">
+                              <a
+                                href={`${baseURL}${supplierData?.einvoicing_attachments[0]?.file_url}`} // Prepend baseURL to the file URL
+                                download // Trigger download when clicked
+                                className="text-primary d-flex align-items-center"
+                              >
+                                <span className="me-2">Existing Files:</span>
+                                {/* <TooltipIcon message="If you choose E-Invoice applicable 'No', please upload a signed declaration document to verify the details you have submitted. The document must be uploaded in PDF format.Ensure that the document is clear, legible, and properly signed." /> */}
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width={24}
+                                  height={24}
+                                  fill="#DE7008"
+                                  className="bi bi-download"
+                                  viewBox="0 0 16 16"
+                                >
+                                  <path
+                                    d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
+                                    style={{ fill: "#de7008!important" }}
+                                  />
+                                  <path
+                                    d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
+                                    style={{ fill: "#de7008!important" }}
+                                  />
+                                </svg>
+
+                                {supplierData?.einvoicing_attachments
+                                  ?.length > 0
+                                  ? // Display the document name of the first attachment
+                                  supplierData?.einvoicing_attachments[0]
+                                    ?.document_name
+                                  : // If no attachment is present, show a default message
+                                  "No Document Available"}
+                              </a>
+                            </span>
+                              )}
                             </div>
                           </div>
                           {/* </div> */}

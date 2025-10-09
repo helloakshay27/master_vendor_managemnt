@@ -1,25 +1,25 @@
-    // Utility function to map majorCustomers state to major_customers_attributes
-    const mapMajorCustomersToPayload = (majorCustomers) => {
-        return majorCustomers.map((c) => ({
-            id: c.isNew ? null : c.id,
-            name: c.companyName || '',
-            company_id: c.companyId || null,
-            work_done: c.workDone || '',
-            attachment: c.attachment || null,
-            contact_person: c.contactPerson || '',
-            designation_id: c.designation?.value || null,
-            country_id: c.country?.value || null,
-            phone: c.phone || '',
-            mobile: c.mobile || '',
-            years_of_association: c.yearOfAssociation || '',
-            service_provided_from: c.serviceFrom || '',
-            service_provided_to: c.serviceTo || '',
-            turn_over: c.businessLast12Months || '',
-            major_competitors: c.majorCompetitors || '',
-            stage_of_project: c.stageOfProject || '',
-            _destroy: c._destroy === true ? true : false
-        }));
-    };
+// Utility function to map majorCustomers state to major_customers_attributes
+const mapMajorCustomersToPayload = (majorCustomers) => {
+    return majorCustomers.map((c) => ({
+        id: c.isNew ? null : c.id,
+        name: c.companyName || '',
+        company_id: c.companyId || null,
+        work_done: c.workDone || '',
+        attachment: c.attachment || null,
+        contact_person: c.contactPerson || '',
+        designation_id: c.designation?.value || null,
+        country_id: c.country?.value || null,
+        phone: c.phone || '',
+        mobile: c.mobile || '',
+        years_of_association: c.yearOfAssociation || '',
+        service_provided_from: c.serviceFrom || '',
+        service_provided_to: c.serviceTo || '',
+        turn_over: c.businessLast12Months || '',
+        major_competitors: c.majorCompetitors || '',
+        stage_of_project: c.stageOfProject || '',
+        _destroy: c._destroy === true ? true : false
+    }));
+};
 // Utility: Map contactPersons state to contact_people_attributes
 // Utility: Map owners state to directors_informations_attributes
 const mapOwnersToPayload = (owners) => owners.map((owner) => ({
@@ -59,7 +59,7 @@ const mapContactPersonsToPayload = (contactPersons) => contactPersons.map((perso
     _destroy: false
 }));
 const mapBranchOfficesToPayload = (branchOffices) => branchOffices.map((office) => ({
-    id:  null,
+    id: null,
     // office.id ||
     gst_no: office.gst_no || '',
     gst_cert_file: office.gst_cert_file || '',
@@ -691,7 +691,7 @@ const VendorRegistrationStepByStepForm = () => {
             try {
                 const response = await axios.get('https://vendors.lockated.com/pms/suppliers/type_of_organization_list');
                 const options = (response.data?.type_of_organizations || []).map(item => ({ label: item.name, value: item.value }));
-                setOrganizationTypeOptions(options );
+                setOrganizationTypeOptions(options);
             } catch (error) {
                 console.error('Error fetching organization types:', error);
             }
@@ -996,6 +996,7 @@ const VendorRegistrationStepByStepForm = () => {
     const [addressErrors, setAddressErrors] = useState({ registered: {}, communication: {} });
 
     const validateStep2 = () => {
+
         const regFields = [
             { key: 'address1', label: 'Address' },
             { key: 'country', label: 'Country' },
@@ -1016,16 +1017,47 @@ const VendorRegistrationStepByStepForm = () => {
         ];
         const regErrs = {};
         const commErrs = {};
+
+        // Regex for pin code and email
+        const pinCodeRegex = /^[1-9][0-9]{5}$/;
+        const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+
         regFields.forEach(f => {
             const val = registeredAddress[f.key];
             if (!val || (typeof val === 'object' && (!val.value && !val.label))) {
                 regErrs[f.key] = `${f.label} is required.`;
+            } else {
+                // Pin code format validation
+                if (f.key === 'pincode' && val) {
+                    if (!pinCodeRegex.test(val)) {
+                        regErrs[f.key] = 'Pin Code must be a 6-digit number starting with 1-9.';
+                    }
+                }
+                // Email format validation
+                if (f.key === 'orderingEmail' && val) {
+                    if (!emailRegex.test(val)) {
+                        regErrs[f.key] = 'Please enter a valid email address.';
+                    }
+                }
             }
         });
         commFields.forEach(f => {
             const val = communicationAddress[f.key];
             if (!val || (typeof val === 'object' && (!val.value && !val.label))) {
                 commErrs[f.key] = `${f.label} is required.`;
+            } else {
+                // Pin code format validation
+                if (f.key === 'pincode' && val) {
+                    if (!pinCodeRegex.test(val)) {
+                        commErrs[f.key] = 'Pin Code must be a 6-digit number starting with 1-9.';
+                    }
+                }
+                // Email format validation
+                if (f.key === 'orderingEmail' && val) {
+                    if (!emailRegex.test(val)) {
+                        commErrs[f.key] = 'Please enter a valid email address.';
+                    }
+                }
             }
         });
         setAddressErrors({ registered: regErrs, communication: commErrs });
@@ -1523,16 +1555,18 @@ const VendorRegistrationStepByStepForm = () => {
         // Major Customers client references
         const custErrs = majorCustomers.map(cust => {
             const err = {};
-            if (!cust.companyName) err.companyName = 'Company Name is required.';
-            if (!cust.workDone) err.workDone = 'Work Done is required.';
+            if (!cust.companyName) err.companyName = 'Client Name is required.';
+            if (!cust.workDone) err.workDone = 'Product On Service Provided is required.';
             if (!cust.contactPerson) err.contactPerson = 'Contact Person is required.';
             // if (!cust.designation) err.designation = 'Designation is required.';
             if (!cust.country) err.country = 'Country is required.';
-            if (!cust.mobile) err.mobile = 'Mobile No. is required.';
+            if (!cust.mobile) err.mobile = 'Contact No. is required.';
             // if (!cust.yearOfAssociation) err.yearOfAssociation = 'Year of Association is required.';
-            if (!cust.businessLast12Months) err.businessLast12Months = 'Business done in Last 12 month is required.';
+            if (!cust.businessLast12Months) err.businessLast12Months = 'WO/PO Amount in Last Last 12 month is required.';
+            if (!cust.siteType) err.siteType = 'Site Type is required.';
             if (!cust.serviceFrom) err.serviceFrom = 'Service Provided From is required.';
-            if (!cust.serviceTo) err.serviceTo = 'Service Provided To is required.';
+            // Only require serviceTo if siteType is 'previous'
+            if (cust.siteType === 'previous' && !cust.serviceTo) err.serviceTo = 'Service Provided To is required.';
             return err;
         });
         setMajorCustomerErrors(custErrs);
@@ -2372,8 +2406,8 @@ const VendorRegistrationStepByStepForm = () => {
 
 
     const ppayload2 = {
-           
-            
+
+
         pms_supplier: {
 
             company_id: supplierShowData?.company_id || null,
@@ -2437,24 +2471,24 @@ const VendorRegistrationStepByStepForm = () => {
                     ? bankAttachments[item.id] || null
                     : bankAttachments[item.id] || (item.attachment ? null : null),
             })),
-                
 
-  bank_details_attributes: bankDetailsList.map((item) => ({
-        ...item,
-        id: item.isNew ? null : item.id,
 
-        attachment: item.isNew
-          ? bankAttachments[item.id] || null // If new attachment exists, pass it; otherwise, null
-          : bankAttachments[item.id] || (item.attachment ? null : null), // If existing, only pass null if no new file is uploaded
-      })),
+            bank_details_attributes: bankDetailsList.map((item) => ({
+                ...item,
+                id: item.isNew ? null : item.id,
 
-      branch_offices_attributes: mapBranchOfficesToPayload(branchOffices),
-      contact_people_attributes: mapContactPersonsToPayload(contactPersons),
-      directors_informations_attributes: mapOwnersToPayload(owners),
-      factory_warehouses_attributes: mapWarehousesToPayload(warehouses),
-    major_customers_attributes: mapMajorCustomersToPayload(majorCustomers),
+                attachment: item.isNew
+                    ? bankAttachments[item.id] || null // If new attachment exists, pass it; otherwise, null
+                    : bankAttachments[item.id] || (item.attachment ? null : null), // If existing, only pass null if no new file is uploaded
+            })),
 
-          
+            branch_offices_attributes: mapBranchOfficesToPayload(branchOffices),
+            contact_people_attributes: mapContactPersonsToPayload(contactPersons),
+            directors_informations_attributes: mapOwnersToPayload(owners),
+            factory_warehouses_attributes: mapWarehousesToPayload(warehouses),
+            major_customers_attributes: mapMajorCustomersToPayload(majorCustomers),
+
+
 
             // annual_turnovers_attributes: [
             //   {
@@ -2491,37 +2525,37 @@ const VendorRegistrationStepByStepForm = () => {
 
     // Handle the Update Button Click
     const handleUpdate = async () => {
-      
 
-            try {
-                const response = await axios.patch(
-                    `${baseURL}/pms/suppliers/${id}/update_rekyc_by_sections.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&rekyc_id=${rekyc_id}`,
-                    payload
-                );
 
-                console.log("Response:", response.data); // Check the response data
-                // await fetchSupplierData();
-                if (response.status === 200) {
-                    toast.success("Updated successfully");
-                    navigate("/confirmation");
-                    console.log("success");
-                }
-            } catch (error) {
-                // If 422 and error message present, show it in toast
-                if (error.response && error.response.status === 422 && error.response.data && error.response.data.error) {
-                    toast.error(error.response.data.error);
-                } else {
-                    console.error(
-                        "Error:",
-                        error.response ? error.response.data : error.message
-                    );
-                    toast.error("Something went wrong!");
-                }
-            } finally {
-                setLoading(false);
+        try {
+            const response = await axios.patch(
+                `${baseURL}/pms/suppliers/${id}/update_rekyc_by_sections.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&rekyc_id=${rekyc_id}`,
+                payload
+            );
+
+            console.log("Response:", response.data); // Check the response data
+            // await fetchSupplierData();
+            if (response.status === 200) {
+                toast.success("Updated successfully");
+                navigate("/confirmation");
+                console.log("success");
             }
+        } catch (error) {
+            // If 422 and error message present, show it in toast
+            if (error.response && error.response.status === 422 && error.response.data && error.response.data.error) {
+                toast.error(error.response.data.error);
+            } else {
+                console.error(
+                    "Error:",
+                    error.response ? error.response.data : error.message
+                );
+                toast.error("Something went wrong!");
+            }
+        } finally {
+            setLoading(false);
         }
-    
+    }
+
 
     const options = [
         { value: "", label: "Select" },
@@ -2934,7 +2968,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                     options={natureOfBusinessOptions || []}
                                                     placeholder="Select Nature of Business"
                                                     isDisabled={true}
-                                                    value={natureOfBusinessOptions.find(opt => opt.value === basicInfo.natureOfBusiness) }
+                                                    value={natureOfBusinessOptions.find(opt => opt.value === basicInfo.natureOfBusiness)}
                                                     onChange={val => updateBasicInfo('natureOfBusiness', val)}
                                                 />
                                                 {basicInfoErrors.natureOfBusiness && (
@@ -4569,7 +4603,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                 <label>
                                                     Telephone Phone No.
                                                     {/* <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." /> */}
-                                                {/* </label>
+                                        {/* </label>
                                                 <input
                                                     className="form-control"
                                                     type="text"
@@ -4578,11 +4612,11 @@ const VendorRegistrationStepByStepForm = () => {
                                                     disabled={sameAsRegistered}
                                                 />
                                             </div>
-                                        </div> */} 
+                                        </div> */}
                                         <div className="col-md-4  mt-2">
                                             <div className="form-group">
                                                 <label>
-                                                     Contact  Number <span>*</span>
+                                                    Contact  Number <span>*</span>
                                                     {/* <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." /> */}
                                                 </label>
                                                 <input
@@ -4967,16 +5001,14 @@ const VendorRegistrationStepByStepForm = () => {
                                                             bankDetail.id,
                                                             "confirm_account_number"
                                                         );
-
-                                                        // Validate on change
+                                                        // Live validation: show error as soon as user types and it doesn't match
                                                         if (newValue !== bankDetail.account_number) {
-                                                            setErrors((prev) => ({
+                                                            setBankErrors((prev) => ({
                                                                 ...prev,
-                                                                confirm_account_number:
-                                                                    "Account numbers must match",
+                                                                confirm_account_number: "Account numbers must match",
                                                             }));
                                                         } else {
-                                                            setErrors((prev) => {
+                                                            setBankErrors((prev) => {
                                                                 const newErrors = { ...prev };
                                                                 delete newErrors.confirm_account_number;
                                                                 return newErrors;
@@ -5372,7 +5404,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                 <div className="form-group">
                                                     <label>Country <span>*</span></label>
                                                     <SingleSelector
-                                                        options={[]}
+                                                        options={countryOptions || []}
                                                         value={customer.country}
                                                         onChange={selected => handleMajorCustomerChange(idx, 'country', selected)}
                                                     />
@@ -5392,14 +5424,34 @@ const VendorRegistrationStepByStepForm = () => {
                                                     />
                                                 </div>
                                             </div> */}
-                                            <div className="col-md-4">
+                                            <div className="col-md-4 mt-2">
                                                 <div className="form-group">
                                                     <label>Contact No. <span>*</span></label>
                                                     <input
                                                         className="form-control"
                                                         type="text"
                                                         value={customer.mobile}
-                                                        onChange={e => handleMajorCustomerChange(idx, 'mobile', e.target.value)}
+                                                        maxLength={10}
+                                                        onChange={e => {
+                                                            let newValue = e.target.value.replace(/[^0-9]/g, ''); // Only digits
+                                                            if (newValue.length > 10) {
+                                                                newValue = newValue.slice(0, 10);
+                                                            }
+                                                            handleMajorCustomerChange(idx, 'mobile', newValue);
+                                                            // Mobile number live validation
+                                                            let errorMsg = '';
+                                                            if (newValue && newValue.length !== 10) {
+                                                                errorMsg = 'Contact Number must be exactly 10 digits.';
+                                                            }
+                                                            setMajorCustomerErrors(prev => {
+                                                                const updated = [...prev];
+                                                                updated[idx] = {
+                                                                    ...updated[idx],
+                                                                    mobile: errorMsg
+                                                                };
+                                                                return updated;
+                                                            });
+                                                        }}
                                                     />
                                                     {majorCustomerErrors[idx]?.mobile && (
                                                         <div className="ValidationColor">{majorCustomerErrors[idx].mobile}</div>
@@ -5420,21 +5472,37 @@ const VendorRegistrationStepByStepForm = () => {
                                                     )}
                                                 </div>
                                             </div> */}
-                                            <div className="col-md-4">
+                                            <div className="col-md-4 mt-2">
                                                 <div className="form-group">
                                                     <label>WO/PO Amount in Last 12 month in lacs <span>*</span></label>
                                                     <input
                                                         className="form-control"
-                                                        type="text"
+                                                        type="number"
+                                                        min={0}
                                                         value={customer.businessLast12Months}
-                                                        onChange={e => handleMajorCustomerChange(idx, 'businessLast12Months', e.target.value)}
+                                                        onChange={e => {
+                                                            let newValue = e.target.value;
+                                                            // Prevent negative numbers and '-' sign
+                                                            if (newValue.includes('-')) {
+                                                                newValue = newValue.replace(/-/g, '');
+                                                            }
+                                                            if (Number(newValue) < 0) {
+                                                                newValue = '';
+                                                            }
+                                                            handleMajorCustomerChange(idx, 'businessLast12Months', newValue);
+                                                        }}
+                                                        onKeyDown={e => {
+                                                            if (e.key === '-' || e.key === 'Subtract') {
+                                                                e.preventDefault();
+                                                            }
+                                                        }}
                                                     />
                                                     {majorCustomerErrors[idx]?.businessLast12Months && (
                                                         <div className="ValidationColor">{majorCustomerErrors[idx].businessLast12Months}</div>
                                                     )}
                                                 </div>
                                             </div>
-                                            <div className="col-md-2">
+                                            <div className="col-md-2 mt-2">
                                                 <div className="form-group">
                                                     <label>Service Provided From <span>*</span></label>
                                                     <input
@@ -5448,21 +5516,23 @@ const VendorRegistrationStepByStepForm = () => {
                                                     )}
                                                 </div>
                                             </div>
-                                            <div className="col-md-2">
-                                                <div className="form-group">
-                                                    <label>Service Provided To <span>*</span></label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="date"
-                                                        value={customer.serviceTo}
-                                                        onChange={e => handleMajorCustomerChange(idx, 'serviceTo', e.target.value)}
-                                                    />
-                                                    {majorCustomerErrors[idx]?.serviceTo && (
-                                                        <div className="ValidationColor">{majorCustomerErrors[idx].serviceTo}</div>
-                                                    )}
+                                            {customer.siteType === 'previous' && (
+                                                <div className="col-md-2 mt-2">
+                                                    <div className="form-group">
+                                                        <label>Service Provided To <span>*</span></label>
+                                                        <input
+                                                            className="form-control"
+                                                            type="date"
+                                                            value={customer.serviceTo}
+                                                            onChange={e => handleMajorCustomerChange(idx, 'serviceTo', e.target.value)}
+                                                        />
+                                                        {majorCustomerErrors[idx]?.serviceTo && (
+                                                            <div className="ValidationColor">{majorCustomerErrors[idx].serviceTo}</div>
+                                                        )}
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <div className="col-md-4">
+                                            )}
+                                            <div className="col-md-4 mt-2">
                                                 <div className="form-group">
                                                     <label>Stage Of Project</label>
                                                     <input
@@ -5496,7 +5566,7 @@ const VendorRegistrationStepByStepForm = () => {
                                             </div> */}
 
 
-                                            <div className="col-md-4">
+                                            <div className="col-md-4 mt-2">
                                                 <div className="form-group">
                                                     <label> Product On Service Provided <span>*</span></label>
                                                     <textarea
@@ -5514,7 +5584,7 @@ const VendorRegistrationStepByStepForm = () => {
                                         <div className="row">
                                             <div className="col-md-4">
                                                 <div className="form-group">
-                                                    <label className="mb-2">Site Type</label>
+                                                    <label className="mb-2">Site Type <span>*</span></label>
                                                     <div className="d-flex">
                                                         <label className="me-3 d-flex align-items-center">
                                                             <input
@@ -5539,6 +5609,9 @@ const VendorRegistrationStepByStepForm = () => {
                                                             <span className="ms-2">Previous Site</span>
                                                         </label>
                                                     </div>
+                                                    {majorCustomerErrors[idx]?.siteType && (
+                                                        <div className="ValidationColor">{majorCustomerErrors[idx].siteType}</div>
+                                                    )}
                                                 </div>
                                             </div>
                                         </div>
@@ -5611,7 +5684,35 @@ const VendorRegistrationStepByStepForm = () => {
                                             <div className="col-md-4 mt-2">
                                                 <div className="form-group">
                                                     <label>Pin Code<span>*</span></label>
-                                                    <input className="form-control" type="text" value={branch.pincode} onChange={e => handleBranchChange(idx, 'pincode', e.target.value)} />
+                                                    <input
+                                                        className="form-control"
+                                                        type="text"
+                                                        value={branch.pincode}
+                                                        maxLength={6}
+                                                        onChange={e => {
+                                                            let newValue = e.target.value;
+                                                            // Restrict to max 6 digits
+                                                            if (newValue.length > 6) {
+                                                                newValue = newValue.slice(0, 6);
+                                                            }
+                                                            handleBranchChange(idx, 'pincode', newValue);
+                                                            // Pin code live validation
+                                                            const pinCodeRegex = /^[1-9][0-9]{5}$/;
+                                                            let errorMsg = '';
+                                                            if (newValue && !pinCodeRegex.test(newValue)) {
+                                                                errorMsg = 'Pin Code must be a 6-digit number.';
+                                                            }
+                                                            // Update branchErrors for this branch
+                                                            setBranchErrors(prev => {
+                                                                const updated = [...prev];
+                                                                updated[idx] = {
+                                                                    ...updated[idx],
+                                                                    pincode: errorMsg
+                                                                };
+                                                                return updated;
+                                                            });
+                                                        }}
+                                                    />
                                                     {branchErrors[idx]?.pincode && (
                                                         <div className="ValidationColor">{branchErrors[idx].pincode}</div>
                                                     )}
@@ -5626,7 +5727,35 @@ const VendorRegistrationStepByStepForm = () => {
                                             <div className="col-md-4 mt-2">
                                                 <div className="form-group">
                                                     <label>Contact Number</label>
-                                                    <input className="form-control" type="text" value={branch.mobile} onChange={e => handleBranchChange(idx, 'mobile', e.target.value)} />
+                                                    <input
+                                                        className="form-control"
+                                                        type="text"
+                                                        value={branch.mobile}
+                                                        maxLength={10}
+                                                        onChange={e => {
+                                                            let newValue = e.target.value.replace(/[^0-9]/g, ''); // Only digits
+                                                            if (newValue.length > 10) {
+                                                                newValue = newValue.slice(0, 10);
+                                                            }
+                                                            handleBranchChange(idx, 'mobile', newValue);
+                                                            // Mobile number live validation
+                                                            let errorMsg = '';
+                                                            if (newValue && newValue.length !== 10) {
+                                                                errorMsg = 'Contact Number must be exactly 10 digits.';
+                                                            }
+                                                            setBranchErrors(prev => {
+                                                                const updated = [...prev];
+                                                                updated[idx] = {
+                                                                    ...updated[idx],
+                                                                    mobile: errorMsg
+                                                                };
+                                                                return updated;
+                                                            });
+                                                        }}
+                                                    />
+                                                    {branchErrors[idx]?.mobile && (
+                                                        <div className="ValidationColor">{branchErrors[idx].mobile}</div>
+                                                    )}
                                                 </div>
                                             </div>
                                         </div>
@@ -5635,7 +5764,7 @@ const VendorRegistrationStepByStepForm = () => {
                                 // </div>
                             ))}
                             <div className="row mt-2 ms-2 justify-content-start">
-                                <div className="col-md-2">
+                                <div className="col-md-4">
                                     <button className="purple-btn1" onClick={e => { e.preventDefault(); addBranchOffice(); }}>
                                         Add Branch Office Details
                                     </button>
