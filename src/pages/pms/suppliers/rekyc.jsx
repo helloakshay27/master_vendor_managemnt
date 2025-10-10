@@ -235,7 +235,7 @@ const SectionReKYCDetails = () => {
 
       setRekycId(response.data?.id);
       setRekycType(response.data?.rekyc_type);
-      // setRekycType([ "GSTIN Rekyc"]);
+      // setRekycType(["MSME Rekyc", "GSTIN Rekyc", "E-invoicing Rekyc"]);
 
       // setGstApplicable(response.data?.gstin_applicable);
       // setGstClassification(response.data?.gst_classification);
@@ -248,13 +248,13 @@ const SectionReKYCDetails = () => {
       setEmailAddress(response.data?.email || ""); // Set Email Address
 
       setGstApplicable(
-        response.data?.gstin_applicable === "Yes" ? "Yes" : "No"
+        response.data?.gstin_status === "Yes" ? "Yes" : "No"
       );
 
       const selectedClassification = gstClassifications.find(
         (item) => item.value === response.data?.gst_classification
       );
-      console.log("selectedClassification from API:", selectedClassification);
+      // console.log("selectedClassification from API:", selectedClassification);
 
       setGstClassification(selectedClassification || null);
       setOrganizationName(response.data?.organization_name)
@@ -351,7 +351,7 @@ const SectionReKYCDetails = () => {
 
   useEffect(() => {
     fetchGstClassifications();
-    console.log("gstClassification changed:", gstClassification);
+    // console.log("gstClassification changed:", gstClassification);
   }, []);
 
   // console.log("gst class:", gstClassifications)
@@ -359,7 +359,7 @@ const SectionReKYCDetails = () => {
   useEffect(() => {
     if (gstClassifications.length > 0) {
       fetchSupplierData();
-      console.log("gstClassification changed:", gstClassification);
+      // console.log("gstClassification changed:", gstClassification);
     }
   }, [gstClassifications, id]);
 
@@ -1171,7 +1171,7 @@ const SectionReKYCDetails = () => {
     };
   }
   // console.log("payload********************:", payload);
-  console.log("payload condition for new rekyc edit:", payloadCondition);
+  // console.log("payload condition for new rekyc edit:", payloadCondition);
 
   // update api
 
@@ -1351,7 +1351,7 @@ const SectionReKYCDetails = () => {
           // IFSC code validation
           if (!bankDetail.ifsc_code) {
             // if (!inputErrors[bankDetail.id]?.ifsc) {
-              validationErrors.ifsc_code = "IFSC Code is required.";
+            validationErrors.ifsc_code = "IFSC Code is required.";
             // }
           } else {
             // IFSC format validation: 4 letters, 0, 6 alphanumeric
@@ -1439,24 +1439,51 @@ const SectionReKYCDetails = () => {
 
 
       // MSME/Udyam Attachment/Declaration validation (robust)
+      // if (msmeUdyamApplicable === "Yes") {
+      //   // Require MSME/Udyam attachment
+      //   // const hasExistingMsmeAttachment = supplierData?.msme_details?.msme_attachments?.length > 0;
+      //   const hasNewMsmeAttachment = msmeAttachments && msmeAttachments.length > 0;
+      //   if (
+      //     // !hasExistingMsmeAttachment && 
+      //     !hasNewMsmeAttachment) {
+      //     validationErrors.msmeAttachments = "MSME/Udyam Attachment is required.";
+      //   }
+      // } else if (msmeUdyamApplicable === "No") {
+      //   // Require MSME/Udyam declaration
+      //   const hasDeclaration = msmeAttachments && msmeAttachments.length > 0;
+      //   if (!hasDeclaration) {
+      //     validationErrors.msmeDeclaration = "MSME/Udyam Declaration Attachment is required.";
+      //   }
+      // }
+
+
+
+      // Get initial value from supplierData
+      const initialMsmeApplicable = supplierData?.msme_details?.msme;
+
+      // Get existing attachments from supplierData
+      const existingMsmeAttachments = supplierData?.msme_details?.msme_attachments || [];
+
+      // MSME/Udyam Attachment/Declaration validation (robust)
       if (msmeUdyamApplicable === "Yes") {
-        // Require MSME/Udyam attachment
-        // const hasExistingMsmeAttachment = supplierData?.msme_details?.msme_attachments?.length > 0;
+        // If changed from No to Yes, require MSME attachment
         const hasNewMsmeAttachment = msmeAttachments && msmeAttachments.length > 0;
         if (
-          // !hasExistingMsmeAttachment && 
-          !hasNewMsmeAttachment) {
+          (initialMsmeApplicable === "No" && msmeUdyamApplicable === "Yes" && !hasNewMsmeAttachment) ||
+          (initialMsmeApplicable === "Yes" && msmeUdyamApplicable === "Yes" && existingMsmeAttachments.length === 0 && !hasNewMsmeAttachment)
+        ) {
           validationErrors.msmeAttachments = "MSME/Udyam Attachment is required.";
         }
       } else if (msmeUdyamApplicable === "No") {
-        // Require MSME/Udyam declaration
+        // If changed from Yes to No, require declaration attachment
         const hasDeclaration = msmeAttachments && msmeAttachments.length > 0;
-        if (!hasDeclaration) {
+        if (
+          (initialMsmeApplicable === "Yes" && msmeUdyamApplicable === "No" && !hasDeclaration) ||
+          (initialMsmeApplicable === "No" && msmeUdyamApplicable === "No" && existingMsmeAttachments.length === 0 && !hasDeclaration)
+        ) {
           validationErrors.msmeDeclaration = "MSME/Udyam Declaration Attachment is required.";
         }
       }
-
-
 
       // console.log("msmeAttachments***:", msmeAttachments);
       // console.log("supplierData?.msme_details?.msme_attachments:", supplierData?.msme_details?.msme_attachments);
@@ -1465,13 +1492,17 @@ const SectionReKYCDetails = () => {
 
     if (isRekycTypeEmpty || isEnvoiceRekyc) {
       // E-Invoicing declaration attachment validation
-      if (eInvoicingApplicable === "No" && (!einvoicingAttachments || einvoicingAttachments.length === 0)) {
-        validationErrors.einvoicingDeclaration = "E-Invoicing Declaration Attachment is required.";
+      if (eInvoicingApplicable === "No") {
+        const existingEinvoiceAttachments = supplierData?.einvoicing_attachments || [];
+        const hasNewEinvoiceAttachment = einvoicingAttachments && einvoicingAttachments.length > 0;
+        if (existingEinvoiceAttachments.length === 0 && !hasNewEinvoiceAttachment) {
+          validationErrors.einvoicingDeclaration = "E-Invoicing Declaration Attachment is required.";
+        }
       }
     }
 
     if (isRekycTypeEmpty || isGstinRekyc) {
-      
+
       if (!gstApplicable) {
         validationErrors.gstApplicable = "GST Applicable is required.";
       } else if (gstApplicable === "Yes") {
@@ -1481,29 +1512,61 @@ const SectionReKYCDetails = () => {
           validationErrors.gstClassification = "GST Classification is required.";
         }
 
-//         if (!gstClassification || gstClassification.value === "") {
-//   validationErrors.gstClassification = "GST Classification is required.";
-// }
-        
+        //         if (!gstClassification || gstClassification.value === "") {
+        //   validationErrors.gstClassification = "GST Classification is required.";
+        // }
+
         // Unified GSTIN validation: one error for missing, length, or format
         const gstinRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[A-Z0-9]{1}Z[A-Z0-9]{1}$/i;
         if (!gstinNumber || gstinNumber.length !== 15 || !gstinRegex.test(gstinNumber)) {
           validationErrors.gstinNumber = "Enter a valid 15-character GSTIN (e.g., 29ABCDE1234F1Z5)";
         }
 
+        //   if (
+        //     (
+        //       !supplierData?.basic_information?.gstin_attachments ||
+        //       supplierData?.basic_information?.gstin_attachments.length === 0
+        //     ) &&
+        //     gstinAttachments.length === 0
+        //   ) {
+        //     validationErrors.gstinAttachments = "GSTIN Attachment is required.";
+        //   }
+        // } else if (gstApplicable === "No") {
+        //   // GSTIN Declaration validation (robust, like MSME)
+        //   const hasDeclaration = gstinAttachments && gstinAttachments.length > 0;
+        //   if (!hasDeclaration) {
+        //     validationErrors.gstinDeclaration = "GSTIN Declaration Attachment is required.";
+        //   }
+        // }
+      }
+
+
+
+
+      // Get initial value from supplierData
+      const initialGstinApplicable = supplierData?.gstin_status;
+
+      // Get existing attachments from supplierData
+      const existingGstinAttachments = supplierData?.gstin_attachments || [];
+
+      // GSTIN Attachment/Declaration validation (robust)
+      console.log("initialGstinApplicable:", gstApplicable)
+      if (gstApplicable === "Yes") {
+        // If changed from No to Yes, require GSTIN attachment
+        const hasNewGstinAttachment = gstinAttachments && gstinAttachments.length > 0;
         if (
-          (
-            !supplierData?.basic_information?.gstin_attachments ||
-            supplierData?.basic_information?.gstin_attachments.length === 0
-          ) &&
-          gstinAttachments.length === 0
+          (initialGstinApplicable === "No" && gstApplicable === "Yes" && !hasNewGstinAttachment) ||
+          (initialGstinApplicable === "Yes" && gstApplicable === "Yes" && existingGstinAttachments.length === 0 && !hasNewGstinAttachment)
         ) {
           validationErrors.gstinAttachments = "GSTIN Attachment is required.";
         }
       } else if (gstApplicable === "No") {
-        // GSTIN Declaration validation (robust, like MSME)
+        // If changed from Yes to No, require declaration attachment
         const hasDeclaration = gstinAttachments && gstinAttachments.length > 0;
-        if (!hasDeclaration) {
+        if (
+          (initialGstinApplicable === "Yes" && gstApplicable === "No" && !hasDeclaration) ||
+          (initialGstinApplicable === "No" && gstApplicable === "No" && existingGstinAttachments.length === 0 && !hasDeclaration)
+        ) {
           validationErrors.gstinDeclaration = "GSTIN Declaration Attachment is required.";
         }
       }
@@ -1526,7 +1589,7 @@ const SectionReKYCDetails = () => {
 
       if (Object.keys(statutoryErrors).length > 0) {
         setStatutoryErrors(statutoryErrors); // show inline errors if needed
-        // return; // stop submission
+        return; // stop submission
       }
 
 
@@ -1599,6 +1662,15 @@ const SectionReKYCDetails = () => {
       //   validationErrors.bankChequeAttachments = "Bank Cheque Attachment is required.";
       // }
 
+
+
+      if (eInvoicingApplicable === "No") {
+        const existingEinvoiceAttachments = supplierData?.einvoicing_attachments || [];
+        const hasNewEinvoiceAttachment = einvoicingAttachments && einvoicingAttachments.length > 0;
+        if (existingEinvoiceAttachments.length === 0 && !hasNewEinvoiceAttachment) {
+          validationErrors.einvoicingDeclaration = "E-Invoicing Declaration Attachment is required.";
+        }
+      }
 
     }
 
@@ -1705,7 +1777,13 @@ const SectionReKYCDetails = () => {
           pan_attachments: panAttachments || [],
           msme: msmeUdyamApplicable || "",
           msme_attachments: msmeAttachments2 || [],
-          cin_attachments: cinAttachments || [],
+          ...(supplierData?.type_of_organization_attachment === "CIN" && {
+            cin_attachments: cinAttachments || [],
+          }),
+          ...(supplierData?.type_of_organization_attachment === "LLP" && {
+            llp_number_attachments: llpAttachments || [],
+          }),
+          // cin_attachments: cinAttachments || [],
           gstin_attachments: gstinAttachments2 || [],
           bank_attachments_attachments: bankChequeAttachments || [],
           statutory_details: statutoryPayload || [],
@@ -1714,7 +1792,7 @@ const SectionReKYCDetails = () => {
         };
       }
 
-      console.log("payload submition with conditions:", payload);
+      console.log("payload submition with conditions************:", payload);
 
       try {
         const response = await axios.patch(
@@ -2220,7 +2298,7 @@ const SectionReKYCDetails = () => {
               </div> */}
                 </div>
               </div>
-            
+
 
               {(isRekycTypeEmpty || isGstinRekyc) && (
                 <div className="card mx-3 pb-4 mt-4">
@@ -2304,14 +2382,14 @@ const SectionReKYCDetails = () => {
                                 value={gstClassification}
                                 onChange={setGstClassification}
                                 placeholder="Select GST Classification"
-                                // getOptionLabel={(option) => option?.name || ""}
-                                // getOptionValue={(option) => option?.value || ""}
+                              // getOptionLabel={(option) => option?.name || ""}
+                              // getOptionValue={(option) => option?.value || ""}
                               />
-                                {errors?.gstClassification && (
-                                  <div className="ValidationColor" >
-                                    {errors.gstClassification}
-                                  </div>
-                                )}
+                              {errors?.gstClassification && (
+                                <div className="ValidationColor" >
+                                  {errors.gstClassification}
+                                </div>
+                              )}
                             </div>
                           </div>
 
@@ -2459,7 +2537,7 @@ const SectionReKYCDetails = () => {
                                       download
                                       className="text-primary d-flex align-items-center"
                                     >
-                                        {/* <svg
+                                      {/* <svg
                                         xmlns="http://www.w3.org/2000/svg"
                                         width={20}
                                         height={20}
@@ -2471,7 +2549,7 @@ const SectionReKYCDetails = () => {
                                         <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
                                       </svg> */}
                                       <span className="me-2 ms-2">{file.document_name}</span>{" "}
-                                    
+
                                     </a>
                                   ))
                                 ) : (
@@ -3157,7 +3235,7 @@ const SectionReKYCDetails = () => {
                             <label>
                               Upload Declaration <span>*</span>
                             </label>
-                             {supplierData?.einvoicing_attachments?.length > 0 && (
+                            {supplierData?.einvoicing_attachments?.length > 0 && (
                               <span className="ms-2">
                                 <a
                                   href={`${baseURL}${supplierData?.einvoicing_attachments[0]?.file_url}`}
@@ -3265,7 +3343,7 @@ const SectionReKYCDetails = () => {
                   <div className="card-body mt-0">
                     {/* Name Rekyc Applicable */}
                     <div className="row">
-                      <div className="col-md-4 mt-2">
+                      <div className="col-md-4 ">
                         <div className="form-group">
                           <label>Organization Name <span>*</span></label>
                           <input
@@ -3287,12 +3365,10 @@ const SectionReKYCDetails = () => {
                       <div className="col-md-4 ">
                         <div className="form-group">
                           <label>PAN Attachment <span>*</span></label>
-
-
                           <input
                             type="file"
                             accept=".pdf,.jpg,.jpeg,.png"
-                            className="form-control mt-2"
+                            className="form-control "
                             onChange={(e) => handlePanUpload(e.target.files[0])}
                           />
                           {supplierData?.basic_information?.pan_attachments?.length >
@@ -3347,7 +3423,7 @@ const SectionReKYCDetails = () => {
                             <input
                               type="file"
                               accept=".pdf,.jpg,.jpeg,.png"
-                              className="form-control mt-2"
+                              className="form-control "
                               onChange={(e) => handleCinUpload(e.target.files[0])}
                             />
                             {supplierData?.basic_information?.cin_number_attachments?.length > 0 && (
@@ -3383,7 +3459,7 @@ const SectionReKYCDetails = () => {
                             <input
                               type="file"
                               accept=".pdf,.jpg,.jpeg,.png"
-                              className="form-control mt-2"
+                              className="form-control "
                               onChange={(e) => handleLlpUpload(e.target.files[0])}
                             />
                             {errors.llpAttachments && (
@@ -3762,7 +3838,7 @@ const SectionReKYCDetails = () => {
                           <div className="col-md-4 ">
                             <div className="form-group">
                               <label>
-                                Upload Declaration <span></span>
+                                Upload Declaration <span>*</span>
                               </label>
                               {/* <input
                           id="attachment"
@@ -3780,44 +3856,51 @@ const SectionReKYCDetails = () => {
                                 multiple
                                 accept=".pdf"
                               />
+
                               {/* Major Activity * */}
                               {supplierData?.einvoicing_attachments?.length > 0 && (
 
-                               <span className="ms-2">
-                              <a
-                                href={`${baseURL}${supplierData?.einvoicing_attachments[0]?.file_url}`} // Prepend baseURL to the file URL
-                                download // Trigger download when clicked
-                                className="text-primary d-flex align-items-center"
-                              >
-                                <span className="me-2">Existing Files:</span>
-                                {/* <TooltipIcon message="If you choose E-Invoice applicable 'No', please upload a signed declaration document to verify the details you have submitted. The document must be uploaded in PDF format.Ensure that the document is clear, legible, and properly signed." /> */}
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  width={24}
-                                  height={24}
-                                  fill="#DE7008"
-                                  className="bi bi-download"
-                                  viewBox="0 0 16 16"
-                                >
-                                  <path
-                                    d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
-                                    style={{ fill: "#de7008!important" }}
-                                  />
-                                  <path
-                                    d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
-                                    style={{ fill: "#de7008!important" }}
-                                  />
-                                </svg>
+                                <span className="ms-2">
+                                  <a
+                                    href={`${baseURL}${supplierData?.einvoicing_attachments[0]?.file_url}`} // Prepend baseURL to the file URL
+                                    download // Trigger download when clicked
+                                    className="text-primary d-flex align-items-center"
+                                  >
+                                    <span className="me-2">Existing Files:</span>
+                                    {/* <TooltipIcon message="If you choose E-Invoice applicable 'No', please upload a signed declaration document to verify the details you have submitted. The document must be uploaded in PDF format.Ensure that the document is clear, legible, and properly signed." /> */}
+                                    <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      width={24}
+                                      height={24}
+                                      fill="#DE7008"
+                                      className="bi bi-download"
+                                      viewBox="0 0 16 16"
+                                    >
+                                      <path
+                                        d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
+                                        style={{ fill: "#de7008!important" }}
+                                      />
+                                      <path
+                                        d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
+                                        style={{ fill: "#de7008!important" }}
+                                      />
+                                    </svg>
 
-                                {supplierData?.einvoicing_attachments
-                                  ?.length > 0
-                                  ? // Display the document name of the first attachment
-                                  supplierData?.einvoicing_attachments[0]
-                                    ?.document_name
-                                  : // If no attachment is present, show a default message
-                                  "No Document Available"}
-                              </a>
-                            </span>
+                                    {supplierData?.einvoicing_attachments
+                                      ?.length > 0
+                                      ? // Display the document name of the first attachment
+                                      supplierData?.einvoicing_attachments[0]
+                                        ?.document_name
+                                      : // If no attachment is present, show a default message
+                                      "No Document Available"}
+                                  </a>
+                                </span>
+                              )}
+
+                              {errors.einvoicingDeclaration && (
+                                <div className="ValidationColor">
+                                  {errors.einvoicingDeclaration}
+                                </div>
                               )}
                             </div>
                           </div>
