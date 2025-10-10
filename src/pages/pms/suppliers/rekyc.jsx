@@ -1493,7 +1493,7 @@ const SectionReKYCDetails = () => {
     if (isRekycTypeEmpty || isEnvoiceRekyc) {
       // E-Invoicing declaration attachment validation
       if (eInvoicingApplicable === "No") {
-        const existingEinvoiceAttachments = supplierData?.einvoicing_attachments || [];
+        const existingEinvoiceAttachments = supplierData?.basic_information?.einvoicing_attachments || [];
         const hasNewEinvoiceAttachment = einvoicingAttachments && einvoicingAttachments.length > 0;
         if (existingEinvoiceAttachments.length === 0 && !hasNewEinvoiceAttachment) {
           validationErrors.einvoicingDeclaration = "E-Invoicing Declaration Attachment is required.";
@@ -1547,7 +1547,7 @@ const SectionReKYCDetails = () => {
       const initialGstinApplicable = supplierData?.gstin_status;
 
       // Get existing attachments from supplierData
-      const existingGstinAttachments = supplierData?.gstin_attachments || [];
+      const existingGstinAttachments = supplierData?.basic_information?.gstin_attachments || [];
 
       // GSTIN Attachment/Declaration validation (robust)
       console.log("initialGstinApplicable:", gstApplicable)
@@ -1665,7 +1665,7 @@ const SectionReKYCDetails = () => {
 
 
       if (eInvoicingApplicable === "No") {
-        const existingEinvoiceAttachments = supplierData?.einvoicing_attachments || [];
+        const existingEinvoiceAttachments = supplierData?.basic_information?.einvoicing_attachments || [];
         const hasNewEinvoiceAttachment = einvoicingAttachments && einvoicingAttachments.length > 0;
         if (existingEinvoiceAttachments.length === 0 && !hasNewEinvoiceAttachment) {
           validationErrors.einvoicingDeclaration = "E-Invoicing Declaration Attachment is required.";
@@ -3235,10 +3235,10 @@ const SectionReKYCDetails = () => {
                             <label>
                               Upload Declaration <span>*</span>
                             </label>
-                            {supplierData?.einvoicing_attachments?.length > 0 && (
+                            {supplierData?.basic_information?.einvoicing_attachments?.length > 0 && (
                               <span className="ms-2">
                                 <a
-                                  href={`${baseURL}${supplierData?.einvoicing_attachments[0]?.file_url}`}
+                                  href={`${baseURL}${supplierData?.basic_information?.einvoicing_attachments[0]?.file_url}`}
                                   download
                                   className="text-primary d-flex align-items-center"
                                 >
@@ -3254,8 +3254,8 @@ const SectionReKYCDetails = () => {
                                     <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
                                     <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
                                   </svg>
-                                  {supplierData?.einvoicing_attachments?.length > 0
-                                    ? supplierData?.einvoicing_attachments?.document_name
+                                  {supplierData?.basic_information?.einvoicing_attachments?.length > 0
+                                    ? supplierData?.basic_information?.einvoicing_attachments[0]?.document_name
                                     : "No Document Available"}
                                 </a>
                               </span>
@@ -3858,11 +3858,11 @@ const SectionReKYCDetails = () => {
                               />
 
                               {/* Major Activity * */}
-                              {supplierData?.einvoicing_attachments?.length > 0 && (
+                              {supplierData?.basic_information?.einvoicing_attachments?.length > 0 && (
 
                                 <span className="ms-2">
                                   <a
-                                    href={`${baseURL}${supplierData?.einvoicing_attachments[0]?.file_url}`} // Prepend baseURL to the file URL
+                                    href={`${baseURL}${supplierData?.basic_information?.einvoicing_attachments[0]?.file_url}`} // Prepend baseURL to the file URL
                                     download // Trigger download when clicked
                                     className="text-primary d-flex align-items-center"
                                   >
@@ -3886,10 +3886,10 @@ const SectionReKYCDetails = () => {
                                       />
                                     </svg>
 
-                                    {supplierData?.einvoicing_attachments
+                                    {supplierData?.basic_information?.einvoicing_attachments
                                       ?.length > 0
                                       ? // Display the document name of the first attachment
-                                      supplierData?.einvoicing_attachments[0]
+                                      supplierData?.basic_information?.einvoicing_attachments[0]
                                         ?.document_name
                                       : // If no attachment is present, show a default message
                                       "No Document Available"}
