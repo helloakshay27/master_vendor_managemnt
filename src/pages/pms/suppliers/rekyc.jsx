@@ -1668,12 +1668,22 @@ const SectionReKYCDetails = () => {
       }
 
 
-      const statutoryErrors = validateStatutoryInputs() || {};
+      // const statutoryErrors = validateStatutoryInputs() || {};
 
-      if (Object.keys(statutoryErrors).length > 0) {
-        setStatutoryErrors(statutoryErrors); // show inline errors if needed
-        return; // stop submission
-      }
+      // if (Object.keys(statutoryErrors).length > 0) {
+      //   setStatutoryErrors(statutoryErrors); // show inline errors if needed
+      //   return; // stop submission
+      // }
+
+
+      const statutoryErrors = validateStatutoryInputs() || {};
+Object.assign(validationErrors, statutoryErrors);
+
+if (Object.keys(validationErrors).length > 0) {
+  setStatutoryErrors(statutoryErrors); // if you want to show statutory errors inline
+  setErrors(validationErrors);
+  return;
+}
 
     }
 

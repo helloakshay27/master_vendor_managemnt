@@ -165,25 +165,7 @@ import CollapsedCardKYC from "../components/base/Card/CollapsedCardKYC";
 import { MultiSelector } from "../components";
 
 const VendorRegistrationStepByStepForm = () => {
-    // Save as Draft function
-    // const saveDraft = async () => {
-    //     try {
-    //         // Construct your payload here. Example:
-    //         const payload = {
-    //             basicInfo,
-    //             additionalDetails,
-    //             registeredAddress,
-    //             communicationAddress,
-    //             turnover,
-    //             // Add other sections as needed
-    //         };
-    //         const response = await axios.post(`${baseURL}/your-draft-endpoint`, payload);
-    //         toast.success('Draft saved successfully!');
-    //     } catch (error) {
-    //         toast.error('Failed to save draft.');
-    //         console.error('Save draft error:', error);
-    //     }
-    // };
+
     // Name Title options for contact person
     const nameTitleOptions = [
         { label: 'Select', value: '' },
@@ -495,8 +477,10 @@ const VendorRegistrationStepByStepForm = () => {
         organizationType: "",
         cin: "",
         cinAttachment: null,
+        cinAttachmentObj: null, // { filename, content, content_type, file_url }
         llp: "",
         llpAttachment: null,
+        llpAttachmentObj: null, // { filename, content, content_type, file_url }
         natureOfBusiness: "",
         vendorType: "",
         industryType: "",
@@ -507,13 +491,16 @@ const VendorRegistrationStepByStepForm = () => {
         keyMarket: "",
         panNo: "",
         panAttachment: null,
+        panAttachmentObj: null, // { filename, content, content_type, file_url }
         schemaGroup: "",
         dateOfIncorporation: "",
         gstinApplicable: "",
         gstinClassification: "",
         gstinNo: "",
         gstinAttachment: null,
+        gstinAttachmentObj: null, // { filename, content, content_type, file_url }
         gstinDeclaration: null,
+        gstinDeclarationObj: null, // { filename, content, content_type, file_url }
     });
 
     const updateBasicInfo = (field, value) => {
@@ -537,7 +524,7 @@ const VendorRegistrationStepByStepForm = () => {
             const response = await axios.post(`https://vendors.lockated.com/pms/suppliers/${id}/generate_otp_api`);
             // You can handle response here, e.g. show toast or set OTP state
             // toast.success('OTP sent successfully!');
-             toast.success("OTP has been sent to your registered mobile number and email.");
+            toast.success("OTP has been sent to your registered mobile number and email.");
             console.log("responce otp:", response)
         } catch (error) {
             toast.error('Failed to send OTP.');
@@ -546,6 +533,8 @@ const VendorRegistrationStepByStepForm = () => {
 
     // console.log("mail otp:", emailOtp)
     // console.log("mobile otp:", mobileOtp)
+    // State to store supplier_id after OTP verification
+    const [supplierId, setSupplierId] = useState(null);
 
     const handleOtpSubmit = async () => {
         if (!emailOtp && !mobileOtp) {
@@ -563,9 +552,15 @@ const VendorRegistrationStepByStepForm = () => {
             return;
         }
 
+        setCompleted((arr) => {
+            const copy = [...arr];
+            copy[currentStep] = true;
+            return copy;
+        });
+        // setCurrentStep((s) => Math.min(s + 1, steps.length - 1));
         try {
             const response = await axios.post(
-                `http://vendors.lockated.com/pms/suppliers/${id}/verify_otp_api`,
+                `https://vendors.lockated.com/pms/suppliers/${id}/verify_otp_api`,
                 {
                     email_otp: emailOtp || null,
                     mobile_otp: mobileOtp || null,
@@ -576,8 +571,11 @@ const VendorRegistrationStepByStepForm = () => {
                 }
             );
 
-            console.log("responce otp  verification:",response)
-            if (response.status === 200) {
+            console.log("responce otp  verification:", response)
+            if (response.status === 200 && response.data && response.data.message === "OTP verified successfully") {
+                if (response.data.supplier_id) {
+                    setSupplierId(response.data.supplier_id);
+                }
                 setCompleted((arr) => {
                     const copy = [...arr];
                     copy[currentStep] = true;
@@ -587,6 +585,7 @@ const VendorRegistrationStepByStepForm = () => {
             } else {
                 toast.error('OTP verification failed.');
             }
+
         } catch (error) {
             toast.error('OTP verification failed.');
         }
@@ -687,8 +686,8 @@ const VendorRegistrationStepByStepForm = () => {
         validFrom: "",
         validTill: "",
         msmeEnterpriseType: null,
-        msmeAttachment: null,
-        msmeDeclaration: null,
+        msmeAttachmentObj: null,
+        msmeDeclarationObj: null,
     });
 
     // Helper to update additional details fields
@@ -754,6 +753,13 @@ const VendorRegistrationStepByStepForm = () => {
     // console.log("pan att:",basicInfo.panAttachment)
     // console.log("gst att:",basicInfo.gstinAttachment)
 
+    // ...existing code...
+
+
+
+
+    // ...existing code...
+
     const validateBasicInfo = () => {
         // Validate basic info fields
         const errors = {};
@@ -780,11 +786,11 @@ const VendorRegistrationStepByStepForm = () => {
                     errors.gstinNo = 'Invalid GSTIN format. Example: 22AAAAA0000A1Z5';
                 }
             }
-            if (!basicInfo.gstinAttachment) {
+            if (!basicInfo.gstinAttachmentObj) {
                 errors.gstinAttachment = 'This field is required.';
             }
         } else if (gstinApplicableLabel === 'No') {
-            if (!basicInfo.gstinDeclaration) {
+            if (!basicInfo.gstinDeclarationObj) {
                 errors.gstinDeclaration = 'This field is required.';
             }
         }
@@ -801,7 +807,7 @@ const VendorRegistrationStepByStepForm = () => {
                     errors.cin = 'CIN must be 21 alphanumeric characters.';
                 }
             }
-            if (!basicInfo.cinAttachment) errors.cinAttachment = 'This field is required';
+            if (!basicInfo.cinAttachmentObj) errors.cinAttachment = 'This field is required';
         }
 
         // Special case: if organizationType is Limited Liability Partnership (LLP), LLP No. and attachment required
@@ -815,7 +821,7 @@ const VendorRegistrationStepByStepForm = () => {
                     errors.llp = 'LLP must be in the format AAR-1165.';
                 }
             }
-            if (!basicInfo.llpAttachment) errors.llpAttachment = 'This field is required.';
+            if (!basicInfo.llpAttachmentObj) errors.llpAttachment = 'This field is required.';
         }
 
         console.log("errors***************:", errors)
@@ -847,11 +853,11 @@ const VendorRegistrationStepByStepForm = () => {
             if (!additionalDetails.msmeEnterpriseType || (typeof additionalDetails.msmeEnterpriseType === 'object' && !additionalDetails.msmeEnterpriseType.value && !additionalDetails.msmeEnterpriseType.label)) {
                 additionalErrors.msmeEnterpriseType = 'This field is required.';
             }
-            if (!additionalDetails.msmeAttachment) additionalErrors.msmeAttachments = 'This field is required.';
+            if (!additionalDetails.msmeAttachmentObj) additionalErrors.msmeAttachments = 'This field is required.';
         }
         // If MSME/Udyam is No, declaration required
         if (additionalDetails.msmeUdyamApplicable?.value === 'No') {
-            if (!additionalDetails.msmeDeclaration) additionalErrors.msmeDeclaration = 'This field is required.';
+            if (!additionalDetails.msmeDeclarationObj) additionalErrors.msmeDeclaration = 'This field is required.';
         }
 
         // E-invoicing Applicable required if GSTIN Applicable is Yes
@@ -944,7 +950,7 @@ const VendorRegistrationStepByStepForm = () => {
         }
         const fetchStates = async () => {
             try {
-                const response = await axios.get(`https://vendors.lockated.com/pms/suppliers/pms_state_list?q[country_id_in]=${registeredAddress.country.value}` 
+                const response = await axios.get(`https://vendors.lockated.com/pms/suppliers/pms_state_list?q[country_id_in]=${registeredAddress.country.value}`
                 );
                 // Assuming response.data is an array of state objects with id and name
                 const options = (response.data.pms_state || []).map(state => ({
@@ -2427,10 +2433,10 @@ const VendorRegistrationStepByStepForm = () => {
             organization_name: basicInfo.vendorOrganizationName,
 
             cin_number: basicInfo.cin,
-            cin_attachment: basicInfo.cinAttachment,
+            cin_attachment: basicInfo.cinAttachmentObj,
 
             llp_number: basicInfo.llp,
-            llp_attachment: basicInfo.llpAttachment,
+            llp_attachment: basicInfo.llpAttachmentObj,
 
             type_of_organization_id: basicInfo.organizationType && basicInfo.organizationType.value ? basicInfo.organizationType.value : null,
             nature_of_business_id: basicInfo.natureOfBusiness,
@@ -2440,7 +2446,7 @@ const VendorRegistrationStepByStepForm = () => {
             key_market: basicInfo.keyMarket,
 
             pan_number: basicInfo.panNo,
-            pan_attachment: basicInfo.panAttachment,
+            pan_attachment: basicInfo.panAttachmentObj,
             schema_group_id: basicInfo.schemaGroup,
             date_of_incorporation: basicInfo.dateOfIncorporation,
 
@@ -2452,8 +2458,8 @@ const VendorRegistrationStepByStepForm = () => {
                         null,
             gst_classification_id: basicInfo.gstinClassification?.value,
             gstin: basicInfo.gstinNo,
-            gstin_attachment: basicInfo.gstinAttachment,
-            gstin_declaration: basicInfo.gstinDeclaration,
+            gstin_attachmentObj: basicInfo.gstinAttachment,
+            gstin_declarationObj: basicInfo.gstinDeclaration,
 
 
 
@@ -2472,8 +2478,8 @@ const VendorRegistrationStepByStepForm = () => {
             valid_from: additionalDetails.validFrom,
             valid_till: additionalDetails.validTill,
             enterprise: additionalDetails.msmeEnterpriseType && additionalDetails.msmeEnterpriseType.value ? additionalDetails.msmeEnterpriseType.value : null,
-            msme_attachment: additionalDetails.msmeAttachment,
-            msme_declaration: additionalDetails.msmeDeclaration,
+            msme_attachment: additionalDetails.msmeAttachmentObj,
+            msme_declaration: additionalDetails.msmeDeclarationObj,
 
             office_address_attributes: mapRegisteredAddressToPayload(registeredAddress),
             communication_address_attributes: mapCommunicationAddressToPayload(communicationAddress),
@@ -2525,9 +2531,271 @@ const VendorRegistrationStepByStepForm = () => {
     console.log("payloaddddddd*********:", ppayload2)
 
 
-    // console.log("basic info:", basicInfo)
+    console.log("basic info:", basicInfo)
 
 
+    console.log("supplier id:", supplierId)
+    // Save as Draft function
+    const saveDraft = async () => {
+        const ppayload2 = {
+
+
+            pms_supplier: {
+                status: "draft",
+                company_id: supplierShowData?.company_id || null,
+                organization_name: basicInfo.vendorOrganizationName,
+
+                cin_number: basicInfo.cin,
+                cin_attachment: basicInfo.cinAttachmentObj,
+
+                llp_number: basicInfo.llp,
+                llp_attachment: basicInfo.llpAttachmentObj,
+
+                type_of_organization_id: basicInfo.organizationType && basicInfo.organizationType.value ? basicInfo.organizationType.value : null,
+                nature_of_business_id: basicInfo.natureOfBusiness,
+                vendor_type: basicInfo.vendorType && basicInfo.vendorType.value ? basicInfo.vendorType.value : null,
+                type_business_id: basicInfo.industryType && basicInfo.industryType.value ? basicInfo.industryType.value : null,
+                type_of_work: basicInfo.typeOfWork,
+                key_market: basicInfo.keyMarket,
+
+                pan_number: basicInfo.panNo,
+                pan_attachment: basicInfo.panAttachmentObj,
+                schema_group_id: basicInfo.schemaGroup,
+                date_of_incorporation: basicInfo.dateOfIncorporation,
+
+
+
+                gstin_applicable:
+                    basicInfo.gstinApplicable && basicInfo.gstinApplicable.value === 'Yes' ? true :
+                        basicInfo.gstinApplicable && basicInfo.gstinApplicable.value === 'No' ? false :
+                            null,
+                gst_classification_id: basicInfo.gstinClassification?.value,
+                gstin: basicInfo.gstinNo,
+                gstin_attachment: basicInfo.gstinAttachmentObj,
+                gstin_declaration: basicInfo.gstinDeclarationObj,
+
+
+
+
+                website: additionalDetails.website,
+                delivery_lead_period: additionalDetails.deliveryLeadPeriod,
+                specify_warranty_period: additionalDetails.warrantyPeriod,
+                amc_provided: additionalDetails.amcProvided,
+                currency: additionalDetails.currencyType && additionalDetails.currencyType.value ? additionalDetails.currencyType.value : null,
+                msme: additionalDetails.msmeUdyamApplicable && additionalDetails.msmeUdyamApplicable.value ? additionalDetails.msmeUdyamApplicable.value : null,
+                einvoicing: additionalDetails.einvoice && additionalDetails.einvoice.value ? additionalDetails.einvoice.value : null,
+                einvoicing_declaration: additionalDetails.einvoiceDeclaration,
+                msme_no: additionalDetails.msmeNo,
+                classification_year: additionalDetails.classificationYear && additionalDetails.classificationYear.value ? additionalDetails.classificationYear.value : null,
+                major_activity: additionalDetails.majorActivity && additionalDetails.majorActivity.value ? additionalDetails.majorActivity.value : null,
+                valid_from: additionalDetails.validFrom,
+                valid_till: additionalDetails.validTill,
+                enterprise: additionalDetails.msmeEnterpriseType && additionalDetails.msmeEnterpriseType.value ? additionalDetails.msmeEnterpriseType.value : null,
+                msme_attachment: additionalDetails.msmeAttachmentObj,
+                msme_declaration: additionalDetails.msmeDeclarationOb,
+
+                // office_address_attributes: mapRegisteredAddressToPayload(registeredAddress),
+                // communication_address_attributes: mapCommunicationAddressToPayload(communicationAddress),
+                // bank_details_attributes: bankDetailsList.map((item) => ({
+                //     ...item,
+                //     id: item.isNew ? null : item.id,
+                //     attachment: item.isNew
+                //         ? bankAttachments[item.id] || null
+                //         : bankAttachments[item.id] || (item.attachment ? null : null),
+                // })),
+
+
+                // bank_details_attributes: bankDetailsList.map((item) => ({
+                //     ...item,
+                //     id: item.isNew ? null : item.id,
+
+                //     attachment: item.isNew
+                //         ? bankAttachments[item.id] || null // If new attachment exists, pass it; otherwise, null
+                //         : bankAttachments[item.id] || (item.attachment ? null : null), // If existing, only pass null if no new file is uploaded
+                // })),
+
+                // branch_offices_attributes: mapBranchOfficesToPayload(branchOffices),
+                // contact_people_attributes: mapContactPersonsToPayload(contactPersons),
+                // directors_informations_attributes: mapOwnersToPayload(owners),
+                // factory_warehouses_attributes: mapWarehousesToPayload(warehouses),
+                // major_customers_attributes: mapMajorCustomersToPayload(majorCustomers),
+
+
+
+                // annual_turnovers_attributes: [
+                //   {
+                //     id: null,
+                //     financial_year: "2024-25",
+                //     key_markets: "Domestic",
+                //     turnover: "60 Cr",
+                //     attachment: "turnover_statement2.pdf",
+                //     _destroy: false
+                //   }
+                // ],
+
+
+
+                // vendor_re_kyc: {
+                //   status: "completed"
+                // }
+            }
+        }
+        try {
+            // Construct your payload here. Example:
+            const payload = ppayload2
+            // {
+            //     basicInfo,
+            //     additionalDetails,
+            //     registeredAddress,
+            //     communicationAddress,
+            //     turnover,
+            //     // Add other sections as needed
+            // };
+            const response = await axios.patch(`${baseURL}/pms/suppliers/${supplierId}/update_api.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`, payload);
+            toast.success('Draft saved successfully!');
+        } catch (error) {
+            toast.error('Failed to save draft.');
+            console.error('Save draft error:', error);
+        }
+    };
+
+
+    const saveDraftStep1 = async () => {
+        const payload = {
+            pms_supplier: {
+                status: "draft",
+                company_id: supplierShowData?.company_id || null,
+                organization_name: basicInfo.vendorOrganizationName,
+
+                cin_number: basicInfo.cin,
+                cin_attachment: basicInfo.cinAttachmentObj,
+
+                llp_number: basicInfo.llp,
+                llp_attachment: basicInfo.llpAttachmentObj,
+
+                type_of_organization_id: basicInfo.organizationType && basicInfo.organizationType.value ? basicInfo.organizationType.value : null,
+                nature_of_business_id: basicInfo.natureOfBusiness,
+                vendor_type: basicInfo.vendorType && basicInfo.vendorType.value ? basicInfo.vendorType.value : null,
+                type_business_id: basicInfo.industryType && basicInfo.industryType.value ? basicInfo.industryType.value : null,
+                type_of_work: basicInfo.typeOfWork,
+                key_market: basicInfo.keyMarket,
+
+                pan_number: basicInfo.panNo,
+                pan_attachment: basicInfo.panAttachmentObj,
+                schema_group_id: basicInfo.schemaGroup,
+                date_of_incorporation: basicInfo.dateOfIncorporation,
+
+
+
+                gstin_applicable:
+                    basicInfo.gstinApplicable && basicInfo.gstinApplicable.value === 'Yes' ? true :
+                        basicInfo.gstinApplicable && basicInfo.gstinApplicable.value === 'No' ? false :
+                            null,
+                gst_classification_id: basicInfo.gstinClassification?.value,
+                gstin: basicInfo.gstinNo,
+                gstin_attachment: basicInfo.gstinAttachmentObj,
+                gstin_declaration: basicInfo.gstinDeclarationObj,
+
+
+
+
+                website: additionalDetails.website,
+                delivery_lead_period: additionalDetails.deliveryLeadPeriod,
+                specify_warranty_period: additionalDetails.warrantyPeriod,
+                amc_provided: additionalDetails.amcProvided,
+                currency: additionalDetails.currencyType && additionalDetails.currencyType.value ? additionalDetails.currencyType.value : null,
+                msme: additionalDetails.msmeUdyamApplicable && additionalDetails.msmeUdyamApplicable.value ? additionalDetails.msmeUdyamApplicable.value : null,
+                einvoicing: additionalDetails.einvoice && additionalDetails.einvoice.value ? additionalDetails.einvoice.value : null,
+                einvoicing_declaration: additionalDetails.einvoiceDeclaration,
+                msme_no: additionalDetails.msmeNo,
+                classification_year: additionalDetails.classificationYear && additionalDetails.classificationYear.value ? additionalDetails.classificationYear.value : null,
+                major_activity: additionalDetails.majorActivity && additionalDetails.majorActivity.value ? additionalDetails.majorActivity.value : null,
+                valid_from: additionalDetails.validFrom,
+                valid_till: additionalDetails.validTill,
+                enterprise: additionalDetails.msmeEnterpriseType && additionalDetails.msmeEnterpriseType.value ? additionalDetails.msmeEnterpriseType.value : null,
+                msme_attachment: additionalDetails.msmeAttachmentObj,
+                msme_declaration: additionalDetails.msmeDeclarationOb,
+            }
+        };
+        try {
+            await axios.patch(`${baseURL}/pms/suppliers/${supplierId}/update_api.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`, payload);
+            toast.success('Step 2 draft saved!');
+        } catch (error) {
+            toast.error('Failed to save Step 1 draft.');
+        }
+    };
+
+console.log("add:", registeredAddress,communicationAddress, mapRegisteredAddressToPayload(registeredAddress))
+
+    const saveDraftStep2 = async () => {
+        const payload = {
+            pms_supplier: {
+                status: "draft",
+                company_id: supplierShowData?.company_id || null,
+                organization_name: basicInfo.vendorOrganizationName,
+
+                cin_number: basicInfo.cin,
+                cin_attachment: basicInfo.cinAttachmentObj,
+
+                llp_number: basicInfo.llp,
+                llp_attachment: basicInfo.llpAttachmentObj,
+
+                type_of_organization_id: basicInfo.organizationType && basicInfo.organizationType.value ? basicInfo.organizationType.value : null,
+                nature_of_business_id: basicInfo.natureOfBusiness,
+                vendor_type: basicInfo.vendorType && basicInfo.vendorType.value ? basicInfo.vendorType.value : null,
+                type_business_id: basicInfo.industryType && basicInfo.industryType.value ? basicInfo.industryType.value : null,
+                type_of_work: basicInfo.typeOfWork,
+                key_market: basicInfo.keyMarket,
+
+                pan_number: basicInfo.panNo,
+                pan_attachment: basicInfo.panAttachmentObj,
+                schema_group_id: basicInfo.schemaGroup,
+                date_of_incorporation: basicInfo.dateOfIncorporation,
+
+
+
+                gstin_applicable:
+                    basicInfo.gstinApplicable && basicInfo.gstinApplicable.value === 'Yes' ? true :
+                        basicInfo.gstinApplicable && basicInfo.gstinApplicable.value === 'No' ? false :
+                            null,
+                gst_classification_id: basicInfo.gstinClassification?.value,
+                gstin: basicInfo.gstinNo,
+                gstin_attachment: basicInfo.gstinAttachmentObj,
+                gstin_declaration: basicInfo.gstinDeclarationObj,
+
+
+
+
+                website: additionalDetails.website,
+                delivery_lead_period: additionalDetails.deliveryLeadPeriod,
+                specify_warranty_period: additionalDetails.warrantyPeriod,
+                amc_provided: additionalDetails.amcProvided,
+                currency: additionalDetails.currencyType && additionalDetails.currencyType.value ? additionalDetails.currencyType.value : null,
+                msme: additionalDetails.msmeUdyamApplicable && additionalDetails.msmeUdyamApplicable.value ? additionalDetails.msmeUdyamApplicable.value : null,
+                einvoicing: additionalDetails.einvoice && additionalDetails.einvoice.value ? additionalDetails.einvoice.value : null,
+                einvoicing_declaration: additionalDetails.einvoiceDeclaration,
+                msme_no: additionalDetails.msmeNo,
+                classification_year: additionalDetails.classificationYear && additionalDetails.classificationYear.value ? additionalDetails.classificationYear.value : null,
+                major_activity: additionalDetails.majorActivity && additionalDetails.majorActivity.value ? additionalDetails.majorActivity.value : null,
+                valid_from: additionalDetails.validFrom,
+                valid_till: additionalDetails.validTill,
+                enterprise: additionalDetails.msmeEnterpriseType && additionalDetails.msmeEnterpriseType.value ? additionalDetails.msmeEnterpriseType.value : null,
+                msme_attachment: additionalDetails.msmeAttachmentObj,
+                msme_declaration: additionalDetails.msmeDeclarationOb,
+
+                office_address_attributes: mapRegisteredAddressToPayload(registeredAddress),
+                communication_address_attributes: mapCommunicationAddressToPayload(communicationAddress),
+            }
+        };
+        try {
+            await axios.patch(`${baseURL}/pms/suppliers/${supplierId}/update_api.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`, payload);
+            toast.success('Step 3 draft saved!');
+        } catch (error) {
+            toast.error('Failed to save Step 2 draft.');
+        }
+    };
+
+    // Repeat for other steps...
 
 
 
@@ -3176,7 +3444,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                 )}
                                             </div>
                                         </div>
-                                        <div className="col-md-4 mt-2">
+                                        {/* <div className="col-md-4 mt-2">
                                             <div className="form-group">
                                                 <label>
                                                     PAN Attachment <span>*</span>
@@ -3197,7 +3465,57 @@ const VendorRegistrationStepByStepForm = () => {
                                                     <div className="ValidationColor">{basicInfoErrors.panAttachment}</div>
                                                 )}
                                             </div>
+                                        </div> */}
+
+                                        {/* PAN Attachment */}
+                                        <div className="col-md-4 mt-2">
+                                            <div className="form-group">
+                                                <label>
+                                                    PAN Attachment <span>*</span>
+                                                    <TooltipIcon message="Please attach a clear PDF of your organization's PAN certificate. This is required for identity and tax verification." />
+                                                </label>
+                                                {/* Show existing PAN attachment if available */}
+                                                {basicInfo?.panAttachmentObj?.filename ? (
+                                                    <span className="ms-2">
+                                                        <a
+                                                            href={basicInfo.panAttachmentObj.file_url || '#'}
+                                                            download
+                                                            className="text-primary d-flex align-items-center"
+                                                        >
+                                                            <span className="me-2">Existing File:</span>
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} fill="#DE7008" className="bi bi-download" viewBox="0 0 16 16">
+                                                                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                                                                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                                                            </svg>
+                                                            {basicInfo.panAttachmentObj.filename}
+                                                        </a>
+                                                    </span>
+                                                ) : null}
+                                                <input
+                                                    className="form-control mt-2"
+                                                    type="file"
+                                                    accept=".pdf"
+                                                    onChange={e => {
+                                                        const file = e.target.files[0];
+                                                        if (file) {
+                                                            const reader = new FileReader();
+                                                            reader.onload = function (ev) {
+                                                                updateBasicInfo('panAttachmentObj', {
+                                                                    filename: file.name,
+                                                                    content: ev.target.result.split(',')[1],
+                                                                    content_type: file.type,
+                                                                });
+                                                            };
+                                                            reader.readAsDataURL(file);
+                                                        }
+                                                    }}
+                                                />
+                                                {basicInfoErrors.panAttachment && (
+                                                    <div className="ValidationColor">{basicInfoErrors.panAttachment}</div>
+                                                )}
+                                            </div>
                                         </div>
+
                                         <div className="col-md-4 mt-2">
                                             <div className="form-group">
 
@@ -3273,7 +3591,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                             )}
                                                         </div>
                                                     </div>
-                                                    <div className="col-md-4 mt-2">
+                                                    {/* <div className="col-md-4 mt-2">
                                                         <div className="form-group">
                                                             <label>
                                                                 Corporate Identification Number Attachment  <span>*</span>
@@ -3289,7 +3607,58 @@ const VendorRegistrationStepByStepForm = () => {
                                                                 <div className="ValidationColor">{basicInfoErrors.cinAttachment}</div>
                                                             )}
                                                         </div>
-                                                    </div>
+                                                    </div> */}
+
+                                                    {/* CIN Attachment */}
+                                                    {(basicInfo?.organizationType?.label === 'Private Limited' || basicInfo?.organizationType?.label === 'Public Limited') && (
+                                                        <div className="col-md-4 mt-2">
+                                                            <div className="form-group">
+                                                                <label>
+                                                                    Corporate Identification Number Attachment  <span>*</span>
+                                                                    <TooltipIcon message="Upload the official document or certificate to verify the details you have submitted. The document must be uploaded in PDF format. Corporate Identification Number Attachment." />
+                                                                </label>
+                                                                {/* Show existing CIN attachment if available */}
+                                                                {basicInfo?.cinAttachmentObj?.filename ? (
+                                                                    <span className="ms-2">
+                                                                        <a
+                                                                            href={basicInfo.cinAttachmentObj.file_url || '#'}
+                                                                            download
+                                                                            className="text-primary d-flex align-items-center"
+                                                                        >
+                                                                            <span className="me-2">Existing File:</span>
+                                                                            <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} fill="#DE7008" className="bi bi-download" viewBox="0 0 16 16">
+                                                                                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                                                                                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                                                                            </svg>
+                                                                            {basicInfo.cinAttachmentObj.filename}
+                                                                        </a>
+                                                                    </span>
+                                                                ) : null}
+                                                                <input
+                                                                    className="form-control mt-2"
+                                                                    type="file"
+                                                                    accept="application/pdf"
+                                                                    onChange={e => {
+                                                                        const file = e.target.files[0];
+                                                                        if (file) {
+                                                                            const reader = new FileReader();
+                                                                            reader.onload = function (ev) {
+                                                                                updateBasicInfo('cinAttachmentObj', {
+                                                                                    filename: file.name,
+                                                                                    content: ev.target.result.split(',')[1],
+                                                                                    content_type: file.type,
+                                                                                });
+                                                                            };
+                                                                            reader.readAsDataURL(file);
+                                                                        }
+                                                                    }}
+                                                                />
+                                                                {basicInfoErrors.cinAttachment && (
+                                                                    <div className="ValidationColor">{basicInfoErrors.cinAttachment}</div>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    )}
                                                 </>
                                             )}
 
@@ -3323,7 +3692,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                             )}
                                                         </div>
                                                     </div>
-                                                    <div className="col-md-4 mt-2">
+                                                    {/* <div className="col-md-4 mt-2">
                                                         <div className="form-group">
                                                             <label>
                                                                 LLP No. Attachment  <span>*</span>
@@ -3339,7 +3708,59 @@ const VendorRegistrationStepByStepForm = () => {
                                                                 <div className="ValidationColor">{basicInfoErrors.llpAttachment}</div>
                                                             )}
                                                         </div>
-                                                    </div>
+                                                    </div> */}
+
+
+                                                    {/* LLP Attachment */}
+                                                    {basicInfo?.organizationType?.label === 'Limited Liability Partnership (LLP)' && (
+                                                        <div className="col-md-4 mt-2">
+                                                            <div className="form-group">
+                                                                <label>
+                                                                    LLP No. Attachment  <span>*</span>
+                                                                    <TooltipIcon message="Upload the official document or certificate to verify the details you have submitted. The document must be uploaded in PDF format. Corporate Identification Number Attachment." />
+                                                                </label>
+                                                                {/* Show existing LLP attachment if available */}
+                                                                {basicInfo?.llpAttachmentObj?.filename ? (
+                                                                    <span className="ms-2">
+                                                                        <a
+                                                                            href={basicInfo.llpAttachmentObj.file_url || '#'}
+                                                                            download
+                                                                            className="text-primary d-flex align-items-center"
+                                                                        >
+                                                                            <span className="me-2">Existing File:</span>
+                                                                            <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} fill="#DE7008" className="bi bi-download" viewBox="0 0 16 16">
+                                                                                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                                                                                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                                                                            </svg>
+                                                                            {basicInfo.llpAttachmentObj.filename}
+                                                                        </a>
+                                                                    </span>
+                                                                ) : null}
+                                                                <input
+                                                                    className="form-control mt-2"
+                                                                    type="file"
+                                                                    accept="application/pdf"
+                                                                    onChange={e => {
+                                                                        const file = e.target.files[0];
+                                                                        if (file) {
+                                                                            const reader = new FileReader();
+                                                                            reader.onload = function (ev) {
+                                                                                updateBasicInfo('llpAttachmentObj', {
+                                                                                    filename: file.name,
+                                                                                    content: ev.target.result.split(',')[1],
+                                                                                    content_type: file.type,
+                                                                                });
+                                                                            };
+                                                                            reader.readAsDataURL(file);
+                                                                        }
+                                                                    }}
+                                                                />
+                                                                {basicInfoErrors.llpAttachment && (
+                                                                    <div className="ValidationColor">{basicInfoErrors.llpAttachment}</div>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    )}
                                                 </>
                                             )}
 
@@ -3441,7 +3862,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                         </div>
                                                     </div>
 
-                                                    <div className="col-md-4 mt-2">
+                                                    {/* <div className="col-md-4 mt-2">
                                                         <div className="form-group">
                                                             <label>
                                                                 GSTIN Attachment <span>*</span>
@@ -3456,7 +3877,57 @@ const VendorRegistrationStepByStepForm = () => {
                                                                 <div className="ValidationColor">{basicInfoErrors.gstinAttachment}</div>
                                                             )}
                                                         </div>
-                                                    </div>
+                                                    </div> */}
+
+                                                    {/* GSTIN Attachment */}
+                                                    {basicInfo.gstinApplicable.label === 'Yes' && (
+                                                        <div className="col-md-4 mt-2">
+                                                            <div className="form-group">
+                                                                <label>
+                                                                    GSTIN Attachment <span>*</span>
+                                                                    <TooltipIcon message="Upload a digital copy of the official GSTIN certificate or document showing your GST registration number. Ensure the document is legible and valid." />
+                                                                </label>
+                                                                {/* Show existing GSTIN attachment if available */}
+                                                                {basicInfo?.gstinAttachmentObj?.filename ? (
+                                                                    <span className="ms-2">
+                                                                        <a
+                                                                            href={basicInfo.gstinAttachmentObj.file_url || '#'}
+                                                                            download
+                                                                            className="text-primary d-flex align-items-center"
+                                                                        >
+                                                                            <span className="me-2">Existing File:</span>
+                                                                            <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} fill="#DE7008" className="bi bi-download" viewBox="0 0 16 16">
+                                                                                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                                                                                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                                                                            </svg>
+                                                                            {basicInfo.gstinAttachmentObj.filename}
+                                                                        </a>
+                                                                    </span>
+                                                                ) : null}
+                                                                <input
+                                                                    className="form-control mt-2"
+                                                                    type="file"
+                                                                    onChange={e => {
+                                                                        const file = e.target.files[0];
+                                                                        if (file) {
+                                                                            const reader = new FileReader();
+                                                                            reader.onload = function (ev) {
+                                                                                updateBasicInfo('gstinAttachmentObj', {
+                                                                                    filename: file.name,
+                                                                                    content: ev.target.result.split(',')[1],
+                                                                                    content_type: file.type,
+                                                                                });
+                                                                            };
+                                                                            reader.readAsDataURL(file);
+                                                                        }
+                                                                    }}
+                                                                />
+                                                                {basicInfoErrors.gstinAttachment && (
+                                                                    <div className="ValidationColor">{basicInfoErrors.gstinAttachment}</div>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    )}
                                                 </>
                                             )}
                                             {basicInfo.gstinApplicable.label === 'No' && (
@@ -3500,12 +3971,12 @@ const VendorRegistrationStepByStepForm = () => {
                                                         </div>
                                                     </div>
 
-                                                    <div className="col-md-4 mt-2">
+                                                    {/* <div className="col-md-4 mt-2">
                                                         <div className="form-group">
                                                             <label>
                                                                 Upload GSTIN Declaration  <span>*</span>
                                                                 {/* <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." /> */}
-                                                            </label>
+                                                    {/* </label>
                                                             <input
                                                                 className="form-control"
                                                                 type="file"
@@ -3515,7 +3986,57 @@ const VendorRegistrationStepByStepForm = () => {
                                                                 <div className="ValidationColor">{basicInfoErrors.gstinDeclaration}</div>
                                                             )}
                                                         </div>
+                                                    </div> */}
+
+
+                                                    {/* GSTIN Declaration */}
+
+                                                    <div className="col-md-4 mt-2">
+                                                        <div className="form-group">
+                                                            <label>
+                                                                Upload GSTIN Declaration  <span>*</span>
+                                                            </label>
+                                                            {/* Show existing GSTIN Declaration if available */}
+                                                            {basicInfo?.gstinDeclarationObj?.filename ? (
+                                                                <span className="ms-2">
+                                                                    <a
+                                                                        href={basicInfo.gstinDeclarationObj.file_url || '#'}
+                                                                        download
+                                                                        className="text-primary d-flex align-items-center"
+                                                                    >
+                                                                        <span className="me-2">Existing File:</span>
+                                                                        <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} fill="#DE7008" className="bi bi-download" viewBox="0 0 16 16">
+                                                                            <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                                                                            <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                                                                        </svg>
+                                                                        {basicInfo.gstinDeclarationObj.filename}
+                                                                    </a>
+                                                                </span>
+                                                            ) : null}
+                                                            <input
+                                                                className="form-control mt-2"
+                                                                type="file"
+                                                                onChange={e => {
+                                                                    const file = e.target.files[0];
+                                                                    if (file) {
+                                                                        const reader = new FileReader();
+                                                                        reader.onload = function (ev) {
+                                                                            updateBasicInfo('gstinDeclarationObj', {
+                                                                                filename: file.name,
+                                                                                content: ev.target.result.split(',')[1],
+                                                                                content_type: file.type,
+                                                                            });
+                                                                        };
+                                                                        reader.readAsDataURL(file);
+                                                                    }
+                                                                }}
+                                                            />
+                                                            {basicInfoErrors.gstinDeclaration && (
+                                                                <div className="ValidationColor">{basicInfoErrors.gstinDeclaration}</div>
+                                                            )}
+                                                        </div>
                                                     </div>
+
                                                 </>
                                             )}
                                         </div>
@@ -3898,59 +4419,112 @@ const VendorRegistrationStepByStepForm = () => {
                                         )}
                                         {/* MSME/Udyam Attachment */}
                                         {additionalDetails.msmeUdyamApplicable?.value === "Yes" && (
+                                            // <div className="col-md-4 mt-2">
+                                            //     <div className="form-group">
+                                            //         <label
+                                            //         // data-bs-toggle="tooltip"
+                                            //         // data-bs-placement="top"
+                                            //         // title={tooltipMessages.MSMEUdyamAttachment}
+                                            //         >
+                                            //             MSME/Udyam Attachment <span>*</span>
+                                            //             <TooltipIcon message="Attach a clear, scanned copy or digital image of your MSME/Udyam registration certificate to verify your organization's classification under the MSME scheme. The document must be uploaded in PDF format." />
+                                            //         </label>
+
+                                            //         {supplierData?.msme_details?.msme_attachments?.length >
+                                            //             0 && (
+                                            //                 <span className="ms-2">
+                                            //                     <a
+                                            //                         href={`${baseURL}${supplierData?.msme_details?.msme_attachments[0]?.file_url}`} // Append base URL
+                                            //                         download // Ensure it prompts download
+                                            //                         className="text-primary d-flex align-items-center"
+                                            //                     >
+                                            //                         <span className="me-2">Existing Files:</span>
+                                            //                         <svg
+                                            //                             xmlns="http://www.w3.org/2000/svg"
+                                            //                             width={24}
+                                            //                             height={24}
+                                            //                             fill="#DE7008"
+                                            //                             className="bi bi-download"
+                                            //                             viewBox="0 0 16 16"
+                                            //                         >
+                                            //                             <path
+                                            //                                 d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
+                                            //                             // style={{ fill: "#de7008!important" }}
+                                            //                             />
+                                            //                             <path
+                                            //                                 d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
+                                            //                             // style={{ fill: "#de7008!important" }}
+                                            //                             />
+                                            //                         </svg>
+
+                                            //                         {supplierData?.msme_details?.msme_attachments
+                                            //                             ?.length > 0
+                                            //                             ? // Display the document name of the first attachment
+                                            //                             supplierData?.msme_details
+                                            //                                 ?.msme_attachments[0]?.document_name
+                                            //                             : // If no attachment is present, show a default message
+                                            //                             "No Document Available"}
+                                            //                     </a>
+                                            //                 </span>
+                                            //             )}
+                                            //         {/* <input className="form-control" type="file" name="" onChange={handleFileChange} /> */}
+                                            //         <input
+                                            //             className="form-control mt-2"
+                                            //             type="file"
+                                            //             onChange={e => updateAdditionalDetails('msmeAttachment', e.target.files[0])}
+                                            //             ref={fileInputRef}
+                                            //             multiple
+                                            //             accept=".pdf"
+                                            //         />
+                                            //         {errors.msmeAttachments && (
+                                            //             <div className="ValidationColor">
+                                            //                 {errors.msmeAttachments}
+                                            //             </div>
+                                            //         )}
+                                            //     </div>
+                                            // </div>
+
+                                            // MSME/Udyam Attachment field (show only from additionalDetails.msmeAttachmentObj)
                                             <div className="col-md-4 mt-2">
                                                 <div className="form-group">
-                                                    <label
-                                                    // data-bs-toggle="tooltip"
-                                                    // data-bs-placement="top"
-                                                    // title={tooltipMessages.MSMEUdyamAttachment}
-                                                    >
+                                                    <label>
                                                         MSME/Udyam Attachment <span>*</span>
-                                                        <TooltipIcon message="Attach a clear, scanned copy or digital image of your MSME/Udyam registration certificate to verify your organization's classification under the MSME scheme. The document must be uploaded in PDF format." />
+                                                        <TooltipIcon message="Attach a clear, scanned copy or digital image of your MSME/Udyam registration certificate to verify your organization's classification under the MSME scheme. The document must be uploaded in PDF format." />
                                                     </label>
-
-                                                    {supplierData?.msme_details?.msme_attachments?.length >
-                                                        0 && (
-                                                            <span className="ms-2">
-                                                                <a
-                                                                    href={`${baseURL}${supplierData?.msme_details?.msme_attachments[0]?.file_url}`} // Append base URL
-                                                                    download // Ensure it prompts download
-                                                                    className="text-primary d-flex align-items-center"
-                                                                >
-                                                                    <span className="me-2">Existing Files:</span>
-                                                                    <svg
-                                                                        xmlns="http://www.w3.org/2000/svg"
-                                                                        width={24}
-                                                                        height={24}
-                                                                        fill="#DE7008"
-                                                                        className="bi bi-download"
-                                                                        viewBox="0 0 16 16"
-                                                                    >
-                                                                        <path
-                                                                            d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
-                                                                        // style={{ fill: "#de7008!important" }}
-                                                                        />
-                                                                        <path
-                                                                            d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
-                                                                        // style={{ fill: "#de7008!important" }}
-                                                                        />
-                                                                    </svg>
-
-                                                                    {supplierData?.msme_details?.msme_attachments
-                                                                        ?.length > 0
-                                                                        ? // Display the document name of the first attachment
-                                                                        supplierData?.msme_details
-                                                                            ?.msme_attachments[0]?.document_name
-                                                                        : // If no attachment is present, show a default message
-                                                                        "No Document Available"}
-                                                                </a>
-                                                            </span>
-                                                        )}
-                                                    {/* <input className="form-control" type="file" name="" onChange={handleFileChange} /> */}
+                                                    {/* Show attachment from additionalDetails, not supplierData */}
+                                                    {additionalDetails?.msmeAttachmentObj?.filename ? (
+                                                        <span className="ms-2">
+                                                            <a
+                                                                href={additionalDetails.msmeAttachmentObj.file_url || '#'}
+                                                                download
+                                                                className="text-primary d-flex align-items-center"
+                                                            >
+                                                                <span className="me-2">Uploaded File:</span>
+                                                                <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} fill="#DE7008" className="bi bi-download" viewBox="0 0 16 16">
+                                                                    <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                                                                    <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                                                                </svg>
+                                                                {additionalDetails.msmeAttachmentObj.filename}
+                                                            </a>
+                                                        </span>
+                                                    ) : null}
                                                     <input
                                                         className="form-control mt-2"
                                                         type="file"
-                                                        onChange={e => updateAdditionalDetails('msmeAttachment', e.target.files[0])}
+                                                        onChange={e => {
+                                                            const file = e.target.files[0];
+                                                            if (file) {
+                                                                const reader = new FileReader();
+                                                                reader.onload = function (ev) {
+                                                                    updateAdditionalDetails('msmeAttachmentObj', {
+                                                                        filename: file.name,
+                                                                        content: ev.target.result.split(',')[1],
+                                                                        content_type: file.type,
+                                                                    });
+                                                                };
+                                                                reader.readAsDataURL(file);
+                                                            }
+                                                        }}
                                                         ref={fileInputRef}
                                                         multiple
                                                         accept=".pdf"
@@ -4010,18 +4584,69 @@ const VendorRegistrationStepByStepForm = () => {
                                             )}
 
                                             {additionalDetails.msmeUdyamApplicable?.value === "No" && (
+                                                // <div className="col-md-4 mt-2">
+                                                //     <div className="form-group">
+                                                //         <label>
+                                                //             Upload Declaration <span>*</span>
+                                                //         </label>
+                                                //         <TooltipIcon message="If you choose E-Invoice applicable 'No', please upload a signed declaration document to verify the details you have submitted. The document must be uploaded in PDF format.Ensure that the document is clear, legible, and properly signed." />
+                                                //         <input
+                                                //             className="form-control"
+                                                //             type="file"
+                                                //             accept=".pdf"
+                                                //             name=""
+                                                //             onChange={e => updateAdditionalDetails('msmeDeclaration', e.target.files[0])}
+                                                //         />
+                                                //         {errors.msmeDeclaration && (
+                                                //             <div className="ValidationColor">{errors.msmeDeclaration}</div>
+                                                //         )}
+                                                //     </div>
+                                                // </div>
+
+
+                                                // MSME Declaration Upload Section
                                                 <div className="col-md-4 mt-2">
                                                     <div className="form-group">
                                                         <label>
                                                             Upload Declaration <span>*</span>
                                                         </label>
-                                                        <TooltipIcon message="If you choose E-Invoice applicable 'No', please upload a signed declaration document to verify the details you have submitted. The document must be uploaded in PDF format.Ensure that the document is clear, legible, and properly signed." />
+                                                        <TooltipIcon message="If you choose E-Invoice applicable 'No', please upload a signed declaration document to verify the details you have submitted. The document must be uploaded in PDF format. Ensure that the document is clear, legible, and properly signed." />
+                                                        {/* Show existing declaration from additionalDetails if available */}
+                                                        {additionalDetails?.msmeDeclarationObj?.filename ? (
+                                                            <span className="ms-2">
+                                                                <a
+                                                                    href={additionalDetails.msmeDeclarationObj.file_url || '#'}
+                                                                    download
+                                                                    className="text-primary d-flex align-items-center"
+                                                                >
+                                                                    <span className="me-2">Uploaded Declaration:</span>
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} fill="#DE7008" className="bi bi-download" viewBox="0 0 16 16">
+                                                                        <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                                                                        <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                                                                    </svg>
+                                                                    {additionalDetails.msmeDeclarationObj.filename}
+                                                                </a>
+                                                            </span>
+                                                        ) : null}
                                                         <input
                                                             className="form-control"
                                                             type="file"
                                                             accept=".pdf"
                                                             name=""
-                                                            onChange={e => updateAdditionalDetails('msmeDeclaration', e.target.files[0])}
+                                                            onChange={e => {
+                                                                const file = e.target.files[0];
+                                                                if (file) {
+                                                                    const reader = new FileReader();
+                                                                    reader.onload = function (ev) {
+                                                                        updateAdditionalDetails('msmeDeclarationObj', {
+                                                                            filename: file.name,
+                                                                            content: ev.target.result.split(',')[1],
+                                                                            content_type: file.type,
+                                                                        });
+                                                                    };
+                                                                    reader.readAsDataURL(file);
+                                                                }
+                                                            }}
                                                         />
                                                         {errors.msmeDeclaration && (
                                                             <div className="ValidationColor">{errors.msmeDeclaration}</div>
@@ -9288,7 +9913,7 @@ const VendorRegistrationStepByStepForm = () => {
                                     //     if (!isValid) return;
                                     // }
                                     // // ...
-Save
+                                    Save
                                     // //  as draft logic
                                     // if (typeof saveDraft === 'function') {
                                     //     saveDraft();
@@ -9306,17 +9931,19 @@ Save
                             </button>
                             <button
                                 className="purple-btn2"
-                                onClick={() => {
+                                onClick={async () => {
                                     // Step-wise validation logic
                                     let isValid = true;
                                     if (currentStep === 1) {
                                         isValid = validateBasicInfo();
                                         if (!isValid) return;
+                                        await saveDraftStep1();
                                     }
                                     // Add more step validations as needed
                                     else if (currentStep === 2) {
                                         isValid = validateStep2();
                                         if (!isValid) return;
+                                        await saveDraftStep2();
                                     }
                                     else if (currentStep === 3) {
                                         isValid = validateStep3();
@@ -9328,10 +9955,10 @@ Save
                                     }
                                     // ...
 
-                                    // Save as draft logic
-                                    if (typeof saveDraft === 'function') {
-                                        saveDraft();
-                                    }
+                                    // // Save as draft logic
+                                    // if (typeof saveDraft === 'function') {
+                                    //     saveDraft();
+                                    // }
                                     setCompleted((arr) => {
                                         const copy = [...arr];
                                         copy[currentStep] = true;
