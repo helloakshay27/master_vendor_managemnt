@@ -235,7 +235,7 @@ const SectionReKYCDetails = () => {
 
       setRekycId(response.data?.id);
       setRekycType(response.data?.rekyc_type);
-      // setRekycType(["MSME Rekyc", "GSTIN Rekyc", "E-invoicing Rekyc"]);
+      // setRekycType(["Name Rekyc"]);
 
       // setGstApplicable(response.data?.gstin_applicable);
       // setGstClassification(response.data?.gst_classification);
@@ -1585,12 +1585,7 @@ const SectionReKYCDetails = () => {
 
 
 
-      const statutoryErrors = validateStatutoryInputs() || {};
-
-      if (Object.keys(statutoryErrors).length > 0) {
-        setStatutoryErrors(statutoryErrors); // show inline errors if needed
-        return; // stop submission
-      }
+    
 
 
 
@@ -1670,6 +1665,14 @@ const SectionReKYCDetails = () => {
         if (existingEinvoiceAttachments.length === 0 && !hasNewEinvoiceAttachment) {
           validationErrors.einvoicingDeclaration = "E-Invoicing Declaration Attachment is required.";
         }
+      }
+
+
+      const statutoryErrors = validateStatutoryInputs() || {};
+
+      if (Object.keys(statutoryErrors).length > 0) {
+        setStatutoryErrors(statutoryErrors); // show inline errors if needed
+        return; // stop submission
       }
 
     }
