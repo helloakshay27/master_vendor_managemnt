@@ -165,6 +165,25 @@ import CollapsedCardKYC from "../components/base/Card/CollapsedCardKYC";
 import { MultiSelector } from "../components";
 
 const VendorRegistrationStepByStepForm = () => {
+    // Save as Draft function
+    // const saveDraft = async () => {
+    //     try {
+    //         // Construct your payload here. Example:
+    //         const payload = {
+    //             basicInfo,
+    //             additionalDetails,
+    //             registeredAddress,
+    //             communicationAddress,
+    //             turnover,
+    //             // Add other sections as needed
+    //         };
+    //         const response = await axios.post(`${baseURL}/your-draft-endpoint`, payload);
+    //         toast.success('Draft saved successfully!');
+    //     } catch (error) {
+    //         toast.error('Failed to save draft.');
+    //         console.error('Save draft error:', error);
+    //     }
+    // };
     // Name Title options for contact person
     const nameTitleOptions = [
         { label: 'Select', value: '' },
@@ -518,6 +537,7 @@ const VendorRegistrationStepByStepForm = () => {
             const response = await axios.post(`https://vendors.lockated.com/pms/suppliers/${id}/generate_otp_api`);
             // You can handle response here, e.g. show toast or set OTP state
             // toast.success('OTP sent successfully!');
+             toast.success("OTP has been sent to your registered mobile number and email.");
             console.log("responce otp:", response)
         } catch (error) {
             toast.error('Failed to send OTP.');
@@ -543,39 +563,33 @@ const VendorRegistrationStepByStepForm = () => {
             return;
         }
 
-        setCompleted((arr) => {
-            const copy = [...arr];
-            copy[currentStep] = true;
-            return copy;
-        });
-        setCurrentStep((s) => Math.min(s + 1, steps.length - 1));
-        // try {
-        //     const response = await axios.post(
-        //         `http://vendors.lockated.com/pms/suppliers/${id}/verify_otp_api`,
-        //         {
-        //             email_otp: emailOtp || null,
-        //             mobile_otp: mobileOtp || null,
-        //             rekyc_id: null
-        //         },
-        //         {
-        //             headers: { 'Content-Type': 'application/json' }
-        //         }
-        //     );
+        try {
+            const response = await axios.post(
+                `http://vendors.lockated.com/pms/suppliers/${id}/verify_otp_api`,
+                {
+                    email_otp: emailOtp || null,
+                    mobile_otp: mobileOtp || null,
+                    rekyc_id: null
+                },
+                {
+                    headers: { 'Content-Type': 'application/json' }
+                }
+            );
 
-        //     console.log("responce otp  verification:",response)
-        //     if (response.status === 200) {
-        //         setCompleted((arr) => {
-        //             const copy = [...arr];
-        //             copy[currentStep] = true;
-        //             return copy;
-        //         });
-        //         setCurrentStep((s) => Math.min(s + 1, steps.length - 1));
-        //     } else {
-        //         toast.error('OTP verification failed.');
-        //     }
-        // } catch (error) {
-        //     toast.error('OTP verification failed.');
-        // }
+            console.log("responce otp  verification:",response)
+            if (response.status === 200) {
+                setCompleted((arr) => {
+                    const copy = [...arr];
+                    copy[currentStep] = true;
+                    return copy;
+                });
+                setCurrentStep((s) => Math.min(s + 1, steps.length - 1));
+            } else {
+                toast.error('OTP verification failed.');
+            }
+        } catch (error) {
+            toast.error('OTP verification failed.');
+        }
     };
 
     const [supplierShowData, setSupplierShowData] = useState(null);
@@ -2643,10 +2657,11 @@ const VendorRegistrationStepByStepForm = () => {
                                             height: 36,
                                             fontWeight: "bold",
                                             zIndex: 2,
-                                            background: completed[idx] ? '#e95420' : (currentStep === idx ? '' : ''),
-                                            color: completed[idx] ? '#fff' : '',
-                                            borderColor: completed[idx] ? '#e95420' : '',
-                                            borderWidth: completed[idx] ? 2 : '',
+                                            background: currentStep === idx ? '#e95420' : completed[idx] ? '#e95420' : '',
+                                            color: currentStep === idx ? '#fff' : completed[idx] ? '#fff' : '',
+                                            borderColor: currentStep === idx ? '#e95420' : completed[idx] ? '#e95420' : '',
+                                            borderWidth: currentStep === idx ? 3 : completed[idx] ? 2 : '',
+                                            boxShadow: currentStep === idx ? '0 0 8px #e95420' : completed[idx] ? '0 0 4px #e95420' : 'none',
                                             transition: 'background 0.3s, color 0.3s, border-color 0.3s',
                                         }}
                                         onClick={() => setCurrentStep(idx)}
@@ -2664,13 +2679,15 @@ const VendorRegistrationStepByStepForm = () => {
                                             border: '2px solid #e95420',
                                             borderRadius: 8,
                                             padding: '2px 8px',
-                                            background: '#fff',
-                                            boxShadow: completed[idx] ? '0 0 4px #e95420' : 'none',
+                                            background: currentStep === idx ? '#e95420' : '#fff',
+                                            color: currentStep === idx ? '#fff' : '',
+                                            boxShadow: currentStep === idx ? '0 0 8px #e95420' : completed[idx] ? '0 0 4px #e95420' : 'none',
                                             display: 'inline-flex',
                                             alignItems: 'center',
                                             overflow: 'hidden',
                                             whiteSpace: 'nowrap',
                                             textOverflow: 'ellipsis',
+                                            fontWeight: currentStep === idx ? 'bold' : '',
                                         }}
                                         title={step.label}
                                     >
@@ -2696,6 +2713,10 @@ const VendorRegistrationStepByStepForm = () => {
                             </React.Fragment>
                         ))}
                     </div>
+
+
+
+
 
 
                     {currentStep === 0 && (
@@ -9267,8 +9288,8 @@ const VendorRegistrationStepByStepForm = () => {
                                     //     if (!isValid) return;
                                     // }
                                     // // ...
-
-                                    // // Save as draft logic
+Save
+                                    // //  as draft logic
                                     // if (typeof saveDraft === 'function') {
                                     //     saveDraft();
                                     // }
