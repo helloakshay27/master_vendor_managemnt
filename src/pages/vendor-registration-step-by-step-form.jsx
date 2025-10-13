@@ -930,9 +930,8 @@ const VendorRegistrationStepByStepForm = () => {
         }
         const fetchStates = async () => {
             try {
-                const response = await axios.get('https://vendors.lockated.com/pms/suppliers/pms_state_list', {
-                    params: { country_id: registeredAddress.country.value }
-                });
+                const response = await axios.get(`https://vendors.lockated.com/pms/suppliers/pms_state_list?q[country_id_in]=${registeredAddress.country.value}` 
+                );
                 // Assuming response.data is an array of state objects with id and name
                 const options = (response.data.pms_state || []).map(state => ({
                     label: state.name,
