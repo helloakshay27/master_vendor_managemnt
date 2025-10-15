@@ -1,7 +1,7 @@
 // Utility function to map majorCustomers state to major_customers_attributes
 const mapMajorCustomersToPayload = (majorCustomers) => {
     return majorCustomers.map((c) => ({
-        id: c.isNew ? null : c.id,
+        id: null,
         name: c.companyName || '',
         company_id: c.companyId || null,
         work_done: c.workDone || '',
@@ -23,7 +23,7 @@ const mapMajorCustomersToPayload = (majorCustomers) => {
 // Utility: Map contactPersons state to contact_people_attributes
 // Utility: Map owners state to directors_informations_attributes
 const mapOwnersToPayload = (owners) => owners.map((owner) => ({
-    id: owner.id || null,
+    id: null,
     attachment: owner.attachment || '',
     first_name: owner.firstName || '',
     last_name: owner.lastName || '',
@@ -35,26 +35,26 @@ const mapOwnersToPayload = (owners) => owners.map((owner) => ({
     _destroy: false
 }));
 const mapContactPersonsToPayload = (contactPersons) => contactPersons.map((person) => ({
-    id: person.id || null,
+    id: null,
     escalation_level: person.escalationLevel?.value || '',
     attachment: person.attachment || '',
     name_title_id: person.nameTitle?.value || null,
     first_name: person.firstName || '',
     last_name: person.lastName || '',
     middle_name: person.middleName || '',
-    centeral_posting_block: person.centeralPostingBlock || false,
-    reconciliation_account_id: person.reconciliationAccountId || null,
-    purchasing_block: person.purchasingBlock || false,
-    customer: person.customer || false,
-    payment_block: person.paymentBlock || false,
-    schema_group_id: person.schemaGroupId || null,
-    designation_id: person.designation?.value || null,
+    // centeral_posting_block: person.centeralPostingBlock || false,
+    // reconciliation_account_id: person.reconciliationAccountId || null,
+    // purchasing_block: person.purchasingBlock || false,
+    // customer: person.customer || false,
+    // payment_block: person.paymentBlock || false,
+    // schema_group_id: person.schemaGroupId || null,
+    // designation_id: person.designation?.value || null,
     primary_email: person.primaryEmail || '',
     secondary_email: person.secondaryEmail || '',
     primary_mobile: person.primaryMobile || '',
     secondary_mobile: person.secondaryMobile || '',
     nationality_string: person.nationality?.label || '',
-    gender: person.gender?.label || '',
+    // gender: person.gender?.label || '',
     birth_date: person.dob || '',
     _destroy: false
 }));
@@ -97,7 +97,7 @@ const mapRegisteredAddressToPayload = (registeredAddress) => [{
 }];
 
 // Utility: Map communicationAddress state to communication_address_attributes
-const mapCommunicationAddressToPayload = (communicationAddress) => [{
+const mapCommunicationAddressToPayload = (communicationAddress, sameAsRegistered) => [{
     id: null,
     address: communicationAddress.address1 || '',
     address_type: 'Factory',
@@ -115,13 +115,14 @@ const mapCommunicationAddressToPayload = (communicationAddress) => [{
     telephone_number: communicationAddress.telephone || '',
     fax_number: '', // Add if available in state
     city_name: communicationAddress.city || '',
+    communication_address_same_as_reg_add: sameAsRegistered ? 'on' : 'off',
     _destroy: false
 }];
 
 
 const mapWarehousesToPayload = (warehouses) => {
     return warehouses.map((w) => ({
-        id: w.isNew ? null : w.id,
+        id: null,
         address: w.address || '',
         country_id: w.country?.value || null,
         state_id: w.state?.value || null,
@@ -165,6 +166,176 @@ import CollapsedCardKYC from "../components/base/Card/CollapsedCardKYC";
 import { MultiSelector } from "../components";
 
 const VendorRegistrationStepByStepForm = () => {
+    // State for checklist responses
+    const [checklistResponses, setChecklistResponses] = useState({});
+const [checklistConfig, setChecklistConfig] = useState([]);
+    useEffect(() => {
+        const fetchChecklistConfig = async () => {
+            try {
+                const response = await axios.get(`https://vendors.lockated.com/pms/suppliers/${id}/checklist_configuration`);
+                setChecklistConfig(response.data || []);
+                console.log("check list:", response.data)
+            } catch (error) {
+                setChecklistConfig([]);
+            }
+        };
+        fetchChecklistConfig();
+    }, []);
+    // Handler for response change
+    const handleChecklistResponseChange = (subcatId, qId, field, value) => {
+        setChecklistResponses(prev => ({
+            ...prev,
+            [subcatId]: {
+                questions: (prev[subcatId]?.questions || []).map(q =>
+                    q.id === qId ? { ...q, [field]: value } : q
+                )
+            }
+        }));
+    };
+
+    // Handler for option change
+    const handleChecklistOptionChange = (subcatId, qId, selectedOption) => {
+        setChecklistResponses(prev => ({
+            ...prev,
+            [subcatId]: {
+                questions: (prev[subcatId]?.questions || []).map(q =>
+                    q.id === qId ? { ...q, selectedOption } : q
+                )
+            }
+        }));
+    };
+
+    console.log("check option ***:", checklistResponses)
+
+    // Handler for file upload
+    const handleChecklistFileChange = (subcatId, qId, file) => {
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            const base64String = reader.result.split(',')[1];
+            const fileObj = {
+                filename: file.name,
+                content_type: file.type,
+                content: base64String
+            };
+            setChecklistResponses(prev => ({
+                ...prev,
+                [subcatId]: {
+                    questions: (prev[subcatId]?.questions || []).map(q =>
+                        q.id === qId ? { ...q, files: [...(q.files || []), fileObj] } : q
+                    )
+                }
+            }));
+        };
+        reader.readAsDataURL(file);
+    };
+
+    // Initialize checklistResponses when checklistConfig changes
+    useEffect(() => {
+        const initial = {};
+        checklistConfig.forEach(cat => {
+            cat.subcats.forEach(subcat => {
+                initial[subcat.id] = {
+                    questions: subcat.questions.map(q => ({
+                        id: q.id,
+                        value: '',
+                        comments: '',
+                        selectedOption: null,
+                        files: []
+                    }))
+                };
+            });
+        });
+        setChecklistResponses(initial);
+    }, [checklistConfig]);
+
+    // Mapping for API payload
+    const checklistPayload = {};
+    Object.entries(checklistResponses).forEach(([subcatId, data]) => {
+        checklistPayload[subcatId] = {
+            questions: data.questions.map(q => ({
+                id: q.id,
+                value: q.value,
+                comments: q.comments,
+                option_id: q.selectedOption?.value,
+                files: q.files || []
+            }))
+        };
+    });
+    // State for Questions section
+    const [questions, setQuestions] = useState({
+        expertise: '',
+        expertiseAttachment: null,
+        structure: ''
+    });
+
+
+    console.log("que:", questions)
+    // Handler for text changes
+    const handleQuestionChange = (field, value) => {
+        setQuestions(prev => ({ ...prev, [field]: value }));
+    };
+
+    // Handler for file change
+    const handleQuestionFileChange = (file) => {
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            const base64String = reader.result.split(',')[1];
+            const attachment = {
+                filename: file.name,
+                content: base64String,
+                content_type: file.type,
+            };
+            setQuestions(prev => ({ ...prev, expertiseAttachment: attachment }));
+        };
+        reader.readAsDataURL(file);
+    };
+    // Designation options for contact person
+    const designationOptions = [
+        { label: 'Select', value: '' },
+        { label: 'Manager', value: 'Manager' },
+        { label: 'Director', value: 'Director' },
+        { label: 'CEO', value: 'CEO' },
+        { label: 'CFO', value: 'CFO' },
+        { label: 'COO', value: 'COO' },
+        { label: 'Owner', value: 'Owner' },
+        { label: 'Partner', value: 'Partner' },
+        { label: 'Head of Procurement', value: 'Head of Procurement' },
+        { label: 'Purchase Manager', value: 'Purchase Manager' },
+        { label: 'Other', value: 'Other' }
+    ];
+    // Annual Turnover state as array of objects
+    const [annualTurnover, setAnnualTurnover] = useState([
+        { year: '2024-2025', turnover: '', attachment: null, keyMarkets: '' },
+        { year: '2023-2024', turnover: '', attachment: null, keyMarkets: '' },
+        { year: '2022-2023', turnover: '', attachment: null, keyMarkets: '' },
+    ]);
+
+    // Handler for input change
+    const handleAnnualTurnoverChange = (index, field, value) => {
+        setAnnualTurnover(prev => prev.map((item, i) => i === index ? { ...item, [field]: value } : item));
+    };
+
+    // Handler for file change
+    const handleAnnualTurnoverFileChange = (index, file) => {
+        setAnnualTurnover(prev => prev.map((item, i) => i === index ? { ...item, attachment: file } : item));
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            // Get base64 string (remove prefix)
+            const base64String = reader.result.split(',')[1];
+            const attachment = {
+                filename: file.name,
+                content: base64String,
+                content_type: file.type,
+            };
+            setAnnualTurnover(prev => prev.map((item, idx) => idx === index ? { ...item, attachment } : item));
+        };
+        reader.readAsDataURL(file);
+    };
+
+    console.log("annual turn over:", annualTurnover)
 
     // Name Title options for contact person
     const nameTitleOptions = [
@@ -348,21 +519,12 @@ const VendorRegistrationStepByStepForm = () => {
         "2023-2024": { amount: '', attachment: '', markets: '' },
         "2022-2023": { amount: '', attachment: '', markets: '' },
     });
+
+    // console.log("turnover:",turnover)
     // Major Customer Served by You dynamic section state and handlers
 
     // Checklist configuration state
-    const [checklistConfig, setChecklistConfig] = useState([]);
-    useEffect(() => {
-        const fetchChecklistConfig = async () => {
-            try {
-                const response = await axios.get(`https://vendors.lockated.com/pms/suppliers/${id}/checklist_configuration`);
-                setChecklistConfig(response.data || []);
-            } catch (error) {
-                setChecklistConfig([]);
-            }
-        };
-        fetchChecklistConfig();
-    }, []);
+    
 
     const [natureOfBusinessOptions, setNatureOfBusinessOptions] = useState([]);
     const [vendorTypeOptions, setVendorTypeOptions] = useState([]);
@@ -933,7 +1095,8 @@ const VendorRegistrationStepByStepForm = () => {
         telephone: "",
         mobile: "",
         // email: "",
-        orderingEmail: ""
+        orderingEmail: "",
+        communication_address_same_as_reg_add: "",
     });
 
     // console.log("reg add :",registeredAddress)
@@ -2481,8 +2644,8 @@ const VendorRegistrationStepByStepForm = () => {
             msme_attachment: additionalDetails.msmeAttachmentObj,
             msme_declaration: additionalDetails.msmeDeclarationObj,
 
-            office_address_attributes: mapRegisteredAddressToPayload(registeredAddress),
-            communication_address_attributes: mapCommunicationAddressToPayload(communicationAddress),
+            office_address_attributes: mapRegisteredAddressToPayload(registeredAddress)[0] || {},
+            communication_address_attributes: mapCommunicationAddressToPayload(communicationAddress)[0] || {},
             bank_details_attributes: bankDetailsList.map((item) => ({
                 ...item,
                 id: item.isNew ? null : item.id,
@@ -2528,13 +2691,13 @@ const VendorRegistrationStepByStepForm = () => {
         }
     }
 
-    console.log("payloaddddddd*********:", ppayload2)
+    // console.log("payloaddddddd*********:", ppayload2)
 
 
-    console.log("basic info:", basicInfo)
+    // console.log("basic info:", basicInfo)
 
 
-    console.log("supplier id:", supplierId)
+    // console.log("supplier id:", supplierId)
     // Save as Draft function
     const saveDraft = async () => {
         const ppayload2 = {
@@ -2725,9 +2888,12 @@ const VendorRegistrationStepByStepForm = () => {
         }
     };
 
-console.log("add:", registeredAddress,communicationAddress, mapRegisteredAddressToPayload(registeredAddress))
+    // console.log("add:", registeredAddress,communicationAddress, mapRegisteredAddressToPayload(registeredAddress))
 
     const saveDraftStep2 = async () => {
+        console.log("sameAsRegistered value:", sameAsRegistered);
+        const commAddrPayload = mapCommunicationAddressToPayload(communicationAddress, sameAsRegistered)[0] || {};
+        console.log("communication_address_attributes:", commAddrPayload);
         const payload = {
             pms_supplier: {
                 status: "draft",
@@ -2751,9 +2917,6 @@ console.log("add:", registeredAddress,communicationAddress, mapRegisteredAddress
                 pan_attachment: basicInfo.panAttachmentObj,
                 schema_group_id: basicInfo.schemaGroup,
                 date_of_incorporation: basicInfo.dateOfIncorporation,
-
-
-
                 gstin_applicable:
                     basicInfo.gstinApplicable && basicInfo.gstinApplicable.value === 'Yes' ? true :
                         basicInfo.gstinApplicable && basicInfo.gstinApplicable.value === 'No' ? false :
@@ -2762,9 +2925,6 @@ console.log("add:", registeredAddress,communicationAddress, mapRegisteredAddress
                 gstin: basicInfo.gstinNo,
                 gstin_attachment: basicInfo.gstinAttachmentObj,
                 gstin_declaration: basicInfo.gstinDeclarationObj,
-
-
-
 
                 website: additionalDetails.website,
                 delivery_lead_period: additionalDetails.deliveryLeadPeriod,
@@ -2781,25 +2941,398 @@ console.log("add:", registeredAddress,communicationAddress, mapRegisteredAddress
                 valid_till: additionalDetails.validTill,
                 enterprise: additionalDetails.msmeEnterpriseType && additionalDetails.msmeEnterpriseType.value ? additionalDetails.msmeEnterpriseType.value : null,
                 msme_attachment: additionalDetails.msmeAttachmentObj,
-                msme_declaration: additionalDetails.msmeDeclarationOb,
+                msme_declaration: additionalDetails.msmeDeclarationObj,
 
-                office_address_attributes: mapRegisteredAddressToPayload(registeredAddress),
-                communication_address_attributes: mapCommunicationAddressToPayload(communicationAddress),
+                // office_address_attributes: mapRegisteredAddressToPayload(registeredAddress),
+                // communication_address_attributes: mapCommunicationAddressToPayload(communicationAddress),
+                office_address_attributes: mapRegisteredAddressToPayload(registeredAddress)[0] || {},
+                communication_address_attributes: commAddrPayload,
             }
         };
         try {
             await axios.patch(`${baseURL}/pms/suppliers/${supplierId}/update_api.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`, payload);
             toast.success('Step 3 draft saved!');
         } catch (error) {
-            toast.error('Failed to save Step 2 draft.');
+            toast.error('Failed to save Step 3  draft.');
         }
     };
 
+
+    const saveDraftStep3 = async () => {
+        console.log("sameAsRegistered value:", sameAsRegistered);
+        const commAddrPayload = mapCommunicationAddressToPayload(communicationAddress, sameAsRegistered)[0] || {};
+        console.log("communication_address_attributes:", commAddrPayload);
+        const payload = {
+            pms_supplier: {
+                status: "draft",
+                company_id: supplierShowData?.company_id || null,
+                organization_name: basicInfo.vendorOrganizationName,
+
+                cin_number: basicInfo.cin,
+                cin_attachment: basicInfo.cinAttachmentObj,
+
+                llp_number: basicInfo.llp,
+                llp_attachment: basicInfo.llpAttachmentObj,
+
+                type_of_organization_id: basicInfo.organizationType && basicInfo.organizationType.value ? basicInfo.organizationType.value : null,
+                nature_of_business_id: basicInfo.natureOfBusiness,
+                vendor_type: basicInfo.vendorType && basicInfo.vendorType.value ? basicInfo.vendorType.value : null,
+                type_business_id: basicInfo.industryType && basicInfo.industryType.value ? basicInfo.industryType.value : null,
+                type_of_work: basicInfo.typeOfWork,
+                key_market: basicInfo.keyMarket,
+
+                pan_number: basicInfo.panNo,
+                pan_attachment: basicInfo.panAttachmentObj,
+                schema_group_id: basicInfo.schemaGroup,
+                date_of_incorporation: basicInfo.dateOfIncorporation,
+                gstin_applicable:
+                    basicInfo.gstinApplicable && basicInfo.gstinApplicable.value === 'Yes' ? true :
+                        basicInfo.gstinApplicable && basicInfo.gstinApplicable.value === 'No' ? false :
+                            null,
+                gst_classification_id: basicInfo.gstinClassification?.value,
+                gstin: basicInfo.gstinNo,
+                gstin_attachment: basicInfo.gstinAttachmentObj,
+                gstin_declaration: basicInfo.gstinDeclarationObj,
+
+                website: additionalDetails.website,
+                delivery_lead_period: additionalDetails.deliveryLeadPeriod,
+                specify_warranty_period: additionalDetails.warrantyPeriod,
+                amc_provided: additionalDetails.amcProvided,
+                currency: additionalDetails.currencyType && additionalDetails.currencyType.value ? additionalDetails.currencyType.value : null,
+                msme: additionalDetails.msmeUdyamApplicable && additionalDetails.msmeUdyamApplicable.value ? additionalDetails.msmeUdyamApplicable.value : null,
+                einvoicing: additionalDetails.einvoice && additionalDetails.einvoice.value ? additionalDetails.einvoice.value : null,
+                einvoicing_declaration: additionalDetails.einvoiceDeclaration,
+                msme_no: additionalDetails.msmeNo,
+                classification_year: additionalDetails.classificationYear && additionalDetails.classificationYear.value ? additionalDetails.classificationYear.value : null,
+                major_activity: additionalDetails.majorActivity && additionalDetails.majorActivity.value ? additionalDetails.majorActivity.value : null,
+                valid_from: additionalDetails.validFrom,
+                valid_till: additionalDetails.validTill,
+                enterprise: additionalDetails.msmeEnterpriseType && additionalDetails.msmeEnterpriseType.value ? additionalDetails.msmeEnterpriseType.value : null,
+
+                msme_attachment: additionalDetails.msmeAttachmentObj,
+                msme_declaration: additionalDetails.msmeDeclarationObj,
+
+                // office_address_attributes: mapRegisteredAddressToPayload(registeredAddress),
+                // communication_address_attributes: mapCommunicationAddressToPayload(communicationAddress),
+                office_address_attributes: mapRegisteredAddressToPayload(registeredAddress)[0] || {},
+                communication_address_attributes: commAddrPayload,
+
+                bank_details_attributes: bankDetailsList.map((item) => ({
+                    ...item,
+                    id: item.isNew ? null : item.id,
+                    attachment: item.isNew
+                        ? bankAttachments[item.id] || null
+                        : bankAttachments[item.id] || (item.attachment ? null : null),
+                })),
+            }
+        };
+        try {
+            await axios.patch(`${baseURL}/pms/suppliers/${supplierId}/update_api.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`, payload);
+            toast.success('Step 4 draft saved!');
+        } catch (error) {
+            toast.error('Failed to save Step 4 draft.');
+        }
+    };
+
+    const saveDraftStep4 = async () => {
+        console.log("sameAsRegistered value:", sameAsRegistered);
+        const commAddrPayload = mapCommunicationAddressToPayload(communicationAddress, sameAsRegistered)[0] || {};
+        console.log("communication_address_attributes:", commAddrPayload);
+        const payload = {
+            pms_supplier: {
+                status: "draft",
+                company_id: supplierShowData?.company_id || null,
+                organization_name: basicInfo.vendorOrganizationName,
+
+                cin_number: basicInfo.cin,
+                cin_attachment: basicInfo.cinAttachmentObj,
+
+                llp_number: basicInfo.llp,
+                llp_attachment: basicInfo.llpAttachmentObj,
+
+                type_of_organization_id: basicInfo.organizationType && basicInfo.organizationType.value ? basicInfo.organizationType.value : null,
+                nature_of_business_id: basicInfo.natureOfBusiness,
+                vendor_type: basicInfo.vendorType && basicInfo.vendorType.value ? basicInfo.vendorType.value : null,
+                type_business_id: basicInfo.industryType && basicInfo.industryType.value ? basicInfo.industryType.value : null,
+                type_of_work: basicInfo.typeOfWork,
+                key_market: basicInfo.keyMarket,
+
+                pan_number: basicInfo.panNo,
+                pan_attachment: basicInfo.panAttachmentObj,
+                schema_group_id: basicInfo.schemaGroup,
+                date_of_incorporation: basicInfo.dateOfIncorporation,
+                gstin_applicable:
+                    basicInfo.gstinApplicable && basicInfo.gstinApplicable.value === 'Yes' ? true :
+                        basicInfo.gstinApplicable && basicInfo.gstinApplicable.value === 'No' ? false :
+                            null,
+                gst_classification_id: basicInfo.gstinClassification?.value,
+                gstin: basicInfo.gstinNo,
+                gstin_attachment: basicInfo.gstinAttachmentObj,
+                gstin_declaration: basicInfo.gstinDeclarationObj,
+
+                website: additionalDetails.website,
+                delivery_lead_period: additionalDetails.deliveryLeadPeriod,
+                specify_warranty_period: additionalDetails.warrantyPeriod,
+                amc_provided: additionalDetails.amcProvided,
+                currency: additionalDetails.currencyType && additionalDetails.currencyType.value ? additionalDetails.currencyType.value : null,
+                msme: additionalDetails.msmeUdyamApplicable && additionalDetails.msmeUdyamApplicable.value ? additionalDetails.msmeUdyamApplicable.value : null,
+                einvoicing: additionalDetails.einvoice && additionalDetails.einvoice.value ? additionalDetails.einvoice.value : null,
+                einvoicing_declaration: additionalDetails.einvoiceDeclaration,
+                msme_no: additionalDetails.msmeNo,
+                classification_year: additionalDetails.classificationYear && additionalDetails.classificationYear.value ? additionalDetails.classificationYear.value : null,
+                major_activity: additionalDetails.majorActivity && additionalDetails.majorActivity.value ? additionalDetails.majorActivity.value : null,
+                valid_from: additionalDetails.validFrom,
+                valid_till: additionalDetails.validTill,
+                enterprise: additionalDetails.msmeEnterpriseType && additionalDetails.msmeEnterpriseType.value ? additionalDetails.msmeEnterpriseType.value : null,
+
+                msme_attachment: additionalDetails.msmeAttachmentObj,
+                msme_declaration: additionalDetails.msmeDeclarationObj,
+
+                // office_address_attributes: mapRegisteredAddressToPayload(registeredAddress),
+                // communication_address_attributes: mapCommunicationAddressToPayload(communicationAddress),
+                office_address_attributes: mapRegisteredAddressToPayload(registeredAddress)[0] || {},
+                communication_address_attributes: commAddrPayload,
+
+                bank_details_attributes: bankDetailsList.map((item) => ({
+                    ...item,
+                    id: item.isNew ? null : item.id,
+                    attachment: item.isNew
+                        ? bankAttachments[item.id] || null
+                        : bankAttachments[item.id] || (item.attachment ? null : null),
+                })),
+
+                branch_offices_attributes: mapBranchOfficesToPayload(branchOffices),
+                contact_people_attributes: mapContactPersonsToPayload(contactPersons),
+                directors_informations_attributes: mapOwnersToPayload(owners),
+                factory_warehouses_attributes: mapWarehousesToPayload(warehouses),
+                major_customers_attributes: mapMajorCustomersToPayload(majorCustomers),
+                annual_turnovers_attributes: annualTurnover.map(item => ({
+                    id: null,
+                    financial_year: item.year,
+                    key_market: item.keyMarkets,
+                    turnover: item.turnover,
+                    attachment: item.attachment,
+                    destroy: false
+                })),
+            }
+        };
+        try {
+            await axios.patch(`${baseURL}/pms/suppliers/${supplierId}/update_api.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`, payload);
+            toast.success('Step 5 draft saved!');
+        } catch (error) {
+            toast.error('Failed to save Step 5 draft.');
+        }
+    };
+
+
+    const saveDraftStep5 = async () => {
+        console.log("sameAsRegistered value:", sameAsRegistered);
+        const commAddrPayload = mapCommunicationAddressToPayload(communicationAddress, sameAsRegistered)[0] || {};
+        console.log("communication_address_attributes:", commAddrPayload);
+        const payload = {
+            pms_supplier: {
+                status: "draft",
+                company_id: supplierShowData?.company_id || null,
+                organization_name: basicInfo.vendorOrganizationName,
+
+                cin_number: basicInfo.cin,
+                cin_attachment: basicInfo.cinAttachmentObj,
+
+                llp_number: basicInfo.llp,
+                llp_attachment: basicInfo.llpAttachmentObj,
+
+                type_of_organization_id: basicInfo.organizationType && basicInfo.organizationType.value ? basicInfo.organizationType.value : null,
+                nature_of_business_id: basicInfo.natureOfBusiness,
+                vendor_type: basicInfo.vendorType && basicInfo.vendorType.value ? basicInfo.vendorType.value : null,
+                type_business_id: basicInfo.industryType && basicInfo.industryType.value ? basicInfo.industryType.value : null,
+                type_of_work: basicInfo.typeOfWork,
+                key_market: basicInfo.keyMarket,
+
+                pan_number: basicInfo.panNo,
+                pan_attachment: basicInfo.panAttachmentObj,
+                schema_group_id: basicInfo.schemaGroup,
+                date_of_incorporation: basicInfo.dateOfIncorporation,
+                gstin_applicable:
+                    basicInfo.gstinApplicable && basicInfo.gstinApplicable.value === 'Yes' ? true :
+                        basicInfo.gstinApplicable && basicInfo.gstinApplicable.value === 'No' ? false :
+                            null,
+                gst_classification_id: basicInfo.gstinClassification?.value,
+                gstin: basicInfo.gstinNo,
+                gstin_attachment: basicInfo.gstinAttachmentObj,
+                gstin_declaration: basicInfo.gstinDeclarationObj,
+
+                website: additionalDetails.website,
+                delivery_lead_period: additionalDetails.deliveryLeadPeriod,
+                specify_warranty_period: additionalDetails.warrantyPeriod,
+                amc_provided: additionalDetails.amcProvided,
+                currency: additionalDetails.currencyType && additionalDetails.currencyType.value ? additionalDetails.currencyType.value : null,
+                msme: additionalDetails.msmeUdyamApplicable && additionalDetails.msmeUdyamApplicable.value ? additionalDetails.msmeUdyamApplicable.value : null,
+                einvoicing: additionalDetails.einvoice && additionalDetails.einvoice.value ? additionalDetails.einvoice.value : null,
+                einvoicing_declaration: additionalDetails.einvoiceDeclaration,
+                msme_no: additionalDetails.msmeNo,
+                classification_year: additionalDetails.classificationYear && additionalDetails.classificationYear.value ? additionalDetails.classificationYear.value : null,
+                major_activity: additionalDetails.majorActivity && additionalDetails.majorActivity.value ? additionalDetails.majorActivity.value : null,
+                valid_from: additionalDetails.validFrom,
+                valid_till: additionalDetails.validTill,
+                enterprise: additionalDetails.msmeEnterpriseType && additionalDetails.msmeEnterpriseType.value ? additionalDetails.msmeEnterpriseType.value : null,
+
+                msme_attachment: additionalDetails.msmeAttachmentObj,
+                msme_declaration: additionalDetails.msmeDeclarationObj,
+
+                question1: questions.expertise,
+                // question1_attachment: questions.expertiseAttachment,
+                question2: questions.structure,
+
+                // office_address_attributes: mapRegisteredAddressToPayload(registeredAddress),
+                // communication_address_attributes: mapCommunicationAddressToPayload(communicationAddress),
+                office_address_attributes: mapRegisteredAddressToPayload(registeredAddress)[0] || {},
+                communication_address_attributes: commAddrPayload,
+
+                bank_details_attributes: bankDetailsList.map((item) => ({
+                    ...item,
+                    id: item.isNew ? null : item.id,
+                    attachment: item.isNew
+                        ? bankAttachments[item.id] || null
+                        : bankAttachments[item.id] || (item.attachment ? null : null),
+                })),
+
+                branch_offices_attributes: mapBranchOfficesToPayload(branchOffices),
+                contact_people_attributes: mapContactPersonsToPayload(contactPersons),
+                directors_informations_attributes: mapOwnersToPayload(owners),
+                factory_warehouses_attributes: mapWarehousesToPayload(warehouses),
+                major_customers_attributes: mapMajorCustomersToPayload(majorCustomers),
+                annual_turnovers_attributes: annualTurnover.map(item => ({
+                    id: null,
+                    financial_year: item.year,
+                    key_market: item.keyMarkets,
+                    turnover: item.turnover,
+                    attachment: item.attachment,
+                    destroy: false
+                })),
+
+
+                statutory_details: statutoryPayload || []
+
+
+
+            }
+        };
+        try {
+            await axios.patch(`${baseURL}/pms/suppliers/${supplierId}/update_api.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`, payload);
+            toast.success('Step 6 draft saved!');
+        } catch (error) {
+            toast.error('Failed to save Step 6 draft.');
+        }
+    };
+
+
+     const saveDraftStep6= async () => {
+        console.log("sameAsRegistered value:", sameAsRegistered);
+        const commAddrPayload = mapCommunicationAddressToPayload(communicationAddress, sameAsRegistered)[0] || {};
+        console.log("communication_address_attributes:", commAddrPayload);
+        const payload = {
+            pms_supplier: {
+                status: "draft",
+                company_id: supplierShowData?.company_id || null,
+                organization_name: basicInfo.vendorOrganizationName,
+
+                cin_number: basicInfo.cin,
+                cin_attachment: basicInfo.cinAttachmentObj,
+
+                llp_number: basicInfo.llp,
+                llp_attachment: basicInfo.llpAttachmentObj,
+
+                type_of_organization_id: basicInfo.organizationType && basicInfo.organizationType.value ? basicInfo.organizationType.value : null,
+                nature_of_business_id: basicInfo.natureOfBusiness,
+                vendor_type: basicInfo.vendorType && basicInfo.vendorType.value ? basicInfo.vendorType.value : null,
+                type_business_id: basicInfo.industryType && basicInfo.industryType.value ? basicInfo.industryType.value : null,
+                type_of_work: basicInfo.typeOfWork,
+                key_market: basicInfo.keyMarket,
+
+                pan_number: basicInfo.panNo,
+                pan_attachment: basicInfo.panAttachmentObj,
+                schema_group_id: basicInfo.schemaGroup,
+                date_of_incorporation: basicInfo.dateOfIncorporation,
+                gstin_applicable:
+                    basicInfo.gstinApplicable && basicInfo.gstinApplicable.value === 'Yes' ? true :
+                        basicInfo.gstinApplicable && basicInfo.gstinApplicable.value === 'No' ? false :
+                            null,
+                gst_classification_id: basicInfo.gstinClassification?.value,
+                gstin: basicInfo.gstinNo,
+                gstin_attachment: basicInfo.gstinAttachmentObj,
+                gstin_declaration: basicInfo.gstinDeclarationObj,
+
+                website: additionalDetails.website,
+                delivery_lead_period: additionalDetails.deliveryLeadPeriod,
+                specify_warranty_period: additionalDetails.warrantyPeriod,
+                amc_provided: additionalDetails.amcProvided,
+                currency: additionalDetails.currencyType && additionalDetails.currencyType.value ? additionalDetails.currencyType.value : null,
+                msme: additionalDetails.msmeUdyamApplicable && additionalDetails.msmeUdyamApplicable.value ? additionalDetails.msmeUdyamApplicable.value : null,
+                einvoicing: additionalDetails.einvoice && additionalDetails.einvoice.value ? additionalDetails.einvoice.value : null,
+                einvoicing_declaration: additionalDetails.einvoiceDeclaration,
+                msme_no: additionalDetails.msmeNo,
+                classification_year: additionalDetails.classificationYear && additionalDetails.classificationYear.value ? additionalDetails.classificationYear.value : null,
+                major_activity: additionalDetails.majorActivity && additionalDetails.majorActivity.value ? additionalDetails.majorActivity.value : null,
+                valid_from: additionalDetails.validFrom,
+                valid_till: additionalDetails.validTill,
+                enterprise: additionalDetails.msmeEnterpriseType && additionalDetails.msmeEnterpriseType.value ? additionalDetails.msmeEnterpriseType.value : null,
+
+                msme_attachment: additionalDetails.msmeAttachmentObj,
+                msme_declaration: additionalDetails.msmeDeclarationObj,
+
+                question1: questions.expertise,
+                // question1_attachment: questions.expertiseAttachment,
+                question2: questions.structure,
+
+                // office_address_attributes: mapRegisteredAddressToPayload(registeredAddress),
+                // communication_address_attributes: mapCommunicationAddressToPayload(communicationAddress),
+                office_address_attributes: mapRegisteredAddressToPayload(registeredAddress)[0] || {},
+                communication_address_attributes: commAddrPayload,
+
+                bank_details_attributes: bankDetailsList.map((item) => ({
+                    ...item,
+                    id: item.isNew ? null : item.id,
+                    attachment: item.isNew
+                        ? bankAttachments[item.id] || null
+                        : bankAttachments[item.id] || (item.attachment ? null : null),
+                })),
+
+                branch_offices_attributes: mapBranchOfficesToPayload(branchOffices),
+                contact_people_attributes: mapContactPersonsToPayload(contactPersons),
+                directors_informations_attributes: mapOwnersToPayload(owners),
+                factory_warehouses_attributes: mapWarehousesToPayload(warehouses),
+                major_customers_attributes: mapMajorCustomersToPayload(majorCustomers),
+                annual_turnovers_attributes: annualTurnover.map(item => ({
+                    id: null,
+                    financial_year: item.year,
+                    key_market: item.keyMarkets,
+                    turnover: item.turnover,
+                    attachment: item.attachment,
+                    destroy: false
+                })),
+
+
+                     statutory_details: statutoryPayload || [],
+                     checklist: checklistPayload
+
+
+
+            }
+        };
+        try {
+            await axios.patch(`${baseURL}/pms/suppliers/${supplierId}/update_api.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`, payload);
+            toast.success('Step 7 draft saved!');
+        } catch (error) {
+            toast.error('Failed to save Step 7 draft.');
+        }
+    };
     // Repeat for other steps...
 
 
 
+    // console.log("com add::",mapCommunicationAddressToPayload(communicationAddress))
 
+    // console.log("same key add",sameAsRegistered)
 
 
 
@@ -6444,7 +6977,7 @@ console.log("add:", registeredAddress,communicationAddress, mapRegisteredAddress
                                                 <div className="form-group">
                                                     <label>Country<span>*</span></label>
                                                     <SingleSelector
-                                                        options={[]}
+                                                        options={countries || []}
                                                         value={warehouse.country}
                                                         onChange={selected => handleWarehouseChange(idx, 'country', selected)}
                                                     />
@@ -6457,7 +6990,7 @@ console.log("add:", registeredAddress,communicationAddress, mapRegisteredAddress
                                                 <div className="form-group">
                                                     <label>State <span>*</span></label>
                                                     <SingleSelector
-                                                        options={[]}
+                                                        options={states || []}
                                                         value={warehouse.state}
                                                         onChange={selected => handleWarehouseChange(idx, 'state', selected)}
                                                     />
@@ -6645,7 +7178,7 @@ console.log("add:", registeredAddress,communicationAddress, mapRegisteredAddress
                                                         <TooltipIcon message="Enter the official designation or job title of the contact person within the organization." />
                                                     </label>
                                                     <SingleSelector
-                                                        options={[]}
+                                                        options={designationOptions}
                                                         value={person.designation}
                                                         onChange={(selected) =>
                                                             handleContactPersonChange(idx, "designation", selected)
@@ -6844,7 +7377,7 @@ console.log("add:", registeredAddress,communicationAddress, mapRegisteredAddress
                                                 <div className="form-group">
                                                     <label>Designation <span>*</span></label>
                                                     <SingleSelector
-                                                        options={[]}
+                                                        options={designationOptions || []}
                                                         value={owner.designation}
                                                         onChange={selected => handleOwnerChange(idx, 'designation', selected)}
                                                     />
@@ -7353,42 +7886,36 @@ console.log("add:", registeredAddress,communicationAddress, mapRegisteredAddress
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr>
-                                                <td>2024-2025</td>
-                                                <td>
-                                                    <input className="form-control" type="number" placeholder="Enter Turnover" name="turnover_2024_2025" />
-                                                </td>
-                                                <td>
-                                                    <input className="form-control" type="file" name="attachment_2024_2025" />
-                                                </td>
-                                                <td>
-                                                    <input className="form-control" type="text" placeholder="Enter Key Markets" name="markets_2024_2025" />
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td>2023-2024</td>
-                                                <td>
-                                                    <input className="form-control" type="number" placeholder="Enter Turnover" name="turnover_2023_2024" />
-                                                </td>
-                                                <td>
-                                                    <input className="form-control" type="file" name="attachment_2023_2024" />
-                                                </td>
-                                                <td>
-                                                    <input className="form-control" type="text" placeholder="Enter Key Markets" name="markets_2023_2024" />
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td>2022-2023</td>
-                                                <td>
-                                                    <input className="form-control" type="number" placeholder="Enter Turnover" name="turnover_2022_2023" />
-                                                </td>
-                                                <td>
-                                                    <input className="form-control" type="file" name="attachment_2022_2023" />
-                                                </td>
-                                                <td>
-                                                    <input className="form-control" type="text" placeholder="Enter Key Markets" name="markets_2022_2023" />
-                                                </td>
-                                            </tr>
+                                            {annualTurnover.map((item, idx) => (
+                                                <tr key={item.year}>
+                                                    <td>{item.year}</td>
+                                                    <td>
+                                                        <input
+                                                            className="form-control"
+                                                            type="number"
+                                                            placeholder="Enter Turnover"
+                                                            value={item.turnover}
+                                                            onChange={e => handleAnnualTurnoverChange(idx, 'turnover', e.target.value)}
+                                                        />
+                                                    </td>
+                                                    <td>
+                                                        <input
+                                                            className="form-control"
+                                                            type="file"
+                                                            onChange={e => handleAnnualTurnoverFileChange(idx, e.target.files[0])}
+                                                        />
+                                                    </td>
+                                                    <td>
+                                                        <input
+                                                            className="form-control"
+                                                            type="text"
+                                                            placeholder="Enter Key Markets"
+                                                            value={item.keyMarkets}
+                                                            onChange={e => handleAnnualTurnoverChange(idx, 'keyMarkets', e.target.value)}
+                                                        />
+                                                    </td>
+                                                </tr>
+                                            ))}
                                         </tbody>
                                     </table>
                                 </div>
@@ -7570,19 +8097,34 @@ console.log("add:", registeredAddress,communicationAddress, mapRegisteredAddress
                                 <div className="row mb-3">
                                     <div className="col-md-12 mb-3">
                                         <label>Mention about your company expertise, briefly</label>
-                                        <textarea className="form-control" rows="3" placeholder="Describe your company expertise"></textarea>
+                                        <textarea
+                                            className="form-control"
+                                            rows="3"
+                                            placeholder="Describe your company expertise"
+                                            value={questions.expertise}
+                                            onChange={e => handleQuestionChange('expertise', e.target.value)}
+                                        ></textarea>
                                     </div>
-
                                 </div>
                                 <div className="row mb-3">
                                     <div className="col-md-4 offset-md-8 mb-3">
-                                        <input className="form-control" type="file" />
+                                        <input
+                                            className="form-control"
+                                            type="file"
+                                            onChange={e => handleQuestionFileChange(e.target.files[0])}
+                                        />
                                     </div>
                                 </div>
                                 <div className="row mb-3">
                                     <div className="col-md-12 mb-3">
                                         <label>What is the organization and structure of the company / firm?</label>
-                                        <textarea className="form-control" rows="3" placeholder="Describe the organization and structure"></textarea>
+                                        <textarea
+                                            className="form-control"
+                                            rows="3"
+                                            placeholder="Describe the organization and structure"
+                                            value={questions.structure}
+                                            onChange={e => handleQuestionChange('structure', e.target.value)}
+                                        ></textarea>
                                     </div>
                                 </div>
                             </div>
@@ -7619,31 +8161,57 @@ console.log("add:", registeredAddress,communicationAddress, mapRegisteredAddress
                                                                 <td></td>
                                                                 <td></td>
                                                             </tr>
-                                                            {subcat.questions.map((q, qIdx) => (
-                                                                <tr key={q.id}>
-                                                                    <td>{`${subIdx + 1}.${qIdx + 1}`}</td>
-                                                                    <td>{q.descr}</td>
-                                                                    <td>
-                                                                        {q.qtype === 'multiple' ? (
-                                                                            <SingleSelector
-                                                                                options={[{ label: 'Yes', value: 'Yes' }, { label: 'No', value: 'No' }]}
-                                                                                value={q.response || null}
-                                                                                onChange={selected => {/* handle response change if needed */ }}
-                                                                                placeholder="Select"
+                                                            {subcat.questions.map((q, qIdx) => {
+                                                                const qState = (checklistResponses[subcat.id]?.questions || [])[qIdx] || {};
+                                                                return (
+                                                                    <tr key={q.id}>
+                                                                        <td>{`${subIdx + 1}.${qIdx + 1}`}</td>
+                                                                        <td>{q.descr}</td>
+                                                                        <td>
+                                                                            {q.qtype === 'multiple' ? (
+                                                                                <SingleSelector
+                                                                                    options={(q.options || []).map(opt => ({ label: opt.name, value: opt.value }))}
+                                                                                    value={qState.selectedOption}
+                                                                                    onChange={selected => handleChecklistOptionChange(subcat.id, q.id, selected)}
+                                                                                    placeholder="Select"
+                                                                                />
+                                                                            ) : (
+                                                                                <input
+                                                                                    className="form-control"
+                                                                                    type="text"
+                                                                                    placeholder="Enter response"
+                                                                                    value={qState.value || ''}
+                                                                                    onChange={e => handleChecklistResponseChange(subcat.id, q.id, 'value', e.target.value)}
+                                                                                />
+                                                                            )}
+                                                                        </td>
+                                                                        <td>
+                                                                            <input
+                                                                                className="form-control"
+                                                                                type="file"
+                                                                                onChange={e => handleChecklistFileChange(subcat.id, q.id, e.target.files[0])}
                                                                             />
-                                                                        ) : (
-                                                                            <input className="form-control" type="text" placeholder="Enter response" />
-                                                                        )}
-                                                                    </td>
-                                                                    <td>
-                                                                        {/* File upload for required documents */}
-                                                                        <input className="form-control" type="file" />
-                                                                    </td>
-                                                                    <td>
-                                                                        <textarea className="form-control" type="text" placeholder=" Enter Remark" />
-                                                                    </td>
-                                                                </tr>
-                                                            ))}
+                                                                            {/* Show uploaded file names */}
+                                                                            {qState.files && qState.files.length > 0 && (
+                                                                                <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
+                                                                                    {qState.files.map((f, i) => (
+                                                                                        <li key={i} style={{ fontSize: '12px' }}>{f.filename}</li>
+                                                                                    ))}
+                                                                                </ul>
+                                                                            )}
+                                                                        </td>
+                                                                        <td>
+                                                                            <textarea
+                                                                                className="form-control"
+                                                                                type="text"
+                                                                                placeholder=" Enter Remark"
+                                                                                value={qState.comments || ''}
+                                                                                onChange={e => handleChecklistResponseChange(subcat.id, q.id, 'comments', e.target.value)}
+                                                                            />
+                                                                        </td>
+                                                                    </tr>
+                                                                );
+                                                            })}
                                                         </React.Fragment>
                                                     ))}
                                                 </tbody>
@@ -7681,38 +8249,63 @@ console.log("add:", registeredAddress,communicationAddress, mapRegisteredAddress
                                                                 <td></td>
                                                                 <td></td>
                                                             </tr>
-                                                            {subcat.questions.map((q, qIdx) => (
-                                                                <tr key={q.id}>
-                                                                    <td>{`${subIdx + 1}.${qIdx + 1}`}</td>
-                                                                    <td>{q.descr}</td>
-                                                                    <td style={{ minWidth: '150px' }}>
-                                                                        {/* Response input type can be customized based on q.qtype */}
-
-                                                                        {q.qtype === 'multiple' ? (
-
-
-
-                                                                            <SingleSelector
-                                                                                options={[{ label: 'Yes', value: 'Yes' }, { label: 'No', value: 'No' }]}
-                                                                                value={q.response || null}
-                                                                                onChange={selected => {/* handle response change if needed */ }}
-                                                                                placeholder="Select"
+                                                            {subcat.questions.map((q, qIdx) => {
+                                                                const qState = (checklistResponses[subcat.id]?.questions || [])[qIdx] || {};
+                                                                return (
+                                                                    <tr key={q.id}>
+                                                                        <td>{`${subIdx + 1}.${qIdx + 1}`}</td>
+                                                                        <td>{q.descr}</td>
+                                                                        <td style={{ minWidth: '150px' }}>
+                                                                            {q.qtype === 'multiple' ? (
+                                                                                <SingleSelector
+                                                                                    options={(q.options || []).map(opt => ({ label: opt.name, value: opt.value }))}
+                                                                                    value={qState.selectedOption}
+                                                                                    onChange={selected => handleChecklistOptionChange(subcat.id, q.id, selected)}
+                                                                                    placeholder="Select"
+                                                                                />
+                                                                            ) : (
+                                                                                <input
+                                                                                    className="form-control"
+                                                                                    type="text"
+                                                                                    placeholder="Enter response"
+                                                                                    value={qState.value || ''}
+                                                                                    onChange={e => handleChecklistResponseChange(subcat.id, q.id, 'value', e.target.value)}
+                                                                                />
+                                                                            )}
+                                                                        </td>
+                                                                        <td>
+                                                                            <input
+                                                                                className="form-control"
+                                                                                type="file"
+                                                                                onChange={e => handleChecklistFileChange(subcat.id, q.id, e.target.files[0])}
                                                                             />
-                                                                        ) : (
-                                                                            <input className="form-control" type="text" placeholder="Enter response" />
-                                                                        )}
-                                                                    </td>
-                                                                    <td>
-                                                                        {/* File upload for required documents */}
-                                                                        <input className="form-control" type="file" />
-                                                                    </td>
-                                                                    <td>
-                                                                        <textarea className="form-control" type="text" placeholder=" Enter Remark" />
-                                                                    </td>
-                                                                </tr>
-                                                            ))}
+                                                                            {qState.files && qState.files.length > 0 && (
+                                                                                <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
+                                                                                    {qState.files.map((f, i) => (
+                                                                                        <li key={i} style={{ fontSize: '12px' }}>{f.filename}</li>
+                                                                                    ))}
+                                                                                </ul>
+                                                                            )}
+                                                                        </td>
+                                                                        <td>
+                                                                            <textarea
+                                                                                className="form-control"
+                                                                                type="text"
+                                                                                placeholder=" Enter Remark"
+                                                                                value={qState.comments || ''}
+                                                                                onChange={e => handleChecklistResponseChange(subcat.id, q.id, 'comments', e.target.value)}
+                                                                            />
+                                                                        </td>
+                                                                    </tr>
+                                                                );
+                                                            })}
                                                         </React.Fragment>
                                                     ))}
+            {/* Show checklistPayload for review */}
+            {/* <div className="mt-4 mx-3">
+                <h5>Checklist Payload Preview</h5>
+                <pre style={{ background: '#f8f9fa', padding: '12px', fontSize: '12px', maxHeight: '300px', overflow: 'auto' }}>{JSON.stringify(checklistPayload, null, 2)}</pre>
+            </div> */}
                                                 </tbody>
                                             </table>
                                         </div>
@@ -9895,25 +10488,25 @@ console.log("add:", registeredAddress,communicationAddress, mapRegisteredAddress
                                 onClick={() => {
                                     // Step-wise validation logic
                                     let isValid = true;
-                                    // if (currentStep === 1) {
-                                    //     isValid = validateBasicInfo();
-                                    //     if (!isValid) return;
-                                    // }
-                                    // // Add more step validations as needed
-                                    // else if (currentStep === 2) {
-                                    //     isValid = validateStep2();
-                                    //     if (!isValid) return;
-                                    // }
-                                    // else if (currentStep === 3) {
-                                    //     isValid = validateStep3();
-                                    //     if (!isValid) return;
-                                    // }
-                                    // else if (currentStep === 4) {
-                                    //     isValid = validateStep4();
-                                    //     if (!isValid) return;
-                                    // }
+                                    if (currentStep === 1) {
+                                        isValid = validateBasicInfo();
+                                        if (!isValid) return;
+                                    }
+                                    // Add more step validations as needed
+                                    else if (currentStep === 2) {
+                                        isValid = validateStep2();
+                                        if (!isValid) return;
+                                    }
+                                    else if (currentStep === 3) {
+                                        isValid = validateStep3();
+                                        if (!isValid) return;
+                                    }
+                                    else if (currentStep === 4) {
+                                        isValid = validateStep4();
+                                        if (!isValid) return;
+                                    }
                                     // // ...
-                                    Save
+                                    // Save
                                     // //  as draft logic
                                     // if (typeof saveDraft === 'function') {
                                     //     saveDraft();
@@ -9940,19 +10533,39 @@ console.log("add:", registeredAddress,communicationAddress, mapRegisteredAddress
                                         await saveDraftStep1();
                                     }
                                     // Add more step validations as needed
-                                    else if (currentStep === 2) {
+                                    else
+                                     if (currentStep === 2) {
                                         isValid = validateStep2();
                                         if (!isValid) return;
                                         await saveDraftStep2();
                                     }
-                                    else if (currentStep === 3) {
+                                    else
+                                     if (currentStep === 3) {
                                         isValid = validateStep3();
                                         if (!isValid) return;
+                                        await saveDraftStep3();
                                     }
-                                    else if (currentStep === 4) {
+                                    else 
+                                        if (currentStep === 4) {
                                         isValid = validateStep4();
                                         if (!isValid) return;
+                                        await saveDraftStep4()
                                     }
+
+                                    else 
+                                    if (currentStep === 5) {
+                                        // isValid = validateStep4();
+                                        if (!isValid) return;
+                                        await saveDraftStep5()
+                                    }
+                                    else 
+                                    if (currentStep === 6) {
+                                        // isValid = validateStep4();
+                                        if (!isValid) return;
+                                        await saveDraftStep6()
+                                    }
+
+
                                     // ...
 
                                     // // Save as draft logic
