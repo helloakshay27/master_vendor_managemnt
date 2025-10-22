@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { DropdownCollapseIcon } from "../.."; 
 
-const CollapsedCardKYC = ({ title, children, isInitiallyCollapsed = false, onDelete }) => {
+const CollapsedCardKYC = ({ title, children, isInitiallyCollapsed = false, onDelete, headerExtra = null }) => {
   const [isCollapsed, setIsCollapsed] = useState(isInitiallyCollapsed);
 
   const toggleCardBody = () => {
@@ -12,7 +12,13 @@ const CollapsedCardKYC = ({ title, children, isInitiallyCollapsed = false, onDel
     <div className="card mx-3 mt-3">
       <div className="card-header3">
         <h3 className="card-title">{title}</h3>
-        <div className="card-tools">
+        <div className="card-tools d-flex align-items-center">
+          {/* optional extra content (e.g., note) rendered before delete */}
+          {headerExtra && (
+            <div className="me-2">
+              {headerExtra}
+            </div>
+          )}
           <svg
             xmlns="http://www.w3.org/2000/svg"
             style={{ color: "var(--red)" }}

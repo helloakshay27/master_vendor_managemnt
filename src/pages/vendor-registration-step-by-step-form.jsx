@@ -136,14 +136,6 @@ const mapWarehousesToPayload = (warehouses) => {
 };
 
 
-
-
-
-
-
-
-
-
 import React, { useState, useEffect, useRef } from "react";
 // import CollapsedCardKYC from "../../../components/base/Card/CollapsedCardKYC";
 import CardBodyKYC from "../components/base/Card/CardBodyKYC";
@@ -172,7 +164,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
     useEffect(() => {
         const fetchChecklistConfig = async () => {
             try {
-                const response = await axios.get(`https://vendors.lockated.com/pms/suppliers/${id}/checklist_configuration`);
+                const response = await axios.get(`${baseURL}/pms/suppliers/${id}/checklist_configuration`);
                 setChecklistConfig(response.data || []);
                 console.log("check list:", response.data)
             } catch (error) {
@@ -520,18 +512,15 @@ const [checklistConfig, setChecklistConfig] = useState([]);
         "2022-2023": { amount: '', attachment: '', markets: '' },
     });
 
-    // console.log("turnover:",turnover)
-    // Major Customer Served by You dynamic section state and handlers
 
     // Checklist configuration state
     
-
     const [natureOfBusinessOptions, setNatureOfBusinessOptions] = useState([]);
     const [vendorTypeOptions, setVendorTypeOptions] = useState([]);
     useEffect(() => {
         const fetchVendorTypeOptions = async () => {
             try {
-                const response = await axios.get('https://vendors.lockated.com/pms/suppliers/dropdowns');
+                const response = await axios.get(`${baseURL}/pms/suppliers/dropdowns`);
                 const options = (response.data?.vendor_types || []).map(item => ({ label: item.name, value: item.value }));
                 setVendorTypeOptions(options);
             } catch (error) {
@@ -543,7 +532,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
     useEffect(() => {
         const fetchNatureOfBusiness = async () => {
             try {
-                const response = await axios.get('https://vendors.lockated.com/pms/suppliers/dropdowns');
+                const response = await axios.get(`${baseURL}/pms/suppliers/dropdowns`);
                 const options = (response.data?.nature_of_businesses || []).map(item => ({ label: item.name, value: item.value }));
                 setNatureOfBusinessOptions(options);
             } catch (error) {
@@ -558,7 +547,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
     useEffect(() => {
         const fetchSchemaGroupOptions = async () => {
             try {
-                const response = await axios.get('https://vendors.lockated.com/pms/suppliers/dropdowns');
+                const response = await axios.get(`${baseURL}/pms/suppliers/dropdowns`);
                 const options = (response.data?.schema_groups || []).map(item => ({ label: item.name, value: item.value }));
                 setSchemaGroupOptions(options);
             } catch (error) {
@@ -572,7 +561,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
     useEffect(() => {
         const fetchGstinClassificationOptions = async () => {
             try {
-                const response = await axios.get('https://vendors.lockated.com/pms/suppliers/dropdowns');
+                const response = await axios.get(`${baseURL}/pms/suppliers/dropdowns`);
                 const options = (response.data?.gst_classifications || []).map(item => ({ label: item.name, value: item.value }));
                 setGstinClassificationOptions(options);
             } catch (error) {
@@ -597,7 +586,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
     const [rekycId, setRekycId] = useState(null);
     const [rekycType, setRekycType] = useState(null);
     const [loading, setLoading] = useState(false);
-    const [loading2, setLoading2] = useState(true);
+    const [loading2, setLoading2] = useState(false);
     const [contactNumber, setContactNumber] = useState("");
     const [emailAddress, setEmailAddress] = useState("");
     const [organizationName, setOrganizationName] = useState(""); // Pre-fill this from API on load
@@ -607,31 +596,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
     const [statutoryInputs, setStatutoryInputs] = useState({});
     const [statutoryErrors, setStatutoryErrors] = useState({});
 
-    // Check if the rekycType array is null or empty
-    const isRekycTypeEmpty = !rekycType || rekycType.length === 0;
-
-    // Check if rekycType is null, empty, or contains "MSME Rekyc"
-    const isMsmeRekyc =
-        rekycType &&
-        rekycType.includes(
-            "MSME Rekyc"
-            // "MSME Re-kyc"
-        );
-
-    // Check if 'E-invoicing Rekyc' is in the rekycType array
-    const isEnvoiceRekyc = rekycType && rekycType.includes("E-invoicing Rekyc");
-
-    // Check if 'Bank Rekyc' is in the rekycType array
-    const isBankRekyc = rekycType && rekycType.includes("Bank Rekyc");
-    // console.log("bank re:", isBankRekyc);
-    const isGstinRekyc = rekycType && rekycType.includes("GSTIN Rekyc");
-    // new option name 
-    const isNameRekyc = rekycType && rekycType.includes("Name Rekyc");
-
-    // !rekycType ||
-
-    // console.log(" re kyc type:", rekycType);
-
+   
     // ***********************************
 
     const [basicInfo, setBasicInfo] = useState({
@@ -683,7 +648,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
     // Handler for Get OTP button
     const handleGetOtp = async () => {
         try {
-            const response = await axios.post(`https://vendors.lockated.com/pms/suppliers/${id}/generate_otp_api`);
+            const response = await axios.post(`${baseURL}/pms/suppliers/${id}/generate_otp_api`);
             // You can handle response here, e.g. show toast or set OTP state
             // toast.success('OTP sent successfully!');
             toast.success("OTP has been sent to your registered mobile number and email.");
@@ -722,7 +687,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
         // setCurrentStep((s) => Math.min(s + 1, steps.length - 1));
         try {
             const response = await axios.post(
-                `https://vendors.lockated.com/pms/suppliers/${id}/verify_otp_api`,
+                `${baseURL}/pms/suppliers/${id}/verify_otp_api`,
                 {
                     email_otp: emailOtp || null,
                     mobile_otp: mobileOtp || null,
@@ -785,7 +750,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
     useEffect(() => {
         const fetchSupplierShowData = async () => {
             try {
-                const response = await axios.get(`https://vendors.lockated.com/pms/suppliers/${id}/supplier_show.json`);
+                const response = await axios.get(`${baseURL}/pms/suppliers/${id}/supplier_show.json`);
                 setSupplierShowData(response.data);
                 setBankDetailsList(response.data?.bank_details || [])
                 setStatutoryDetails(response.data?.vendor_statutory_details)
@@ -796,6 +761,23 @@ const [checklistConfig, setChecklistConfig] = useState([]);
         };
         fetchSupplierShowData();
     }, []);
+    // Supplier declaration questions fetched from API
+    const [supplierDeclarations, setSupplierDeclarations] = useState([]);
+
+    useEffect(() => {
+        if (supplierShowData?.supplier_declaration) {
+            // clone to local state so we can edit selected_option and explanation
+            setSupplierDeclarations(supplierShowData.supplier_declaration.map(d => ({ ...d })));
+        }
+    }, [supplierShowData]);
+
+    const handleDeclarationOptionChange = (questionId, option) => {
+        setSupplierDeclarations(prev => prev.map(d => d.question_id === questionId ? { ...d, selected_option: option.name, selected_option_id: option.value } : d));
+    };
+
+    const handleDeclarationExplanationChange = (questionId, value) => {
+        setSupplierDeclarations(prev => prev.map(d => d.question_id === questionId ? { ...d, explanation: value } : d));
+    };
     // console.log("statutory dedeatils:", statutoryDetails)
 
 
@@ -826,6 +808,66 @@ const [checklistConfig, setChecklistConfig] = useState([]);
             // gstinDeclaration: supplierShowData.gstin_declaration_attachments?.[0]?.document_name || null,
             // ...other fields as needed
         }));
+        // Map branch offices from API to local branchOffices state
+        if (Array.isArray(supplierShowData.branch_offices) && supplierShowData.branch_offices.length > 0) {
+            const mappedBranches = supplierShowData.branch_offices.map(b => ({
+                id: b.id || Date.now() + Math.random(),
+                address: b.address || "",
+                country: b.country_id ? { value: b.country_id, label: b.country_name || b.country_id } : null,
+                state: b.state_id ? { value: b.state_id, label: b.state_name || b.state_id } : null,
+                city: b.city_name || b.city || "",
+                pincode: b.pin_code || b.pincode || null,
+                telephone: b.tel_number || b.telephone || "",
+                mobile: b.mobile || "",
+                isNew: false,
+            }));
+
+            setBranchOffices(mappedBranches);
+        }
+        // Map directors_informations (from API) to local owners state
+        if (Array.isArray(supplierShowData.directors_informations) && supplierShowData.directors_informations.length > 0) {
+            const mappedOwners = supplierShowData.directors_informations.map(d => ({
+                id: d.id || Date.now() + Math.random(),
+                firstName: d.first_name || "",
+                lastName: d.last_name || "",
+                designation: d.designation_id ? (designationOptions.find(opt => opt.value === d.designation_id) || d.designation_id) : null,
+                qualification: d.qualification || null,
+                experience: d.experience || "",
+                email: d.email || "",
+                mobile: d.mobile || "",
+                attachment: null,
+                isNew: false,
+            }));
+
+            setOwners(mappedOwners);
+        }
+        // Map major_customers from API to local majorCustomers state
+        if (Array.isArray(supplierShowData.major_customers) && supplierShowData.major_customers.length > 0) {
+            const mappedCustomers = supplierShowData.major_customers.map(c => {
+                const countryOption = countryOptions.find(opt => Number(opt.value) === Number(c.country_id)) || countryOptions.find(opt => opt.value === c.country_id) || (c.country_id ? { value: c.country_id, label: '' } : null);
+                return ({
+                    id: c.id || Date.now() + Math.random(),
+                    companyName: c.name || c.company_name || '',
+                    companyId: c.company_id || null,
+                    workDone: c.work_done || '',
+                    contactPerson: c.contact_person || '',
+                    designation: c.designation_id ? (designationOptions.find(opt => opt.value === c.designation_id) || { value: c.designation_id, label: '' }) : null,
+                    country: countryOption,
+                    phone: c.phone || c.phone_number || '',
+                    mobile: c.mobile || '',
+                    yearOfAssociation: c.years_of_association || '',
+                    serviceFrom: c.service_provided_from || c.serviceFrom || '',
+                    serviceTo: c.service_provided_to || c.serviceTo || '',
+                    businessLast12Months: c.turn_over || c.turnover || '',
+                    stageOfProject: c.stage_of_project || c.stageOfProject || '',
+                    majorCompetitors: c.major_competitors || '',
+                    attachment: c.attachment || null,
+                    isNew: false,
+                });
+            });
+
+            setMajorCustomers(mappedCustomers);
+        }
     }, [supplierShowData]);
 
 
@@ -854,6 +896,34 @@ const [checklistConfig, setChecklistConfig] = useState([]);
 
     // Helper to update additional details fields
     const updateAdditionalDetails = (field, value) => {
+        // If classificationYear is chosen, auto-fill validFrom and validTill
+        if (field === 'classificationYear') {
+            // value may be an object { label, value } or a string like '2021-22'
+            const yearValue = value && typeof value === 'object' ? value.value : value;
+            if (yearValue && typeof yearValue === 'string') {
+                // Expect format like '2021-22' or '2023-24'
+                const parts = yearValue.split('-');
+                if (parts.length === 2) {
+                    const startYear = parseInt(parts[0], 10);
+                    const endYearPart = parts[1];
+                    // Handle '21' or '2022' style; prefer 4-digit startYear already parsed
+                    const validFrom = `${startYear}-04-01`;
+                    // If end part is 2-digit, convert to full year
+                    let endYear = parts[1].length === 2 ? (startYear >= 2000 ? startYear + parseInt(endYearPart, 10) - (startYear % 100) : startYear + parseInt(endYearPart, 10)) : parseInt(endYearPart, 10);
+                    if (isNaN(endYear)) {
+                        // fallback: next year
+                        endYear = startYear + 1;
+                    }
+                    const validTill = `${endYear}-03-31`;
+                    setAdditionalDetails(prev => ({ ...prev, classificationYear: value, validFrom, validTill }));
+                    return;
+                }
+            }
+            // fallback
+            setAdditionalDetails(prev => ({ ...prev, classificationYear: value }));
+            return;
+        }
+
         setAdditionalDetails(prev => ({ ...prev, [field]: value }));
     };
 
@@ -864,7 +934,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
     useEffect(() => {
         const fetchOrganizationTypes = async () => {
             try {
-                const response = await axios.get('https://vendors.lockated.com/pms/suppliers/type_of_organization_list');
+                const response = await axios.get(`${baseURL}/pms/suppliers/type_of_organization_list`);
                 const options = (response.data?.type_of_organizations || []).map(item => ({ label: item.name, value: item.value }));
                 setOrganizationTypeOptions(options);
             } catch (error) {
@@ -878,7 +948,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
     useEffect(() => {
         const fetchIndustryTypes = async () => {
             try {
-                const response = await axios.get('https://vendors.lockated.com/pms/suppliers/type_of_industry_list');
+                const response = await axios.get(`${baseURL}/pms/suppliers/type_of_industry_list`);
                 const options = (response.data?.type_of_industry || []).map(item => ({ label: item.name, value: item.id }));
                 setIndustryTypeOptions(options);
             } catch (error) {
@@ -1048,7 +1118,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
     useEffect(() => {
         const fetchCountries = async () => {
             try {
-                const response = await axios.get('https://vendors.lockated.com/pms/suppliers/pms_country_list');
+                const response = await axios.get(`${baseURL}/pms/suppliers/pms_country_list`);
                 // Assuming response.data is an array of country objects with id and name
                 const options = (response.data.pms_country || []).map(country => ({
                     label: country.name,
@@ -1113,7 +1183,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
         }
         const fetchStates = async () => {
             try {
-                const response = await axios.get(`https://vendors.lockated.com/pms/suppliers/pms_state_list?q[country_id_in]=${registeredAddress.country.value}`
+                const response = await axios.get(`${baseURL}/pms/suppliers/pms_state_list?q[country_id_in]=${registeredAddress.country.value}`
                 );
                 // Assuming response.data is an array of state objects with id and name
                 const options = (response.data.pms_state || []).map(state => ({
@@ -1138,7 +1208,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
         }
         const fetchStates = async () => {
             try {
-                const response = await axios.get('https://vendors.lockated.com/pms/suppliers/pms_state_list', {
+                const response = await axios.get(`${baseURL}/pms/suppliers/pms_state_list`, {
                     params: { country_id: communicationAddress.country.value }
                 });
                 const options = (response.data.pms_state || []).map(state => ({
@@ -1254,7 +1324,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
     useEffect(() => {
         const fetchCompanyOptions = async () => {
             try {
-                const response = await axios.get("https://vendors.lockated.com/pms/suppliers/pms_company_list");
+                const response = await axios.get(`${baseURL}/pms/suppliers/pms_company_list`);
                 if (Array.isArray(response.data)) {
                     setCompanyOptions(response.data.pms_company.map(company => ({
                         label: company.company_name || company.name || company.label || "",
@@ -1281,7 +1351,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
 
     const validateStep3 = () => {
         let validationErrors = {};
-        if (isRekycTypeEmpty || isBankRekyc) {
+        // if (isRekycTypeEmpty || isBankRekyc) {
             let hasNewBankDetails = false;
 
             bankDetailsList.forEach((bankDetail) => {
@@ -1354,14 +1424,10 @@ const [checklistConfig, setChecklistConfig] = useState([]);
             if (!hasNewBankDetails) {
                 validationErrors = {};
             }
-        }
+        // }
         setBankErrors(validationErrors);
         return Object.keys(validationErrors).length === 0;
     };
-
-
-
-
 
 
     const [branchOffices, setBranchOffices] = useState([]);
@@ -1523,7 +1589,16 @@ const [checklistConfig, setChecklistConfig] = useState([]);
     };
 
     const deleteMajorCustomer = (id) => {
-        setMajorCustomers(prev => prev.length === 0 ? prev : prev.filter(c => c.id !== id));
+        setMajorCustomers((prev) => {
+            const item = prev.find((c) => c.id === id);
+            if (!item) return prev;
+
+            if (item.isNew) {
+                return prev.filter((c) => c.id !== id);
+            }
+
+            return prev.map((c) => (c.id === id ? { ...c, _destroy: "true" } : c));
+        });
     };
     // Supervisory Manpower & Resources Details dynamic section state and handlers
     const [supervisoryManpower, setSupervisoryManpower] = useState([
@@ -1653,10 +1728,6 @@ const [checklistConfig, setChecklistConfig] = useState([]);
     const [majorCustomerErrors, setMajorCustomerErrors] = useState([]);
     const [workingSiteErrors, setWorkingSiteErrors] = useState([]);
 
-
-
-
-
     const validateStep4 = () => {
         // Branch Offices
         const branchErrs = branchOffices.map(branch => {
@@ -1704,35 +1775,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
         });
         setOwnerErrors(ownerErrs);
 
-        // // Related Employees
-        // const relEmpErrs = relatedEmployees.map(emp => {
-        //     const err = {};
-        //     if (!emp.firstName) err.firstName = 'First Name is required.';
-        //     if (!emp.lastName) err.lastName = 'Last Name is required.';
-        //     if (!emp.email) err.email = 'Employee Email Id is required.';
-        //     return err;
-        // });
-        // setRelatedEmployeeErrors(relEmpErrs);
-
-        // Group Companies
-        // const groupErrs = groupCompanies.map(company => {
-        //     const err = {};
-        //     if (!company.name) err.name = 'Name is required.';
-        //     if (!company.natureOfBusiness) err.natureOfBusiness = 'Nature Of Business is required.';
-        //     if (!company.pan) err.pan = 'PAN No. is required.';
-        //     if (!company.gstin) err.gstin = 'GSTIN No. is required.';
-        //     return err;
-        // });
-        // setGroupCompanyErrors(groupErrs);
-
-        // Supervisory Manpower
-        // const supErrs = supervisoryManpower.map(item => {
-        //     const err = {};
-        //     if (!item.details) err.details = 'Supervisory Manpower Details are required.';
-        //     if (!item.totalNumbers) err.totalNumbers = 'Total Numbers is required.';
-        //     return err;
-        // });
-        // setSupervisoryManpowerErrors(supErrs);
+       
 
         // Major Customers client references
         const custErrs = majorCustomers.map(cust => {
@@ -1753,15 +1796,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
         });
         setMajorCustomerErrors(custErrs);
 
-        // Working Sites
-        // const siteErrs = workingSites.map(site => {
-        //     const err = {};
-        //     if (!site.builderName) err.builderName = 'Builder / Client Name is required.';
-        //     if (!site.briefDetails) err.briefDetails = 'Brief Details is required.';
-        //     if (!site.area) err.area = 'Area is required.';
-        //     return err;
-        // });
-        // setWorkingSiteErrors(siteErrs);
+     
 
         // Return true if all error objects are empty
         const allBranchesValid = branchErrs.every(e => Object.keys(e).length === 0);
@@ -1770,12 +1805,9 @@ const [checklistConfig, setChecklistConfig] = useState([]);
         // Combine all validations
         // ...existing checks...
         const allOwnersValid = ownerErrs.every(e => Object.keys(e).length === 0);
-        // const allRelEmpValid = relEmpErrs.every(e => Object.keys(e).length === 0);
-        // const allGroupValid = groupErrs.every(e => Object.keys(e).length === 0);
-        // const allSupValid = supErrs.every(e => Object.keys(e).length === 0);
+       
         const allCustValid = custErrs.every(e => Object.keys(e).length === 0);
-        // const allSiteValid = siteErrs.every(e => Object.keys(e).length === 0);
-        // ...existing return...
+       
 
         return allBranchesValid && allContactsValid && allWarehousesValid && allOwnersValid
             // && allRelEmpValid && allGroupValid && allSupValid 
@@ -1879,12 +1911,6 @@ const [checklistConfig, setChecklistConfig] = useState([]);
     const [classificationDate, setClassificationDate] = useState("");
 
 
-
-
-
-    // console.log("supplier data:", supplierData);
-
-
     // country and state
 
     const [countries, setCountries] = useState([]);
@@ -1965,18 +1991,6 @@ const [checklistConfig, setChecklistConfig] = useState([]);
 
     const [deletedBankDetails, setDeletedBankDetails] = useState([]); // Store deleted bank details
     const [bankAttachments, setBankAttachments] = useState([]); // State for bank attachments
-
-    // Function to handle field changes
-
-    // const handleInputChange = (e, id, field) => {
-    //   const { value } = e.target;
-    //   setBankDetailsList((prevDetails) =>
-    //     prevDetails.map((bankDetail) =>
-    //       bankDetail.id === id ? { ...bankDetail, [field]: value } : bankDetail
-    //     )
-    //   );
-    // };
-    // Add these to your state declarations
 
     // Add near the top of your component with other constants
     const accountTypeOptions = [
@@ -2147,20 +2161,28 @@ const [checklistConfig, setChecklistConfig] = useState([]);
 
     // Function to delete bank details
     const deleteBankDetails = (id) => {
-        setBankDetailsList(bankDetailsList.filter((item) => item.id !== id));
+        setBankDetailsList((prev) => {
+            const item = prev.find((i) => i.id === id);
+            if (!item) return prev;
 
-        // Store deleted bank details separately
+            // If it's a new (unsaved) item, remove it from the list
+            if (item.isNew) {
+                return prev.filter((i) => i.id !== id);
+            }
+
+            // For existing items, mark them for deletion so backend receives _destroy flag
+            return prev.map((i) => (i.id === id ? { ...i, _destroy: "true" } : i));
+        });
+
+        // Keep a record of deleted items (for payload or UI audit)
         const deletedItem = bankDetailsList.find((item) => item.id === id);
         if (deletedItem) {
-            setDeletedBankDetails([...deletedBankDetails, { id, _destroy: true }]);
+            setDeletedBankDetails((prev) => [...prev, { ...deletedItem, _destroy: true }]);
         }
-
-        // setBankDetailsList(bankDetailsList.map((item) =>
-        //   item.id === id
-        //     ? { ...item, _destroy: true } // Mark this bank detail as deleted
-        //     : item
-        // ).filter(item => item._destroy !== true)); // Also filter out items with _destroy: true
     };
+
+
+    console.log("bank detail list to deleted :", deletedBankDetails)
 
     const handleFileChangeBank = (file, bankId) => {
         const reader = new FileReader();
@@ -2331,54 +2353,6 @@ const [checklistConfig, setChecklistConfig] = useState([]);
         })
     );
 
-    //   const validateStatutoryAttachments = () => {
-    //   const errors = {};
-
-    //   statutoryDetails.forEach((field) => {
-    //     const { code, name, attachment_required } = field;
-    //     const fileData = statutoryInputs[code]?.file;
-
-    //     if (attachment_required && !fileData) {
-    //       errors[code] = `Attachment is required for ${name}`;
-    //     }
-    //   });
-
-    //   setStatutoryErrors(errors);
-    //   return Object.keys(errors).length === 0;
-    // };
-    // const validateStatutoryInputs = () => {
-    //   const errors = {};
-
-    //   // Object.entries(statutoryInputs).forEach(([code, { file, id }]) => {
-    //   //   if (!file) {
-    //   //     errors[code] = "Attachment is required.";
-    //   //   }
-    //   // });
-
-    //   Object.entries(statutoryInputs).forEach(([code, { input, file }]) => {
-    //     if (input && !file) {
-    //       errors[code] = "Attachment is required.";
-    //     }
-    //   });
-
-    //   return errors;
-    // };
-
-    //   const validateStatutoryInputs = () => {
-    //     const errors = {};
-
-    //     Object.entries(statutoryInputs).forEach(([code, { input, file }]) => {
-    //       const isNotApplicable =
-    //         typeof input === "string" && input.trim().toLowerCase() === "not applicable";
-
-    //       if (input && !file && !isNotApplicable) {
-    //         errors[code] = "Attachment is required.";
-    //       }
-    //     });
-
-    //     return errors;
-    //   };
-
 
     const validateStatutoryInputs = () => {
         const errors = {};
@@ -2402,176 +2376,6 @@ const [checklistConfig, setChecklistConfig] = useState([]);
     };
 
 
-
-
-
-
-    // console.log("statutory details error:",statutoryErrors)
-    // console.log("Payload to send:", statutoryPayload);
-
-    const payload = {
-        authenticity_token: "[FILTERED]", // No quotes for the token value, but the key is a string
-        vendor_re_kyc: {
-            status: "details_submitted_by_vendor",
-        },
-        pms_supplier: {
-            rekyc_id: rekyc_id,
-            mobile: contactNumber, // Add Contact Number
-            email: emailAddress,
-            msme: msmeUdyamApplicable || "",
-            msme_no: msmeUdyamApplicable === "No" ? "" : msmeNo || null,
-            valid_from: msmeUdyamApplicable === "No" ? "" : validFrom || null,
-            valid_till: msmeUdyamApplicable === "No" ? "" : validTill || null,
-            enterprise:
-                msmeUdyamApplicable === "No" ? "" : msmeEnterpriseType || null,
-            major_activity: msmeUdyamApplicable === "No" ? "" : majorActivity || null,
-            classification_year:
-                msmeUdyamApplicable === "No" ? "" : classificationYear || null,
-            classification_date:
-                msmeUdyamApplicable === "No" ? "" : classificationDate || null,
-
-            msme_attachments: msmeUdyamApplicable === "No" ? [] : msmeAttachments,
-            einvoicing: eInvoicingApplicable || "",
-            einvoicing_attachments:
-                eInvoicingApplicable === "No" ? einvoicingAttachments : [], //added
-            // bank_details_attributes: bankDetailsList,
-            bank_details_attributes: bankDetailsList.map((item) => ({
-                ...item,
-                id: item.isNew ? null : item.id,
-
-                attachment: item.isNew
-                    ? bankAttachments[item.id] || null // If new attachment exists, pass it; otherwise, null
-                    : bankAttachments[item.id] || (item.attachment ? null : null), // If existing, only pass null if no new file is uploaded
-            })),
-            // attachment: item.isNew
-            //   ? bankAttachments[item.tempId] || null // Use tempId for new items
-            //   : bankAttachments[item.id] || null, // Use id for existing items
-            // Set id to null if it's a new entry
-            // attachment: item.isNew ? bankAttachments : null,
-            // _destroy: item._destroy ? true : null, // Convert _destroy to boolean or null
-            // })),
-
-            deletedBankDetails: deletedBankDetails, //deleted details
-
-            // gstin_applicable: gstApplicable || "",
-            // gst_classification_id: gstClassification?.value || "",
-            // gstin: gstinNumber || "",
-            // // gstin_attachments: gstinAttachments || [],
-            // gstin_attachments: gstinAttachments,
-
-            gstin_applicable: gstApplicable || null,
-            ...(gstApplicable === "Yes" && {
-                gst_classification_id: gstClassification?.value || null,
-                gstin: gstinNumber || "",
-                gstin_attachments: gstinAttachments,
-            }),
-            organization_name: organizationName,
-            pan_attachments: panAttachments,
-            msme_attachments: msmeAttachments2,
-            cin_attachments: cinAttachments,
-            gstin_attachments: gstinAttachments2,
-            bank_attachments_attachments: bankChequeAttachments,
-            statutory_details: statutoryPayload
-        },
-    };
-
-    const payloadCondition = {
-        authenticity_token: "[FILTERED]", // No quotes for the token value, but the key is a string
-        vendor_re_kyc: {
-            status: "details_submitted_by_vendor",
-        },
-        pms_supplier: {
-            rekyc_id: rekyc_id,
-        },
-    };
-
-    // If the condition is met, include only GSTN-related fields
-    if (isRekycTypeEmpty || isGstinRekyc) {
-        payloadCondition.pms_supplier = {
-            ...payloadCondition.pms_supplier, // Keep existing keys
-            gstin_applicable: gstApplicable || null,
-            ...(gstApplicable === "Yes" && {
-                gst_classification_id: gstClassification?.value || null,
-                gstin: gstinNumber || "",
-                gstin_attachments: gstinAttachments || [],
-            }),
-        };
-    }
-
-    // If the condition is met, include only Bank Details
-    if (isRekycTypeEmpty || isBankRekyc) {
-        payloadCondition.pms_supplier = {
-            ...payloadCondition.pms_supplier, // Keep existing keys
-            bank_details_attributes: bankDetailsList.map((item) => ({
-                ...item,
-                id: item.isNew ? null : item.id,
-
-                attachment: item.isNew
-                    ? bankAttachments[item.id] || null // If new attachment exists, pass it; otherwise, null
-                    : bankAttachments[item.id] || (item.attachment ? null : null), // If existing, only pass null if no new file is uploaded
-            })),
-
-            deletedBankDetails: deletedBankDetails || [], // Deleted bank details, if any
-        };
-    }
-
-    // If the condition is met, include only MSME-related fields
-    if (isRekycTypeEmpty || isMsmeRekyc) {
-        payloadCondition.pms_supplier = {
-            ...payloadCondition.pms_supplier, // Keep existing keys
-            msme: msmeUdyamApplicable || "",
-            msme_no: msmeUdyamApplicable === "No" ? "" : msmeNo || null,
-            valid_from: msmeUdyamApplicable === "No" ? "" : validFrom || null,
-            valid_till: msmeUdyamApplicable === "No" ? "" : validTill || null,
-            enterprise:
-                msmeUdyamApplicable === "No" ? "" : msmeEnterpriseType || null,
-            major_activity: msmeUdyamApplicable === "No" ? "" : majorActivity || null,
-            classification_year:
-                msmeUdyamApplicable === "No" ? "" : classificationYear || null,
-            classification_date:
-                msmeUdyamApplicable === "No" ? "" : classificationDate || null,
-            msme_attachments: msmeUdyamApplicable === "No" ? [] : msmeAttachments,
-        };
-    }
-
-    // If the condition is met, include only E-Invoicing-related fields
-    if (isRekycTypeEmpty || isEnvoiceRekyc) {
-        payloadCondition.pms_supplier = {
-            ...payloadCondition.pms_supplier, // Keep existing keys
-            einvoicing: eInvoicingApplicable || "",
-            einvoicing_attachments:
-                eInvoicingApplicable === "No" ? einvoicingAttachments || [] : [],
-        };
-    }
-
-    // for name rekyc
-    if (isRekycTypeEmpty || isNameRekyc) {
-        payloadCondition.pms_supplier = {
-            ...payloadCondition.pms_supplier,
-
-            // Add only Name Rekyc related fields
-            // organization_name: organizationName || "",
-            // pan_attachement: panAttachments || [],
-            // msme_attachement: msmeAttachments2 || [],
-            // cin_attachement: cinAttachments || [],
-            // gstin_attachement: gstinAttachments2 || [],
-            // cheque_attachement: bankChequeAttachments || [],
-
-            organization_name: organizationName || "",
-            pan_attachments: panAttachments || [],
-            msme: msmeUdyamApplicable || "",
-            msme_attachments: msmeAttachments2 || [],
-            cin_attachments: cinAttachments || [],
-            gstin_attachments: gstinAttachments2 || [],
-            bank_attachments_attachments: bankChequeAttachments || [],
-            statutory_details: statutoryPayload || [],
-            einvoicing: eInvoicingApplicable || "",
-            einvoicing_attachments: eInvoicingApplicable === "No" ? einvoicingAttachments || [] : [],
-        };
-    }
-    // console.log("payload:", payload);
-    // console.log("payload condition for new rekyc edit:", payloadCondition);
-
     // update api
 
     const [errors, setErrors] = useState({});
@@ -2583,9 +2387,6 @@ const [checklistConfig, setChecklistConfig] = useState([]);
     };
 
     // console.log("before update")
-
-
-
 
     const ppayload2 = {
 
@@ -2824,6 +2625,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
 
 
     const saveDraftStep1 = async () => {
+        setLoading2(true)
         const payload = {
             pms_supplier: {
                 status: "draft",
@@ -2883,14 +2685,24 @@ const [checklistConfig, setChecklistConfig] = useState([]);
         try {
             await axios.patch(`${baseURL}/pms/suppliers/${supplierId}/update_api.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`, payload);
             toast.success('Step 2 draft saved!');
+            // mark this step completed and move to next
+            setCompleted((arr) => {
+                const copy = [...arr];
+                copy[currentStep] = true;
+                return copy;
+            });
+            setCurrentStep((s) => Math.min(s + 1, steps.length - 1));
         } catch (error) {
             toast.error('Failed to save Step 1 draft.');
+        } finally {
+            setLoading2(false);
         }
     };
 
     // console.log("add:", registeredAddress,communicationAddress, mapRegisteredAddressToPayload(registeredAddress))
 
     const saveDraftStep2 = async () => {
+         setLoading2(true)
         console.log("sameAsRegistered value:", sameAsRegistered);
         const commAddrPayload = mapCommunicationAddressToPayload(communicationAddress, sameAsRegistered)[0] || {};
         console.log("communication_address_attributes:", commAddrPayload);
@@ -2949,16 +2761,27 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                 communication_address_attributes: commAddrPayload,
             }
         };
+      console.log(" payload for address step:", payload) 
         try {
             await axios.patch(`${baseURL}/pms/suppliers/${supplierId}/update_api.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`, payload);
             toast.success('Step 3 draft saved!');
+              // mark this step completed and move to next
+            setCompleted((arr) => {
+                const copy = [...arr];
+                copy[currentStep] = true;
+                return copy;
+            });
+            setCurrentStep((s) => Math.min(s + 1, steps.length - 1));
         } catch (error) {
             toast.error('Failed to save Step 3  draft.');
+        }finally {
+            setLoading2(false);
         }
     };
 
 
     const saveDraftStep3 = async () => {
+         setLoading2(true)
         console.log("sameAsRegistered value:", sameAsRegistered);
         const commAddrPayload = mapCommunicationAddressToPayload(communicationAddress, sameAsRegistered)[0] || {};
         console.log("communication_address_attributes:", commAddrPayload);
@@ -3029,12 +2852,22 @@ const [checklistConfig, setChecklistConfig] = useState([]);
         try {
             await axios.patch(`${baseURL}/pms/suppliers/${supplierId}/update_api.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`, payload);
             toast.success('Step 4 draft saved!');
+              // mark this step completed and move to next
+            setCompleted((arr) => {
+                const copy = [...arr];
+                copy[currentStep] = true;
+                return copy;
+            });
+            setCurrentStep((s) => Math.min(s + 1, steps.length - 1));
         } catch (error) {
             toast.error('Failed to save Step 4 draft.');
+        }finally {
+            setLoading2(false);
         }
     };
 
     const saveDraftStep4 = async () => {
+        setLoading2(true)
         console.log("sameAsRegistered value:", sameAsRegistered);
         const commAddrPayload = mapCommunicationAddressToPayload(communicationAddress, sameAsRegistered)[0] || {};
         console.log("communication_address_attributes:", commAddrPayload);
@@ -3119,13 +2952,22 @@ const [checklistConfig, setChecklistConfig] = useState([]);
         try {
             await axios.patch(`${baseURL}/pms/suppliers/${supplierId}/update_api.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`, payload);
             toast.success('Step 5 draft saved!');
+              setCompleted((arr) => {
+                const copy = [...arr];
+                copy[currentStep] = true;
+                return copy;
+            });
+            setCurrentStep((s) => Math.min(s + 1, steps.length - 1));
         } catch (error) {
             toast.error('Failed to save Step 5 draft.');
+        } finally {
+            setLoading2(false);
         }
     };
 
 
     const saveDraftStep5 = async () => {
+         setLoading2(true)
         console.log("sameAsRegistered value:", sameAsRegistered);
         const commAddrPayload = mapCommunicationAddressToPayload(communicationAddress, sameAsRegistered)[0] || {};
         console.log("communication_address_attributes:", commAddrPayload);
@@ -3179,9 +3021,9 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                 msme_attachment: additionalDetails.msmeAttachmentObj,
                 msme_declaration: additionalDetails.msmeDeclarationObj,
 
-                question1: questions.expertise,
+                que1: questions.expertise,
                 // question1_attachment: questions.expertiseAttachment,
-                question2: questions.structure,
+                que2: questions.structure,
 
                 // office_address_attributes: mapRegisteredAddressToPayload(registeredAddress),
                 // communication_address_attributes: mapCommunicationAddressToPayload(communicationAddress),
@@ -3220,13 +3062,22 @@ const [checklistConfig, setChecklistConfig] = useState([]);
         try {
             await axios.patch(`${baseURL}/pms/suppliers/${supplierId}/update_api.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`, payload);
             toast.success('Step 6 draft saved!');
+               setCompleted((arr) => {
+                const copy = [...arr];
+                copy[currentStep] = true;
+                return copy;
+            });
+            setCurrentStep((s) => Math.min(s + 1, steps.length - 1));
         } catch (error) {
             toast.error('Failed to save Step 6 draft.');
+        } finally {
+            setLoading2(false);
         }
     };
 
 
      const saveDraftStep6= async () => {
+        setLoading2(true)
         console.log("sameAsRegistered value:", sameAsRegistered);
         const commAddrPayload = mapCommunicationAddressToPayload(communicationAddress, sameAsRegistered)[0] || {};
         console.log("communication_address_attributes:", commAddrPayload);
@@ -3280,9 +3131,9 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                 msme_attachment: additionalDetails.msmeAttachmentObj,
                 msme_declaration: additionalDetails.msmeDeclarationObj,
 
-                question1: questions.expertise,
+                que1: questions.expertise,
                 // question1_attachment: questions.expertiseAttachment,
-                question2: questions.structure,
+                que2: questions.structure,
 
                 // office_address_attributes: mapRegisteredAddressToPayload(registeredAddress),
                 // communication_address_attributes: mapCommunicationAddressToPayload(communicationAddress),
@@ -3322,8 +3173,16 @@ const [checklistConfig, setChecklistConfig] = useState([]);
         try {
             await axios.patch(`${baseURL}/pms/suppliers/${supplierId}/update_api.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`, payload);
             toast.success('Step 7 draft saved!');
+              setCompleted((arr) => {
+                const copy = [...arr];
+                copy[currentStep] = true;
+                return copy;
+            });
+            setCurrentStep((s) => Math.min(s + 1, steps.length - 1));
         } catch (error) {
             toast.error('Failed to save Step 7 draft.');
+        } finally {
+            setLoading2(false);
         }
     };
     // Repeat for other steps...
@@ -3339,8 +3198,134 @@ const [checklistConfig, setChecklistConfig] = useState([]);
 
     // Handle the Update Button Click
     const handleUpdate = async () => {
+         
+         const commAddrPayload = mapCommunicationAddressToPayload(communicationAddress, sameAsRegistered)[0] || {};
+        // Validate declaration checkbox
+        if (!isChecked) {
+            setErrors(prev => ({ ...prev, declaration: 'Please accept the declaration to continue.' }));
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            return;
+        }
+
+        // Validate supplier declaration explanations for Q1 & Q2 when answered 'Yes'
+        const declErrors = [];
+        supplierDeclarations.forEach(d => {
+            const qNum = Number(d.question_number);
+            if ((qNum === 1 || qNum === 2) && d.selected_option === 'Yes') {
+                if (!d.explanation || !d.explanation.trim()) {
+                    declErrors.push(`Please provide explanation for question ${qNum}.`);
+                }
+            }
+        });
+        if (declErrors.length > 0) {
+            setErrors(prev => ({ ...prev, declaration: declErrors.join(' ') }));
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            return;
+        }
+
+        // Map supplierDeclarations into simple questionN_checked and questionN fields
+        const declarationFields = {};
+        supplierDeclarations.forEach(d => {
+            const qNum = Number(d.question_number);
+            const checked = d.selected_option === 'Yes' ? 'yes' : 'no';
+            declarationFields[`question${qNum}_checked`] = checked;
+            // store explanation if provided (only Q1 & Q2 will typically have explanations)
+            declarationFields[`question${qNum}`] = d.explanation ? d.explanation : '';
+        });
 
 
+        setLoading(true);
+        const payload = {
+            pms_supplier: {
+                status: "draft",
+                company_id: supplierShowData?.company_id || null,
+                organization_name: basicInfo.vendorOrganizationName,
+
+                cin_number: basicInfo.cin,
+                cin_attachment: basicInfo.cinAttachmentObj,
+
+                llp_number: basicInfo.llp,
+                llp_attachment: basicInfo.llpAttachmentObj,
+
+                type_of_organization_id: basicInfo.organizationType && basicInfo.organizationType.value ? basicInfo.organizationType.value : null,
+                nature_of_business_id: basicInfo.natureOfBusiness,
+                vendor_type: basicInfo.vendorType && basicInfo.vendorType.value ? basicInfo.vendorType.value : null,
+                type_business_id: basicInfo.industryType && basicInfo.industryType.value ? basicInfo.industryType.value : null,
+                type_of_work: basicInfo.typeOfWork,
+                key_market: basicInfo.keyMarket,
+
+                pan_number: basicInfo.panNo,
+                pan_attachment: basicInfo.panAttachmentObj,
+                schema_group_id: basicInfo.schemaGroup,
+                date_of_incorporation: basicInfo.dateOfIncorporation,
+                gstin_applicable:
+                    basicInfo.gstinApplicable && basicInfo.gstinApplicable.value === 'Yes' ? true :
+                        basicInfo.gstinApplicable && basicInfo.gstinApplicable.value === 'No' ? false :
+                            null,
+                gst_classification_id: basicInfo.gstinClassification?.value,
+                gstin: basicInfo.gstinNo,
+                gstin_attachment: basicInfo.gstinAttachmentObj,
+                gstin_declaration: basicInfo.gstinDeclarationObj,
+
+                website: additionalDetails.website,
+                delivery_lead_period: additionalDetails.deliveryLeadPeriod,
+                specify_warranty_period: additionalDetails.warrantyPeriod,
+                amc_provided: additionalDetails.amcProvided,
+                currency: additionalDetails.currencyType && additionalDetails.currencyType.value ? additionalDetails.currencyType.value : null,
+                msme: additionalDetails.msmeUdyamApplicable && additionalDetails.msmeUdyamApplicable.value ? additionalDetails.msmeUdyamApplicable.value : null,
+                einvoicing: additionalDetails.einvoice && additionalDetails.einvoice.value ? additionalDetails.einvoice.value : null,
+                einvoicing_declaration: additionalDetails.einvoiceDeclaration,
+                msme_no: additionalDetails.msmeNo,
+                classification_year: additionalDetails.classificationYear && additionalDetails.classificationYear.value ? additionalDetails.classificationYear.value : null,
+                major_activity: additionalDetails.majorActivity && additionalDetails.majorActivity.value ? additionalDetails.majorActivity.value : null,
+                valid_from: additionalDetails.validFrom,
+                valid_till: additionalDetails.validTill,
+                enterprise: additionalDetails.msmeEnterpriseType && additionalDetails.msmeEnterpriseType.value ? additionalDetails.msmeEnterpriseType.value : null,
+
+                msme_attachment: additionalDetails.msmeAttachmentObj,
+                msme_declaration: additionalDetails.msmeDeclarationObj,
+
+                que1: questions.expertise,
+                // question1_attachment: questions.expertiseAttachment,
+                que2: questions.structure,
+                // include declaration flattened fields
+                ...declarationFields,
+
+                // office_address_attributes: mapRegisteredAddressToPayload(registeredAddress),
+                // communication_address_attributes: mapCommunicationAddressToPayload(communicationAddress),
+                office_address_attributes: mapRegisteredAddressToPayload(registeredAddress)[0] || {},
+                communication_address_attributes: commAddrPayload,
+
+                bank_details_attributes: bankDetailsList.map((item) => ({
+                    ...item,
+                    id: item.isNew ? null : item.id,
+                    attachment: item.isNew
+                        ? bankAttachments[item.id] || null
+                        : bankAttachments[item.id] || (item.attachment ? null : null),
+                })),
+
+                branch_offices_attributes: mapBranchOfficesToPayload(branchOffices),
+                contact_people_attributes: mapContactPersonsToPayload(contactPersons),
+                directors_informations_attributes: mapOwnersToPayload(owners),
+                factory_warehouses_attributes: mapWarehousesToPayload(warehouses),
+                major_customers_attributes: mapMajorCustomersToPayload(majorCustomers),
+                annual_turnovers_attributes: annualTurnover.map(item => ({
+                    id: null,
+                    financial_year: item.year,
+                    key_market: item.keyMarkets,
+                    turnover: item.turnover,
+                    attachment: item.attachment,
+                    destroy: false
+                })),
+
+
+                     statutory_details: statutoryPayload || [],
+                     checklist: checklistPayload
+
+
+
+            }
+        };
         try {
             const response = await axios.patch(
                 `${baseURL}/pms/suppliers/${id}/update_rekyc_by_sections.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&rekyc_id=${rekyc_id}`,
@@ -3426,22 +3411,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
 
     return (
         <>
-            {/* {(!rekycStatus || rekycStatus === null || rekycStatus === undefined || rekycStatus === "") ? (
-                          <div className="loader-container">
-                            <div className="lds-ring">
-                              <div></div>
-                              <div></div>
-                              <div></div>
-                              <div></div>
-                              <div></div>
-                              <div></div>
-                              <div></div>
-                              <div></div>
-                            </div>
-                            <p>Loading...</p>
-                          </div>
-                        ): */}
-            {/* // rekycStatus === "pending" ? ( */}
+            
             <div className="website-content overflowY-auto">
                 <div>
                     {/* Stepper UI */}
@@ -3977,28 +3947,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                                                 )}
                                             </div>
                                         </div>
-                                        {/* <div className="col-md-4 mt-2">
-                                            <div className="form-group">
-                                                <label>
-                                                    PAN Attachment <span>*</span>
-                                                    <TooltipIcon message="Please attach a clear PDF of your organization's PAN certificate. This is required for identity and tax verification." />
-                                                </label>
-                                                <input
-                                                    className="form-control"
-                                                    type="file"
-                                                    // onChange={e => {
-                                                    //     updateBasicInfo('panAttachment', e.target.files[0]);
-                                                    //     if (e.target.files[0]) {
-                                                    //         setBasicInfoErrors(prev => ({ ...prev, panAttachment: undefined }));
-                                                    //     }
-                                                    // }}
-                                                    onChange={e => updateBasicInfo('panAttachment', e.target.files[0])}
-                                                />
-                                                {basicInfoErrors.panAttachment && (
-                                                    <div className="ValidationColor">{basicInfoErrors.panAttachment}</div>
-                                                )}
-                                            </div>
-                                        </div> */}
+                                       
 
                                         {/* PAN Attachment */}
                                         <div className="col-md-4 mt-2">
@@ -4016,10 +3965,10 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                                                             className="text-primary d-flex align-items-center"
                                                         >
                                                             <span className="me-2">Existing File:</span>
-                                                            <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} fill="#DE7008" className="bi bi-download" viewBox="0 0 16 16">
+                                                            {/* <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} fill="#DE7008" className="bi bi-download" viewBox="0 0 16 16">
                                                                 <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
                                                                 <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
-                                                            </svg>
+                                                            </svg> */}
                                                             {basicInfo.panAttachmentObj.filename}
                                                         </a>
                                                     </span>
@@ -4124,24 +4073,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                                                             )}
                                                         </div>
                                                     </div>
-                                                    {/* <div className="col-md-4 mt-2">
-                                                        <div className="form-group">
-                                                            <label>
-                                                                Corporate Identification Number Attachment  <span>*</span>
-                                                                <TooltipIcon message="Upload the official document or certificate to verify the details you have submitted. The document must be uploaded in PDF format.\nCorporate Identification Number\u00A0Attachment." />
-                                                            </label>
-                                                            <input
-                                                                className="form-control"
-                                                                type="file"
-                                                                accept="application/pdf"
-                                                                onChange={e => updateBasicInfo('cinAttachment', e.target.files[0])}
-                                                            />
-                                                            {basicInfoErrors.cinAttachment && (
-                                                                <div className="ValidationColor">{basicInfoErrors.cinAttachment}</div>
-                                                            )}
-                                                        </div>
-                                                    </div> */}
-
+                                                 
                                                     {/* CIN Attachment */}
                                                     {(basicInfo?.organizationType?.label === 'Private Limited' || basicInfo?.organizationType?.label === 'Public Limited') && (
                                                         <div className="col-md-4 mt-2">
@@ -4159,10 +4091,10 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                                                                             className="text-primary d-flex align-items-center"
                                                                         >
                                                                             <span className="me-2">Existing File:</span>
-                                                                            <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} fill="#DE7008" className="bi bi-download" viewBox="0 0 16 16">
+                                                                            {/* <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} fill="#DE7008" className="bi bi-download" viewBox="0 0 16 16">
                                                                                 <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
                                                                                 <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
-                                                                            </svg>
+                                                                            </svg> */}
                                                                             {basicInfo.cinAttachmentObj.filename}
                                                                         </a>
                                                                     </span>
@@ -4225,24 +4157,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                                                             )}
                                                         </div>
                                                     </div>
-                                                    {/* <div className="col-md-4 mt-2">
-                                                        <div className="form-group">
-                                                            <label>
-                                                                LLP No. Attachment  <span>*</span>
-                                                                <TooltipIcon message="Upload the official document or certificate to verify the details you have submitted. The document must be uploaded in PDF format.\nCorporate Identification Number\u00A0Attachment." />
-                                                            </label>
-                                                            <input
-                                                                className="form-control"
-                                                                type="file"
-                                                                accept="application/pdf"
-                                                                onChange={e => updateBasicInfo('llpAttachment', e.target.files[0])}
-                                                            />
-                                                            {basicInfoErrors.llpAttachment && (
-                                                                <div className="ValidationColor">{basicInfoErrors.llpAttachment}</div>
-                                                            )}
-                                                        </div>
-                                                    </div> */}
-
+                                                   
 
                                                     {/* LLP Attachment */}
                                                     {basicInfo?.organizationType?.label === 'Limited Liability Partnership (LLP)' && (
@@ -4261,10 +4176,10 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                                                                             className="text-primary d-flex align-items-center"
                                                                         >
                                                                             <span className="me-2">Existing File:</span>
-                                                                            <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} fill="#DE7008" className="bi bi-download" viewBox="0 0 16 16">
+                                                                            {/* <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} fill="#DE7008" className="bi bi-download" viewBox="0 0 16 16">
                                                                                 <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
                                                                                 <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
-                                                                            </svg>
+                                                                            </svg> */}
                                                                             {basicInfo.llpAttachmentObj.filename}
                                                                         </a>
                                                                     </span>
@@ -4328,21 +4243,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                                                     GSTIN Classification
                                                     {/* <TooltipIcon message="Please choose your country from the list" /> */}
                                                 </label>
-                                                {/* <SingleSelector
-                                                    options={gstinClassificationOptions || []}
-                                                    value={gstinClassificationOptions.find(opt => opt.value === basicInfo.gstinClassification) || null}
-                                                    onChange={val => updateBasicInfo('gstinClassification', val)}
-                                                    placeholder="Select Country"
-                                                    //  isDisabled={basicInfo.gstinApplicable === 'Yes' ? false : true}
-
-                                                    isDisabled={
-                                                        basicInfo.gstinApplicable === 'Yes' ||
-                                                            basicInfo.gstinApplicable?.value === 'Yes'
-                                                            ? false
-                                                            : true
-                                                    }
-                                                /> */}
-
+                                               
 
                                                 <SingleSelector
                                                     options={gstinClassificationOptions || []}
@@ -4395,23 +4296,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                                                         </div>
                                                     </div>
 
-                                                    {/* <div className="col-md-4 mt-2">
-                                                        <div className="form-group">
-                                                            <label>
-                                                                GSTIN Attachment <span>*</span>
-                                                                <TooltipIcon message="Upload a digital copy of the official GSTIN certificate or document showing your GST registration number. Ensure the document is legible and valid." />
-                                                            </label>
-                                                            <input
-                                                                className="form-control"
-                                                                type="file"
-                                                                onChange={e => updateBasicInfo('gstinAttachment', e.target.files[0])}
-                                                            />
-                                                            {basicInfoErrors.gstinAttachment && (
-                                                                <div className="ValidationColor">{basicInfoErrors.gstinAttachment}</div>
-                                                            )}
-                                                        </div>
-                                                    </div> */}
-
+                                                   
                                                     {/* GSTIN Attachment */}
                                                     {basicInfo.gstinApplicable.label === 'Yes' && (
                                                         <div className="col-md-4 mt-2">
@@ -4429,10 +4314,10 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                                                                             className="text-primary d-flex align-items-center"
                                                                         >
                                                                             <span className="me-2">Existing File:</span>
-                                                                            <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} fill="#DE7008" className="bi bi-download" viewBox="0 0 16 16">
+                                                                            {/* <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} fill="#DE7008" className="bi bi-download" viewBox="0 0 16 16">
                                                                                 <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
                                                                                 <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
-                                                                            </svg>
+                                                                            </svg> */}
                                                                             {basicInfo.gstinAttachmentObj.filename}
                                                                         </a>
                                                                     </span>
@@ -4499,28 +4384,15 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                                                                         // style={{ fill: "#de7008!important" }}
                                                                         />
                                                                     </svg>
+                                                                    <span className="mt-2 ms-2">
+                                                                Specimen For No GSTIN Applicable.pdf
+                                                            </span>
                                                                 </a>
                                                             </span>
                                                         </div>
                                                     </div>
 
-                                                    {/* <div className="col-md-4 mt-2">
-                                                        <div className="form-group">
-                                                            <label>
-                                                                Upload GSTIN Declaration  <span>*</span>
-                                                                {/* <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." /> */}
-                                                    {/* </label>
-                                                            <input
-                                                                className="form-control"
-                                                                type="file"
-                                                                onChange={e => updateBasicInfo('gstinDeclaration', e.target.files[0])}
-                                                            />
-                                                            {basicInfoErrors.gstinDeclaration && (
-                                                                <div className="ValidationColor">{basicInfoErrors.gstinDeclaration}</div>
-                                                            )}
-                                                        </div>
-                                                    </div> */}
-
+                                                 
 
                                                     {/* GSTIN Declaration */}
 
@@ -4538,10 +4410,10 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                                                                         className="text-primary d-flex align-items-center"
                                                                     >
                                                                         <span className="me-2">Existing File:</span>
-                                                                        <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} fill="#DE7008" className="bi bi-download" viewBox="0 0 16 16">
+                                                                        {/* <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} fill="#DE7008" className="bi bi-download" viewBox="0 0 16 16">
                                                                             <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
                                                                             <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
-                                                                        </svg>
+                                                                        </svg> */}
                                                                         {basicInfo.gstinDeclarationObj.filename}
                                                                     </a>
                                                                 </span>
@@ -4684,9 +4556,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                                             <div className="col-md-4 mt-2">
                                                 <div className="form-group">
                                                     <label
-                                                    // data-bs-toggle="tooltip"
-                                                    // data-bs-placement="top"
-                                                    // title={tooltipMessages.MSMEUdyamNumber}
+                                                   
                                                     >
                                                         MSME/Udyam Number <span>*</span>
                                                         <TooltipIcon message="Enter your organization's valid MSME or Udyam registration number. This number is issued by the Ministry of Micro, Small, and Medium Enterprises (MSME) under the Udyam registration scheme" />
@@ -4711,27 +4581,10 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                                         {additionalDetails.msmeUdyamApplicable?.value === "Yes" && (
                                             <div className="col-md-4 mt-2">
                                                 <div className="form-group">
-                                                    <label
-                                                    // data-bs-toggle="tooltip"
-                                                    // data-bs-placement="top"
-                                                    // title={tooltipMessages.MSMEEnterpriseType}
-                                                    >
+                                                    <label >
                                                         Classifiction Year <span>*</span>
                                                     </label>
-                                                    {/* <select
-                          // onChange={(e) =>
-                          //   setClassificationYear(e.target.value)
-                          // }
-                          onChange={handleClassificationYearChange}
-                          className="form-control"
-                          value={classificationYear}
-                        >
-                          <option value="">Select Option</option>
-                          <option value="2021-22">2021-22</option>
-                          <option value="2022-23">2022-23</option>
-                          <option value="2023-24">2023-24</option>
-                          <option value="2024-25">2024-25</option>
-                        </select> */}
+                                                   
                                                     <SingleSelector
                                                         value={additionalDetails.classificationYear}
                                                         onChange={val => updateAdditionalDetails('classificationYear', val)}
@@ -4740,11 +4593,6 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                                                         placeholder="Select Classification Year"
                                                     />
 
-                                                    {/* {errors.msmeEnterpriseType && (
-                          <div className="ValidationColor">
-                            {errors.msmeEnterpriseType}
-                          </div>
-                        )}{" "} */}
                                                     {/* Show error */}
                                                     {errors.classificationYear && (
                                                         <div className="ValidationColor">
@@ -4759,33 +4607,10 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                                         {additionalDetails.msmeUdyamApplicable?.value === "Yes" && (
                                             <div className="col-md-4 mt-2">
                                                 <div className="form-group">
-                                                    <label
-                                                    // data-bs-toggle="tooltip"
-                                                    // data-bs-placement="top"
-                                                    // title={tooltipMessages.MSMEEnterpriseType}
-                                                    >
+                                                    <label>
                                                         Major Activity <span>*</span>
                                                     </label>
-                                                    {/* <select
-                          // className="form-control"
-                          // value={supplierData?.msme_details?.enterprise}
-
-                          onChange={(e) => setMajorActivity(e.target.value)}
-                          className="form-control"
-                          value={majorActivity}
-                        >
-                          <option value="">select option</option>
-                          <option value="services">Services</option>
-                          <option value="trader">Trader</option>
-                          <option value="manufacture">manufacture</option>
-                          <option value="others">Others</option>
-                        </select> */}
-                                                    {/* {errors.msmeEnterpriseType && (
-                          <div className="ValidationColor">
-                            {errors.msmeEnterpriseType}
-                          </div>
-                        )}{" "}
-                        {/* Show error */}
+                                                
 
                                                     <SingleSelector
                                                         value={additionalDetails.majorActivity}
@@ -4809,11 +4634,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                                         {additionalDetails.msmeUdyamApplicable?.value === "Yes" && (
                                             <div className="col-md-4 mt-2">
                                                 <div className="form-group">
-                                                    <label
-                                                    // data-bs-toggle="tooltip"
-                                                    // data-bs-placement="top"
-                                                    // title={tooltipMessages.MSMEUdyamValidFrom}
-                                                    >
+                                                    <label >
                                                         MSME/Udyam Valid From <span>*</span>
                                                         <TooltipIcon message="Enter the date when your MSME/Udyam registration became valid. This is the start date mentioned on your MSME/Udyam registration certificate for the financial year." />
                                                     </label>
@@ -4841,11 +4662,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                                         {additionalDetails.msmeUdyamApplicable?.value === "Yes" && (
                                             <div className="col-md-4 mt-2">
                                                 <div className="form-group">
-                                                    <label
-                                                    // data-bs-toggle="tooltip"
-                                                    // data-bs-placement="top"
-                                                    // title={tooltipMessages.MSMEUdyamValidTill}
-                                                    >
+                                                    <label >
                                                         MSME/Udyam Valid Till <span>*</span>
                                                         <TooltipIcon message="Enter the date when your MSME/Udyam registration became valid. This is the end date mentioned on your MSME/Udyam registration certificate for the financial year." />
                                                     </label>
@@ -4873,28 +4690,11 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                                         {additionalDetails.msmeUdyamApplicable?.value === "Yes" && (
                                             <div className="col-md-4 mt-2">
                                                 <div className="form-group">
-                                                    <label
-                                                    // data-bs-toggle="tooltip"
-                                                    // data-bs-placement="top"
-                                                    // title={tooltipMessages.MSMEEnterpriseType}
-                                                    >
+                                                    <label  >
                                                         MSME Enterprise Type <span>*</span>
                                                         <TooltipIcon message="Select the type of your organization under the MSME (Micro, Small, and Medium Enterprises) scheme. Choose from 'Micro,'Small,' or 'Medium' based on your organization's annual turnover and investment in plant and machinery." />
                                                     </label>
-                                                    {/* <select
-                          // className="form-control"
-                          // value={supplierData?.msme_details?.enterprise}
-
-                          onChange={handleMsmeEnterpriseChange} // Handle value change
-                          className="form-control"
-                          value={msmeEnterpriseType}
-                        >
-                          <option value="">select option</option>
-                          <option value="Micro">Micro</option>
-                          <option value="Small">Small</option>
-                          <option value="Medium">Medium</option>
-                          <option value="Not_applicable">Not Applicable</option>
-                        </select> */}
+                                                   
                                                     <SingleSelector
                                                         value={additionalDetails.msmeEnterpriseType}
                                                         onChange={val => updateAdditionalDetails('msmeEnterpriseType', val)}
@@ -4952,70 +4752,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                                         )}
                                         {/* MSME/Udyam Attachment */}
                                         {additionalDetails.msmeUdyamApplicable?.value === "Yes" && (
-                                            // <div className="col-md-4 mt-2">
-                                            //     <div className="form-group">
-                                            //         <label
-                                            //         // data-bs-toggle="tooltip"
-                                            //         // data-bs-placement="top"
-                                            //         // title={tooltipMessages.MSMEUdyamAttachment}
-                                            //         >
-                                            //             MSME/Udyam Attachment <span>*</span>
-                                            //             <TooltipIcon message="Attach a clear, scanned copy or digital image of your MSME/Udyam registration certificate to verify your organization's classification under the MSME scheme. The document must be uploaded in PDF format." />
-                                            //         </label>
-
-                                            //         {supplierData?.msme_details?.msme_attachments?.length >
-                                            //             0 && (
-                                            //                 <span className="ms-2">
-                                            //                     <a
-                                            //                         href={`${baseURL}${supplierData?.msme_details?.msme_attachments[0]?.file_url}`} // Append base URL
-                                            //                         download // Ensure it prompts download
-                                            //                         className="text-primary d-flex align-items-center"
-                                            //                     >
-                                            //                         <span className="me-2">Existing Files:</span>
-                                            //                         <svg
-                                            //                             xmlns="http://www.w3.org/2000/svg"
-                                            //                             width={24}
-                                            //                             height={24}
-                                            //                             fill="#DE7008"
-                                            //                             className="bi bi-download"
-                                            //                             viewBox="0 0 16 16"
-                                            //                         >
-                                            //                             <path
-                                            //                                 d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
-                                            //                             // style={{ fill: "#de7008!important" }}
-                                            //                             />
-                                            //                             <path
-                                            //                                 d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
-                                            //                             // style={{ fill: "#de7008!important" }}
-                                            //                             />
-                                            //                         </svg>
-
-                                            //                         {supplierData?.msme_details?.msme_attachments
-                                            //                             ?.length > 0
-                                            //                             ? // Display the document name of the first attachment
-                                            //                             supplierData?.msme_details
-                                            //                                 ?.msme_attachments[0]?.document_name
-                                            //                             : // If no attachment is present, show a default message
-                                            //                             "No Document Available"}
-                                            //                     </a>
-                                            //                 </span>
-                                            //             )}
-                                            //         {/* <input className="form-control" type="file" name="" onChange={handleFileChange} /> */}
-                                            //         <input
-                                            //             className="form-control mt-2"
-                                            //             type="file"
-                                            //             onChange={e => updateAdditionalDetails('msmeAttachment', e.target.files[0])}
-                                            //             ref={fileInputRef}
-                                            //             multiple
-                                            //             accept=".pdf"
-                                            //         />
-                                            //         {errors.msmeAttachments && (
-                                            //             <div className="ValidationColor">
-                                            //                 {errors.msmeAttachments}
-                                            //             </div>
-                                            //         )}
-                                            //     </div>
-                                            // </div>
+                                           
 
                                             // MSME/Udyam Attachment field (show only from additionalDetails.msmeAttachmentObj)
                                             <div className="col-md-4 mt-2">
@@ -5033,10 +4770,10 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                                                                 className="text-primary d-flex align-items-center"
                                                             >
                                                                 <span className="me-2">Uploaded File:</span>
-                                                                <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} fill="#DE7008" className="bi bi-download" viewBox="0 0 16 16">
+                                                                {/* <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} fill="#DE7008" className="bi bi-download" viewBox="0 0 16 16">
                                                                     <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
                                                                     <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
-                                                                </svg>
+                                                                </svg> */}
                                                                 {additionalDetails.msmeAttachmentObj.filename}
                                                             </a>
                                                         </span>
@@ -5077,10 +4814,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                                                 <div className="col-md-4 mt-2 ms-3">
                                                     <div className="form-group">
                                                         <label
-                                                        // data-bs-toggle="tooltip"
-                                                        // data-bs-placement="top"
-                                                        // title={tooltipMessages.DownloadSpecimen}
-                                                        >
+                                                         >
                                                             Download Specimen <span>*</span>
                                                         </label>
                                                         <TooltipIcon message="If you choose 'No' for e-invoicing, a specimen format will be available for download. This is for businesses not subject to e-invoicing under GST regulations. Please upload a signed declaration stating that your organization is not registered.The document must be uploaded in PDF format" />
@@ -5117,25 +4851,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                                             )}
 
                                             {additionalDetails.msmeUdyamApplicable?.value === "No" && (
-                                                // <div className="col-md-4 mt-2">
-                                                //     <div className="form-group">
-                                                //         <label>
-                                                //             Upload Declaration <span>*</span>
-                                                //         </label>
-                                                //         <TooltipIcon message="If you choose E-Invoice applicable 'No', please upload a signed declaration document to verify the details you have submitted. The document must be uploaded in PDF format.Ensure that the document is clear, legible, and properly signed." />
-                                                //         <input
-                                                //             className="form-control"
-                                                //             type="file"
-                                                //             accept=".pdf"
-                                                //             name=""
-                                                //             onChange={e => updateAdditionalDetails('msmeDeclaration', e.target.files[0])}
-                                                //         />
-                                                //         {errors.msmeDeclaration && (
-                                                //             <div className="ValidationColor">{errors.msmeDeclaration}</div>
-                                                //         )}
-                                                //     </div>
-                                                // </div>
-
+                                               
 
                                                 // MSME Declaration Upload Section
                                                 <div className="col-md-4 mt-2">
@@ -5153,10 +4869,10 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                                                                     className="text-primary d-flex align-items-center"
                                                                 >
                                                                     <span className="me-2">Uploaded Declaration:</span>
-                                                                    <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} fill="#DE7008" className="bi bi-download" viewBox="0 0 16 16">
+                                                                    {/* <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} fill="#DE7008" className="bi bi-download" viewBox="0 0 16 16">
                                                                         <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
                                                                         <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
-                                                                    </svg>
+                                                                    </svg> */}
                                                                     {additionalDetails.msmeDeclarationObj.filename}
                                                                 </a>
                                                             </span>
@@ -5217,10 +4933,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                                                 <div className="col-md-4 mt-2 ms-3">
                                                     <div className="form-group">
                                                         <label
-                                                        // data-bs-toggle="tooltip"
-                                                        // data-bs-placement="top"
-                                                        // title={tooltipMessages.DownloadSpecimen}
-                                                        >
+                                                     >
                                                             Download Specimen <span>*</span>
                                                         </label>
                                                         <TooltipIcon message="If you choose 'No' for e-invoicing, a specimen format will be available for download. This is for businesses not subject to e-invoicing under GST regulations. Please upload a signed declaration stating that your organization is not registered.The document must be uploaded in PDF format" />
@@ -5460,22 +5173,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                                                 )}
                                             </div>
                                         </div>
-                                        {/* <div className="col-md-4  mt-2">
-                                            <div className="form-group">
-                                                <label>
-                                                    Telephone Phone No.
-                                                    <TooltipIcon message="Enter your organization's primary telephone number, including the country code and area code (e.g., + 1-123-
-4567890)." />
-                                                </label>
-                                                <input
-                                                    className="form-control"
-                                                    type="text"
-                                                    value={registeredAddress.telephone}
-                                                    onChange={e => handleRegisteredAddressChange('telephone', e.target.value)}
-                                                />
-
-                                            </div>
-                                        </div> */}
+                                       
                                         <div className="col-md-4  mt-2">
                                             <div className="form-group">
                                                 <label>
@@ -5675,11 +5373,6 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                                                 />
                                             </div>
                                         </div>
-
-
-
-
-
 
                                         <div className="col-md-4  mt-2">
                                             <div className="form-group">
@@ -5881,9 +5574,11 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                         </div>
                     )}
 
+
+ 
                     {currentStep === 3 && (
                         <div className="card mx-4 pb-4 mt-4">
-                            {bankDetailsList?.map((bankDetail, idx) => (
+                            {bankDetailsList?.filter(b => b._destroy !== "true").map((bankDetail, idx) => (
                                 <CollapsedCardKYC
                                     key={bankDetail.id}
                                     title={`Bank Details${bankDetailsList.length > 1 ? ` (${idx + 1})` : ''}`}
@@ -6513,10 +6208,6 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                                 </div>
                             </div>
 
-
-
-
-
                         </div>
                     )}
 
@@ -6526,13 +6217,18 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                         <div className="card mx-4 pb-4 mt-4">
 
                             {/* #1 */}
-                            {majorCustomers.map((customer, idx) => (
+                            {
+                                /* Show a note when fewer than 3 customers are present */
+                            }
+                          
+                            {majorCustomers.filter(mc => mc._destroy !== "true").map((customer, idx) => (
                                 // <div className="card mx-3 pb-4 mt-4" key={customer.id}>
                                 <CollapsedCardKYC
                                     key={customer.id}
                                     title={`Client References${majorCustomers.length > 1 ? ` ${idx + 1}` : ''}`}
                                     onDelete={() => deleteMajorCustomer(customer.id)}
                                     showDelete={majorCustomers.length > 1}
+                                    headerExtra={majorCustomers.length < 3 ? (<div className="ValidationColor">Please add a minimum of 3 client references.</div>) : null}
                                 >
                                     <div className="card-body mt-0">
                                         <div className="row">
@@ -6798,7 +6494,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                                 // </div>
                             ))}
                             <div className="row mt-2 ms-2 justify-content-start">
-                                <div className="col-md-2">
+                                <div className="col-md-4">
                                     <button className="purple-btn1" onClick={e => { e.preventDefault(); addMajorCustomer(); }}>
                                         Add Client References
                                     </button>
@@ -6827,8 +6523,8 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                                                     <label>Country<span>*</span></label>
                                                     <SingleSelector
                                                         options={countries}
-                                                        value={countries.find(opt => opt.value === branch.country) || null}
-                                                        onChange={selected => handleBranchChange(idx, 'country', selected?.value)}
+                                                        value={branch.country || null}
+                                                        onChange={selected => handleBranchChange(idx, 'country', selected)}
                                                         placeholder="Select Country"
                                                     />
                                                     {branchErrors[idx]?.country && (
@@ -6841,8 +6537,8 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                                                     <label>State <span>*</span></label>
                                                     <SingleSelector
                                                         options={states}
-                                                        value={states.find(opt => opt.value === branch.state) || null}
-                                                        onChange={selected => handleBranchChange(idx, 'state', selected?.value)}
+                                                        value={branch.state || null}
+                                                        onChange={selected => handleBranchChange(idx, 'state', selected)}
                                                         placeholder="Select State"
                                                     />
                                                     {branchErrors[idx]?.state && (
@@ -7274,19 +6970,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                                                     />
                                                 </div>
                                             </div>
-                                            {/* Gender */}
-                                            {/* <div className="col-md-4  mt-2">
-                                                <div className="form-group">
-                                                    <label>Gender</label>
-                                                    <SingleSelector
-                                                        options={[]}
-                                                        value={person.gender}
-                                                        onChange={(selected) =>
-                                                            handleContactPersonChange(idx, "gender", selected)
-                                                        }
-                                                    />
-                                                </div>
-                                            </div> */}
+                                           
                                             {/* Date of Birth */}
                                             <div className="col-md-4  mt-2">
                                                 <div className="form-group">
@@ -7459,415 +7143,6 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                             </div>
 
 
-                            {/* {relatedEmployees.map((employee, idx) => (
-                                // <div className="card mx-3 pb-4 mt-4" key={employee.id}>
-                                <CollapsedCardKYC
-                                    key={employee.id}
-                                    title={`Are you related to any employee of Panchshil ?${relatedEmployees.length > 1 ? ` ${idx + 1}` : ''}`}
-                                    onDelete={() => deleteRelatedEmployee(employee.id)}
-                                    showDelete={relatedEmployees.length > 1}
-                                >
-                                    <div className="card-body mt-0">
-                                        <div className="row">
-                                            <div className="col-md-4">
-                                                <div className="form-group">
-                                                    <label>First Name <span>*</span><TooltipIcon message="Enter the employee's first name." /></label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="text"
-                                                        value={employee.firstName}
-                                                        onChange={e => handleRelatedEmployeeChange(idx, 'firstName', e.target.value)}
-                                                    />
-                                                    {relatedEmployeeErrors[idx]?.firstName && (
-                                                        <div className="ValidationColor">{relatedEmployeeErrors[idx].firstName}</div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                            <div className="col-md-4">
-                                                <div className="form-group">
-                                                    <label>Last Name <span>*</span><TooltipIcon message="Enter the employee's last name." /></label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="text"
-                                                        value={employee.lastName}
-                                                        onChange={e => handleRelatedEmployeeChange(idx, 'lastName', e.target.value)}
-                                                    />
-                                                    {relatedEmployeeErrors[idx]?.lastName && (
-                                                        <div className="ValidationColor">{relatedEmployeeErrors[idx].lastName}</div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                            <div className="col-md-4">
-                                                <div className="form-group">
-                                                    <label>Employee Email Id <span>*</span><TooltipIcon message=" Enter the employee 's official email address" /></label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="text"
-                                                        value={employee.email}
-                                                        onChange={e => handleRelatedEmployeeChange(idx, 'email', e.target.value)}
-                                                    />
-                                                    {relatedEmployeeErrors[idx]?.email && (
-                                                        <div className="ValidationColor">{relatedEmployeeErrors[idx].email}</div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                            <div className="col-md-4">
-                                                <div className="form-group">
-                                                    <label>Mobile Number <TooltipIcon message="Enter the employee's mobile number." /></label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="text"
-                                                        value={employee.mobile}
-                                                        onChange={e => handleRelatedEmployeeChange(idx, 'mobile', e.target.value)}
-                                                    />
-                                                </div>
-                                            </div>
-                                            <div className="col-md-4  ">
-                                                <div className="form-group">
-                                                    <label>Designation <TooltipIcon message="Select the employee's designation from the list provided. This defines the employee's role within the organization." /></label>
-                                                    <SingleSelector
-                                                        options={[]}
-                                                        value={employee.designation}
-                                                        onChange={selected => handleRelatedEmployeeChange(idx, 'designation', selected)}
-                                                    />
-                                                </div>
-                                            </div>
-                                            <div className="col-md-4  ">
-                                                <div className="form-group">
-                                                    <label>Department <TooltipIcon message="Please choose the appropriate department from the list." /></label>
-                                                    <SingleSelector
-                                                        options={[]}
-                                                        value={employee.department}
-                                                        onChange={selected => handleRelatedEmployeeChange(idx, 'department', selected)}
-                                                    />
-                                                </div>
-                                            </div>
-                                            <div className="col-md-4  ">
-                                                <div className="form-group">
-                                                    <label>Relationship <TooltipIcon message="Choose the relationship type between the employee and the organization." /></label>
-                                                    <SingleSelector
-                                                        options={[]}
-                                                        value={employee.relationship}
-                                                        onChange={selected => handleRelatedEmployeeChange(idx, 'relationship', selected)}
-                                                    />
-                                                </div>
-                                            </div>
-                                            {/* Radio button group for Currently Working */}
-                            {/* <div className="col-md-4 mb-3 mt-2">
-                                                <div className="form-group mb-0">
-                                                    <label className="mb-1">Currently Working </label>
-                                                    <TooltipIcon message="Select Yes if the employee is currently working with the organization. Select No if the employee has left the organization." />
-                                                    <div>
-                                                        <div className="form-check form-check-inline">
-                                                            <input className="form-check-input" type="radio" name={`currentlyWorking${employee.id}`} id={`currentlyWorkingYes${employee.id}`} value="yes" checked={employee.currentlyWorking === 'yes'} onChange={() => handleRelatedEmployeeChange(idx, 'currentlyWorking', 'yes')} />
-                                                            <label className="form-check-label" htmlFor={`currentlyWorkingYes${employee.id}`}>Yes</label>
-                                                        </div>
-                                                        <div className="form-check form-check-inline">
-                                                            <input className="form-check-input" type="radio" name={`currentlyWorking${employee.id}`} id={`currentlyWorkingNo${employee.id}`} value="no" checked={employee.currentlyWorking === 'no'} onChange={() => handleRelatedEmployeeChange(idx, 'currentlyWorking', 'no')} />
-                                                            <label className="form-check-label" htmlFor={`currentlyWorkingNo${employee.id}`}>No</label>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div className="col-md-4">
-                                                <div className="form-group">
-                                                    <label>Attachment</label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="file"
-                                                        onChange={e => handleRelatedEmployeeChange(idx, 'attachment', e.target.files[0])}
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </CollapsedCardKYC>
-                                // </div>
-                            ))}
-                            <div className="row mt-2 ms-2 justify-content-start">
-                                <div className="col-md-4">
-                                    <button className="purple-btn1" onClick={e => { e.preventDefault(); addRelatedEmployee(); }}>
-                                        Are you related to any employee of Panchshil ?
-                                    </button>
-                                </div>
-                            </div> */}
-
-                            {/* {groupCompanies.map((company, idx) => (
-                                // <div className="card mx-3 pb-4 mt-4" key={company.id}>
-                                <CollapsedCardKYC
-                                    key={company.id}
-                                    title={`Sister Concern / Group Company${groupCompanies.length > 1 ? ` ${idx + 1}` : ''}`}
-                                    onDelete={() => deleteGroupCompany(company.id)}
-                                    showDelete={groupCompanies.length > 1}
-                                >
-                                    <div className="card-body mt-0">
-                                        <div className="row">
-                                            <div className="col-md-4">
-                                                <div className="form-group">
-                                                    <label>Name <span>*</span></label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="text"
-                                                        value={company.name}
-                                                        onChange={e => handleGroupCompanyChange(idx, 'name', e.target.value)}
-                                                    />
-                                                    {groupCompanyErrors[idx]?.name && (
-                                                        <div className="ValidationColor">{groupCompanyErrors[idx].name}</div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                            <div className="col-md-4  ">
-                                                <div className="form-group">
-                                                    <label>Nature Of Business <span>*</span></label>
-                                                    <SingleSelector
-                                                        options={[]}
-                                                        value={company.natureOfBusiness}
-                                                        onChange={selected => handleGroupCompanyChange(idx, 'natureOfBusiness', selected)}
-                                                    />
-                                                    {groupCompanyErrors[idx]?.natureOfBusiness && (
-                                                        <div className="ValidationColor">{groupCompanyErrors[idx].natureOfBusiness}</div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                            <div className="col-md-4">
-                                                <div className="form-group">
-                                                    <label>PAN No. <span>*</span></label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="text"
-                                                        value={company.pan}
-                                                        onChange={e => handleGroupCompanyChange(idx, 'pan', e.target.value)}
-                                                    />
-                                                    {groupCompanyErrors[idx]?.pan && (
-                                                        <div className="ValidationColor">{groupCompanyErrors[idx].pan}</div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                            <div className="col-md-4">
-                                                <div className="form-group">
-                                                    <label>GSTIN No. <span>*</span></label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="text"
-                                                        value={company.gstin}
-                                                        onChange={e => handleGroupCompanyChange(idx, 'gstin', e.target.value)}
-                                                    />
-                                                    {groupCompanyErrors[idx]?.gstin && (
-                                                        <div className="ValidationColor">{groupCompanyErrors[idx].gstin}</div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </CollapsedCardKYC>
-                                // </div>
-                            ))}
-                            <div className="row mt-2 ms-2 justify-content-start">
-                                <div className="col-md-4">
-                                    <button className="purple-btn1" onClick={e => { e.preventDefault(); addGroupCompany(); }}>
-                                        Add Concern / Group Company
-                                    </button>
-                                </div>
-                            </div> */}
-
-
-
-                            {/* {supervisoryManpower.map((item, idx) => (
-                                // <div className="card mx-3 pb-4 mt-4" key={item.id}>
-                                <CollapsedCardKYC
-                                    key={item.id}
-                                    title={`Supervisory Manpower${supervisoryManpower.length > 1 ? ` ${idx + 1}` : ''}`}
-                                    onDelete={() => deleteSupervisoryManpower(item.id)}
-                                    showDelete={supervisoryManpower.length > 1}
-                                >
-                                    <div className="card-body mt-0">
-                                        <div className="row">
-                                            <div className="col-md-4">
-                                                <div className="form-group">
-                                                    <label>Supervisory Manpower Details <span>*</span></label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="text"
-                                                        value={item.details}
-                                                        onChange={e => handleSupervisoryManpowerChange(idx, 'details', e.target.value)}
-                                                    />
-                                                    {supervisoryManpowerErrors[idx]?.details && (
-                                                        <div className="ValidationColor">{supervisoryManpowerErrors[idx].details}</div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                            <div className="col-md-4">
-                                                <div className="form-group">
-                                                    <label>Total Numbers <span>*</span></label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="text"
-                                                        value={item.totalNumbers}
-                                                        onChange={e => handleSupervisoryManpowerChange(idx, 'totalNumbers', e.target.value)}
-                                                    />
-                                                    {supervisoryManpowerErrors[idx]?.totalNumbers && (
-                                                        <div className="ValidationColor">{supervisoryManpowerErrors[idx].totalNumbers}</div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                            <div className="col-md-4">
-                                                <div className="form-group">
-                                                    <label>Remark</label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="text"
-                                                        value={item.remark}
-                                                        onChange={e => handleSupervisoryManpowerChange(idx, 'remark', e.target.value)}
-                                                    />
-                                                </div>
-                                            </div>
-                                            <div className="col-md-4">
-                                                <div className="form-group">
-                                                    <label>Attachment</label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="file"
-                                                        onChange={e => handleSupervisoryManpowerChange(idx, 'attachment', e.target.files[0])}
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </CollapsedCardKYC>
-                                // </div>
-                            ))}
-                            <div className="row mt-2 ms-2 justify-content-start">
-                                <div className="col-md-2">
-                                    <button className="purple-btn1" onClick={e => { e.preventDefault(); addSupervisoryManpower(); }}>
-                                        Add Supervisory
-                                    </button>
-                                </div>
-                            </div> */}
-
-
-
-                            {/* {workingSites.map((site, idx) => (
-                                // <div className="card mx-3 pb-4 mt-4" key={site.id}>
-                                <CollapsedCardKYC
-                                    key={site.id}
-                                    title={`Working Site${workingSites.length > 1 ? ` ${idx + 1}` : ''}`}
-                                    onDelete={() => deleteWorkingSite(site.id)}
-                                    showDelete={workingSites.length > 1}
-                                >
-                                    <div className="card-body mt-0">
-                                        <div className="row">
-                                            <div className="col-md-4">
-                                                <div className="form-group">
-                                                    <label>Builder / Client Name <span>*</span></label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="text"
-                                                        value={site.builderName}
-                                                        onChange={e => handleWorkingSiteChange(idx, 'builderName', e.target.value)}
-                                                    />
-                                                    {workingSiteErrors[idx]?.builderName && (
-                                                        <div className="ValidationColor">{workingSiteErrors[idx].builderName}</div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                            <div className="col-md-4">
-                                                <div className="form-group">
-                                                    <label>Brief Details <span>*</span></label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="text"
-                                                        value={site.briefDetails}
-                                                        onChange={e => handleWorkingSiteChange(idx, 'briefDetails', e.target.value)}
-                                                    />
-                                                    {workingSiteErrors[idx]?.briefDetails && (
-                                                        <div className="ValidationColor">{workingSiteErrors[idx].briefDetails}</div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                            <div className="col-md-4">
-                                                <div className="form-group">
-                                                    <label>Area (Sq ft.) <span>*</span></label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="text"
-                                                        value={site.area}
-                                                        onChange={e => handleWorkingSiteChange(idx, 'area', e.target.value)}
-                                                    />
-                                                    {workingSiteErrors[idx]?.area && (
-                                                        <div className="ValidationColor">{workingSiteErrors[idx].area}</div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                            <div className="col-md-4">
-                                                <div className="form-group">
-                                                    <label>Manpower employed at Site</label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="text"
-                                                        value={site.manpower}
-                                                        onChange={e => handleWorkingSiteChange(idx, 'manpower', e.target.value)}
-                                                    />
-                                                </div>
-                                            </div>
-                                            <div className="col-md-4">
-                                                <div className="form-group">
-                                                    <label>Stage Of Project</label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="text"
-                                                        value={site.stageOfProject}
-                                                        onChange={e => handleWorkingSiteChange(idx, 'stageOfProject', e.target.value)}
-                                                    />
-                                                </div>
-                                            </div>
-                                            <div className="col-md-4">
-                                                <div className="form-group">
-                                                    <label>Likely Compl. Date</label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="date"
-                                                        value={site.likelyCompletion}
-                                                        onChange={e => handleWorkingSiteChange(idx, 'likelyCompletion', e.target.value)}
-                                                    />
-                                                </div>
-                                            </div>
-                                            <div className="col-md-4">
-                                                <div className="form-group">
-                                                    <label>Attachment</label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="file"
-                                                        onChange={e => handleWorkingSiteChange(idx, 'attachment', e.target.files[0])}
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </CollapsedCardKYC>
-                                // </div>
-                            ))}
-                            <div className="row mt-2 ms-2 justify-content-start">
-                                <div className="col-md-2">
-                                    <button className="purple-btn1" onClick={e => { e.preventDefault(); addWorkingSite(); }}>
-                                        Add Working Site
-                                    </button>
-                                </div>
-                            </div> */}
-
-
-                            {/* <div className="row mb-3 mx-2 mt-4">
-                                <div className="col-md-6">
-                                    <div className="form-group">
-                                        <label>Product & Services </label>
-                                        <MultiSelector
-                                            options={[]}
-                                            // value={selectedProductServices || []}
-                                            // onChange={handleProductServicesChange}
-                                            placeholder="Select Product & Services"
-                                        />
-                                    </div>
-                                </div>
-                            </div> */}
                             {/* Turnover Table */}
                             <div className="mx-3 mt-4">
                                 <div className="col-md-12">
@@ -7930,13 +7205,15 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                     {currentStep === 5 && (
                         <div className="card mx-4 pb-4 mt-4">
                             <div className="row mt-4 mx-2">
+
+                                {statutoryDetails && statutoryDetails.length > 0 && (
+
                                 <div className="col-md-12">
                                     <h5 className="mb-3">Additional Vendor Statutory Details
                                         <TooltipIcon message="If not applicable then keep The field blank Additional Vendor Statutory Details." />
                                     </h5>
                                 </div>
-
-
+    )}
 
                                 {/* <div>{"*********************************************************"} </div> */}
 
@@ -8014,83 +7291,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                             </div>
 
 
-                            {/* <div className="row mt-5 mx-2">
-                                <div className="col-md-12">
-                                    <h5 className="mb-3">Other Statutory Details</h5>
-                                </div>
-
-                                {statutoryDetails?.map((field, index) => (
-                                    <div className="row" key={`${field.id}-${index}`}>
-                                        <div className="col-md-6 mt-3">
-                                            <div className="form-group">
-                                                <label>{field.name}</label>
-                                                <input
-                                                    type="text"
-                                                    className="form-control"
-                                                    placeholder={`Enter ${field.name}`}
-                                                    // value={statutoryInputs[field.code]?.input || field.statutory_detail_value}
-                                                    value={
-                                                        statutoryInputs[field.code]?.input !== undefined
-                                                            ? statutoryInputs[field.code]?.input
-                                                            : field.statutory_detail_value || ""
-                                                    }
-                                                    onChange={(e) =>
-                                                        handleStatutoryInputChange(field.code, e.target.value, field.id, field.statutory_detail_value)
-                                                    }
-                                                />
-                                            </div>
-                                        </div>
-
-                                        <div className="col-md-6 mt-3">
-                                            <div className="form-group">
-                                                <div className="d-flex align-items-center mb-2">
-                                                    <label className="mb-0">Attachment</label>
-                                                    {field?.attachment_url && (
-                                                        <span className="ms-2">
-                                                            <a
-                                                                href={`${baseURL}${field?.attachment_url}`}
-                                                                download
-                                                                className="text-primary d-flex align-items-center"
-                                                            >
-                                                                <span className="me-2 ms-3">Existing Files:</span>
-                                                                <svg
-                                                                    xmlns="http://www.w3.org/2000/svg"
-                                                                    width={24}
-                                                                    height={24}
-                                                                    fill="#DE7008"
-                                                                    className="bi bi-download"
-                                                                    viewBox="0 0 16 16"
-                                                                >
-                                                                    <path
-                                                                        d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
-                                                                    />
-                                                                    <path
-                                                                        d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
-                                                                    />
-                                                                </svg>
-                                                                {/* {field?.name ? field.name : "No Document Available"} */}
-                            {/* </a>
-                                                        </span>
-                                                    )}
-                                                </div>
-                                                <input
-                                                    type="file"
-                                                    className="form-control"
-                                                    accept=".pdf,.jpg,.jpeg,.png"
-                                                    onChange={(e) =>
-                                                        handleStatutoryFileChange(field.code, e.target.files[0], field.id, field.statutory_detail_value)
-                                                    }
-                                                />
-                                                {statutoryErrors[field.code] && (
-                                                    <div className="ValidationColor">
-                                                        {statutoryErrors[field.code]}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div> */}
+                           
 
                             <div className="mb-3 mx-3 mt-5">
                                 <h5 className="mb-3">Questions</h5>
@@ -8106,7 +7307,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                                         ></textarea>
                                     </div>
                                 </div>
-                                <div className="row mb-3">
+                                {/* <div className="row mb-3">
                                     <div className="col-md-4 offset-md-8 mb-3">
                                         <input
                                             className="form-control"
@@ -8114,7 +7315,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                                             onChange={e => handleQuestionFileChange(e.target.files[0])}
                                         />
                                     </div>
-                                </div>
+                                </div> */}
                                 <div className="row mb-3">
                                     <div className="col-md-12 mb-3">
                                         <label>What is the organization and structure of the company / firm?</label>
@@ -9319,6 +8520,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
 
 
                                 {/* <div className="card mx-4 pb-4 mt-4"> */}
+                               
                                 {bankDetailsList?.map((bankDetail) => (
                                     <CollapsedCardKYC
                                         key={bankDetail.id}
@@ -9825,168 +9027,6 @@ const [checklistConfig, setChecklistConfig] = useState([]);
 
 
 
-                                {/* {relatedEmployees.map((employee, idx) => (
-                                    <CollapsedCardKYC
-                                        key={employee.id}
-                                        title={`Are you related to any employee of Panchshil ?${relatedEmployees.length > 1 ? ` ${idx + 1}` : ''}`}
-                                    >
-                                        <div className="card-body mt-0">
-                                            <div className="row">
-                                                <div className="col-md-4">
-                                                    <div className="form-group">
-                                                        <label>First Name <span>*</span></label>
-                                                        <input className="form-control" type="text" value={employee.firstName || ''} disabled readOnly />
-                                                    </div>
-                                                </div>
-                                                <div className="col-md-4">
-                                                    <div className="form-group">
-                                                        <label>Last Name <span>*</span></label>
-                                                        <input className="form-control" type="text" value={employee.lastName || ''} disabled readOnly />
-                                                    </div>
-                                                </div>
-                                                <div className="col-md-4">
-                                                    <div className="form-group">
-                                                        <label>Employee Email Id <span>*</span></label>
-                                                        <input className="form-control" type="text" value={employee.email || ''} disabled readOnly />
-                                                    </div>
-                                                </div>
-                                                <div className="col-md-4">
-                                                    <div className="form-group">
-                                                        <label>Mobile Number</label>
-                                                        <input className="form-control" type="text" value={employee.mobile || ''} disabled readOnly />
-                                                    </div>
-                                                </div>
-                                                <div className="col-md-4  ">
-                                                    <div className="form-group">
-                                                        <label>Designation</label>
-                                                        <SingleSelector options={[]} value={employee.designation} isDisabled={true} />
-                                                    </div>
-                                                </div>
-                                                <div className="col-md-4  ">
-                                                    <div className="form-group">
-                                                        <label>Department</label>
-                                                        <SingleSelector options={[]} value={employee.department} isDisabled={true} />
-                                                    </div>
-                                                </div>
-                                                <div className="col-md-4  ">
-                                                    <div className="form-group">
-                                                        <label>Relationship</label>
-                                                        <SingleSelector options={[]} value={employee.relationship} isDisabled={true} />
-                                                    </div>
-                                                </div>
-                                                <div className="col-md-4 mb-3 mt-2">
-                                                    <div className="form-group mb-0">
-                                                        <label className="mb-1">Currently Working </label>
-                                                        <div>
-                                                            <div className="form-check form-check-inline">
-                                                                <input className="form-check-input" type="radio" name={`currentlyWorking${employee.id}`} id={`currentlyWorkingYes${employee.id}`} value="yes" checked={employee.currentlyWorking === 'yes'} disabled readOnly />
-                                                                <label className="form-check-label" htmlFor={`currentlyWorkingYes${employee.id}`}>Yes</label>
-                                                            </div>
-                                                            <div className="form-check form-check-inline">
-                                                                <input className="form-check-input" type="radio" name={`currentlyWorking${employee.id}`} id={`currentlyWorkingNo${employee.id}`} value="no" checked={employee.currentlyWorking === 'no'} disabled readOnly />
-                                                                <label className="form-check-label" htmlFor={`currentlyWorkingNo${employee.id}`}>No</label>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div className="col-md-4">
-                                                    <div className="form-group">
-                                                        <label>Attachment</label>
-                                                        {employee.attachment && (
-                                                            <a href={typeof employee.attachment === 'string' ? `${baseURL}${employee.attachment}` : '#'} download className="text-primary d-flex align-items-center">
-                                                                <span className="me-2">Existing File</span>
-                                                            </a>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </CollapsedCardKYC>
-                                ))} */}
-
-
-
-                                {/* {groupCompanies.map((company, idx) => (
-                                    <CollapsedCardKYC
-                                        key={company.id}
-                                        title={`Sister Concern / Group Company${groupCompanies.length > 1 ? ` ${idx + 1}` : ''}`}
-                                    >
-                                        <div className="card-body mt-0">
-                                            <div className="row">
-                                                <div className="col-md-4">
-                                                    <div className="form-group">
-                                                        <label>Name <span>*</span></label>
-                                                        <input className="form-control" type="text" value={company.name || ''} disabled readOnly />
-                                                    </div>
-                                                </div>
-                                                <div className="col-md-4  ">
-                                                    <div className="form-group">
-                                                        <label>Nature Of Business <span>*</span></label>
-                                                        <SingleSelector options={[]} value={company.natureOfBusiness} isDisabled={true} />
-                                                    </div>
-                                                </div>
-                                                <div className="col-md-4">
-                                                    <div className="form-group">
-                                                        <label>PAN No. <span>*</span></label>
-                                                        <input className="form-control" type="text" value={company.pan || ''} disabled readOnly />
-                                                    </div>
-                                                </div>
-                                                <div className="col-md-4">
-                                                    <div className="form-group">
-                                                        <label>GSTIN No. <span>*</span></label>
-                                                        <input className="form-control" type="text" value={company.gstin || ''} disabled readOnly />
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </CollapsedCardKYC>
-                                ))} */}
-
-
-
-
-                                {/* {supervisoryManpower.map((item, idx) => (
-                                    <CollapsedCardKYC
-                                        key={item.id}
-                                        title={`Supervisory Manpower${supervisoryManpower.length > 1 ? ` ${idx + 1}` : ''}`}
-                                    >
-                                        <div className="card-body mt-0">
-                                            <div className="row">
-                                                <div className="col-md-4">
-                                                    <div className="form-group">
-                                                        <label>Supervisory Manpower Details <span>*</span></label>
-                                                        <input className="form-control" type="text" value={item.details || ''} disabled readOnly />
-                                                    </div>
-                                                </div>
-                                                <div className="col-md-4">
-                                                    <div className="form-group">
-                                                        <label>Total Numbers <span>*</span></label>
-                                                        <input className="form-control" type="text" value={item.totalNumbers || ''} disabled readOnly />
-                                                    </div>
-                                                </div>
-                                                <div className="col-md-4">
-                                                    <div className="form-group">
-                                                        <label>Remark</label>
-                                                        <input className="form-control" type="text" value={item.remark || ''} disabled readOnly />
-                                                    </div>
-                                                </div>
-                                                <div className="col-md-4">
-                                                    <div className="form-group">
-                                                        <label>Attachment</label>
-                                                        {item.attachment && (
-                                                            <a href={typeof item.attachment === 'string' ? `${baseURL}${item.attachment}` : '#'} download className="text-primary d-flex align-items-center">
-                                                                <span className="me-2">Existing File</span>
-                                                            </a>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </CollapsedCardKYC>
-                                ))} */}
-
-
-
                                 {majorCustomers.map((customer, idx) => (
                                     <CollapsedCardKYC
                                         key={customer.id}
@@ -10087,68 +9127,6 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                                     </CollapsedCardKYC>
                                 ))}
 
-
-
-
-                                {/* {workingSites.map((site, idx) => (
-                                    <CollapsedCardKYC
-                                        key={site.id}
-                                        title={`Working Site${workingSites.length > 1 ? ` ${idx + 1}` : ''}`}
-                                    >
-                                        <div className="card-body mt-0">
-                                            <div className="row">
-                                                <div className="col-md-4">
-                                                    <div className="form-group">
-                                                        <label>Builder / Client Name <span>*</span></label>
-                                                        <input className="form-control" type="text" value={site.builderName || ''} disabled readOnly />
-                                                    </div>
-                                                </div>
-                                                <div className="col-md-4">
-                                                    <div className="form-group">
-                                                        <label>Brief Details <span>*</span></label>
-                                                        <input className="form-control" type="text" value={site.briefDetails || ''} disabled readOnly />
-                                                    </div>
-                                                </div>
-                                                <div className="col-md-4">
-                                                    <div className="form-group">
-                                                        <label>Area (Sq ft.) <span>*</span></label>
-                                                        <input className="form-control" type="text" value={site.area || ''} disabled readOnly />
-                                                    </div>
-                                                </div>
-                                                <div className="col-md-4">
-                                                    <div className="form-group">
-                                                        <label>Manpower employed at Site</label>
-                                                        <input className="form-control" type="text" value={site.manpower || ''} disabled readOnly />
-                                                    </div>
-                                                </div>
-                                                <div className="col-md-4">
-                                                    <div className="form-group">
-                                                        <label>Stage Of Project</label>
-                                                        <input className="form-control" type="text" value={site.stageOfProject || ''} disabled readOnly />
-                                                    </div>
-                                                </div>
-                                                <div className="col-md-4">
-                                                    <div className="form-group">
-                                                        <label>Likely Compl. Date</label>
-                                                        <input className="form-control" type="date" value={site.likelyCompletion || ''} disabled readOnly />
-                                                    </div>
-                                                </div>
-                                                <div className="col-md-4">
-                                                    <div className="form-group">
-                                                        <label>Attachment</label>
-                                                        {site.attachment && (
-                                                            <a href={typeof site.attachment === 'string' ? `${baseURL}${site.attachment}` : '#'} download className="text-primary d-flex align-items-center">
-                                                                <span className="me-2">Existing File</span>
-                                                            </a>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </CollapsedCardKYC>
-                                ))} */}
-
-
                                 {/* Preview: Product & Services (readonly) */}
 
                                 <div className="row mb-3 mx-2 mt-4">
@@ -10236,14 +9214,6 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                                 </div>
 
                                 {/* ****** */}
-
-
-
-
-
-
-
-
 
                                 {/* ...existing code... */}
 
@@ -10381,52 +9351,38 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                                         <div className="col-md-12">
                                             <h5 className=" ">Declaration <span style={{ color: " #DE7008" }}>*</span></h5>
 
-                                            {/* Additional Declaration Questions */}
-                                            <div className="mb-3">
-                                                <p>
-                                                    <span className="me-2 mt-2">
-                                                        <input type="checkbox" id="declaration-q1" />
-                                                    </span>
-                                                    1. Has the Vendor ever faced any bribery/corruption case/legal/court cases? If yes, please explain.
-                                                </p>
-                                                <textarea className="form-control mb-2" placeholder="Explain if yes" style={{ minHeight: '40px' }} />
-                                            </div>
-                                            <div className="mb-3">
-                                                <p>
-                                                    <span className="me-2 mt-2">
-                                                        <input type="checkbox" id="declaration-q2" />
-                                                    </span>
-                                                    2. Has the Vendor ever worked with Panchshil Group or had any personal or family connections with anyone there, past or present? If yes, please explain.
-                                                </p>
-                                                <textarea className="form-control mb-2" placeholder="Explain if yes" style={{ minHeight: '40px' }} />
-                                            </div>
-                                            <div className="mb-3">
-                                                <p>
-                                                    <span className="me-2 mt-2">
-                                                        <input type="checkbox" id="declaration-q3" />
-                                                    </span>
-                                                    3. Has the vendor ever faced or is currently facing any bankruptcy or insolvency issue?
-                                                </p>
-                                                {/* <textarea className="form-control mb-2" placeholder="Explain if yes" style={{ minHeight: '40px' }} /> */}
-                                            </div>
-                                            <div className="mb-3">
-                                                <p>
-                                                    <span className="me-2 mt-2">
-                                                        <input type="checkbox" id="declaration-q4" />
-                                                    </span>
-                                                    4. Has the vendor provided any gifts, favors, sponsorships, or hospitality to Panchshil employees?
-                                                </p>
-                                                {/* <textarea className="form-control mb-2" placeholder="Explain if yes" style={{ minHeight: '40px' }} /> */}
-                                            </div>
-                                            <div className="mb-3">
-                                                <p>
-                                                    <span className="me-2 mt-2">
-                                                        <input type="checkbox" id="declaration-q5" />
-                                                    </span>
-                                                    5. Has the vendor submitted audited financial statements for last preceding 3 financial years?
-                                                </p>
-                                                {/* <textarea className="form-control mb-2" placeholder="Explain if yes" style={{ minHeight: '40px' }} /> */}
-                                            </div>
+                                            {/* Additional Declaration Questions (from API) */}
+                                            {supplierDeclarations.map((d) => (
+                                                <div className="mb-3" key={d.question_id}>
+                                                    <p>{d.question_number}. {d.question_text}</p>
+                                                    <div className="d-flex align-items-center mb-2">
+                                                        {(d.options || []).map((opt) => (
+                                                            <div className="form-check me-3" key={opt.value}>
+                                                                <input
+                                                                    className="form-check-input"
+                                                                    type="radio"
+                                                                    name={`declaration_${d.question_id}`}
+                                                                    id={`declaration-${d.question_id}-${opt.value}`}
+                                                                    value={opt.name}
+                                                                    checked={d.selected_option === opt.name}
+                                                                    onChange={() => handleDeclarationOptionChange(d.question_id, opt)}
+                                                                />
+                                                                <label className="form-check-label ms-1" htmlFor={`declaration-${d.question_id}-${opt.value}`}>{opt.name}</label>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                    {/* explanation: only for question 1 and 2 */}
+                                                    {([1, 2].includes(Number(d.question_number)) && d.selected_option === 'Yes') && (
+                                                        <textarea
+                                                            className="form-control mb-2"
+                                                            placeholder="Explain if yes"
+                                                            style={{ minHeight: '40px' }}
+                                                            value={d.explanation || ''}
+                                                            onChange={e => handleDeclarationExplanationChange(d.question_id, e.target.value)}
+                                                        />
+                                                    )}
+                                                </div>
+                                            ))}
 
                                             {/* Main Declaration Checkbox and Statement */}
                                             <p>
@@ -10522,67 +9478,74 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                             >
                                 Next
                             </button>
-                            <button
-                                className="purple-btn2"
-                                onClick={async () => {
-                                    // Step-wise validation logic
-                                    let isValid = true;
-                                    if (currentStep === 1) {
-                                        isValid = validateBasicInfo();
-                                        if (!isValid) return;
-                                        await saveDraftStep1();
-                                    }
-                                    // Add more step validations as needed
-                                    else
-                                     if (currentStep === 2) {
-                                        isValid = validateStep2();
-                                        if (!isValid) return;
-                                        await saveDraftStep2();
-                                    }
-                                    else
-                                     if (currentStep === 3) {
-                                        isValid = validateStep3();
-                                        if (!isValid) return;
-                                        await saveDraftStep3();
-                                    }
-                                    else 
-                                        if (currentStep === 4) {
-                                        isValid = validateStep4();
-                                        if (!isValid) return;
-                                        await saveDraftStep4()
-                                    }
+                            {currentStep === steps.length - 1 ? (
+                                <button
+                                    className="purple-btn2"
+                                    onClick={async () => {
+                                        // Final submit on last step
+                                        // You can add final-step validation here if needed before calling handleUpdate
+                                        // setLoading(true);
+                                        await handleUpdate();
+                                    }}
+                                >
+                                    Submit
+                                </button>
+                            ) : (
+                                <button
+                                    className="purple-btn2"
+                                    onClick={async () => {
+                                        // Step-wise validation logic
+                                        let isValid = true;
+                                        if (currentStep === 1) {
+                                            isValid = validateBasicInfo();
+                                            if (!isValid) return;
+                                            await saveDraftStep1();
+                                            
+                                        }
+                                        // Add more step validations as needed
+                                        else
+                                            if (currentStep === 2) {
+                                                isValid = validateStep2();
+                                                if (!isValid) return;
+                                                await saveDraftStep2();
+                                            }
+                                        else
+                                            if (currentStep === 3) {
+                                                isValid = validateStep3();
+                                                if (!isValid) return;
+                                                await saveDraftStep3();
+                                            }
+                                        else
+                                            if (currentStep === 4) {
+                                                isValid = validateStep4();
+                                                if (!isValid) return;
+                                                await saveDraftStep4()
+                                            }
 
-                                    else 
-                                    if (currentStep === 5) {
-                                        // isValid = validateStep4();
-                                        if (!isValid) return;
-                                        await saveDraftStep5()
-                                    }
-                                    else 
-                                    if (currentStep === 6) {
-                                        // isValid = validateStep4();
-                                        if (!isValid) return;
-                                        await saveDraftStep6()
-                                    }
+                                        else
+                                            if (currentStep === 5) {
+                                                // isValid = validateStep4();
+                                                if (!isValid) return;
+                                                await saveDraftStep5()
+                                            }
+                                        else
+                                            if (currentStep === 6) {
+                                                // isValid = validateStep4();
+                                                if (!isValid) return;
+                                                await saveDraftStep6()
+                                            }
 
-
-                                    // ...
-
-                                    // // Save as draft logic
-                                    // if (typeof saveDraft === 'function') {
-                                    //     saveDraft();
-                                    // }
-                                    setCompleted((arr) => {
-                                        const copy = [...arr];
-                                        copy[currentStep] = true;
-                                        return copy;
-                                    });
-                                    setCurrentStep((s) => Math.min(s + 1, steps.length - 1));
-                                }}
-                                disabled={currentStep === steps.length - 1}
-                            >
-                                Save as Draft & Next
-                            </button>
+                                        setCompleted((arr) => {
+                                            const copy = [...arr];
+                                            copy[currentStep] = true;
+                                            return copy;
+                                        });
+                                        // setCurrentStep((s) => Math.min(s + 1, steps.length - 1));
+                                    }}
+                                >
+                                    Save as Draft & Next
+                                </button>
+                            )}
                         </div>
                     )}
                 </div>
@@ -10624,7 +9587,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                 </div>
             </div>
 
-            {/* {loading2 && (
+            {loading2 && (
                 <div className="loader-container">
                     <div className="lds-ring">
                         <div></div>
@@ -10638,7 +9601,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                     </div>
                     <p>Loading...</p>
                 </div>
-            )} */}
+            )}
 
             <ToastContainer
                 position="top-right"
