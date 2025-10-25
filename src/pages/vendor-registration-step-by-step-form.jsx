@@ -1,7 +1,7 @@
 // Utility function to map majorCustomers state to major_customers_attributes
 const mapMajorCustomersToPayload = (majorCustomers) => {
     return majorCustomers.map((c) => ({
-        id: null,
+        id: c.idPre || null,
         name: c.companyName || '',
         company_id: c.companyId || null,
         work_done: c.workDone || '',
@@ -23,7 +23,7 @@ const mapMajorCustomersToPayload = (majorCustomers) => {
 // Utility: Map contactPersons state to contact_people_attributes
 // Utility: Map owners state to directors_informations_attributes
 const mapOwnersToPayload = (owners) => owners.map((owner) => ({
-    id: null,
+    id: owner.idPre || null,
     attachment: owner.attachment || '',
     first_name: owner.firstName || '',
     last_name: owner.lastName || '',
@@ -59,7 +59,7 @@ const mapContactPersonsToPayload = (contactPersons) => contactPersons.map((perso
     _destroy: false
 }));
 const mapBranchOfficesToPayload = (branchOffices) => branchOffices.map((office) => ({
-    id: null,
+    id:  office.idPre ||null,
     // office.id ||
     gst_no: office.gst_no || '',
     gst_cert_file: office.gst_cert_file || '',
@@ -166,7 +166,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
             try {
                 const response = await axios.get(`${baseURL}/pms/suppliers/${id}/checklist_configuration`);
                 setChecklistConfig(response.data || []);
-                console.log("check list:", response.data)
+                // console.log("check list:", response.data)
             } catch (error) {
                 setChecklistConfig([]);
             }
@@ -197,7 +197,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
         }));
     };
 
-    console.log("check option ***:", checklistResponses)
+    // console.log("check option ***:", checklistResponses)
 
     // Handler for file upload
     const handleChecklistFileChange = (subcatId, qId, file) => {
@@ -262,7 +262,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
     });
 
 
-    console.log("que:", questions)
+    // console.log("que:", questions)
     // Handler for text changes
     const handleQuestionChange = (field, value) => {
         setQuestions(prev => ({ ...prev, [field]: value }));
@@ -327,7 +327,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
         reader.readAsDataURL(file);
     };
 
-    console.log("annual turn over:", annualTurnover)
+    // console.log("annual turn over:", annualTurnover)
 
     // Name Title options for contact person
     const nameTitleOptions = [
@@ -634,6 +634,25 @@ const [checklistConfig, setChecklistConfig] = useState([]);
         setBasicInfo(prev => ({ ...prev, [field]: value }));
     };
 
+    // Date handler for basicInfo date fields to prevent future dates
+    const handleBasicInfoDateChange = (field, value) => {
+        updateBasicInfo(field, value);
+
+        const selected = value ? new Date(value) : null;
+        const today = new Date();
+        today.setHours(0,0,0,0);
+
+        setBasicInfoErrors(prev => {
+            const copy = prev ? { ...prev } : {};
+            if (selected && selected > today) {
+                copy[field] = 'Date of Incorporation cannot be a future date.';
+            } else {
+                if (copy[field]) delete copy[field];
+            }
+            return copy;
+        });
+    };
+
     // console.log("basic info:", basicInfo)
 
     const gstinApplicableOptions = [
@@ -752,7 +771,9 @@ const [checklistConfig, setChecklistConfig] = useState([]);
             try {
                 const response = await axios.get(`${baseURL}/pms/suppliers/${id}/supplier_show.json`);
                 setSupplierShowData(response.data);
+
                 setBankDetailsList(response.data?.bank_details || [])
+                console.log("supplier show data:", response.data.bank_details)
                 setStatutoryDetails(response.data?.vendor_statutory_details)
 
             } catch (error) {
@@ -787,7 +808,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
         setBasicInfo(prev => ({
             ...prev,
             vendorOrganizationName: supplierShowData.organization_name || "",
-            organizationType: supplierShowData.company_type || "",
+            organizationType: null,
             cin: supplierShowData.cin_number || "",
             panNo: supplierShowData.pan_number || "",
             fullName: supplierShowData.full_name || "",
@@ -811,6 +832,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
         // Map branch offices from API to local branchOffices state
         if (Array.isArray(supplierShowData.branch_offices) && supplierShowData.branch_offices.length > 0) {
             const mappedBranches = supplierShowData.branch_offices.map(b => ({
+                 idPre: b.id,
                 id: b.id || Date.now() + Math.random(),
                 address: b.address || "",
                 country: b.country_id ? { value: b.country_id, label: b.country_name || b.country_id } : null,
@@ -827,6 +849,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
         // Map directors_informations (from API) to local owners state
         if (Array.isArray(supplierShowData.directors_informations) && supplierShowData.directors_informations.length > 0) {
             const mappedOwners = supplierShowData.directors_informations.map(d => ({
+                 idPre: d.id,
                 id: d.id || Date.now() + Math.random(),
                 firstName: d.first_name || "",
                 lastName: d.last_name || "",
@@ -846,6 +869,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
             const mappedCustomers = supplierShowData.major_customers.map(c => {
                 const countryOption = countryOptions.find(opt => Number(opt.value) === Number(c.country_id)) || countryOptions.find(opt => opt.value === c.country_id) || (c.country_id ? { value: c.country_id, label: '' } : null);
                 return ({
+                    idPre: c.id,
                     id: c.id || Date.now() + Math.random(),
                     companyName: c.name || c.company_name || '',
                     companyId: c.company_id || null,
@@ -1056,6 +1080,16 @@ const [checklistConfig, setChecklistConfig] = useState([]);
             if (!basicInfo.llpAttachmentObj) errors.llpAttachment = 'This field is required.';
         }
 
+        // Date of Incorporation should not be a future date (if provided)
+        if (basicInfo.dateOfIncorporation) {
+            const sel = new Date(basicInfo.dateOfIncorporation);
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            if (sel > today) {
+                errors.dateOfIncorporation = 'Date of Incorporation cannot be a future date.';
+            }
+        }
+
         console.log("errors***************:", errors)
         setBasicInfoErrors(errors);
 
@@ -1257,6 +1291,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
             { key: 'pincode', label: 'Pin Code' },
             { key: 'mobile', label: 'Mobile Number' },
             { key: 'orderingEmail', label: 'Ordering Email ID' },
+            { key: 'billingEmail', label: 'Billing Email ID' },
         ];
         const commFields = [
             { key: 'address1', label: 'Address' },
@@ -1266,6 +1301,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
             { key: 'pincode', label: 'Pin Code' },
             { key: 'mobile', label: 'Mobile Number' },
             { key: 'orderingEmail', label: 'Email ID' },
+            { key: 'billingEmail', label: 'Billing Email ID' },
         ];
         const regErrs = {};
         const commErrs = {};
@@ -1285,8 +1321,8 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                         regErrs[f.key] = 'Pin Code must be a 6-digit number starting with 1-9.';
                     }
                 }
-                // Email format validation
-                if (f.key === 'orderingEmail' && val) {
+                // Email format validation for orderingEmail and billingEmail
+                if ((f.key === 'orderingEmail' || f.key === 'billingEmail') && val) {
                     if (!emailRegex.test(val)) {
                         regErrs[f.key] = 'Please enter a valid email address.';
                     }
@@ -1304,8 +1340,8 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                         commErrs[f.key] = 'Pin Code must be a 6-digit number starting with 1-9.';
                     }
                 }
-                // Email format validation
-                if (f.key === 'orderingEmail' && val) {
+                // Email format validation for orderingEmail and billingEmail
+                if ((f.key === 'orderingEmail' || f.key === 'billingEmail') && val) {
                     if (!emailRegex.test(val)) {
                         commErrs[f.key] = 'Please enter a valid email address.';
                     }
@@ -1449,6 +1485,12 @@ const [checklistConfig, setChecklistConfig] = useState([]);
     };
 
     const handleBranchChange = (idx, field, value) => {
+        // If country changes or is cleared, reset the associated state field
+        if (field === 'country') {
+            setBranchOffices(prev => prev.map((b, i) => i === idx ? { ...b, country: value, state: null } : b));
+            return;
+        }
+
         setBranchOffices(prev => prev.map((b, i) => i === idx ? { ...b, [field]: value } : b));
     };
 
@@ -1485,9 +1527,45 @@ const [checklistConfig, setChecklistConfig] = useState([]);
     };
 
     const handleContactPersonChange = (idx, field, value) => {
+        // For mobile fields, allow digits only and cap to 10 characters
+        if (field === 'primaryMobile' || field === 'secondaryMobile') {
+            const digitsOnly = String(value || '').replace(/\D/g, '').slice(0, 10);
+            setContactPersons((prev) => prev.map((p, i) => (i === idx ? { ...p, [field]: digitsOnly } : p)));
+            // clear related validation error for this field if present
+            setContactPersonErrors(prev => prev.map((err, i) => i === idx ? ({ ...err, [field]: undefined }) : err));
+            return;
+        }
+
+        // Date of Birth: do not allow future dates
+        if (field === 'dob') {
+            if (!value) {
+                // allow clearing the date
+                setContactPersons((prev) => prev.map((p, i) => (i === idx ? { ...p, dob: '' } : p)));
+                setContactPersonErrors(prev => prev.map((err, i) => i === idx ? ({ ...err, dob: undefined }) : err));
+                return;
+            }
+
+            const selected = new Date(value);
+            const today = new Date();
+            selected.setHours(0,0,0,0);
+            today.setHours(0,0,0,0);
+            if (selected > today) {
+                // Do not set the future date; show validation error for this contact person
+                setContactPersonErrors(prev => prev.map((err, i) => i === idx ? ({ ...err, dob: 'Date of Birth cannot be in the future.' }) : err));
+                return;
+            }
+
+            // valid dob — set value and clear any dob error
+            setContactPersons((prev) => prev.map((p, i) => (i === idx ? { ...p, dob: value } : p)));
+            setContactPersonErrors(prev => prev.map((err, i) => i === idx ? ({ ...err, dob: undefined }) : err));
+            return;
+        }
+
         setContactPersons((prev) =>
             prev.map((p, i) => (i === idx ? { ...p, [field]: value } : p))
         );
+        // clear field-level validation error on change
+        setContactPersonErrors(prev => prev.map((err, i) => i === idx ? ({ ...err, [field]: undefined }) : err));
     };
 
     const deleteContactPerson = (id) => {
@@ -1549,8 +1627,16 @@ const [checklistConfig, setChecklistConfig] = useState([]);
     };
 
     const handleWarehouseChange = (idx, field, value) => {
-        setWarehouses(prev => prev.map((w, i) => i === idx ? { ...w, [field]: value } : w));
-    };
+        // If country changes, clear the dependent state field so selection stays consistent
+        if (field === 'country') {
+            setWarehouses(prev => prev.map((w, i) => i === idx ? { ...w, country: value, state: null } : w))
+            // also clear any existing state-level validation error for this warehouse if present
+            setWarehouseErrors(prev => prev.map((err, i) => i === idx ? ({ ...err, state: undefined }) : err))
+            return
+        }
+
+        setWarehouses(prev => prev.map((w, i) => i === idx ? { ...w, [field]: value } : w))
+    }
 
     const deleteWarehouse = (id) => {
         setWarehouses(prev => prev.length === 0 ? prev : prev.filter(w => w.id !== id));
@@ -1586,6 +1672,32 @@ const [checklistConfig, setChecklistConfig] = useState([]);
 
     const handleMajorCustomerChange = (idx, field, value) => {
         setMajorCustomers(prev => prev.map((c, i) => i === idx ? { ...c, [field]: value } : c));
+    };
+
+    // Date-specific handler for Major Customer serviceFrom/serviceTo to prevent future dates
+    const handleMajorCustomerDateChange = (idx, field, value) => {
+        // Update the value first
+        handleMajorCustomerChange(idx, field, value);
+
+        // Validate against future date
+        const selected = value ? new Date(value) : null;
+        const today = new Date();
+        today.setHours(0,0,0,0);
+
+        setMajorCustomerErrors(prev => {
+            const copy = Array.isArray(prev) ? [...prev] : [];
+            // ensure object exists
+            copy[idx] = copy[idx] ? { ...copy[idx] } : {};
+
+            if (selected && selected > today) {
+                copy[idx][field] = (field === 'serviceFrom') ? 'Service From cannot be a future date.' : 'Service To cannot be a future date.';
+            } else {
+                // clear the specific error
+                if (copy[idx] && copy[idx][field]) delete copy[idx][field];
+            }
+
+            return copy;
+        });
     };
 
     const deleteMajorCustomer = (id) => {
@@ -1720,6 +1832,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
     const [branchErrors, setBranchErrors] = useState([]);
     const [contactPersonErrors, setContactPersonErrors] = useState([]);
     const [warehouseErrors, setWarehouseErrors] = useState([]);
+    const [turnoverErrors, setTurnoverErrors] = useState({});
     // --- Step 4 (cont): Owners, Related Employees, Group Companies, Supervisory Manpower, Major Customers, Working Sites ---
     const [ownerErrors, setOwnerErrors] = useState([]);
     const [relatedEmployeeErrors, setRelatedEmployeeErrors] = useState([]);
@@ -1729,9 +1842,12 @@ const [checklistConfig, setChecklistConfig] = useState([]);
     const [workingSiteErrors, setWorkingSiteErrors] = useState([]);
 
     const validateStep4 = () => {
+        // Email regex for warehouse contact person validation
+        const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
         // Branch Offices
         const branchErrs = branchOffices.map(branch => {
             const err = {};
+            if (!branch.address) err.address = 'Address is required.';
             if (!branch.country) err.country = 'Country is required.';
             if (!branch.state) err.state = 'State is required.';
             if (!branch.city) err.city = 'City is required.';
@@ -1748,8 +1864,26 @@ const [checklistConfig, setChecklistConfig] = useState([]);
             if (!person.firstName) err.firstName = 'First Name is required.';
             if (!person.lastName) err.lastName = 'Last Name is required.';
             if (!person.designation) err.designation = 'Designation is required.';
-            if (!person.primaryEmail) err.primaryEmail = 'Primary Email is required.';
-            if (!person.primaryMobile) err.primaryMobile = 'Primary Mobile is required.';
+            // Primary email: required + format
+            if (!person.primaryEmail) {
+                err.primaryEmail = 'Primary Email is required.';
+            } else if (person.primaryEmail && !emailRegex.test(person.primaryEmail)) {
+                err.primaryEmail = 'Please enter a valid email address. eg.: abc@gmail.com';
+            }
+            // Primary mobile: required + 10 digits
+            if (!person.primaryMobile) {
+                err.primaryMobile = 'Primary Mobile is required.';
+            } else if (!/^\d{10}$/.test(person.primaryMobile)) {
+                err.primaryMobile = 'Primary Mobile must be a 10-digit number.';
+            }
+            // Secondary mobile: optional, but if present must be 10 digits
+            if (person.secondaryMobile && !/^\d{10}$/.test(person.secondaryMobile)) {
+                err.secondaryMobile = 'Secondary Mobile must be a 10-digit number.';
+            }
+            // Secondary email: optional, validate format if present
+            if (person.secondaryEmail && !emailRegex.test(person.secondaryEmail)) {
+                err.secondaryEmail = 'Please enter a valid email address. eg.: abc@gmail.com';
+            }
             return err;
         });
         setContactPersonErrors(contactErrs);
@@ -1757,6 +1891,18 @@ const [checklistConfig, setChecklistConfig] = useState([]);
         // Warehouses
         const warehouseErrs = warehouses.map(warehouse => {
             const err = {};
+            if (!warehouse.address) err.address = 'Address is required.';
+            if (!warehouse.mobile) {
+                err.mobile = 'Contact Number is required.';
+            } else if (!/^\d{10}$/.test(warehouse.mobile)) {
+                err.mobile = 'Contact Number must be a 10-digit number.';
+            }
+            if (!warehouse.contactPerson) err.contactPerson = 'Contact Person is required.';
+            if (!warehouse.contactPersonEmail) {
+                err.contactPersonEmail = 'Contact Person Email is required.';
+            } else if (warehouse.contactPersonEmail && !emailRegex.test(warehouse.contactPersonEmail)) {
+                err.contactPersonEmail = 'Please enter a valid email address. eg.: abc@gmail.com';
+            }
             if (!warehouse.country) err.country = 'Country is required.';
             if (!warehouse.state) err.state = 'State is required.';
             if (!warehouse.city) err.city = 'City is required.';
@@ -1769,13 +1915,35 @@ const [checklistConfig, setChecklistConfig] = useState([]);
             if (!owner.firstName) err.firstName = 'First Name is required.';
             if (!owner.lastName) err.lastName = 'Last Name is required.';
             if (!owner.designation) err.designation = 'Designation is required.';
-            if (!owner.email) err.email = 'Email is required.';
-            if (!owner.mobile) err.mobile = 'Mobile Number is required.';
+            // Email required + format validation
+            if (!owner.email) {
+                err.email = 'Email is required.';
+            } else if (owner.email && !emailRegex.test(owner.email)) {
+                err.email = 'Please enter a valid email address. eg.: abc@gmail.com';
+            }
+            // Mobile required + 10 digits
+            if (!owner.mobile) {
+                err.mobile = 'Mobile Number is required.';
+            } else if (!/^\d{10}$/.test(owner.mobile)) {
+                err.mobile = 'Mobile Number must be a 10-digit number.';
+            }
             return err;
         });
         setOwnerErrors(ownerErrs);
 
        
+        // Annual Turnover: if amount is provided, attachment is required
+        const turnoverErrs = {};
+        (annualTurnover || []).forEach(entry => {
+            const fy = entry.year;
+            const amountProvided = entry.turnover !== undefined && entry.turnover !== null && String(entry.turnover) !== '';
+            if (amountProvided) {
+                if (!entry.attachment) {
+                    turnoverErrs[fy] = { attachment: 'Attachment is required for the declared turnover.' };
+                }
+            }
+        });
+        setTurnoverErrors(turnoverErrs);
 
         // Major Customers client references
         const custErrs = majorCustomers.map(cust => {
@@ -1789,9 +1957,30 @@ const [checklistConfig, setChecklistConfig] = useState([]);
             // if (!cust.yearOfAssociation) err.yearOfAssociation = 'Year of Association is required.';
             if (!cust.businessLast12Months) err.businessLast12Months = 'WO/PO Amount in Last Last 12 month is required.';
             if (!cust.siteType) err.siteType = 'Site Type is required.';
-            if (!cust.serviceFrom) err.serviceFrom = 'Service Provided From is required.';
+            if (!cust.serviceFrom) {
+                err.serviceFrom = 'Service Provided From is required.';
+            } else {
+                // disallow future dates
+                const sel = new Date(cust.serviceFrom);
+                const today = new Date();
+                today.setHours(0,0,0,0);
+                if (sel > today) {
+                    err.serviceFrom = 'Service Provided From cannot be a future date.';
+                }
+            }
             // Only require serviceTo if siteType is 'previous'
-            if (cust.siteType === 'previous' && !cust.serviceTo) err.serviceTo = 'Service Provided To is required.';
+            if (cust.siteType === 'previous') {
+                if (!cust.serviceTo) {
+                    err.serviceTo = 'Service Provided To is required.';
+                } else {
+                    const selTo = new Date(cust.serviceTo);
+                    const today = new Date();
+                    today.setHours(0,0,0,0);
+                    if (selTo > today) {
+                        err.serviceTo = 'Service Provided To cannot be a future date.';
+                    }
+                }
+            }
             return err;
         });
         setMajorCustomerErrors(custErrs);
@@ -1806,12 +1995,14 @@ const [checklistConfig, setChecklistConfig] = useState([]);
         // ...existing checks...
         const allOwnersValid = ownerErrs.every(e => Object.keys(e).length === 0);
        
-        const allCustValid = custErrs.every(e => Object.keys(e).length === 0);
+    const allCustValid = custErrs.every(e => Object.keys(e).length === 0);
+    const allTurnoverValid = Object.keys(turnoverErrs).length === 0;
        
 
         return allBranchesValid && allContactsValid && allWarehousesValid && allOwnersValid
             // && allRelEmpValid && allGroupValid && allSupValid 
             && allCustValid
+            && allTurnoverValid
         // && allSiteValid;
 
     };
@@ -1942,7 +2133,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
     const fetchStates = async (countryId) => {
         try {
             const response = await axios.get(
-                `${baseURL}/pms/dropdown_states?country_id=${countryId}&&token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`
+                `${baseURL}/pms/dropdown_states?country_id=${countryId}&token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`
             );
 
             const formattedStates = response.data.states.map((state) => ({
@@ -2182,7 +2373,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
     };
 
 
-    console.log("bank detail list to deleted :", deletedBankDetails)
+    // console.log("bank detail list to deleted :", deletedBankDetails)
 
     const handleFileChangeBank = (file, bankId) => {
         const reader = new FileReader();
@@ -3075,12 +3266,12 @@ const [checklistConfig, setChecklistConfig] = useState([]);
         }
     };
 
-
+console.log("checklist :", checklistPayload)
      const saveDraftStep6= async () => {
         setLoading2(true)
         console.log("sameAsRegistered value:", sameAsRegistered);
         const commAddrPayload = mapCommunicationAddressToPayload(communicationAddress, sameAsRegistered)[0] || {};
-        console.log("communication_address_attributes:", commAddrPayload);
+        // console.log("communication_address_attributes:", commAddrPayload);
         const payload = {
             pms_supplier: {
                 status: "draft",
@@ -3237,7 +3428,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
         setLoading(true);
         const payload = {
             pms_supplier: {
-                status: "draft",
+                // status: "draft",
                 company_id: supplierShowData?.company_id || null,
                 organization_name: basicInfo.vendorOrganizationName,
 
@@ -3328,8 +3519,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
         };
         try {
             const response = await axios.patch(
-                `${baseURL}/pms/suppliers/${id}/update_rekyc_by_sections.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&rekyc_id=${rekyc_id}`,
-                payload
+             `${baseURL}/pms/suppliers/${supplierId}/update_api.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`, payload
             );
 
             console.log("Response:", response.data); // Check the response data
@@ -3746,7 +3936,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                                                 )}
                                             </div>
                                         </div>
-                                        {/* {console.log("+++++++++++++", basicInfo.organizationType.label)} */}
+                                        {/* {console.log("+++++++++++++ basicInfo", basicInfo.organizationType.label)} */}
 
                                         <div className="col-md-4">
                                             <div className="form-group">
@@ -4030,8 +4220,9 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                                                 <input
                                                     className="form-control"
                                                     type="date"
+                                                    max={new Date().toISOString().split('T')[0]}
                                                     value={basicInfo.dateOfIncorporation}
-                                                    onChange={e => updateBasicInfo('dateOfIncorporation', e.target.value)}
+                                                    onChange={e => handleBasicInfoDateChange('dateOfIncorporation', e.target.value)}
                                                 />
                                                 {/* {basicInfoErrors.dateOfIncorporation && (
                                                     <div className="ValidationColor">{basicInfoErrors.dateOfIncorporation}</div>
@@ -5259,15 +5450,39 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                                         <div className="col-md-4  mt-2">
                                             <div className="form-group">
                                                 <label>
-                                                    Billing & Accounting Email ID
+                                                    Billing & Accounting Email ID <span>*</span>
                                                     <TooltipIcon message="Enter the email address your organization uses for billing and accounting communications. Ensure it is a valid email format (e.g., example@domain.com)." />
                                                 </label>
                                                 <input
                                                     className="form-control"
                                                     type="text"
                                                     value={registeredAddress.billingEmail}
-                                                    onChange={e => handleRegisteredAddressChange('billingEmail', e.target.value)}
+                                                    onChange={e => {
+                                                        const val = e.target.value;
+                                                        handleRegisteredAddressChange('billingEmail', val);
+                                                        const emailRegex = /^[\w-.]+@([\w-]+\.)+[\w-]{2,}$/;
+                                                        if (val && !emailRegex.test(val)) {
+                                                            setAddressErrors(prev => ({
+                                                                ...prev,
+                                                                registered: {
+                                                                    ...prev.registered,
+                                                                    billingEmail: 'Enter a valid email address. e.g. : abc@gmail.com'
+                                                                }
+                                                            }));
+                                                        } else {
+                                                            setAddressErrors(prev => ({
+                                                                ...prev,
+                                                                registered: {
+                                                                    ...prev.registered,
+                                                                    billingEmail: undefined
+                                                                }
+                                                            }));
+                                                        }
+                                                    }}
                                                 />
+                                                {addressErrors.registered.billingEmail && (
+                                                    <div className="ValidationColor">{addressErrors.registered.billingEmail}</div>
+                                                )}
                                             </div>
                                         </div>
 
@@ -6120,6 +6335,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                                                 </label>
 
                                                 {/* Conditionally Render Existing File Download Link */}
+                                                {/* {console.log("bankDetail.attachment", bankDetail)} */}
                                                 {bankDetail?.attachment && (
                                                     <span className="ms-2">
                                                         <a
@@ -6147,6 +6363,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                                                                 // style={{ fill: "#de7008!important" }}
                                                                 />
                                                             </svg>
+                                                            {bankDetail?.attachment.filename}
                                                         </a>
                                                     </span>
                                                 )}
@@ -6231,7 +6448,75 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                                     headerExtra={majorCustomers.length < 3 ? (<div className="ValidationColor">Please add a minimum of 3 client references.</div>) : null}
                                 >
                                     <div className="card-body mt-0">
-                                        <div className="row">
+                                          <div className="row">
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+                                                    <label className="mb-2">Site Type <span>*</span></label>
+                                                    <div className="d-flex">
+                                                        <label className="me-3 d-flex align-items-center">
+                                                            <input
+                                                                type="radio"
+                                                                name={`siteType_${customer.id}`}
+                                                                value="working"
+                                                                checked={customer.siteType === 'working'}
+                                                                onChange={() => handleMajorCustomerChange(idx, 'siteType', 'working')}
+                                                                style={{ width: '22px', height: '22px', accentColor: '#de7008' }}
+                                                            />{' '}
+                                                            <span className="ms-2">Working Site</span>
+                                                        </label>
+                                                        <label className="d-flex align-items-center">
+                                                            <input
+                                                                type="radio"
+                                                                name={`siteType_${customer.id}`}
+                                                                value="previous"
+                                                                checked={customer.siteType === 'previous'}
+                                                                onChange={() => handleMajorCustomerChange(idx, 'siteType', 'previous')}
+                                                                style={{ width: '22px', height: '22px', accentColor: '#de7008' }}
+                                                            />{' '}
+                                                            <span className="ms-2">Previous Site</span>
+                                                        </label>
+                                                    </div>
+                                                    {majorCustomerErrors[idx]?.siteType && (
+                                                        <div className="ValidationColor">{majorCustomerErrors[idx].siteType}</div>
+                                                    )}
+                                                </div>
+                                            </div>
+
+
+                                              <div className="col-md-2 mt-2">
+                                                <div className="form-group">
+                                                    <label>Service Provided From <span>*</span></label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="date"
+                                                        max={new Date().toISOString().split('T')[0]}
+                                                        value={customer.serviceFrom}
+                                                        onChange={e => handleMajorCustomerDateChange(idx, 'serviceFrom', e.target.value)}
+                                                    />
+                                                    {majorCustomerErrors[idx]?.serviceFrom && (
+                                                        <div className="ValidationColor">{majorCustomerErrors[idx].serviceFrom}</div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            {customer.siteType === 'previous' && (
+                                                <div className="col-md-2 mt-2">
+                                                    <div className="form-group">
+                                                        <label>Service Provided To <span>*</span></label>
+                                                        <input
+                                                            className="form-control"
+                                                            type="date"
+                                                            max={new Date().toISOString().split('T')[0]}
+                                                            value={customer.serviceTo}
+                                                            onChange={e => handleMajorCustomerDateChange(idx, 'serviceTo', e.target.value)}
+                                                        />
+                                                        {majorCustomerErrors[idx]?.serviceTo && (
+                                                            <div className="ValidationColor">{majorCustomerErrors[idx].serviceTo}</div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="row mt-2">
                                             <div className="col-md-4">
                                                 <div className="form-group">
                                                     <label>Client Name <span>*</span></label>
@@ -6376,36 +6661,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                                                     )}
                                                 </div>
                                             </div>
-                                            <div className="col-md-2 mt-2">
-                                                <div className="form-group">
-                                                    <label>Service Provided From <span>*</span></label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="date"
-                                                        value={customer.serviceFrom}
-                                                        onChange={e => handleMajorCustomerChange(idx, 'serviceFrom', e.target.value)}
-                                                    />
-                                                    {majorCustomerErrors[idx]?.serviceFrom && (
-                                                        <div className="ValidationColor">{majorCustomerErrors[idx].serviceFrom}</div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                            {customer.siteType === 'previous' && (
-                                                <div className="col-md-2 mt-2">
-                                                    <div className="form-group">
-                                                        <label>Service Provided To <span>*</span></label>
-                                                        <input
-                                                            className="form-control"
-                                                            type="date"
-                                                            value={customer.serviceTo}
-                                                            onChange={e => handleMajorCustomerChange(idx, 'serviceTo', e.target.value)}
-                                                        />
-                                                        {majorCustomerErrors[idx]?.serviceTo && (
-                                                            <div className="ValidationColor">{majorCustomerErrors[idx].serviceTo}</div>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            )}
+                                          
                                             <div className="col-md-4 mt-2">
                                                 <div className="form-group">
                                                     <label>Stage Of Project</label>
@@ -6455,40 +6711,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                                                 </div>
                                             </div>
                                         </div>
-                                        <div className="row">
-                                            <div className="col-md-4">
-                                                <div className="form-group">
-                                                    <label className="mb-2">Site Type <span>*</span></label>
-                                                    <div className="d-flex">
-                                                        <label className="me-3 d-flex align-items-center">
-                                                            <input
-                                                                type="radio"
-                                                                name={`siteType_${customer.id}`}
-                                                                value="working"
-                                                                checked={customer.siteType === 'working'}
-                                                                onChange={() => handleMajorCustomerChange(idx, 'siteType', 'working')}
-                                                                style={{ width: '22px', height: '22px', accentColor: '#de7008' }}
-                                                            />{' '}
-                                                            <span className="ms-2">Working Site</span>
-                                                        </label>
-                                                        <label className="d-flex align-items-center">
-                                                            <input
-                                                                type="radio"
-                                                                name={`siteType_${customer.id}`}
-                                                                value="previous"
-                                                                checked={customer.siteType === 'previous'}
-                                                                onChange={() => handleMajorCustomerChange(idx, 'siteType', 'previous')}
-                                                                style={{ width: '22px', height: '22px', accentColor: '#de7008' }}
-                                                            />{' '}
-                                                            <span className="ms-2">Previous Site</span>
-                                                        </label>
-                                                    </div>
-                                                    {majorCustomerErrors[idx]?.siteType && (
-                                                        <div className="ValidationColor">{majorCustomerErrors[idx].siteType}</div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </div>
+                                      
                                     </div>
                                 </CollapsedCardKYC>
                                 // </div>
@@ -6514,8 +6737,11 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                                         <div className="row">
                                             <div className="col-md-4">
                                                 <div className="form-group">
-                                                    <label>Address</label>
+                                                    <label>Address <span>*</span></label>
                                                     <input className="form-control" type="text" value={branch.address} onChange={e => handleBranchChange(idx, 'address', e.target.value)} />
+                                                    {branchErrors[idx]?.address && (
+                                                        <div className="ValidationColor">{branchErrors[idx].address}</div>
+                                                    )}
                                                 </div>
                                             </div>
                                             <div className="col-md-4 ">
@@ -6660,13 +6886,16 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                                         <div className="row">
                                             <div className="col-md-4">
                                                 <div className="form-group">
-                                                    <label>Address</label>
+                                                    <label>Address <span>*</span></label>
                                                     <input
                                                         className="form-control"
                                                         type="text"
                                                         value={warehouse.address}
                                                         onChange={e => handleWarehouseChange(idx, 'address', e.target.value)}
                                                     />
+                                                    {warehouseErrors[idx]?.address && (
+                                                        <div className="ValidationColor">{warehouseErrors[idx].address}</div>
+                                                    )}
                                                 </div>
                                             </div>
                                             <div className="col-md-4  ">
@@ -6709,7 +6938,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                                                     )}
                                                 </div>
                                             </div>
-                                            <div className="col-md-4  mt-2">
+                                            {/* <div className="col-md-4  mt-2">
                                                 <div className="form-group">
                                                     <label>Telephone Phone No.</label>
                                                     <input
@@ -6719,48 +6948,78 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                                                         onChange={e => handleWarehouseChange(idx, 'telephone', e.target.value)}
                                                     />
                                                 </div>
-                                            </div>
+                                            </div> */}
                                             <div className="col-md-4  mt-2">
                                                 <div className="form-group">
-                                                    <label>Contact Number</label>
+                                                    <label>Contact Number <span>*</span></label>
                                                     <input
                                                         className="form-control"
                                                         type="text"
                                                         value={warehouse.mobile}
-                                                        onChange={e => handleWarehouseChange(idx, 'mobile', e.target.value)}
+                                                        onChange={e => {
+                                                            // Allow only digits and limit to 10 characters
+                                                            const digits = e.target.value.replace(/\D/g, '').slice(0, 10);
+                                                            handleWarehouseChange(idx, 'mobile', digits);
+                                                        }}
+                                                        maxLength={10}
                                                     />
+                                                    {warehouseErrors[idx]?.mobile && (
+                                                        <div className="ValidationColor">{warehouseErrors[idx].mobile}</div>
+                                                    )}
                                                 </div>
                                             </div>
-                                            <div className="col-md-4  mt-2">
-                                                <div className="form-group">
-                                                    <label>Attachment</label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="file"
-                                                        onChange={e => handleWarehouseChange(idx, 'attachment', e.target.files[0])}
-                                                    />
-                                                </div>
-                                            </div>
+                                          
                                             <div className="col-md-4 mt-2">
                                                 <div className="form-group">
-                                                    <label>Contact Person</label>
+                                                    <label>Contact Person <span>*</span></label>
                                                     <input
                                                         className="form-control"
                                                         type="text"
                                                         value={warehouse.contactPerson || ''}
                                                         onChange={e => handleWarehouseChange(idx, 'contactPerson', e.target.value)}
                                                     />
+                                                    {warehouseErrors[idx]?.contactPerson && (
+                                                        <div className="ValidationColor">{warehouseErrors[idx].contactPerson}</div>
+                                                    )}
                                                 </div>
                                             </div>
                                             <div className="col-md-4 mt-2">
                                                 <div className="form-group">
-                                                    <label>Contact Person Email</label>
+                                                    <label>Contact Person Email <span>*</span></label>
                                                     <input
                                                         className="form-control"
                                                         type="email"
                                                         value={warehouse.contactPersonEmail || ''}
                                                         onChange={e => handleWarehouseChange(idx, 'contactPersonEmail', e.target.value)}
                                                     />
+                                                    {warehouseErrors[idx]?.contactPersonEmail && (
+                                                        <div className="ValidationColor">{warehouseErrors[idx].contactPersonEmail}</div>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                              <div className="col-md-4  mt-2">
+                                                <div className="form-group">
+                                                    <label>Attachment</label>
+                                                     {warehouse.attachment && (
+                                                        typeof warehouse.attachment === 'string' ? (
+                                                            <a href={`${baseURL}${warehouse.attachment}`} download className="text-primary d-flex align-items-center mt-2">
+                                                                <span className="me-2">Existing File:</span>
+                                                                <span>{warehouse.attachment.split('/').pop()}</span>
+                                                            </a>
+                                                        ) : warehouse.attachment.filename ? (
+                                                            <div className="mt-0">Existing File: {warehouse.attachment.filename}</div>
+                                                        ) : warehouse.attachment.name ? (
+                                                            <div className="mt-0">Existing File: {warehouse.attachment.name}</div>
+                                                        ) : null
+                                                    )}
+                                                    <input
+                                                        className="form-control"
+                                                        type="file"
+                                                        onChange={e => handleWarehouseChange(idx, 'attachment', e.target.files[0])}
+                                                    />
+                                                    {/* Show existing or selected file name/link */}
+                                                   
                                                 </div>
                                             </div>
                                         </div>
@@ -6917,6 +7176,9 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                                                             handleContactPersonChange(idx, "secondaryEmail", e.target.value)
                                                         }
                                                     />
+                                                    {contactPersonErrors[idx]?.secondaryEmail && (
+                                                        <div className="ValidationColor">{contactPersonErrors[idx].secondaryEmail}</div>
+                                                    )}
                                                 </div>
                                             </div>
                                             {/* Primary Mobile */}
@@ -6951,6 +7213,9 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                                                             handleContactPersonChange(idx, "secondaryMobile", e.target.value)
                                                         }
                                                     />
+                                                    {contactPersonErrors[idx]?.secondaryMobile && (
+                                                        <div className="ValidationColor">{contactPersonErrors[idx].secondaryMobile}</div>
+                                                    )}
                                                 </div>
                                             </div>
                                             {/* Nationality */}
@@ -6983,6 +7248,9 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                                                             handleContactPersonChange(idx, "dob", e.target.value)
                                                         }
                                                     />
+                                                    {contactPersonErrors[idx]?.dob && (
+                                                        <div className="ValidationColor">{contactPersonErrors[idx].dob}</div>
+                                                    )}
                                                 </div>
                                             </div>
                                             {/* Attachment */}
@@ -7105,28 +7373,42 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                                                     )}
                                                 </div>
                                             </div>
-                                            <div className="col-md-4">
+                                            <div className="col-md-4 mt-2">
                                                 <div className="form-group">
                                                     <label>Mobile Number <span>*</span></label>
                                                     <input
                                                         className="form-control"
                                                         type="text"
+                                                        inputMode="numeric"
+                                                        pattern="\\d*"
+                                                        maxLength={10}
                                                         value={owner.mobile}
-                                                        onChange={e => handleOwnerChange(idx, 'mobile', e.target.value)}
+                                                        onChange={e => {
+                                                            const digits = (e.target.value || '').replace(/\D/g, '').slice(0, 10);
+                                                            handleOwnerChange(idx, 'mobile', digits);
+                                                        }}
                                                     />
                                                     {ownerErrors[idx]?.mobile && (
                                                         <div className="ValidationColor">{ownerErrors[idx].mobile}</div>
                                                     )}
                                                 </div>
                                             </div>
-                                            <div className="col-md-4">
+                                            <div className="col-md-4 mt-2">
                                                 <div className="form-group">
                                                     <label>Attachment</label>
+                                                     {owner?.attachment && (
+                                                        <div className="">
+                                                          
+                                                                <span>Existing File : {owner.attachment.name || owner.attachment.filename || 'Selected file'}</span>
+                                                          
+                                                        </div>
+                                                    )}
                                                     <input
                                                         className="form-control"
                                                         type="file"
                                                         onChange={e => handleOwnerChange(idx, 'attachment', e.target.files[0])}
                                                     />
+                                                   
                                                 </div>
                                             </div>
                                         </div>
@@ -7174,11 +7456,25 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                                                         />
                                                     </td>
                                                     <td>
+                                                        {item.attachment && (
+                                                            <div className="mb-2">
+                                                                {typeof item.attachment === 'string' ? (
+                                                                    <a href={`${baseURL}${item.attachment}`} target="_blank" rel="noreferrer" className="text-primary d-flex align-items-center">
+                                                                        <span className="me-2">{item.attachment.split('/').pop()}</span>
+                                                                    </a>
+                                                                ) : (
+                                                                    <span>Existing File : {item.attachment.filename || item.attachment.name || 'Selected file'}</span>
+                                                                )}
+                                                            </div>
+                                                        )}
                                                         <input
                                                             className="form-control"
                                                             type="file"
                                                             onChange={e => handleAnnualTurnoverFileChange(idx, e.target.files[0])}
                                                         />
+                                                        {turnoverErrors[item.year]?.attachment && (
+                                                            <div className="ValidationColor">{turnoverErrors[item.year].attachment}</div>
+                                                        )}
                                                     </td>
                                                     <td>
                                                         <input
@@ -7816,7 +8112,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                                                     />
                                                 </div>
                                             </div>
-                                            {(basicInfo.organizationType.label === 'Private Limited' || basicInfo.organizationType.label === 'Public Limited') && (
+                                            {(basicInfo?.organizationType?.label === 'Private Limited' || basicInfo?.organizationType?.label === 'Public Limited') && (
                                                 <>
                                                     <div className="col-md-4 mt-2">
                                                         <div className="form-group">
@@ -7849,7 +8145,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                                                     </div>
                                                 </>
                                             )}
-                                            {(basicInfo.organizationType.label === 'Limited Liability Partnership (LLP)') && (
+                                            {(basicInfo?.organizationType?.label === 'Limited Liability Partnership (LLP)') && (
                                                 <>
                                                     <div className="col-md-4 mt-2">
                                                         <div className="form-group">
@@ -9004,13 +9300,13 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                                                         <input className="form-control" type="text" value={owner.email || ''} disabled readOnly />
                                                     </div>
                                                 </div>
-                                                <div className="col-md-4">
+                                                <div className="col-md-4 mt-2">
                                                     <div className="form-group">
                                                         <label>Mobile Number <span>*</span></label>
                                                         <input className="form-control" type="text" value={owner.mobile || ''} disabled readOnly />
                                                     </div>
                                                 </div>
-                                                <div className="col-md-4">
+                                                <div className="col-md-4 mt-2">
                                                     <div className="form-group">
                                                         <label>Attachment</label>
                                                         {owner.attachment && (
@@ -9171,6 +9467,9 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                                                                 <span className="me-2">Existing File</span>
                                                             </a>
                                                         )}
+                                                        {turnoverErrors["2024-2025"]?.attachment && (
+                                                            <div className="ValidationColor">{turnoverErrors["2024-2025"].attachment}</div>
+                                                        )}
                                                     </td>
                                                     <td>
                                                         <input className="form-control" type="text" value={turnover["2024-2025"]?.markets || ''} disabled readOnly />
@@ -9187,6 +9486,9 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                                                                 <span className="me-2">Existing File</span>
                                                             </a>
                                                         )}
+                                                        {turnoverErrors["2023-2024"]?.attachment && (
+                                                            <div className="ValidationColor">{turnoverErrors["2023-2024"].attachment}</div>
+                                                        )}
                                                     </td>
                                                     <td>
                                                         <input className="form-control" type="text" value={turnover["2023-2024"]?.markets || ''} disabled readOnly />
@@ -9202,6 +9504,9 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                                                             <a href={typeof turnover["2022-2023"].attachment === 'string' ? `${baseURL}${turnover["2022-2023"].attachment}` : '#'} download className="text-primary d-flex align-items-center">
                                                                 <span className="me-2">Existing File</span>
                                                             </a>
+                                                        )}
+                                                        {turnoverErrors["2022-2023"]?.attachment && (
+                                                            <div className="ValidationColor">{turnoverErrors["2022-2023"].attachment}</div>
                                                         )}
                                                     </td>
                                                     <td>
@@ -9444,16 +9749,18 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                                 onClick={() => {
                                     // Step-wise validation logic
                                     let isValid = true;
-                                    if (currentStep === 1) {
-                                        isValid = validateBasicInfo();
-                                        if (!isValid) return;
-                                    }
-                                    // Add more step validations as needed
-                                    else if (currentStep === 2) {
-                                        isValid = validateStep2();
-                                        if (!isValid) return;
-                                    }
-                                    else if (currentStep === 3) {
+                                    // if (currentStep === 1) {
+                                    //     isValid = validateBasicInfo();
+                                    //     if (!isValid) return;
+                                    // }
+                                    // // Add more step validations as needed
+                                    // else
+                                    //      if (currentStep === 2) {
+                                    //     isValid = validateStep2();
+                                    //     if (!isValid) return;
+                                    // }
+                                    // else 
+                                        if (currentStep === 3) {
                                         isValid = validateStep3();
                                         if (!isValid) return;
                                     }
