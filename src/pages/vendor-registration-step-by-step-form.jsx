@@ -59,7 +59,7 @@ const mapContactPersonsToPayload = (contactPersons) => contactPersons.map((perso
     _destroy: false
 }));
 const mapBranchOfficesToPayload = (branchOffices) => branchOffices.map((office) => ({
-    id:  office.idPre ||null,
+    id: office.idPre || null,
     // office.id ||
     gst_no: office.gst_no || '',
     gst_cert_file: office.gst_cert_file || '',
@@ -76,9 +76,9 @@ const mapBranchOfficesToPayload = (branchOffices) => branchOffices.map((office) 
 
 // Utility: Map registeredAddress state to office_address_attributes
 const mapRegisteredAddressToPayload = (registeredAddress) => [{
-    id: null,
+    id: registeredAddress.id || null,
     address: registeredAddress.address1 || '',
-    address_type: 'Head Office',
+    address_type: 'office',
     email: registeredAddress.billingEmail || '',
     mobile: registeredAddress.mobile || '',
     address_line_two: registeredAddress.address2 || '',
@@ -98,9 +98,9 @@ const mapRegisteredAddressToPayload = (registeredAddress) => [{
 
 // Utility: Map communicationAddress state to communication_address_attributes
 const mapCommunicationAddressToPayload = (communicationAddress, sameAsRegistered) => [{
-    id: null,
+    id: communicationAddress.idPre || null,
     address: communicationAddress.address1 || '',
-    address_type: 'Factory',
+    address_type: 'Communication',
     email: communicationAddress.orderingEmail || '',
     mobile: communicationAddress.mobile || '',
     address_line_two: communicationAddress.address2 || '',
@@ -160,7 +160,7 @@ import { MultiSelector } from "../components";
 const VendorRegistrationStepByStepForm = () => {
     // State for checklist responses
     const [checklistResponses, setChecklistResponses] = useState({});
-const [checklistConfig, setChecklistConfig] = useState([]);
+    const [checklistConfig, setChecklistConfig] = useState([]);
     useEffect(() => {
         const fetchChecklistConfig = async () => {
             try {
@@ -173,6 +173,52 @@ const [checklistConfig, setChecklistConfig] = useState([]);
         };
         fetchChecklistConfig();
     }, []);
+
+    // Qualification options for owners/contact persons
+    const qualificationList = [
+        'Bachelor of Science (B.Sc.)',
+        'Bachelor of Commerce (B.Com.)',
+        'Bachelor of Engineering (B.E.) / Bachelor of Technology (B.Tech.)',
+        'Bachelor of Medicine, Bachelor of Surgery (MBBS)',
+        'Bachelor of Dental Surgery (BDS)',
+        'Bachelor of Computer Applications (BCA)',
+        'Bachelor of Business Administration (BBA)',
+        'Bachelor of Education (B.Ed.)',
+        'Bachelor of Architecture (B.Arch.)',
+        'Bachelor of Pharmacy (B.Pharm.)',
+        'Bachelor of Laws (LL.B.)',
+        'Postgraduate Degrees',
+        'Master of Arts (M.A.)',
+        'Master of Science (M.Sc.)',
+        'Master of Commerce (M.Com.)',
+        'Master of Engineering (M.E.) / Master of Technology (M.Tech.)',
+        'Doctor of Medicine (M.D.)',
+        'Master of Surgery (M.S.)',
+        'Master of Dental Surgery (MDS)',
+        'Master of Computer Applications (MCA)',
+        'Master of Business Administration (MBA)',
+        'Master of Education (M.Ed.)',
+        'Master of Architecture (M.Arch.)',
+        'Master of Pharmacy (M.Pharm.)',
+        'Master of Laws (LL.M.)',
+        'Doctoral Degrees',
+        'Doctor of Philosophy (Ph.D.)',
+        'Doctor of Science (D.Sc.)',
+        'Doctor of Letters (D.Litt.)',
+        'Professional Qualifications',
+        'Chartered Accountant (CA)',
+        'Company Secretary (CS)',
+        'Cost and Management Accountant (CMA)',
+        'Certified Financial Planner (CFP)',
+        'Certified Management Accountant (CMA - US)',
+        'Chartered Financial Analyst (CFA)',
+        'Diploma in Engineering (Polytechnic)',
+        'Diploma in Education (D.Ed.)',
+        'Diploma in Pharmacy (D.Pharm.)',
+        'Diploma in Nursing',
+        'Industrial Training Institute (ITI) Certificates'
+    ];
+    const qualificationOptions = qualificationList.map(q => ({ label: q, value: q }));
     // Handler for response change
     const handleChecklistResponseChange = (subcatId, qId, field, value) => {
         setChecklistResponses(prev => ({
@@ -283,20 +329,20 @@ const [checklistConfig, setChecklistConfig] = useState([]);
         };
         reader.readAsDataURL(file);
     };
-    // Designation options for contact person
-    const designationOptions = [
-        { label: 'Select', value: '' },
-        { label: 'Manager', value: 'Manager' },
-        { label: 'Director', value: 'Director' },
-        { label: 'CEO', value: 'CEO' },
-        { label: 'CFO', value: 'CFO' },
-        { label: 'COO', value: 'COO' },
-        { label: 'Owner', value: 'Owner' },
-        { label: 'Partner', value: 'Partner' },
-        { label: 'Head of Procurement', value: 'Head of Procurement' },
-        { label: 'Purchase Manager', value: 'Purchase Manager' },
-        { label: 'Other', value: 'Other' }
-    ];
+    // Designation options for contact person (fetched from API dropdowns)
+    const [designationOptions, setDesignationOptions] = useState([]);
+    useEffect(() => {
+        const fetchDesignationOptions = async () => {
+            try {
+                const response = await axios.get(`${baseURL}/pms/suppliers/dropdowns`);
+                const options = (response.data?.designation || []).map(item => ({ label: item.name, value: item.value }));
+                setDesignationOptions(options);
+            } catch (error) {
+                setDesignationOptions([]);
+            }
+        };
+        fetchDesignationOptions();
+    }, []);
     // Annual Turnover state as array of objects
     const [annualTurnover, setAnnualTurnover] = useState([
         { year: '2024-2025', turnover: '', attachment: null, keyMarkets: '' },
@@ -514,7 +560,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
 
 
     // Checklist configuration state
-    
+
     const [natureOfBusinessOptions, setNatureOfBusinessOptions] = useState([]);
     const [vendorTypeOptions, setVendorTypeOptions] = useState([]);
     useEffect(() => {
@@ -570,7 +616,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
         };
         fetchGstinClassificationOptions();
     }, []);
-
+    console.log("applicable:", gstinClassificationOptions)
 
     // console.log("nature of business:",natureOfBusinessOptions)
 
@@ -596,7 +642,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
     const [statutoryInputs, setStatutoryInputs] = useState({});
     const [statutoryErrors, setStatutoryErrors] = useState({});
 
-   
+
     // ***********************************
 
     const [basicInfo, setBasicInfo] = useState({
@@ -640,7 +686,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
 
         const selected = value ? new Date(value) : null;
         const today = new Date();
-        today.setHours(0,0,0,0);
+        today.setHours(0, 0, 0, 0);
 
         setBasicInfoErrors(prev => {
             const copy = prev ? { ...prev } : {};
@@ -660,22 +706,65 @@ const [checklistConfig, setChecklistConfig] = useState([]);
         { label: 'No', value: 'No' }
     ];
     const [gstinApplicable, setGstinApplicable] = useState('');
+    // When GSTIN Applicable is 'No', auto-select 'Not Registered' for gstinClassification and disable the selector
+    useEffect(() => {
+        try {
+            const raw = basicInfo.gstinApplicable;
+            const isNo = raw === 'No' || raw === 0 || raw === '0' || (raw && raw.value === 'No') || (typeof raw === 'string' && raw.toLowerCase() === 'no');
+            if (isNo) {
+                const notReg = (gstinClassificationOptions || []).find(opt => String(opt.value) === String(6) || String(opt.label).toLowerCase() === 'not registered') || { label: 'Not Registered', value: 6 };
+                if (!basicInfo.gstinClassification || String(basicInfo.gstinClassification.value) !== String(notReg.value)) {
+                    setBasicInfo(prev => ({ ...prev, gstinClassification: notReg }));
+                }
+            } else {
+                // if previously set to Not Registered but now GSTIN is applicable, clear it
+                if (basicInfo.gstinClassification && String(basicInfo.gstinClassification.value) === String(6)) {
+                    setBasicInfo(prev => ({ ...prev, gstinClassification: null }));
+                }
+            }
+        } catch (e) {
+            // silent
+        }
+    }, [basicInfo.gstinApplicable, gstinClassificationOptions]);
     const [emailOtp, setEmailOtp] = useState("");
     const [mobileOtp, setMobileOtp] = useState("");
+    const [otpTimer, setOtpTimer] = useState(0); // seconds remaining for OTP resend
+
+    const formatTimer = (s) => {
+        const mm = Math.floor(s / 60);
+        const ss = s % 60;
+        return `${String(mm).padStart(2, '0')}:${String(ss).padStart(2, '0')}`;
+    };
 
 
     // Handler for Get OTP button
     const handleGetOtp = async () => {
+        if (otpTimer > 0) return; // already waiting
         try {
             const response = await axios.post(`${baseURL}/pms/suppliers/${id}/generate_otp_api`);
-            // You can handle response here, e.g. show toast or set OTP state
-            // toast.success('OTP sent successfully!');
             toast.success("OTP has been sent to your registered mobile number and email.");
-            console.log("responce otp:", response)
+            console.log("response otp:", response);
+            // start 60s resend timer
+            setOtpTimer(60);
         } catch (error) {
             toast.error('Failed to send OTP.');
         }
     };
+
+    // Countdown effect for OTP timer
+    useEffect(() => {
+        if (otpTimer <= 0) return;
+        const id = setInterval(() => {
+            setOtpTimer(prev => {
+                if (prev <= 1) {
+                    clearInterval(id);
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+        return () => clearInterval(id);
+    }, [otpTimer]);
 
     // console.log("mail otp:", emailOtp)
     // console.log("mobile otp:", mobileOtp)
@@ -792,6 +881,24 @@ const [checklistConfig, setChecklistConfig] = useState([]);
         }
     }, [supplierShowData]);
 
+    // Reconcile fallback GSTIN classification (or other selector fallbacks) with canonical option objects
+    // This ensures the SingleSelector shows the option label (not a raw id) once options load asynchronously.
+    useEffect(() => {
+        try {
+            if (!gstinClassificationOptions || gstinClassificationOptions.length === 0) return;
+            const current = basicInfo.gstinClassification;
+            if (!current) return;
+            const currentVal = (typeof current === 'object' ? current.value : current);
+            const match = (gstinClassificationOptions || []).find(opt => String(opt.value) === String(currentVal));
+            // If we found a canonical option and it's not the same reference/label, update state
+            if (match && (match !== current)) {
+                setBasicInfo(prev => ({ ...prev, gstinClassification: match }));
+            }
+        } catch (e) {
+            // silent
+        }
+    }, [gstinClassificationOptions, basicInfo.gstinClassification]);
+
     const handleDeclarationOptionChange = (questionId, option) => {
         setSupplierDeclarations(prev => prev.map(d => d.question_id === questionId ? { ...d, selected_option: option.name, selected_option_id: option.value } : d));
     };
@@ -799,16 +906,85 @@ const [checklistConfig, setChecklistConfig] = useState([]);
     const handleDeclarationExplanationChange = (questionId, value) => {
         setSupplierDeclarations(prev => prev.map(d => d.question_id === questionId ? { ...d, explanation: value } : d));
     };
-    // console.log("statutory dedeatils:", statutoryDetails)
+    // console.log("statutory dedeatils***:", panAttachmentObj)
 
 
     // Map supplierShowData to basicInfo when supplierShowData changes
     useEffect(() => {
         if (!supplierShowData) return;
+        // try to pick a matching option object for organizationType so SingleSelector shows it as selected
+        const orgOption = (organizationTypeOptions || []).find(opt => String(opt.value) === String(supplierShowData.type_of_organization_id))
+            || (supplierShowData.type_of_organization_id ? { value: supplierShowData.type_of_organization_id, label: supplierShowData.type_of_organization_name || String(supplierShowData.type_of_organization_id) } : null);
+
+        // try to pick a matching option object for vendorType so SingleSelector shows it as selected
+        const vendorOption = (vendorTypeOptions || []).find(opt => String(opt.value) === String(supplierShowData.supplier_type_id))
+            || (supplierShowData.supplier_type_id ? { value: supplierShowData.supplier_type_id, label: supplierShowData.supplier_type_name || String(supplierShowData.supplier_type_id) } : null);
+
+        // try to pick a matching option object for industryType so SingleSelector shows it as selected
+        const industryOption = (industryTypeOptions || []).find(opt => String(opt.value) === String(supplierShowData.type_business_id))
+            || (supplierShowData.type_business_id ? { value: supplierShowData.type_business_id, label: supplierShowData.type_business_name || String(supplierShowData.type_business_id) } : null);
+
+        // Build PAN attachment object (if backend provides it)
+        const panAttachmentRaw = Array.isArray(supplierShowData.pan_attachments) && supplierShowData.pan_attachments.length > 0 ? supplierShowData.pan_attachments[0] : null;
+        const panAttachmentObj = panAttachmentRaw ? {
+            filename: panAttachmentRaw.document_name || panAttachmentRaw.filename || null,
+            // try common fields for a server-side path/url
+            file_url: panAttachmentRaw.document_path ? `${baseURL}${panAttachmentRaw.document_path}` : (panAttachmentRaw.file_url || panAttachmentRaw.url || panAttachmentRaw.attachment_url || null)
+        } : null;
+
+        // Build GSTIN attachment object (if backend provides it) so UI can show existing file like PAN
+        const gstAttachmentRaw = Array.isArray(supplierShowData.gstin_attachments) && supplierShowData.gstin_attachments.length > 0 ? supplierShowData.gstin_attachments[0] : null;
+        const gstinAttachmentObj = gstAttachmentRaw ? {
+            filename: gstAttachmentRaw.document_name || gstAttachmentRaw.filename || null,
+            file_url: gstAttachmentRaw.document_path ? `${baseURL}${gstAttachmentRaw.document_path}` : (gstAttachmentRaw.file_url || gstAttachmentRaw.url || gstAttachmentRaw.attachment_url || null)
+        } : null;
+
+        // Build CIN attachment object (try common possible keys) so UI can show existing CIN file
+        const cinRaw1 = Array.isArray(supplierShowData.cin_number_attachments) && supplierShowData.cin_number_attachments.length > 0 ? supplierShowData.cin_number_attachments[0] : null;
+        const cinRaw2 = Array.isArray(supplierShowData.cin_attachments) && supplierShowData.cin_attachments.length > 0 ? supplierShowData.cin_attachments[0] : null;
+        const cinAttachmentRaw = cinRaw1 || cinRaw2 || null;
+        const cinAttachmentObj = cinAttachmentRaw ? {
+            filename: cinAttachmentRaw.document_name || cinAttachmentRaw.filename || null,
+            file_url: cinAttachmentRaw.document_path ? `${baseURL}${cinAttachmentRaw.document_path}` : (cinAttachmentRaw.file_url || cinAttachmentRaw.url || cinAttachmentRaw.attachment_url || null)
+        } : null;
+
+        // Build LLP attachment object (try a few common keys)
+        const llpRaw1 = Array.isArray(supplierShowData.llp_attachments) && supplierShowData.llp_attachments.length > 0 ? supplierShowData.llp_attachments[0] : null;
+        const llpRaw2 = Array.isArray(supplierShowData.llp_number_attachments) && supplierShowData.llp_number_attachments.length > 0 ? supplierShowData.llp_number_attachments[0] : null;
+        const llpAttachmentRaw = llpRaw1 || llpRaw2 || null;
+        const llpAttachmentObj = llpAttachmentRaw ? {
+            filename: llpAttachmentRaw.document_name || llpAttachmentRaw.filename || null,
+            file_url: llpAttachmentRaw.document_path ? `${baseURL}${llpAttachmentRaw.document_path}` : (llpAttachmentRaw.file_url || llpAttachmentRaw.url || llpAttachmentRaw.attachment_url || null)
+        } : null;
+
+        // Normalize GSTIN applicable into the selector option shape (handles '0'/'1', boolean, 'Yes'/'No')
+        const gstRaw = supplierShowData.gstin_applicable;
+        console.log("row gstin:", gstRaw)
+        let gstinOption = null;
+        if (gstRaw === true || String(gstRaw) === "1" || String(gstRaw).toLowerCase() === 'yes') {
+            gstinOption = { label: 'Yes', value: 'Yes' };
+        } else if (gstRaw === false || String(gstRaw) === "0" || String(gstRaw).toLowerCase() === 'no') {
+            gstinOption = { label: 'No', value: 'No' };
+        } else if (typeof gstRaw === 'string' && gstRaw) {
+            // try to match existing options by value or label
+            gstinOption = (gstinApplicableOptions || []).find(opt => String(opt.value) === gstRaw || String(opt.label).toLowerCase() === gstRaw.toLowerCase()) || null;
+        }
+
+        // Try to pick GSTIN Classification option object so SingleSelector shows it as selected
+        const gstClassRaw = supplierShowData.gst_classification_id;
+        const gstinClassOption = (gstinClassificationOptions || []).find(opt => String(opt.value) === String(gstClassRaw))
+            || (gstClassRaw ? { value: gstClassRaw, label: supplierShowData.gst_classification_name || String(gstClassRaw) } : null);
+
         setBasicInfo(prev => ({
             ...prev,
             vendorOrganizationName: supplierShowData.organization_name || "",
-            organizationType: null,
+            organizationType: orgOption,
+            vendorType: vendorOption,
+            industryType: industryOption,
+            panAttachmentObj: panAttachmentObj,
+            gstinApplicable: gstinOption,
+            typeOfWork: supplierShowData.type_of_work || "",
+            keyMarket: supplierShowData.key_market || "",
             cin: supplierShowData.cin_number || "",
             panNo: supplierShowData.pan_number || "",
             fullName: supplierShowData.full_name || "",
@@ -817,22 +993,162 @@ const [checklistConfig, setChecklistConfig] = useState([]);
             dateOfIncorporation: supplierShowData.date_of_incorporation || "",
             schemaGroup: supplierShowData.schema_group_id || "",
             gstinNo: supplierShowData.gstin || "",
-            gstinApplicable: supplierShowData.gstin_applicable || "",
+            // gstinApplicable: supplierShowData.gstin_applicable || "",
             // Add more mappings as needed
             llp: supplierShowData.llp_number || "",
             natureOfBusiness: supplierShowData.nature_of_business_id || null,
-            gstinClassification: Number(supplierShowData.gst_classification_id || null),
+            gstinClassification: gstinClassOption,
+            // Attach existing GSTIN attachment for UI display
+            gstinAttachmentObj: gstinAttachmentObj,
+            // Attach existing CIN and LLP attachments for UI display
+            cinAttachmentObj: cinAttachmentObj,
+            llpAttachmentObj: llpAttachmentObj,
             // Attachments: just set filenames for now (handle upload separately)
             // panAttachment: supplierShowData.pan_attachments?.[0]?.document_name || null,
-            // cinAttachment: supplierShowData.cin_number_attachments?.[0]?.document_name || null,
             // gstinAttachment: supplierShowData.gstin_attachments?.[0]?.document_name || null,
+            cinAttachment: cinAttachmentRaw?.document_name || cinAttachmentRaw?.filename || null,
+            llpAttachment: llpAttachmentRaw?.document_name || llpAttachmentRaw?.filename || null,
             // gstinDeclaration: supplierShowData.gstin_declaration_attachments?.[0]?.document_name || null,
             // ...other fields as needed
         }));
+        // Map a few additionalDetails fields from supplierShowData so they appear preselected
+        try {
+            const amcRaw = supplierShowData.amc_provided;
+            let amcOption = null;
+            if (amcRaw === true || String(amcRaw) === '1' || String(amcRaw).toLowerCase() === 'yes') {
+                amcOption = { label: 'Yes', value: 'Yes' };
+            } else if (amcRaw === false || String(amcRaw) === '0' || String(amcRaw).toLowerCase() === 'no') {
+                amcOption = { label: 'No', value: 'No' };
+            }
+
+            // MSME/Udyam applicable mapping (supplierShowData may have 'msme' or similar)
+            const msmeRaw = supplierShowData.msme || supplierShowData.msme_applicable || supplierShowData.msmeUdyamApplicable;
+            let msmeOption = null;
+            if (msmeRaw === true || String(msmeRaw) === '1' || String(msmeRaw).toLowerCase() === 'yes') {
+                msmeOption = { label: 'Yes', value: 'Yes' };
+            } else if (msmeRaw === false || String(msmeRaw) === '0' || String(msmeRaw).toLowerCase() === 'no') {
+                msmeOption = { label: 'No', value: 'No' };
+            }
+
+            // Enterprise / MSME type mapping (if supplier provides an id or name)
+            const enterpriseRaw = supplierShowData.enterprise;
+            const enterpriseOption = (typeof enterpriseRaw !== 'undefined' && enterpriseRaw !== null)
+                ? ((optionsEnterPrise || []).find(opt => String(opt.value) === String(enterpriseRaw)) || (enterpriseRaw ? { value: enterpriseRaw, label: supplierShowData.enterprise_name || String(enterpriseRaw) } : null))
+                : null;
+
+            // Build MSME attachment object (if provided by backend) so UI can show existing file
+            const msmeAttachmentRaw = Array.isArray(supplierShowData.msme_attachments) && supplierShowData.msme_attachments.length > 0 ? supplierShowData.msme_attachments[0] : null;
+            const msmeAttachmentObj = msmeAttachmentRaw ? {
+                filename: msmeAttachmentRaw.document_name || msmeAttachmentRaw.filename || null,
+                file_url: msmeAttachmentRaw.document_path ? `${baseURL}${msmeAttachmentRaw.document_path}` : (msmeAttachmentRaw.file_url || msmeAttachmentRaw.url || msmeAttachmentRaw.attachment_url || null)
+            } : null;
+
+            // Build MSME declaration attachment if present
+            const msmeDeclRaw = Array.isArray(supplierShowData.msme_declaration_attachments) && supplierShowData.msme_declaration_attachments.length > 0 ? supplierShowData.msme_declaration_attachments[0] : null;
+            const msmeDeclarationObj = msmeDeclRaw ? {
+                filename: msmeDeclRaw.document_name || msmeDeclRaw.filename || null,
+                file_url: msmeDeclRaw.document_path ? `${baseURL}${msmeDeclRaw.document_path}` : (msmeDeclRaw.file_url || msmeDeclRaw.url || msmeDeclRaw.attachment_url || null)
+            } : null;
+
+            // Einvoicing mapping (backend may use 'einvoicing' or 'einvoice')
+            const einvoiceRaw = supplierShowData.einvoicing || supplierShowData.einvoice || supplierShowData.einvoicing_applicable;
+            let einvoiceOption = null;
+            if (einvoiceRaw === true || String(einvoiceRaw) === '1' || String(einvoiceRaw).toLowerCase() === 'yes') {
+                einvoiceOption = { label: 'Yes', value: 'Yes' };
+            } else if (einvoiceRaw === false || String(einvoiceRaw) === '0' || String(einvoiceRaw).toLowerCase() === 'no') {
+                einvoiceOption = { label: 'No', value: 'No' };
+            }
+
+            // Map classification year and major activity into option objects when possible
+            const classRaw = supplierShowData.classification_year || supplierShowData.classificationYear;
+            let classificationOption = null;
+            if (typeof classRaw !== 'undefined' && classRaw !== null && classRaw !== '') {
+                classificationOption = (optionsClassificationYear || []).find(opt => String(opt.value) === String(classRaw) || String(opt.label).toLowerCase() === String(classRaw).toLowerCase()) || (typeof classRaw === 'string' ? { value: classRaw, label: String(classRaw) } : classRaw);
+            }
+
+            const majorRaw = supplierShowData.major_activity || supplierShowData.majorActivity;
+            let majorOption = null;
+            if (typeof majorRaw !== 'undefined' && majorRaw !== null && majorRaw !== '') {
+                majorOption = (optionsMajorActivity || []).find(opt => String(opt.value) === String(majorRaw) || String(opt.label).toLowerCase() === String(majorRaw).toLowerCase()) || (typeof majorRaw === 'string' ? { value: majorRaw, label: String(majorRaw) } : majorRaw);
+            }
+
+            setAdditionalDetails(prev => ({
+                ...prev,
+                deliveryLeadPeriod: supplierShowData.delivery_lead_period || prev.deliveryLeadPeriod || "",
+                warrantyPeriod: supplierShowData.specify_warranty_period || prev.warrantyPeriod || "",
+                amcProvided: amcOption !== null ? amcOption : prev.amcProvided,
+                website: supplierShowData.website || prev.website || "",
+                // MSME fields
+                msmeUdyamApplicable: msmeOption !== null ? msmeOption : prev.msmeUdyamApplicable,
+                msmeNo: supplierShowData.msme_no || prev.msmeNo || "",
+                validFrom: supplierShowData.valid_from || prev.validFrom || "",
+                validTill: supplierShowData.valid_till || prev.validTill || "",
+                msmeEnterpriseType: enterpriseOption || prev.msmeEnterpriseType,
+                // Classification year and major activity (preselect if API provides values)
+                classificationYear: classificationOption || prev.classificationYear || null,
+                majorActivity: majorOption || prev.majorActivity || null,
+                // Attach MSME files for UI (existing server file shown via file_url)
+                msmeAttachmentObj: msmeAttachmentObj || prev.msmeAttachmentObj,
+                msmeDeclarationObj: msmeDeclarationObj || prev.msmeDeclarationObj,
+                // Einvoicing option
+                einvoice: einvoiceOption !== null ? einvoiceOption : prev.einvoice,
+            }));
+        } catch (e) {
+            // ignore mapping errors
+        }
+        // Map office (registered) and communication addresses from API to local address states
+        try {
+            const office = supplierShowData.office_address || supplierShowData.officeAddress || supplierShowData.registered_address || supplierShowData.office;
+            if (office) {
+                const officeCountry = office.pms_country_id ? ((countryOptions || []).find(opt => String(opt.value) === String(office.pms_country_id)) || { value: office.pms_country_id, label: office.country_name || '' }) : null;
+                const officeState = office.pms_state_id ? ((stateOptions || []).find(opt => String(opt.value) === String(office.pms_state_id)) || { value: office.pms_state_id, label: office.state_name || '' }) : null;
+                setRegisteredAddress(prev => ({
+                    ...prev,
+                    id: office.id,
+                    address1: office.address || office.address_line_two || office.address_line_one || prev.address1 || '',
+                    address2: office.address_line_two || office.address_line_three || prev.address2 || '',
+                    address3: office.address_line_three || office.address_line_four || prev.address3 || '',
+                    address4: office.address_line_four || office.address_line_five || prev.address4 || '',
+                    address5: office.address_line_five || prev.address5 || '',
+                    country: officeCountry,
+                    state: officeState,
+                    city: office.city_name || office.city || prev.city || '',
+                    pincode: office.pin_code || office.pin_code || office.pinCode || prev.pincode || '',
+                    telephone: office.telephone_number || office.tel_number || prev.telephone || '',
+                    mobile: office.mobile || prev.mobile || '',
+                    orderingEmail: office.email || prev.orderingEmail || '',
+                    billingEmail: office.email || prev.billingEmail || '',
+                }));
+            }
+
+            const comm = supplierShowData.communication_address || supplierShowData.communicationAddress || supplierShowData.communication;
+            if (comm) {
+                const commCountry = comm.pms_country_id ? ((countryOptions || []).find(opt => String(opt.value) === String(comm.pms_country_id)) || { value: comm.pms_country_id, label: comm.country_name || '' }) : null;
+                const commState = comm.pms_state_id ? ((commStateOptions || []).find(opt => String(opt.value) === String(comm.pms_state_id)) || { value: comm.pms_state_id, label: comm.state_name || '' }) : null;
+                setCommunicationAddress(prev => ({
+                    ...prev,
+                    idPre: comm.id,
+                    address1: comm.address || comm.address_line_two || prev.address1 || '',
+                    address2: comm.address_line_two || comm.address_line_three || prev.address2 || '',
+                    address3: comm.address_line_three || comm.address_line_four || prev.address3 || '',
+                    address4: comm.address_line_four || comm.address_line_five || prev.address4 || '',
+                    address5: comm.address_line_five || prev.address5 || '',
+                    country: commCountry,
+                    state: commState,
+                    city: comm.city_name || comm.city || prev.city || '',
+                    pincode: comm.pin_code || comm.pinCode || prev.pincode || '',
+                    telephone: comm.telephone_number || comm.telephone_number || prev.telephone || '',
+                    mobile: comm.mobile || prev.mobile || '',
+                    orderingEmail: comm.email || prev.orderingEmail || '',
+                }));
+            }
+        } catch (err) {
+            // ignore address mapping errors
+        }
         // Map branch offices from API to local branchOffices state
         if (Array.isArray(supplierShowData.branch_offices) && supplierShowData.branch_offices.length > 0) {
             const mappedBranches = supplierShowData.branch_offices.map(b => ({
-                 idPre: b.id,
+                idPre: b.id,
                 id: b.id || Date.now() + Math.random(),
                 address: b.address || "",
                 country: b.country_id ? { value: b.country_id, label: b.country_name || b.country_id } : null,
@@ -849,7 +1165,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
         // Map directors_informations (from API) to local owners state
         if (Array.isArray(supplierShowData.directors_informations) && supplierShowData.directors_informations.length > 0) {
             const mappedOwners = supplierShowData.directors_informations.map(d => ({
-                 idPre: d.id,
+                idPre: d.id,
                 id: d.id || Date.now() + Math.random(),
                 firstName: d.first_name || "",
                 lastName: d.last_name || "",
@@ -895,7 +1211,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
     }, [supplierShowData]);
 
 
-    // console.log("basic info after api:", basicInfo)
+
 
 
     // Additional Vendor Details state (all fields in one object)
@@ -973,7 +1289,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
         const fetchIndustryTypes = async () => {
             try {
                 const response = await axios.get(`${baseURL}/pms/suppliers/type_of_industry_list`);
-                const options = (response.data?.type_of_industry || []).map(item => ({ label: item.name, value: item.id }));
+                const options = (response.data?.type_of_industry || []).map(item => ({ label: item.name, value: item.value }));
                 setIndustryTypeOptions(options);
             } catch (error) {
                 console.error('Error fetching industry types:', error);
@@ -1084,7 +1400,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
         if (basicInfo.dateOfIncorporation) {
             const sel = new Date(basicInfo.dateOfIncorporation);
             const today = new Date();
-            today.setHours(0,0,0,0);
+            today.setHours(0, 0, 0, 0);
             if (sel > today) {
                 errors.dateOfIncorporation = 'Date of Incorporation cannot be a future date.';
             }
@@ -1204,7 +1520,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
     });
 
     // console.log("reg add :",registeredAddress)
-    // console.log("comm add:",communicationAddress)
+    console.log("comm add:", communicationAddress)
 
 
     // State options for address selectors
@@ -1258,6 +1574,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
     }, [communicationAddress.country]);
 
 
+    console.log("basic info after api com add:", communicationAddress)
     const [sameAsRegistered, setSameAsRegistered] = useState(false);
 
     const handleRegisteredAddressChange = (field, value) => {
@@ -1388,78 +1705,85 @@ const [checklistConfig, setChecklistConfig] = useState([]);
     const validateStep3 = () => {
         let validationErrors = {};
         // if (isRekycTypeEmpty || isBankRekyc) {
-            let hasNewBankDetails = false;
+        let hasNewBankDetails = false;
 
-            bankDetailsList.forEach((bankDetail) => {
-                // Only validate if it's a new entry
-                if (bankDetail.isNew) {
-                    hasNewBankDetails = true;
+        bankDetailsList.forEach((bankDetail) => {
+            // Only validate if it's a new entry
+            if (bankDetail.isNew) {
+                hasNewBankDetails = true;
 
-                    if (!bankDetail.bank_name) {
-                        validationErrors.bank_name = "Bank Name is required.";
-                    }
-                    if (!bankDetail.address) {
-                        validationErrors.address = "Address is required.";
-                    }
-                    if (!bankDetail.country_id) {
-                        validationErrors.country_id = "Country is required.";
-                    }
-                    if (!bankDetail.state_id) {
-                        validationErrors.state_id = "State is required.";
-                    }
-                    if (!bankDetail.city_name) {
-                        validationErrors.city_name = "City is required.";
-                    }
+                if (!bankDetail.bank_name) {
+                    validationErrors.bank_name = "Bank Name is required.";
+                }
+                if (!bankDetail.address) {
+                    validationErrors.address = "Address is required.";
+                }
+                if (!bankDetail.country_id) {
+                    validationErrors.country_id = "Country is required.";
+                }
+                if (!bankDetail.state_id) {
+                    validationErrors.state_id = "State is required.";
+                }
+                if (!bankDetail.city_name) {
+                    validationErrors.city_name = "City is required.";
+                }
 
-                    // For pincode, only validate if it's a new entry and there's no input error
-                    if (!bankDetail.pincode || isNaN(bankDetail.pincode)) {
-                        if (!inputErrors[bankDetail.id]?.pincode) {
-                            validationErrors.pincode = "Valid Pin Code is required.";
-                        }
-                    }
-
-                    if (!bankDetail.account_type || bankDetail.account_type === "") {
-                        validationErrors.account_type = "Account Type is required.";
-                    }
-                    if (!bankDetail.account_number) {
-                        validationErrors.account_number = "Account Number is required.";
-                    }
-                    if (!bankDetail.confirm_account_number) {
-                        validationErrors.confirm_account_number = "Confirm Account Number is required.";
-                    } else if (
-                        bankDetail.account_number !== bankDetail.confirm_account_number
-                    ) {
-                        validationErrors.confirm_account_number = "Account numbers must match";
-                    }
-
-                    if (!bankDetail.branch_name) {
-                        validationErrors.branch_name = "Branch Name is required.";
-                    }
-                    if (!bankDetail.micr_number) {
-                        validationErrors.micr_number = "MICR Number is required.";
-                    }
-
-                    // For IFSC code, only validate if it's a new entry and there's no input error
-                    if (!bankDetail.ifsc_code) {
-                        if (!inputErrors[bankDetail.id]?.ifsc) {
-                            validationErrors.ifsc_code = "IFSC Code is required.";
-                        }
-                    }
-
-                    if (!bankDetail.benficary_name) {
-                        validationErrors.benficary_name = "Beneficiary Name is required.";
-                    }
-
-                    if (!bankAttachments[bankDetail.id]) {
-                        validationErrors.cancelled_cheque = "Cancelled Cheque / Bank Copy is required.";
+                // For pincode, only validate if it's a new entry and there's no input error
+                if (!bankDetail.pincode || isNaN(bankDetail.pincode)) {
+                    if (!inputErrors[bankDetail.id]?.pincode) {
+                        validationErrors.pincode = "Valid Pin Code is required.";
                     }
                 }
-            });
 
-            // If there are no new bank details, don't show validation errors
-            if (!hasNewBankDetails) {
-                validationErrors = {};
+                if (!bankDetail.account_type || bankDetail.account_type === "") {
+                    validationErrors.account_type = "Account Type is required.";
+                }
+                if (!bankDetail.account_number) {
+                    validationErrors.account_number = "Account Number is required.";
+                }
+                if (!bankDetail.confirm_account_number) {
+                    validationErrors.confirm_account_number = "Confirm Account Number is required.";
+                } else if (
+                    bankDetail.account_number !== bankDetail.confirm_account_number
+                ) {
+                    validationErrors.confirm_account_number = "Account numbers must match";
+                }
+
+                if (!bankDetail.branch_name) {
+                    validationErrors.branch_name = "Branch Name is required.";
+                }
+                if (!bankDetail.micr_number) {
+                    validationErrors.micr_number = "MICR Number is required.";
+                }
+
+                // For IFSC code, only validate if it's a new entry and there's no input error
+                if (!bankDetail.ifsc_code) {
+                    if (!inputErrors[bankDetail.id]?.ifsc) {
+                        validationErrors.ifsc_code = "IFSC Code is required.";
+                    }
+                } else {
+                    // Validate IFSC format: 11 chars, 4 letters, a '0', then 6 alphanumeric
+                    const ifscRegex = /^[A-Z]{4}0[A-Z0-9]{6}$/;
+                    const ifscValue = String(bankDetail.ifsc_code || '').trim().toUpperCase();
+                    if (!ifscRegex.test(ifscValue)) {
+                        validationErrors.ifsc_code = "Invalid IFSC code. eg.: ABCD0123456";
+                    }
+                }
+
+                if (!bankDetail.benficary_name) {
+                    validationErrors.benficary_name = "Beneficiary Name is required.";
+                }
+
+                if (!bankAttachments[bankDetail.id]) {
+                    validationErrors.cancelled_cheque = "Cancelled Cheque / Bank Copy is required.";
+                }
             }
+        });
+
+        // If there are no new bank details, don't show validation errors
+        if (!hasNewBankDetails) {
+            validationErrors = {};
+        }
         // }
         setBankErrors(validationErrors);
         return Object.keys(validationErrors).length === 0;
@@ -1547,8 +1871,8 @@ const [checklistConfig, setChecklistConfig] = useState([]);
 
             const selected = new Date(value);
             const today = new Date();
-            selected.setHours(0,0,0,0);
-            today.setHours(0,0,0,0);
+            selected.setHours(0, 0, 0, 0);
+            today.setHours(0, 0, 0, 0);
             if (selected > today) {
                 // Do not set the future date; show validation error for this contact person
                 setContactPersonErrors(prev => prev.map((err, i) => i === idx ? ({ ...err, dob: 'Date of Birth cannot be in the future.' }) : err));
@@ -1682,7 +2006,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
         // Validate against future date
         const selected = value ? new Date(value) : null;
         const today = new Date();
-        today.setHours(0,0,0,0);
+        today.setHours(0, 0, 0, 0);
 
         setMajorCustomerErrors(prev => {
             const copy = Array.isArray(prev) ? [...prev] : [];
@@ -1931,7 +2255,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
         });
         setOwnerErrors(ownerErrs);
 
-       
+
         // Annual Turnover: if amount is provided, attachment is required
         const turnoverErrs = {};
         (annualTurnover || []).forEach(entry => {
@@ -1963,7 +2287,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                 // disallow future dates
                 const sel = new Date(cust.serviceFrom);
                 const today = new Date();
-                today.setHours(0,0,0,0);
+                today.setHours(0, 0, 0, 0);
                 if (sel > today) {
                     err.serviceFrom = 'Service Provided From cannot be a future date.';
                 }
@@ -1975,7 +2299,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                 } else {
                     const selTo = new Date(cust.serviceTo);
                     const today = new Date();
-                    today.setHours(0,0,0,0);
+                    today.setHours(0, 0, 0, 0);
                     if (selTo > today) {
                         err.serviceTo = 'Service Provided To cannot be a future date.';
                     }
@@ -1985,7 +2309,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
         });
         setMajorCustomerErrors(custErrs);
 
-     
+
 
         // Return true if all error objects are empty
         const allBranchesValid = branchErrs.every(e => Object.keys(e).length === 0);
@@ -1994,10 +2318,10 @@ const [checklistConfig, setChecklistConfig] = useState([]);
         // Combine all validations
         // ...existing checks...
         const allOwnersValid = ownerErrs.every(e => Object.keys(e).length === 0);
-       
-    const allCustValid = custErrs.every(e => Object.keys(e).length === 0);
-    const allTurnoverValid = Object.keys(turnoverErrs).length === 0;
-       
+
+        const allCustValid = custErrs.every(e => Object.keys(e).length === 0);
+        const allTurnoverValid = Object.keys(turnoverErrs).length === 0;
+
 
         return allBranchesValid && allContactsValid && allWarehousesValid && allOwnersValid
             // && allRelEmpValid && allGroupValid && allSupValid 
@@ -2290,7 +2614,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                         ...prev,
                         [id]: {
                             ...prev[id],
-                            ifsc: "Invalid IFSC format. First 4 characters must be capital letters, followed by '0' and 6 alphanumeric characters",
+                            ifsc: "Invalid IFSC format. First 4 characters must be capital letters, followed by '0' and 6 alphanumeric characters. eg.: ABCD0123456",
                         },
                     }));
                     // Clear the validation error
@@ -2577,7 +2901,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
         setIsChecked(!isChecked);
     };
 
-    // console.log("before update")
+    // console.log("before update:",additionalDetails.classificationYear.value)
 
     const ppayload2 = {
 
@@ -2588,10 +2912,10 @@ const [checklistConfig, setChecklistConfig] = useState([]);
             organization_name: basicInfo.vendorOrganizationName,
 
             cin_number: basicInfo.cin,
-            cin_attachment: basicInfo.cinAttachmentObj,
+            cin_attachment: [basicInfo.cinAttachmentObj],
 
             llp_number: basicInfo.llp,
-            llp_attachment: basicInfo.llpAttachmentObj,
+            llp_attachment: [basicInfo.llpAttachmentObj],
 
             type_of_organization_id: basicInfo.organizationType && basicInfo.organizationType.value ? basicInfo.organizationType.value : null,
             nature_of_business_id: basicInfo.natureOfBusiness,
@@ -2601,7 +2925,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
             key_market: basicInfo.keyMarket,
 
             pan_number: basicInfo.panNo,
-            pan_attachment: basicInfo.panAttachmentObj,
+            pan_attachment: [basicInfo.panAttachmentObj],
             schema_group_id: basicInfo.schemaGroup,
             date_of_incorporation: basicInfo.dateOfIncorporation,
 
@@ -2613,8 +2937,8 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                         null,
             gst_classification_id: basicInfo.gstinClassification?.value,
             gstin: basicInfo.gstinNo,
-            gstin_attachmentObj: basicInfo.gstinAttachment,
-            gstin_declarationObj: basicInfo.gstinDeclaration,
+            gstin_attachmentObj: [basicInfo.gstinAttachment] || [basicInfo.gstinDeclaration],
+            // gstin_declarationObj: basicInfo.gstinDeclaration,
 
 
 
@@ -2622,7 +2946,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
             website: additionalDetails.website,
             delivery_lead_period: additionalDetails.deliveryLeadPeriod,
             specify_warranty_period: additionalDetails.warrantyPeriod,
-            amc_provided: additionalDetails.amcProvided,
+            amc_provided: additionalDetails.amcProvided && additionalDetails.amcProvided.value ? additionalDetails.amcProvided.value : null,
             currency: additionalDetails.currencyType && additionalDetails.currencyType.value ? additionalDetails.currencyType.value : null,
             msme: additionalDetails.msmeUdyamApplicable && additionalDetails.msmeUdyamApplicable.value ? additionalDetails.msmeUdyamApplicable.value : null,
             einvoicing: additionalDetails.einvoice && additionalDetails.einvoice.value ? additionalDetails.einvoice.value : null,
@@ -2633,8 +2957,8 @@ const [checklistConfig, setChecklistConfig] = useState([]);
             valid_from: additionalDetails.validFrom,
             valid_till: additionalDetails.validTill,
             enterprise: additionalDetails.msmeEnterpriseType && additionalDetails.msmeEnterpriseType.value ? additionalDetails.msmeEnterpriseType.value : null,
-            msme_attachment: additionalDetails.msmeAttachmentObj,
-            msme_declaration: additionalDetails.msmeDeclarationObj,
+            msme_attachment: [additionalDetails.msmeAttachmentObj] || [additionalDetails.msmeDeclarationObj],
+            // msme_declaration: additionalDetails.msmeDeclarationObj,
 
             office_address_attributes: mapRegisteredAddressToPayload(registeredAddress)[0] || {},
             communication_address_attributes: mapCommunicationAddressToPayload(communicationAddress)[0] || {},
@@ -2688,7 +3012,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
 
     // console.log("basic info:", basicInfo)
 
-
+    console.log("additional details:", additionalDetails)
     // console.log("supplier id:", supplierId)
     // Save as Draft function
     const saveDraft = async () => {
@@ -2701,7 +3025,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                 organization_name: basicInfo.vendorOrganizationName,
 
                 cin_number: basicInfo.cin,
-                cin_attachment: basicInfo.cinAttachmentObj,
+                cin_attachment: [basicInfo.cinAttachmentObj],
 
                 llp_number: basicInfo.llp,
                 llp_attachment: basicInfo.llpAttachmentObj,
@@ -2735,7 +3059,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                 website: additionalDetails.website,
                 delivery_lead_period: additionalDetails.deliveryLeadPeriod,
                 specify_warranty_period: additionalDetails.warrantyPeriod,
-                amc_provided: additionalDetails.amcProvided,
+                amc_provided: additionalDetails.amcProvided && additionalDetails.amcProvided.value ? additionalDetails.amcProvided.value : null,
                 currency: additionalDetails.currencyType && additionalDetails.currencyType.value ? additionalDetails.currencyType.value : null,
                 msme: additionalDetails.msmeUdyamApplicable && additionalDetails.msmeUdyamApplicable.value ? additionalDetails.msmeUdyamApplicable.value : null,
                 einvoicing: additionalDetails.einvoice && additionalDetails.einvoice.value ? additionalDetails.einvoice.value : null,
@@ -2824,20 +3148,20 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                 organization_name: basicInfo.vendorOrganizationName,
 
                 cin_number: basicInfo.cin,
-                cin_attachment: basicInfo.cinAttachmentObj,
+                cin_attachment: [basicInfo.cinAttachmentObj],
 
                 llp_number: basicInfo.llp,
-                llp_attachment: basicInfo.llpAttachmentObj,
+                llp_attachment: [basicInfo.llpAttachmentObj],
 
                 type_of_organization_id: basicInfo.organizationType && basicInfo.organizationType.value ? basicInfo.organizationType.value : null,
                 nature_of_business_id: basicInfo.natureOfBusiness,
-                vendor_type: basicInfo.vendorType && basicInfo.vendorType.value ? basicInfo.vendorType.value : null,
+                supplier_type_id: basicInfo.vendorType && basicInfo.vendorType.value ? basicInfo.vendorType.value : null,
                 type_business_id: basicInfo.industryType && basicInfo.industryType.value ? basicInfo.industryType.value : null,
                 type_of_work: basicInfo.typeOfWork,
                 key_market: basicInfo.keyMarket,
 
                 pan_number: basicInfo.panNo,
-                pan_attachment: basicInfo.panAttachmentObj,
+                pan_attachment: [basicInfo.panAttachmentObj],
                 schema_group_id: basicInfo.schemaGroup,
                 date_of_incorporation: basicInfo.dateOfIncorporation,
 
@@ -2849,8 +3173,8 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                             null,
                 gst_classification_id: basicInfo.gstinClassification?.value,
                 gstin: basicInfo.gstinNo,
-                gstin_attachment: basicInfo.gstinAttachmentObj,
-                gstin_declaration: basicInfo.gstinDeclarationObj,
+                gstin_attachment: [basicInfo.gstinAttachmentObj] || [basicInfo.gstinDeclarationObj],
+                // gstin_declaration: basicInfo.gstinDeclarationObj,
 
 
 
@@ -2858,7 +3182,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                 website: additionalDetails.website,
                 delivery_lead_period: additionalDetails.deliveryLeadPeriod,
                 specify_warranty_period: additionalDetails.warrantyPeriod,
-                amc_provided: additionalDetails.amcProvided,
+                amc_provided: additionalDetails.amcProvided && additionalDetails.amcProvided.value ? additionalDetails.amcProvided.value : null,
                 currency: additionalDetails.currencyType && additionalDetails.currencyType.value ? additionalDetails.currencyType.value : null,
                 msme: additionalDetails.msmeUdyamApplicable && additionalDetails.msmeUdyamApplicable.value ? additionalDetails.msmeUdyamApplicable.value : null,
                 einvoicing: additionalDetails.einvoice && additionalDetails.einvoice.value ? additionalDetails.einvoice.value : null,
@@ -2869,8 +3193,8 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                 valid_from: additionalDetails.validFrom,
                 valid_till: additionalDetails.validTill,
                 enterprise: additionalDetails.msmeEnterpriseType && additionalDetails.msmeEnterpriseType.value ? additionalDetails.msmeEnterpriseType.value : null,
-                msme_attachment: additionalDetails.msmeAttachmentObj,
-                msme_declaration: additionalDetails.msmeDeclarationOb,
+                msme_attachment: [additionalDetails.msmeAttachmentObj] || [additionalDetails.msmeDeclarationObj],
+                // msme_declaration: additionalDetails.msmeDeclarationOb,
             }
         };
         try {
@@ -2892,8 +3216,9 @@ const [checklistConfig, setChecklistConfig] = useState([]);
 
     // console.log("add:", registeredAddress,communicationAddress, mapRegisteredAddressToPayload(registeredAddress))
 
+    console.log("base info:", basicInfo)
     const saveDraftStep2 = async () => {
-         setLoading2(true)
+        setLoading2(true)
         console.log("sameAsRegistered value:", sameAsRegistered);
         const commAddrPayload = mapCommunicationAddressToPayload(communicationAddress, sameAsRegistered)[0] || {};
         console.log("communication_address_attributes:", commAddrPayload);
@@ -2904,20 +3229,20 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                 organization_name: basicInfo.vendorOrganizationName,
 
                 cin_number: basicInfo.cin,
-                cin_attachment: basicInfo.cinAttachmentObj,
+                cin_attachment: [basicInfo.cinAttachmentObj],
 
                 llp_number: basicInfo.llp,
-                llp_attachment: basicInfo.llpAttachmentObj,
+                llp_attachment: [basicInfo.llpAttachmentObj],
 
                 type_of_organization_id: basicInfo.organizationType && basicInfo.organizationType.value ? basicInfo.organizationType.value : null,
                 nature_of_business_id: basicInfo.natureOfBusiness,
-                vendor_type: basicInfo.vendorType && basicInfo.vendorType.value ? basicInfo.vendorType.value : null,
+                supplier_type_id: basicInfo.vendorType && basicInfo.vendorType.value ? basicInfo.vendorType.value : null,
                 type_business_id: basicInfo.industryType && basicInfo.industryType.value ? basicInfo.industryType.value : null,
                 type_of_work: basicInfo.typeOfWork,
                 key_market: basicInfo.keyMarket,
 
                 pan_number: basicInfo.panNo,
-                pan_attachment: basicInfo.panAttachmentObj,
+                pan_attachment: [basicInfo.panAttachmentObj],
                 schema_group_id: basicInfo.schemaGroup,
                 date_of_incorporation: basicInfo.dateOfIncorporation,
                 gstin_applicable:
@@ -2926,13 +3251,13 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                             null,
                 gst_classification_id: basicInfo.gstinClassification?.value,
                 gstin: basicInfo.gstinNo,
-                gstin_attachment: basicInfo.gstinAttachmentObj,
-                gstin_declaration: basicInfo.gstinDeclarationObj,
+                gstin_attachment: [basicInfo.gstinAttachmentObj] || [basicInfo.gstinDeclarationObj],
+                // gstin_declaration: basicInfo.gstinDeclarationObj,
 
                 website: additionalDetails.website,
                 delivery_lead_period: additionalDetails.deliveryLeadPeriod,
                 specify_warranty_period: additionalDetails.warrantyPeriod,
-                amc_provided: additionalDetails.amcProvided,
+                amc_provided: additionalDetails.amcProvided && additionalDetails.amcProvided.value ? additionalDetails.amcProvided.value : null,
                 currency: additionalDetails.currencyType && additionalDetails.currencyType.value ? additionalDetails.currencyType.value : null,
                 msme: additionalDetails.msmeUdyamApplicable && additionalDetails.msmeUdyamApplicable.value ? additionalDetails.msmeUdyamApplicable.value : null,
                 einvoicing: additionalDetails.einvoice && additionalDetails.einvoice.value ? additionalDetails.einvoice.value : null,
@@ -2943,8 +3268,8 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                 valid_from: additionalDetails.validFrom,
                 valid_till: additionalDetails.validTill,
                 enterprise: additionalDetails.msmeEnterpriseType && additionalDetails.msmeEnterpriseType.value ? additionalDetails.msmeEnterpriseType.value : null,
-                msme_attachment: additionalDetails.msmeAttachmentObj,
-                msme_declaration: additionalDetails.msmeDeclarationObj,
+                msme_attachment: [additionalDetails.msmeAttachmentObj] || [additionalDetails.msmeDeclarationObj],
+                // msme_declaration: additionalDetails.msmeDeclarationObj,
 
                 // office_address_attributes: mapRegisteredAddressToPayload(registeredAddress),
                 // communication_address_attributes: mapCommunicationAddressToPayload(communicationAddress),
@@ -2952,11 +3277,11 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                 communication_address_attributes: commAddrPayload,
             }
         };
-      console.log(" payload for address step:", payload) 
+        console.log(" payload for address step:", payload)
         try {
             await axios.patch(`${baseURL}/pms/suppliers/${supplierId}/update_api.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`, payload);
             toast.success('Step 3 draft saved!');
-              // mark this step completed and move to next
+            // mark this step completed and move to next
             setCompleted((arr) => {
                 const copy = [...arr];
                 copy[currentStep] = true;
@@ -2965,14 +3290,14 @@ const [checklistConfig, setChecklistConfig] = useState([]);
             setCurrentStep((s) => Math.min(s + 1, steps.length - 1));
         } catch (error) {
             toast.error('Failed to save Step 3  draft.');
-        }finally {
+        } finally {
             setLoading2(false);
         }
     };
 
 
     const saveDraftStep3 = async () => {
-         setLoading2(true)
+        setLoading2(true)
         console.log("sameAsRegistered value:", sameAsRegistered);
         const commAddrPayload = mapCommunicationAddressToPayload(communicationAddress, sameAsRegistered)[0] || {};
         console.log("communication_address_attributes:", commAddrPayload);
@@ -2983,20 +3308,20 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                 organization_name: basicInfo.vendorOrganizationName,
 
                 cin_number: basicInfo.cin,
-                cin_attachment: basicInfo.cinAttachmentObj,
+                cin_attachment: [basicInfo.cinAttachmentObj],
 
                 llp_number: basicInfo.llp,
-                llp_attachment: basicInfo.llpAttachmentObj,
+                llp_attachment: [basicInfo.llpAttachmentObj],
 
                 type_of_organization_id: basicInfo.organizationType && basicInfo.organizationType.value ? basicInfo.organizationType.value : null,
                 nature_of_business_id: basicInfo.natureOfBusiness,
-                vendor_type: basicInfo.vendorType && basicInfo.vendorType.value ? basicInfo.vendorType.value : null,
+                supplier_type_id: basicInfo.vendorType && basicInfo.vendorType.value ? basicInfo.vendorType.value : null,
                 type_business_id: basicInfo.industryType && basicInfo.industryType.value ? basicInfo.industryType.value : null,
                 type_of_work: basicInfo.typeOfWork,
                 key_market: basicInfo.keyMarket,
 
                 pan_number: basicInfo.panNo,
-                pan_attachment: basicInfo.panAttachmentObj,
+                pan_attachment: [basicInfo.panAttachmentObj],
                 schema_group_id: basicInfo.schemaGroup,
                 date_of_incorporation: basicInfo.dateOfIncorporation,
                 gstin_applicable:
@@ -3005,8 +3330,8 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                             null,
                 gst_classification_id: basicInfo.gstinClassification?.value,
                 gstin: basicInfo.gstinNo,
-                gstin_attachment: basicInfo.gstinAttachmentObj,
-                gstin_declaration: basicInfo.gstinDeclarationObj,
+                gstin_attachment: [basicInfo.gstinAttachmentObj] || [basicInfo.gstinDeclarationObj],
+                // gstin_declaration: basicInfo.gstinDeclarationObj,
 
                 website: additionalDetails.website,
                 delivery_lead_period: additionalDetails.deliveryLeadPeriod,
@@ -3023,8 +3348,8 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                 valid_till: additionalDetails.validTill,
                 enterprise: additionalDetails.msmeEnterpriseType && additionalDetails.msmeEnterpriseType.value ? additionalDetails.msmeEnterpriseType.value : null,
 
-                msme_attachment: additionalDetails.msmeAttachmentObj,
-                msme_declaration: additionalDetails.msmeDeclarationObj,
+                msme_attachment: [additionalDetails.msmeAttachmentObj] || [additionalDetails.msmeDeclarationObj],
+                // msme_declaration: additionalDetails.msmeDeclarationObj,
 
                 // office_address_attributes: mapRegisteredAddressToPayload(registeredAddress),
                 // communication_address_attributes: mapCommunicationAddressToPayload(communicationAddress),
@@ -3043,7 +3368,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
         try {
             await axios.patch(`${baseURL}/pms/suppliers/${supplierId}/update_api.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`, payload);
             toast.success('Step 4 draft saved!');
-              // mark this step completed and move to next
+            // mark this step completed and move to next
             setCompleted((arr) => {
                 const copy = [...arr];
                 copy[currentStep] = true;
@@ -3052,7 +3377,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
             setCurrentStep((s) => Math.min(s + 1, steps.length - 1));
         } catch (error) {
             toast.error('Failed to save Step 4 draft.');
-        }finally {
+        } finally {
             setLoading2(false);
         }
     };
@@ -3069,20 +3394,20 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                 organization_name: basicInfo.vendorOrganizationName,
 
                 cin_number: basicInfo.cin,
-                cin_attachment: basicInfo.cinAttachmentObj,
+                cin_attachment: [basicInfo.cinAttachmentObj],
 
                 llp_number: basicInfo.llp,
-                llp_attachment: basicInfo.llpAttachmentObj,
+                llp_attachment: [basicInfo.llpAttachmentObj],
 
                 type_of_organization_id: basicInfo.organizationType && basicInfo.organizationType.value ? basicInfo.organizationType.value : null,
                 nature_of_business_id: basicInfo.natureOfBusiness,
-                vendor_type: basicInfo.vendorType && basicInfo.vendorType.value ? basicInfo.vendorType.value : null,
+                supplier_type_id: basicInfo.vendorType && basicInfo.vendorType.value ? basicInfo.vendorType.value : null,
                 type_business_id: basicInfo.industryType && basicInfo.industryType.value ? basicInfo.industryType.value : null,
                 type_of_work: basicInfo.typeOfWork,
                 key_market: basicInfo.keyMarket,
 
                 pan_number: basicInfo.panNo,
-                pan_attachment: basicInfo.panAttachmentObj,
+                pan_attachment: [basicInfo.panAttachmentObj],
                 schema_group_id: basicInfo.schemaGroup,
                 date_of_incorporation: basicInfo.dateOfIncorporation,
                 gstin_applicable:
@@ -3091,8 +3416,8 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                             null,
                 gst_classification_id: basicInfo.gstinClassification?.value,
                 gstin: basicInfo.gstinNo,
-                gstin_attachment: basicInfo.gstinAttachmentObj,
-                gstin_declaration: basicInfo.gstinDeclarationObj,
+                gstin_attachment: [basicInfo.gstinAttachmentObj] || [basicInfo.gstinDeclarationObj],
+                // gstin_declaration: basicInfo.gstinDeclarationObj,
 
                 website: additionalDetails.website,
                 delivery_lead_period: additionalDetails.deliveryLeadPeriod,
@@ -3109,8 +3434,8 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                 valid_till: additionalDetails.validTill,
                 enterprise: additionalDetails.msmeEnterpriseType && additionalDetails.msmeEnterpriseType.value ? additionalDetails.msmeEnterpriseType.value : null,
 
-                msme_attachment: additionalDetails.msmeAttachmentObj,
-                msme_declaration: additionalDetails.msmeDeclarationObj,
+                msme_attachment: [additionalDetails.msmeAttachmentObj] || [additionalDetails.msmeDeclarationObj],
+                // msme_declaration: additionalDetails.msmeDeclarationObj,
 
                 // office_address_attributes: mapRegisteredAddressToPayload(registeredAddress),
                 // communication_address_attributes: mapCommunicationAddressToPayload(communicationAddress),
@@ -3143,7 +3468,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
         try {
             await axios.patch(`${baseURL}/pms/suppliers/${supplierId}/update_api.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`, payload);
             toast.success('Step 5 draft saved!');
-              setCompleted((arr) => {
+            setCompleted((arr) => {
                 const copy = [...arr];
                 copy[currentStep] = true;
                 return copy;
@@ -3158,7 +3483,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
 
 
     const saveDraftStep5 = async () => {
-         setLoading2(true)
+        setLoading2(true)
         console.log("sameAsRegistered value:", sameAsRegistered);
         const commAddrPayload = mapCommunicationAddressToPayload(communicationAddress, sameAsRegistered)[0] || {};
         console.log("communication_address_attributes:", commAddrPayload);
@@ -3169,20 +3494,20 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                 organization_name: basicInfo.vendorOrganizationName,
 
                 cin_number: basicInfo.cin,
-                cin_attachment: basicInfo.cinAttachmentObj,
+                cin_attachment: [basicInfo.cinAttachmentObj],
 
                 llp_number: basicInfo.llp,
-                llp_attachment: basicInfo.llpAttachmentObj,
+                llp_attachment: [basicInfo.llpAttachmentObj],
 
                 type_of_organization_id: basicInfo.organizationType && basicInfo.organizationType.value ? basicInfo.organizationType.value : null,
                 nature_of_business_id: basicInfo.natureOfBusiness,
-                vendor_type: basicInfo.vendorType && basicInfo.vendorType.value ? basicInfo.vendorType.value : null,
+                supplier_type_id: basicInfo.vendorType && basicInfo.vendorType.value ? basicInfo.vendorType.value : null,
                 type_business_id: basicInfo.industryType && basicInfo.industryType.value ? basicInfo.industryType.value : null,
                 type_of_work: basicInfo.typeOfWork,
                 key_market: basicInfo.keyMarket,
 
                 pan_number: basicInfo.panNo,
-                pan_attachment: basicInfo.panAttachmentObj,
+                pan_attachment: [basicInfo.panAttachmentObj],
                 schema_group_id: basicInfo.schemaGroup,
                 date_of_incorporation: basicInfo.dateOfIncorporation,
                 gstin_applicable:
@@ -3191,8 +3516,8 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                             null,
                 gst_classification_id: basicInfo.gstinClassification?.value,
                 gstin: basicInfo.gstinNo,
-                gstin_attachment: basicInfo.gstinAttachmentObj,
-                gstin_declaration: basicInfo.gstinDeclarationObj,
+                gstin_attachment: [basicInfo.gstinAttachmentObj] || [basicInfo.gstinDeclarationObj],
+                // gstin_declaration: basicInfo.gstinDeclarationObj,
 
                 website: additionalDetails.website,
                 delivery_lead_period: additionalDetails.deliveryLeadPeriod,
@@ -3209,8 +3534,8 @@ const [checklistConfig, setChecklistConfig] = useState([]);
                 valid_till: additionalDetails.validTill,
                 enterprise: additionalDetails.msmeEnterpriseType && additionalDetails.msmeEnterpriseType.value ? additionalDetails.msmeEnterpriseType.value : null,
 
-                msme_attachment: additionalDetails.msmeAttachmentObj,
-                msme_declaration: additionalDetails.msmeDeclarationObj,
+                msme_attachment: [additionalDetails.msmeAttachmentObj] || [additionalDetails.msmeDeclarationObj],
+                // msme_declaration: additionalDetails.msmeDeclarationObj,
 
                 que1: questions.expertise,
                 // question1_attachment: questions.expertiseAttachment,
@@ -3253,7 +3578,7 @@ const [checklistConfig, setChecklistConfig] = useState([]);
         try {
             await axios.patch(`${baseURL}/pms/suppliers/${supplierId}/update_api.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`, payload);
             toast.success('Step 6 draft saved!');
-               setCompleted((arr) => {
+            setCompleted((arr) => {
                 const copy = [...arr];
                 copy[currentStep] = true;
                 return copy;
@@ -3266,8 +3591,8 @@ const [checklistConfig, setChecklistConfig] = useState([]);
         }
     };
 
-console.log("checklist :", checklistPayload)
-     const saveDraftStep6= async () => {
+    console.log("checklist :", checklistPayload)
+    const saveDraftStep6 = async () => {
         setLoading2(true)
         console.log("sameAsRegistered value:", sameAsRegistered);
         const commAddrPayload = mapCommunicationAddressToPayload(communicationAddress, sameAsRegistered)[0] || {};
@@ -3279,20 +3604,20 @@ console.log("checklist :", checklistPayload)
                 organization_name: basicInfo.vendorOrganizationName,
 
                 cin_number: basicInfo.cin,
-                cin_attachment: basicInfo.cinAttachmentObj,
+                cin_attachment: [basicInfo.cinAttachmentObj],
 
                 llp_number: basicInfo.llp,
-                llp_attachment: basicInfo.llpAttachmentObj,
+                llp_attachment: [basicInfo.llpAttachmentObj],
 
                 type_of_organization_id: basicInfo.organizationType && basicInfo.organizationType.value ? basicInfo.organizationType.value : null,
                 nature_of_business_id: basicInfo.natureOfBusiness,
-                vendor_type: basicInfo.vendorType && basicInfo.vendorType.value ? basicInfo.vendorType.value : null,
+                supplier_type_id: basicInfo.vendorType && basicInfo.vendorType.value ? basicInfo.vendorType.value : null,
                 type_business_id: basicInfo.industryType && basicInfo.industryType.value ? basicInfo.industryType.value : null,
                 type_of_work: basicInfo.typeOfWork,
                 key_market: basicInfo.keyMarket,
 
                 pan_number: basicInfo.panNo,
-                pan_attachment: basicInfo.panAttachmentObj,
+                pan_attachment: [basicInfo.panAttachmentObj],
                 schema_group_id: basicInfo.schemaGroup,
                 date_of_incorporation: basicInfo.dateOfIncorporation,
                 gstin_applicable:
@@ -3301,8 +3626,8 @@ console.log("checklist :", checklistPayload)
                             null,
                 gst_classification_id: basicInfo.gstinClassification?.value,
                 gstin: basicInfo.gstinNo,
-                gstin_attachment: basicInfo.gstinAttachmentObj,
-                gstin_declaration: basicInfo.gstinDeclarationObj,
+                gstin_attachment: [basicInfo.gstinAttachmentObj] || [basicInfo.gstinDeclarationObj],
+                // gstin_declaration: basicInfo.gstinDeclarationObj,
 
                 website: additionalDetails.website,
                 delivery_lead_period: additionalDetails.deliveryLeadPeriod,
@@ -3319,8 +3644,8 @@ console.log("checklist :", checklistPayload)
                 valid_till: additionalDetails.validTill,
                 enterprise: additionalDetails.msmeEnterpriseType && additionalDetails.msmeEnterpriseType.value ? additionalDetails.msmeEnterpriseType.value : null,
 
-                msme_attachment: additionalDetails.msmeAttachmentObj,
-                msme_declaration: additionalDetails.msmeDeclarationObj,
+                msme_attachment: [additionalDetails.msmeAttachmentObj] || [additionalDetails.msmeDeclarationObj],
+                // msme_declaration: additionalDetails.msmeDeclarationObj,
 
                 que1: questions.expertise,
                 // question1_attachment: questions.expertiseAttachment,
@@ -3354,8 +3679,8 @@ console.log("checklist :", checklistPayload)
                 })),
 
 
-                     statutory_details: statutoryPayload || [],
-                     checklist: checklistPayload
+                statutory_details: statutoryPayload || [],
+                checklist: checklistPayload
 
 
 
@@ -3364,7 +3689,7 @@ console.log("checklist :", checklistPayload)
         try {
             await axios.patch(`${baseURL}/pms/suppliers/${supplierId}/update_api.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`, payload);
             toast.success('Step 7 draft saved!');
-              setCompleted((arr) => {
+            setCompleted((arr) => {
                 const copy = [...arr];
                 copy[currentStep] = true;
                 return copy;
@@ -3389,8 +3714,8 @@ console.log("checklist :", checklistPayload)
 
     // Handle the Update Button Click
     const handleUpdate = async () => {
-         
-         const commAddrPayload = mapCommunicationAddressToPayload(communicationAddress, sameAsRegistered)[0] || {};
+
+        const commAddrPayload = mapCommunicationAddressToPayload(communicationAddress, sameAsRegistered)[0] || {};
         // Validate declaration checkbox
         if (!isChecked) {
             setErrors(prev => ({ ...prev, declaration: 'Please accept the declaration to continue.' }));
@@ -3433,20 +3758,20 @@ console.log("checklist :", checklistPayload)
                 organization_name: basicInfo.vendorOrganizationName,
 
                 cin_number: basicInfo.cin,
-                cin_attachment: basicInfo.cinAttachmentObj,
+                cin_attachment: [basicInfo.cinAttachmentObj],
 
                 llp_number: basicInfo.llp,
-                llp_attachment: basicInfo.llpAttachmentObj,
+                llp_attachment: [basicInfo.llpAttachmentObj],
 
                 type_of_organization_id: basicInfo.organizationType && basicInfo.organizationType.value ? basicInfo.organizationType.value : null,
                 nature_of_business_id: basicInfo.natureOfBusiness,
-                vendor_type: basicInfo.vendorType && basicInfo.vendorType.value ? basicInfo.vendorType.value : null,
+                supplier_type_id: basicInfo.vendorType && basicInfo.vendorType.value ? basicInfo.vendorType.value : null,
                 type_business_id: basicInfo.industryType && basicInfo.industryType.value ? basicInfo.industryType.value : null,
                 type_of_work: basicInfo.typeOfWork,
                 key_market: basicInfo.keyMarket,
 
                 pan_number: basicInfo.panNo,
-                pan_attachment: basicInfo.panAttachmentObj,
+                pan_attachment: [basicInfo.panAttachmentObj],
                 schema_group_id: basicInfo.schemaGroup,
                 date_of_incorporation: basicInfo.dateOfIncorporation,
                 gstin_applicable:
@@ -3455,8 +3780,8 @@ console.log("checklist :", checklistPayload)
                             null,
                 gst_classification_id: basicInfo.gstinClassification?.value,
                 gstin: basicInfo.gstinNo,
-                gstin_attachment: basicInfo.gstinAttachmentObj,
-                gstin_declaration: basicInfo.gstinDeclarationObj,
+                gstin_attachment: [basicInfo.gstinAttachmentObj] || [basicInfo.gstinDeclarationObj],
+                // gstin_declaration: basicInfo.gstinDeclarationObj,
 
                 website: additionalDetails.website,
                 delivery_lead_period: additionalDetails.deliveryLeadPeriod,
@@ -3473,8 +3798,8 @@ console.log("checklist :", checklistPayload)
                 valid_till: additionalDetails.validTill,
                 enterprise: additionalDetails.msmeEnterpriseType && additionalDetails.msmeEnterpriseType.value ? additionalDetails.msmeEnterpriseType.value : null,
 
-                msme_attachment: additionalDetails.msmeAttachmentObj,
-                msme_declaration: additionalDetails.msmeDeclarationObj,
+                msme_attachment: [additionalDetails.msmeAttachmentObj] || [additionalDetails.msmeDeclarationObj],
+                // msme_declaration: additionalDetails.msmeDeclarationObj,
 
                 que1: questions.expertise,
                 // question1_attachment: questions.expertiseAttachment,
@@ -3510,8 +3835,8 @@ console.log("checklist :", checklistPayload)
                 })),
 
 
-                     statutory_details: statutoryPayload || [],
-                     checklist: checklistPayload
+                statutory_details: statutoryPayload || [],
+                checklist: checklistPayload
 
 
 
@@ -3519,7 +3844,7 @@ console.log("checklist :", checklistPayload)
         };
         try {
             const response = await axios.patch(
-             `${baseURL}/pms/suppliers/${supplierId}/update_api.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`, payload
+                `${baseURL}/pms/suppliers/${supplierId}/update_api.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`, payload
             );
 
             console.log("Response:", response.data); // Check the response data
@@ -3601,7 +3926,7 @@ console.log("checklist :", checklistPayload)
 
     return (
         <>
-            
+
             <div className="website-content overflowY-auto">
                 <div>
                     {/* Stepper UI */}
@@ -3739,7 +4064,19 @@ console.log("checklist :", checklistPayload)
                                             </div>
                                             <div className="row mb-3 justify-content-center">
                                                 <div className="col-md-6 d-flex justify-content-center">
-                                                    <button className="purple-btn2" type="button" onClick={handleGetOtp}>Get OTP</button>
+                                                    <button
+                                                        className="purple-btn2"
+                                                        type="button"
+                                                        onClick={handleGetOtp}
+                                                        disabled={otpTimer > 0}
+                                                    >
+                                                        {otpTimer > 0 ? `Resend in ${formatTimer(otpTimer)}` : 'Get OTP'}
+                                                    </button>
+                                                </div>
+                                                <div className="w-100 text-center mt-2">
+                                                    {otpTimer > 0 && (
+                                                        <div aria-live="polite" className="text-secondary">Time remaining: <strong>{formatTimer(otpTimer)}</strong></div>
+                                                    )}
                                                 </div>
                                             </div>
 
@@ -4137,7 +4474,7 @@ console.log("checklist :", checklistPayload)
                                                 )}
                                             </div>
                                         </div>
-                                       
+
 
                                         {/* PAN Attachment */}
                                         <div className="col-md-4 mt-2">
@@ -4155,10 +4492,10 @@ console.log("checklist :", checklistPayload)
                                                             className="text-primary d-flex align-items-center"
                                                         >
                                                             <span className="me-2">Existing File:</span>
-                                                            {/* <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} fill="#DE7008" className="bi bi-download" viewBox="0 0 16 16">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} fill="#DE7008" className="bi bi-download" viewBox="0 0 16 16">
                                                                 <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
                                                                 <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
-                                                            </svg> */}
+                                                            </svg>
                                                             {basicInfo.panAttachmentObj.filename}
                                                         </a>
                                                     </span>
@@ -4264,7 +4601,7 @@ console.log("checklist :", checklistPayload)
                                                             )}
                                                         </div>
                                                     </div>
-                                                 
+
                                                     {/* CIN Attachment */}
                                                     {(basicInfo?.organizationType?.label === 'Private Limited' || basicInfo?.organizationType?.label === 'Public Limited') && (
                                                         <div className="col-md-4 mt-2">
@@ -4282,10 +4619,10 @@ console.log("checklist :", checklistPayload)
                                                                             className="text-primary d-flex align-items-center"
                                                                         >
                                                                             <span className="me-2">Existing File:</span>
-                                                                            {/* <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} fill="#DE7008" className="bi bi-download" viewBox="0 0 16 16">
+                                                                            <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} fill="#DE7008" className="bi bi-download" viewBox="0 0 16 16">
                                                                                 <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
                                                                                 <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
-                                                                            </svg> */}
+                                                                            </svg>
                                                                             {basicInfo.cinAttachmentObj.filename}
                                                                         </a>
                                                                     </span>
@@ -4348,7 +4685,7 @@ console.log("checklist :", checklistPayload)
                                                             )}
                                                         </div>
                                                     </div>
-                                                   
+
 
                                                     {/* LLP Attachment */}
                                                     {basicInfo?.organizationType?.label === 'Limited Liability Partnership (LLP)' && (
@@ -4367,10 +4704,10 @@ console.log("checklist :", checklistPayload)
                                                                             className="text-primary d-flex align-items-center"
                                                                         >
                                                                             <span className="me-2">Existing File:</span>
-                                                                            {/* <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} fill="#DE7008" className="bi bi-download" viewBox="0 0 16 16">
+                                                                            <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} fill="#DE7008" className="bi bi-download" viewBox="0 0 16 16">
                                                                                 <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
                                                                                 <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
-                                                                            </svg> */}
+                                                                            </svg>
                                                                             {basicInfo.llpAttachmentObj.filename}
                                                                         </a>
                                                                     </span>
@@ -4434,7 +4771,7 @@ console.log("checklist :", checklistPayload)
                                                     GSTIN Classification
                                                     {/* <TooltipIcon message="Please choose your country from the list" /> */}
                                                 </label>
-                                               
+
 
                                                 <SingleSelector
                                                     options={gstinClassificationOptions || []}
@@ -4487,7 +4824,7 @@ console.log("checklist :", checklistPayload)
                                                         </div>
                                                     </div>
 
-                                                   
+
                                                     {/* GSTIN Attachment */}
                                                     {basicInfo.gstinApplicable.label === 'Yes' && (
                                                         <div className="col-md-4 mt-2">
@@ -4505,10 +4842,10 @@ console.log("checklist :", checklistPayload)
                                                                             className="text-primary d-flex align-items-center"
                                                                         >
                                                                             <span className="me-2">Existing File:</span>
-                                                                            {/* <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} fill="#DE7008" className="bi bi-download" viewBox="0 0 16 16">
+                                                                            <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} fill="#DE7008" className="bi bi-download" viewBox="0 0 16 16">
                                                                                 <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
                                                                                 <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
-                                                                            </svg> */}
+                                                                            </svg>
                                                                             {basicInfo.gstinAttachmentObj.filename}
                                                                         </a>
                                                                     </span>
@@ -4576,14 +4913,14 @@ console.log("checklist :", checklistPayload)
                                                                         />
                                                                     </svg>
                                                                     <span className="mt-2 ms-2">
-                                                                Specimen For No GSTIN Applicable.pdf
-                                                            </span>
+                                                                        Specimen For No GSTIN Applicable.pdf
+                                                                    </span>
                                                                 </a>
                                                             </span>
                                                         </div>
                                                     </div>
 
-                                                 
+
 
                                                     {/* GSTIN Declaration */}
 
@@ -4601,10 +4938,10 @@ console.log("checklist :", checklistPayload)
                                                                         className="text-primary d-flex align-items-center"
                                                                     >
                                                                         <span className="me-2">Existing File:</span>
-                                                                        {/* <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} fill="#DE7008" className="bi bi-download" viewBox="0 0 16 16">
+                                                                        <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} fill="#DE7008" className="bi bi-download" viewBox="0 0 16 16">
                                                                             <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
                                                                             <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
-                                                                        </svg> */}
+                                                                        </svg>
                                                                         {basicInfo.gstinDeclarationObj.filename}
                                                                     </a>
                                                                 </span>
@@ -4747,7 +5084,7 @@ console.log("checklist :", checklistPayload)
                                             <div className="col-md-4 mt-2">
                                                 <div className="form-group">
                                                     <label
-                                                   
+
                                                     >
                                                         MSME/Udyam Number <span>*</span>
                                                         <TooltipIcon message="Enter your organization's valid MSME or Udyam registration number. This number is issued by the Ministry of Micro, Small, and Medium Enterprises (MSME) under the Udyam registration scheme" />
@@ -4775,7 +5112,7 @@ console.log("checklist :", checklistPayload)
                                                     <label >
                                                         Classifiction Year <span>*</span>
                                                     </label>
-                                                   
+
                                                     <SingleSelector
                                                         value={additionalDetails.classificationYear}
                                                         onChange={val => updateAdditionalDetails('classificationYear', val)}
@@ -4801,7 +5138,7 @@ console.log("checklist :", checklistPayload)
                                                     <label>
                                                         Major Activity <span>*</span>
                                                     </label>
-                                                
+
 
                                                     <SingleSelector
                                                         value={additionalDetails.majorActivity}
@@ -4885,7 +5222,7 @@ console.log("checklist :", checklistPayload)
                                                         MSME Enterprise Type <span>*</span>
                                                         <TooltipIcon message="Select the type of your organization under the MSME (Micro, Small, and Medium Enterprises) scheme. Choose from 'Micro,'Small,' or 'Medium' based on your organization's annual turnover and investment in plant and machinery." />
                                                     </label>
-                                                   
+
                                                     <SingleSelector
                                                         value={additionalDetails.msmeEnterpriseType}
                                                         onChange={val => updateAdditionalDetails('msmeEnterpriseType', val)}
@@ -4943,7 +5280,7 @@ console.log("checklist :", checklistPayload)
                                         )}
                                         {/* MSME/Udyam Attachment */}
                                         {additionalDetails.msmeUdyamApplicable?.value === "Yes" && (
-                                           
+
 
                                             // MSME/Udyam Attachment field (show only from additionalDetails.msmeAttachmentObj)
                                             <div className="col-md-4 mt-2">
@@ -4961,10 +5298,10 @@ console.log("checklist :", checklistPayload)
                                                                 className="text-primary d-flex align-items-center"
                                                             >
                                                                 <span className="me-2">Uploaded File:</span>
-                                                                {/* <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} fill="#DE7008" className="bi bi-download" viewBox="0 0 16 16">
+                                                                <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} fill="#DE7008" className="bi bi-download" viewBox="0 0 16 16">
                                                                     <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
                                                                     <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
-                                                                </svg> */}
+                                                                </svg>
                                                                 {additionalDetails.msmeAttachmentObj.filename}
                                                             </a>
                                                         </span>
@@ -5005,7 +5342,7 @@ console.log("checklist :", checklistPayload)
                                                 <div className="col-md-4 mt-2 ms-3">
                                                     <div className="form-group">
                                                         <label
-                                                         >
+                                                        >
                                                             Download Specimen <span>*</span>
                                                         </label>
                                                         <TooltipIcon message="If you choose 'No' for e-invoicing, a specimen format will be available for download. This is for businesses not subject to e-invoicing under GST regulations. Please upload a signed declaration stating that your organization is not registered.The document must be uploaded in PDF format" />
@@ -5042,7 +5379,7 @@ console.log("checklist :", checklistPayload)
                                             )}
 
                                             {additionalDetails.msmeUdyamApplicable?.value === "No" && (
-                                               
+
 
                                                 // MSME Declaration Upload Section
                                                 <div className="col-md-4 mt-2">
@@ -5060,10 +5397,10 @@ console.log("checklist :", checklistPayload)
                                                                     className="text-primary d-flex align-items-center"
                                                                 >
                                                                     <span className="me-2">Uploaded Declaration:</span>
-                                                                    {/* <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} fill="#DE7008" className="bi bi-download" viewBox="0 0 16 16">
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} fill="#DE7008" className="bi bi-download" viewBox="0 0 16 16">
                                                                         <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
                                                                         <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
-                                                                    </svg> */}
+                                                                    </svg>
                                                                     {additionalDetails.msmeDeclarationObj.filename}
                                                                 </a>
                                                             </span>
@@ -5124,7 +5461,7 @@ console.log("checklist :", checklistPayload)
                                                 <div className="col-md-4 mt-2 ms-3">
                                                     <div className="form-group">
                                                         <label
-                                                     >
+                                                        >
                                                             Download Specimen <span>*</span>
                                                         </label>
                                                         <TooltipIcon message="If you choose 'No' for e-invoicing, a specimen format will be available for download. This is for businesses not subject to e-invoicing under GST regulations. Please upload a signed declaration stating that your organization is not registered.The document must be uploaded in PDF format" />
@@ -5364,7 +5701,7 @@ console.log("checklist :", checklistPayload)
                                                 )}
                                             </div>
                                         </div>
-                                       
+
                                         <div className="col-md-4  mt-2">
                                             <div className="form-group">
                                                 <label>
@@ -5519,7 +5856,7 @@ console.log("checklist :", checklistPayload)
                                                 <input
                                                     className="form-control"
                                                     type="text"
-                                                    value={communicationAddress.address1}
+                                                    value={communicationAddress.address1 || ''}
                                                     onChange={e => handleCommunicationAddressChange('address1', e.target.value)}
                                                     disabled={sameAsRegistered}
                                                 />
@@ -5537,7 +5874,7 @@ console.log("checklist :", checklistPayload)
                                                 <input
                                                     className="form-control"
                                                     type="text"
-                                                    value={communicationAddress.address2}
+                                                    value={communicationAddress.address2 || ''}
                                                     onChange={e => handleCommunicationAddressChange('address2', e.target.value)}
                                                     disabled={sameAsRegistered}
                                                 />
@@ -5552,7 +5889,7 @@ console.log("checklist :", checklistPayload)
                                                 <input
                                                     className="form-control"
                                                     type="text"
-                                                    value={communicationAddress.address3}
+                                                    value={communicationAddress.address3 || ''}
                                                     onChange={e => handleCommunicationAddressChange('address3', e.target.value)}
                                                     disabled={sameAsRegistered}
                                                 />
@@ -5567,7 +5904,7 @@ console.log("checklist :", checklistPayload)
                                                 <input
                                                     className="form-control"
                                                     type="text"
-                                                    value={communicationAddress.address4}
+                                                    value={communicationAddress.address4 || ''}
                                                     onChange={e => handleCommunicationAddressChange('address4', e.target.value)}
                                                     disabled={sameAsRegistered}
                                                 />
@@ -5582,7 +5919,7 @@ console.log("checklist :", checklistPayload)
                                                 <input
                                                     className="form-control"
                                                     type="text"
-                                                    value={communicationAddress.address5}
+                                                    value={communicationAddress.address5 || ''}
                                                     onChange={e => handleCommunicationAddressChange('address5', e.target.value)}
                                                     disabled={sameAsRegistered}
                                                 />
@@ -5790,7 +6127,7 @@ console.log("checklist :", checklistPayload)
                     )}
 
 
- 
+
                     {currentStep === 3 && (
                         <div className="card mx-4 pb-4 mt-4">
                             {bankDetailsList?.filter(b => b._destroy !== "true").map((bankDetail, idx) => (
@@ -6302,16 +6639,17 @@ console.log("checklist :", checklistPayload)
                                                     className="form-control"
                                                     type="text"
                                                     placeholder="Enter Generated Virtual Account Code"
-                                                // value={bankDetail.benficary_name}
-                                                // value={bankDetail.benficary_name} // Correct key
-                                                // onChange={(e) =>
-                                                //     handleInputChange(
-                                                //         e,
-                                                //         bankDetail.id,
-                                                //         "benficary_name"
-                                                //     )
-                                                // }
-                                                // disabled={!bankDetail.isNew}
+                                                    // value={bankDetail.benficary_name}
+                                                    // value={bankDetail.benficary_name} // Correct key
+                                                    // onChange={(e) =>
+                                                    //     handleInputChange(
+                                                    //         e,
+                                                    //         bankDetail.id,
+                                                    //         "benficary_name"
+                                                    //     )
+                                                    // }
+                                                    // disabled={!bankDetail.isNew}
+                                                    disabled
                                                 />
                                                 {/* {bankDetail.isNew &&
                                                     errors.benficary_name &&
@@ -6437,7 +6775,7 @@ console.log("checklist :", checklistPayload)
                             {
                                 /* Show a note when fewer than 3 customers are present */
                             }
-                          
+
                             {majorCustomers.filter(mc => mc._destroy !== "true").map((customer, idx) => (
                                 // <div className="card mx-3 pb-4 mt-4" key={customer.id}>
                                 <CollapsedCardKYC
@@ -6448,7 +6786,7 @@ console.log("checklist :", checklistPayload)
                                     headerExtra={majorCustomers.length < 3 ? (<div className="ValidationColor">Please add a minimum of 3 client references.</div>) : null}
                                 >
                                     <div className="card-body mt-0">
-                                          <div className="row">
+                                        <div className="row">
                                             <div className="col-md-4">
                                                 <div className="form-group">
                                                     <label className="mb-2">Site Type <span>*</span></label>
@@ -6483,7 +6821,7 @@ console.log("checklist :", checklistPayload)
                                             </div>
 
 
-                                              <div className="col-md-2 mt-2">
+                                            <div className="col-md-2 mt-2">
                                                 <div className="form-group">
                                                     <label>Service Provided From <span>*</span></label>
                                                     <input
@@ -6661,7 +6999,7 @@ console.log("checklist :", checklistPayload)
                                                     )}
                                                 </div>
                                             </div>
-                                          
+
                                             <div className="col-md-4 mt-2">
                                                 <div className="form-group">
                                                     <label>Stage Of Project</label>
@@ -6711,7 +7049,7 @@ console.log("checklist :", checklistPayload)
                                                 </div>
                                             </div>
                                         </div>
-                                      
+
                                     </div>
                                 </CollapsedCardKYC>
                                 // </div>
@@ -6968,7 +7306,7 @@ console.log("checklist :", checklistPayload)
                                                     )}
                                                 </div>
                                             </div>
-                                          
+
                                             <div className="col-md-4 mt-2">
                                                 <div className="form-group">
                                                     <label>Contact Person <span>*</span></label>
@@ -6989,8 +7327,26 @@ console.log("checklist :", checklistPayload)
                                                     <input
                                                         className="form-control"
                                                         type="email"
+                                                        placeholder="eg.: abc@gmail.com"
                                                         value={warehouse.contactPersonEmail || ''}
-                                                        onChange={e => handleWarehouseChange(idx, 'contactPersonEmail', e.target.value)}
+                                                        onChange={e => {
+                                                            const val = e.target.value;
+                                                            // update warehouse state
+                                                            handleWarehouseChange(idx, 'contactPersonEmail', val);
+                                                            // live-validate email format and set inline error
+                                                            const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+                                                            let errMsg = '';
+                                                            if (val && !emailRegex.test(val)) {
+                                                                errMsg = 'Invalid Email. eg.: abc@gmail.com';
+                                                            }
+                                                            setWarehouseErrors(prev => {
+                                                                const copy = Array.isArray(prev) ? [...prev] : [];
+                                                                // ensure index exists
+                                                                while (copy.length <= idx) copy.push({});
+                                                                copy[idx] = { ...copy[idx], contactPersonEmail: errMsg || undefined };
+                                                                return copy;
+                                                            });
+                                                        }}
                                                     />
                                                     {warehouseErrors[idx]?.contactPersonEmail && (
                                                         <div className="ValidationColor">{warehouseErrors[idx].contactPersonEmail}</div>
@@ -6998,10 +7354,10 @@ console.log("checklist :", checklistPayload)
                                                 </div>
                                             </div>
 
-                                              <div className="col-md-4  mt-2">
+                                            <div className="col-md-4  mt-2">
                                                 <div className="form-group">
                                                     <label>Attachment</label>
-                                                     {warehouse.attachment && (
+                                                    {warehouse.attachment && (
                                                         typeof warehouse.attachment === 'string' ? (
                                                             <a href={`${baseURL}${warehouse.attachment}`} download className="text-primary d-flex align-items-center mt-2">
                                                                 <span className="me-2">Existing File:</span>
@@ -7019,7 +7375,7 @@ console.log("checklist :", checklistPayload)
                                                         onChange={e => handleWarehouseChange(idx, 'attachment', e.target.files[0])}
                                                     />
                                                     {/* Show existing or selected file name/link */}
-                                                   
+
                                                 </div>
                                             </div>
                                         </div>
@@ -7154,10 +7510,25 @@ console.log("checklist :", checklistPayload)
                                                     <input
                                                         className="form-control"
                                                         type="text"
+                                                        placeholder="eg.: abc@gmail.com"
                                                         value={person.primaryEmail}
-                                                        onChange={(e) =>
-                                                            handleContactPersonChange(idx, "primaryEmail", e.target.value)
-                                                        }
+                                                        onChange={(e) => {
+                                                            const val = e.target.value;
+                                                            handleContactPersonChange(idx, "primaryEmail", val);
+                                                            const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+                                                            let err = '';
+                                                            if (!val) {
+                                                                err = 'Primary Email is required.';
+                                                            } else if (!emailRegex.test(val)) {
+                                                                err = 'Invalid Email. eg.: abc@gmail.com';
+                                                            }
+                                                            setContactPersonErrors(prev => {
+                                                                const copy = Array.isArray(prev) ? [...prev] : [];
+                                                                while (copy.length <= idx) copy.push({});
+                                                                copy[idx] = { ...copy[idx], primaryEmail: err || undefined };
+                                                                return copy;
+                                                            });
+                                                        }}
                                                     />
                                                     {contactPersonErrors[idx]?.primaryEmail && (
                                                         <div className="ValidationColor">{contactPersonErrors[idx].primaryEmail}</div>
@@ -7171,10 +7542,23 @@ console.log("checklist :", checklistPayload)
                                                     <input
                                                         className="form-control"
                                                         type="text"
+                                                        placeholder="eg.: abc@gmail.com"
                                                         value={person.secondaryEmail}
-                                                        onChange={(e) =>
-                                                            handleContactPersonChange(idx, "secondaryEmail", e.target.value)
-                                                        }
+                                                        onChange={(e) => {
+                                                            const val = e.target.value;
+                                                            handleContactPersonChange(idx, "secondaryEmail", val);
+                                                            const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+                                                            let err = '';
+                                                            if (val && !emailRegex.test(val)) {
+                                                                err = 'Invalid Email. eg.: abc@gmail.com';
+                                                            }
+                                                            setContactPersonErrors(prev => {
+                                                                const copy = Array.isArray(prev) ? [...prev] : [];
+                                                                while (copy.length <= idx) copy.push({});
+                                                                copy[idx] = { ...copy[idx], secondaryEmail: err || undefined };
+                                                                return copy;
+                                                            });
+                                                        }}
                                                     />
                                                     {contactPersonErrors[idx]?.secondaryEmail && (
                                                         <div className="ValidationColor">{contactPersonErrors[idx].secondaryEmail}</div>
@@ -7235,7 +7619,7 @@ console.log("checklist :", checklistPayload)
                                                     />
                                                 </div>
                                             </div>
-                                           
+
                                             {/* Date of Birth */}
                                             <div className="col-md-4  mt-2">
                                                 <div className="form-group">
@@ -7342,7 +7726,7 @@ console.log("checklist :", checklistPayload)
                                                 <div className="form-group">
                                                     <label>Qualification</label>
                                                     <SingleSelector
-                                                        options={[]}
+                                                        options={qualificationOptions}
                                                         value={owner.qualification}
                                                         onChange={selected => handleOwnerChange(idx, 'qualification', selected)}
                                                     />
@@ -7396,11 +7780,11 @@ console.log("checklist :", checklistPayload)
                                             <div className="col-md-4 mt-2">
                                                 <div className="form-group">
                                                     <label>Attachment</label>
-                                                     {owner?.attachment && (
+                                                    {owner?.attachment && (
                                                         <div className="">
-                                                          
-                                                                <span>Existing File : {owner.attachment.name || owner.attachment.filename || 'Selected file'}</span>
-                                                          
+
+                                                            <span>Existing File : {owner.attachment.name || owner.attachment.filename || 'Selected file'}</span>
+
                                                         </div>
                                                     )}
                                                     <input
@@ -7408,7 +7792,7 @@ console.log("checklist :", checklistPayload)
                                                         type="file"
                                                         onChange={e => handleOwnerChange(idx, 'attachment', e.target.files[0])}
                                                     />
-                                                   
+
                                                 </div>
                                             </div>
                                         </div>
@@ -7504,12 +7888,12 @@ console.log("checklist :", checklistPayload)
 
                                 {statutoryDetails && statutoryDetails.length > 0 && (
 
-                                <div className="col-md-12">
-                                    <h5 className="mb-3">Additional Vendor Statutory Details
-                                        <TooltipIcon message="If not applicable then keep The field blank Additional Vendor Statutory Details." />
-                                    </h5>
-                                </div>
-    )}
+                                    <div className="col-md-12">
+                                        <h5 className="mb-3">Additional Vendor Statutory Details
+                                            <TooltipIcon message="If not applicable then keep The field blank Additional Vendor Statutory Details." />
+                                        </h5>
+                                    </div>
+                                )}
 
                                 {/* <div>{"*********************************************************"} </div> */}
 
@@ -7587,7 +7971,7 @@ console.log("checklist :", checklistPayload)
                             </div>
 
 
-                           
+
 
                             <div className="mb-3 mx-3 mt-5">
                                 <h5 className="mb-3">Questions</h5>
@@ -7798,8 +8182,8 @@ console.log("checklist :", checklistPayload)
                                                             })}
                                                         </React.Fragment>
                                                     ))}
-            {/* Show checklistPayload for review */}
-            {/* <div className="mt-4 mx-3">
+                                                    {/* Show checklistPayload for review */}
+                                                    {/* <div className="mt-4 mx-3">
                 <h5>Checklist Payload Preview</h5>
                 <pre style={{ background: '#f8f9fa', padding: '12px', fontSize: '12px', maxHeight: '300px', overflow: 'auto' }}>{JSON.stringify(checklistPayload, null, 2)}</pre>
             </div> */}
@@ -8816,7 +9200,7 @@ console.log("checklist :", checklistPayload)
 
 
                                 {/* <div className="card mx-4 pb-4 mt-4"> */}
-                               
+
                                 {bankDetailsList?.map((bankDetail) => (
                                     <CollapsedCardKYC
                                         key={bankDetail.id}
@@ -9760,7 +10144,7 @@ console.log("checklist :", checklistPayload)
                                     //     if (!isValid) return;
                                     // }
                                     // else 
-                                        if (currentStep === 3) {
+                                    if (currentStep === 3) {
                                         isValid = validateStep3();
                                         if (!isValid) return;
                                     }
@@ -9807,7 +10191,7 @@ console.log("checklist :", checklistPayload)
                                             isValid = validateBasicInfo();
                                             if (!isValid) return;
                                             await saveDraftStep1();
-                                            
+
                                         }
                                         // Add more step validations as needed
                                         else
@@ -9816,31 +10200,31 @@ console.log("checklist :", checklistPayload)
                                                 if (!isValid) return;
                                                 await saveDraftStep2();
                                             }
-                                        else
-                                            if (currentStep === 3) {
-                                                isValid = validateStep3();
-                                                if (!isValid) return;
-                                                await saveDraftStep3();
-                                            }
-                                        else
-                                            if (currentStep === 4) {
-                                                isValid = validateStep4();
-                                                if (!isValid) return;
-                                                await saveDraftStep4()
-                                            }
+                                            else
+                                                if (currentStep === 3) {
+                                                    isValid = validateStep3();
+                                                    if (!isValid) return;
+                                                    await saveDraftStep3();
+                                                }
+                                                else
+                                                    if (currentStep === 4) {
+                                                        isValid = validateStep4();
+                                                        if (!isValid) return;
+                                                        await saveDraftStep4()
+                                                    }
 
-                                        else
-                                            if (currentStep === 5) {
-                                                // isValid = validateStep4();
-                                                if (!isValid) return;
-                                                await saveDraftStep5()
-                                            }
-                                        else
-                                            if (currentStep === 6) {
-                                                // isValid = validateStep4();
-                                                if (!isValid) return;
-                                                await saveDraftStep6()
-                                            }
+                                                    else
+                                                        if (currentStep === 5) {
+                                                            // isValid = validateStep4();
+                                                            if (!isValid) return;
+                                                            await saveDraftStep5()
+                                                        }
+                                                        else
+                                                            if (currentStep === 6) {
+                                                                // isValid = validateStep4();
+                                                                if (!isValid) return;
+                                                                await saveDraftStep6()
+                                                            }
 
                                         setCompleted((arr) => {
                                             const copy = [...arr];
