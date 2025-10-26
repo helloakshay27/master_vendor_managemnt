@@ -122,7 +122,7 @@ const mapCommunicationAddressToPayload = (communicationAddress, sameAsRegistered
 
 const mapWarehousesToPayload = (warehouses) => {
     return warehouses.map((w) => ({
-        id: null,
+        id: w.idPre || null,
         address: w.address || '',
         country_id: w.country?.value || null,
         state_id: w.state?.value || null,
@@ -616,7 +616,7 @@ const VendorRegistrationStepByStepForm = () => {
         };
         fetchGstinClassificationOptions();
     }, []);
-    console.log("applicable:", gstinClassificationOptions)
+    // console.log("applicable:", gstinClassificationOptions)
 
     // console.log("nature of business:",natureOfBusinessOptions)
 
@@ -929,14 +929,14 @@ const VendorRegistrationStepByStepForm = () => {
         const panAttachmentObj = panAttachmentRaw ? {
             filename: panAttachmentRaw.document_name || panAttachmentRaw.filename || null,
             // try common fields for a server-side path/url
-            file_url: panAttachmentRaw.document_path ? `${baseURL}${panAttachmentRaw.document_path}` : (panAttachmentRaw.file_url || panAttachmentRaw.url || panAttachmentRaw.attachment_url || null)
+            file_url: panAttachmentRaw.attachment_url ? `${baseURL}${panAttachmentRaw.attachment_url}` : null
         } : null;
 
         // Build GSTIN attachment object (if backend provides it) so UI can show existing file like PAN
         const gstAttachmentRaw = Array.isArray(supplierShowData.gstin_attachments) && supplierShowData.gstin_attachments.length > 0 ? supplierShowData.gstin_attachments[0] : null;
         const gstinAttachmentObj = gstAttachmentRaw ? {
             filename: gstAttachmentRaw.document_name || gstAttachmentRaw.filename || null,
-            file_url: gstAttachmentRaw.document_path ? `${baseURL}${gstAttachmentRaw.document_path}` : (gstAttachmentRaw.file_url || gstAttachmentRaw.url || gstAttachmentRaw.attachment_url || null)
+            file_url: gstAttachmentRaw.attachment_url ? `${baseURL}${gstAttachmentRaw.attachment_url}` : (gstAttachmentRaw.file_url || gstAttachmentRaw.url || gstAttachmentRaw.attachment_url || null)
         } : null;
 
         // Build CIN attachment object (try common possible keys) so UI can show existing CIN file
@@ -945,7 +945,7 @@ const VendorRegistrationStepByStepForm = () => {
         const cinAttachmentRaw = cinRaw1 || cinRaw2 || null;
         const cinAttachmentObj = cinAttachmentRaw ? {
             filename: cinAttachmentRaw.document_name || cinAttachmentRaw.filename || null,
-            file_url: cinAttachmentRaw.document_path ? `${baseURL}${cinAttachmentRaw.document_path}` : (cinAttachmentRaw.file_url || cinAttachmentRaw.url || cinAttachmentRaw.attachment_url || null)
+            file_url: cinAttachmentRaw.attachment_url ? `${baseURL}${cinAttachmentRaw.attachment_url}` : (cinAttachmentRaw.file_url || cinAttachmentRaw.url || cinAttachmentRaw.attachment_url || null)
         } : null;
 
         // Build LLP attachment object (try a few common keys)
@@ -954,7 +954,7 @@ const VendorRegistrationStepByStepForm = () => {
         const llpAttachmentRaw = llpRaw1 || llpRaw2 || null;
         const llpAttachmentObj = llpAttachmentRaw ? {
             filename: llpAttachmentRaw.document_name || llpAttachmentRaw.filename || null,
-            file_url: llpAttachmentRaw.document_path ? `${baseURL}${llpAttachmentRaw.document_path}` : (llpAttachmentRaw.file_url || llpAttachmentRaw.url || llpAttachmentRaw.attachment_url || null)
+            file_url: llpAttachmentRaw.attachment_url? `${baseURL}${llpAttachmentRaw.attachment_url}` : (llpAttachmentRaw.file_url || llpAttachmentRaw.url || llpAttachmentRaw.attachment_url || null)
         } : null;
 
         // Normalize GSTIN applicable into the selector option shape (handles '0'/'1', boolean, 'Yes'/'No')
@@ -1040,14 +1040,14 @@ const VendorRegistrationStepByStepForm = () => {
             const msmeAttachmentRaw = Array.isArray(supplierShowData.msme_attachments) && supplierShowData.msme_attachments.length > 0 ? supplierShowData.msme_attachments[0] : null;
             const msmeAttachmentObj = msmeAttachmentRaw ? {
                 filename: msmeAttachmentRaw.document_name || msmeAttachmentRaw.filename || null,
-                file_url: msmeAttachmentRaw.document_path ? `${baseURL}${msmeAttachmentRaw.document_path}` : (msmeAttachmentRaw.file_url || msmeAttachmentRaw.url || msmeAttachmentRaw.attachment_url || null)
+                file_url: msmeAttachmentRaw.attachment_url ? `${baseURL}${msmeAttachmentRaw.attachment_url}` : (msmeAttachmentRaw.file_url || msmeAttachmentRaw.url || msmeAttachmentRaw.attachment_url || null)
             } : null;
 
             // Build MSME declaration attachment if present
             const msmeDeclRaw = Array.isArray(supplierShowData.msme_declaration_attachments) && supplierShowData.msme_declaration_attachments.length > 0 ? supplierShowData.msme_declaration_attachments[0] : null;
             const msmeDeclarationObj = msmeDeclRaw ? {
                 filename: msmeDeclRaw.document_name || msmeDeclRaw.filename || null,
-                file_url: msmeDeclRaw.document_path ? `${baseURL}${msmeDeclRaw.document_path}` : (msmeDeclRaw.file_url || msmeDeclRaw.url || msmeDeclRaw.attachment_url || null)
+                file_url: msmeDeclRaw.attachment_url ? `${baseURL}${msmeDeclRaw.attachment_url}` : (msmeDeclRaw.file_url || msmeDeclRaw.url || msmeDeclRaw.attachment_url || null)
             } : null;
 
             // Einvoicing mapping (backend may use 'einvoicing' or 'einvoice')
@@ -1127,6 +1127,7 @@ const VendorRegistrationStepByStepForm = () => {
                 const commState = comm.pms_state_id ? ((commStateOptions || []).find(opt => String(opt.value) === String(comm.pms_state_id)) || { value: comm.pms_state_id, label: comm.state_name || '' }) : null;
                 setCommunicationAddress(prev => ({
                     ...prev,
+                    id:comm.id,
                     idPre: comm.id,
                     address1: comm.address || comm.address_line_two || prev.address1 || '',
                     address2: comm.address_line_two || comm.address_line_three || prev.address2 || '',
@@ -1151,8 +1152,9 @@ const VendorRegistrationStepByStepForm = () => {
                 idPre: b.id,
                 id: b.id || Date.now() + Math.random(),
                 address: b.address || "",
-                country: b.country_id ? { value: b.country_id, label: b.country_name || b.country_id } : null,
-                state: b.state_id ? { value: b.state_id, label: b.state_name || b.state_id } : null,
+                // Prefer to pick the canonical option object from countryOptions/stateOptions by id so selectors show labels
+                country: b.country_id ? ((countryOptions || []).find(opt => String(opt.value) === String(b.country_id)) || { value: b.country_id, label: b.country_name || String(b.country_id) }) : null,
+                state: b.state_id ? ((stateOptions || []).find(opt => String(opt.value) === String(b.state_id)) || { value: b.state_id, label: b.state_name || String(b.state_id) }) : null,
                 city: b.city_name || b.city || "",
                 pincode: b.pin_code || b.pincode || null,
                 telephone: b.tel_number || b.telephone || "",
@@ -1164,19 +1166,33 @@ const VendorRegistrationStepByStepForm = () => {
         }
         // Map directors_informations (from API) to local owners state
         if (Array.isArray(supplierShowData.directors_informations) && supplierShowData.directors_informations.length > 0) {
-            const mappedOwners = supplierShowData.directors_informations.map(d => ({
-                idPre: d.id,
-                id: d.id || Date.now() + Math.random(),
-                firstName: d.first_name || "",
-                lastName: d.last_name || "",
-                designation: d.designation_id ? (designationOptions.find(opt => opt.value === d.designation_id) || d.designation_id) : null,
-                qualification: d.qualification || null,
-                experience: d.experience || "",
-                email: d.email || "",
-                mobile: d.mobile || "",
-                attachment: null,
-                isNew: false,
-            }));
+            const mappedOwners = supplierShowData.directors_informations.map(d => {
+                // Normalize designation into option object so SingleSelector shows label
+                const designation = (typeof d.designation_id !== 'undefined' && d.designation_id !== null)
+                    ? ((designationOptions || []).find(opt => String(opt.value) === String(d.designation_id))
+                        || { value: d.designation_id, label: d.designation_name || String(d.designation_id) })
+                    : null;
+
+                // Normalize qualification into option object when possible
+                const qualification = d.qualification && String(d.qualification).trim() !== ''
+                    ? ((qualificationOptions || []).find(opt => String(opt.value) === String(d.qualification) || String(opt.label) === String(d.qualification))
+                        || { value: d.qualification, label: d.qualification })
+                    : null;
+
+                return ({
+                    idPre: d.id,
+                    id: d.id || Date.now() + Math.random(),
+                    firstName: d.first_name || "",
+                    lastName: d.last_name || "",
+                    designation: designation,
+                    qualification: qualification,
+                    experience: d.experience || "",
+                    email: d.email || "",
+                    mobile: d.mobile || "",
+                    attachment: null,
+                    isNew: false,
+                });
+            });
 
             setOwners(mappedOwners);
         }
@@ -1207,6 +1223,83 @@ const VendorRegistrationStepByStepForm = () => {
             });
 
             setMajorCustomers(mappedCustomers);
+        }
+
+        // Map factory_warehouses from API to local warehouses state
+        if (Array.isArray(supplierShowData.factory_warehouses) && supplierShowData.factory_warehouses.length > 0) {
+            const mappedWarehouses = supplierShowData.factory_warehouses.map(w => {
+                const countryOpt = w.country_id ? ((countryOptions || []).find(opt => String(opt.value) === String(w.country_id)) || { value: w.country_id, label: w.country_name || String(w.country_id) }) : null;
+                const stateOpt = w.state_id ? ((stateOptions || []).find(opt => String(opt.value) === String(w.state_id)) || { value: w.state_id, label: w.state_name || String(w.state_id) }) : null;
+
+                // Normalize attachment value (backend may provide a string path or an object)
+                let attachmentVal = null;
+                const rawAtt = w.attachment || w.attachment_url || w.file_url || w.document_path || w.document || null;
+                if (rawAtt) {
+                    if (typeof rawAtt === 'string') {
+                        attachmentVal = rawAtt;
+                    } else if (rawAtt.document_name || rawAtt.filename || rawAtt.file_url || rawAtt.url) {
+                        attachmentVal = rawAtt.document_name || rawAtt.filename || rawAtt.file_url || rawAtt.url;
+                    }
+                }
+
+                return {
+                    idPre: w.id,
+                    id: w.id || Date.now() + Math.random(),
+                    address: w.address || '',
+                    country: countryOpt,
+                    state: stateOpt,
+                    city: w.city_name || w.city || '',
+                    pincode: w.pin_code || w.pincode || '',
+                    telephone: w.tel_number || w.telephone || '',
+                    mobile: w.mobile || '',
+                    contactPerson: w.contact_person || '',
+                    contactPersonEmail: w.contact_person_email || '',
+                    attachment: attachmentVal,
+                    isNew: false,
+                };
+            });
+
+            setWarehouses(mappedWarehouses);
+        }
+
+        // Map contact_people from API to local contactPersons state
+        if (Array.isArray(supplierShowData.contact_people) && supplierShowData.contact_people.length > 0) {
+            const mappedContacts = supplierShowData.contact_people.map(cp => {
+                // Escalation level: try to match canonical option by value or label
+                const escalation = (escalationLevelOptions || []).find(opt => String(opt.value) === String(cp.escalation_level) || String(opt.label) === String(cp.escalation_level))
+                    || (cp.escalation_level ? { label: cp.escalation_level, value: cp.escalation_level } : null);
+
+                // Name title: try to match by id or label; fallback to provided id/string
+                const nameTitle = (nameTitleOptions || []).find(opt => String(opt.value) === String(cp.name_title_id) || String(opt.label) === String(cp.name_title))
+                    || (typeof cp.name_title_id !== 'undefined' && cp.name_title_id !== null ? { value: cp.name_title_id, label: cp.name_title || String(cp.name_title_id) } : (cp.name_title ? { value: cp.name_title, label: cp.name_title } : null));
+
+                // Designation: match against fetched designationOptions if available
+                const designation = (designationOptions || []).find(opt => String(opt.value) === String(cp.designation_id))
+                    || (cp.designation_id ? { value: cp.designation_id, label: cp.designation_name || String(cp.designation_id) } : null);
+
+                const nationality = cp.nationality_string ? { label: cp.nationality_string, value: cp.nationality_string } : null;
+
+                return {
+                    idPre: cp.id,
+                    id: cp.id || Date.now() + Math.random(),
+                    escalationLevel: escalation,
+                    nameTitle: nameTitle,
+                    firstName: cp.first_name || '',
+                    middleName: cp.middle_name || '',
+                    lastName: cp.last_name || '',
+                    designation: designation,
+                    primaryEmail: cp.primary_email || '',
+                    secondaryEmail: cp.secondary_email || '',
+                    primaryMobile: cp.primary_mobile || '',
+                    secondaryMobile: cp.secondary_mobile || '',
+                    nationality: nationality,
+                    dob: cp.birth_date || cp.dob || '',
+                    attachment: null,
+                    isNew: false,
+                };
+            });
+
+            setContactPersons(mappedContacts);
         }
     }, [supplierShowData]);
 
@@ -1520,7 +1613,7 @@ const VendorRegistrationStepByStepForm = () => {
     });
 
     // console.log("reg add :",registeredAddress)
-    console.log("comm add:", communicationAddress)
+    // console.log("comm add:", communicationAddress)
 
 
     // State options for address selectors
@@ -1618,11 +1711,11 @@ const VendorRegistrationStepByStepForm = () => {
             { key: 'pincode', label: 'Pin Code' },
             { key: 'mobile', label: 'Mobile Number' },
             { key: 'orderingEmail', label: 'Email ID' },
-            { key: 'billingEmail', label: 'Billing Email ID' },
+            // { key: 'billingEmail', label: 'Billing Email ID' },
         ];
         const regErrs = {};
         const commErrs = {};
-
+ 
         // Regex for pin code and email
         const pinCodeRegex = /^[1-9][0-9]{5}$/;
         const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
@@ -1666,6 +1759,8 @@ const VendorRegistrationStepByStepForm = () => {
             }
         });
         setAddressErrors({ registered: regErrs, communication: commErrs });
+        // console.log("error1:",regErrs)
+//  console.log("error2:", commErrs)
         return Object.keys(regErrs).length === 0 && Object.keys(commErrs).length === 0;
     };
 
@@ -3216,7 +3311,7 @@ const VendorRegistrationStepByStepForm = () => {
 
     // console.log("add:", registeredAddress,communicationAddress, mapRegisteredAddressToPayload(registeredAddress))
 
-    console.log("base info:", basicInfo)
+    // console.log("base info:", basicInfo)
     const saveDraftStep2 = async () => {
         setLoading2(true)
         console.log("sameAsRegistered value:", sameAsRegistered);
@@ -3591,7 +3686,7 @@ const VendorRegistrationStepByStepForm = () => {
         }
     };
 
-    console.log("checklist :", checklistPayload)
+    // console.log("checklist :", checklistPayload)
     const saveDraftStep6 = async () => {
         setLoading2(true)
         console.log("sameAsRegistered value:", sameAsRegistered);
@@ -6595,6 +6690,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                     value={[{ label: 'Yes', value: 'Yes' }, { label: 'No', value: 'No' }].find(opt => opt.value === virtualAccount) || null}
                                                     onChange={selected => setVirtualAccount(selected.value)}
                                                     placeholder="Select Virtual Account"
+                                                     isDisabled={!bankDetail.isNew}
                                                 />
                                                 {/* {bankDetail.isNew &&
                                                     errors.account_type &&
@@ -10133,17 +10229,17 @@ const VendorRegistrationStepByStepForm = () => {
                                 onClick={() => {
                                     // Step-wise validation logic
                                     let isValid = true;
-                                    // if (currentStep === 1) {
-                                    //     isValid = validateBasicInfo();
-                                    //     if (!isValid) return;
-                                    // }
-                                    // // Add more step validations as needed
-                                    // else
-                                    //      if (currentStep === 2) {
-                                    //     isValid = validateStep2();
-                                    //     if (!isValid) return;
-                                    // }
-                                    // else 
+                                    if (currentStep === 1) {
+                                        isValid = validateBasicInfo();
+                                        if (!isValid) return;
+                                    }
+                                    // Add more step validations as needed
+                                    else
+                                         if (currentStep === 2) {
+                                        isValid = validateStep2();
+                                        if (!isValid) return;
+                                    }
+                                    else 
                                     if (currentStep === 3) {
                                         isValid = validateStep3();
                                         if (!isValid) return;
