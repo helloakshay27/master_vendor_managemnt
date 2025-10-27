@@ -924,6 +924,9 @@ const VendorRegistrationStepByStepForm = () => {
         }
     }, [supplierShowData]);
 
+    // Reconcile address country/state values with canonical option objects
+    // This runs when option lists change so selects display labels even if options load after supplierShowData mapping
+   
     // Reconcile fallback GSTIN classification (or other selector fallbacks) with canonical option objects
     // This ensures the SingleSelector shows the option label (not a raw id) once options load asynchronously.
     useEffect(() => {
@@ -3101,6 +3104,50 @@ const VendorRegistrationStepByStepForm = () => {
 
         // run when any of these options or the basicInfo fields change
     }, [organizationTypeOptions, vendorTypeOptions, industryTypeOptions, natureOfBusinessOptions, schemaGroupOptions, basicInfo.organizationType, basicInfo.vendorType, basicInfo.industryType, basicInfo.natureOfBusiness, basicInfo.schemaGroup]);
+
+     useEffect(() => {
+        try {
+            setRegisteredAddress(prev => {
+                const countryId = prev?.country?.value ?? prev?.country ?? null;
+                const stateId = prev?.state?.value ?? prev?.state ?? null;
+
+                const countryOpt = countryId ? ((countryOptions || []).find(opt => String(opt.value) === String(countryId)) || { value: countryId, label: prev?.country?.label || '' }) : null;
+
+                const stateOpt = stateId ? (
+                    (stateOptions || []).find(opt => String(opt.value) === String(stateId))
+                    || (commStateOptions || []).find(opt => String(opt.value) === String(stateId))
+                    || { value: stateId, label: prev?.state?.label || '' }
+                ) : null;
+
+                // Only update if something changed to avoid re-renders
+                if (countryOpt !== prev.country || stateOpt !== prev.state) {
+                    return { ...prev, country: countryOpt || prev.country, state: stateOpt || prev.state };
+                }
+                return prev;
+            });
+
+            setCommunicationAddress(prev => {
+                const countryId = prev?.country?.value ?? prev?.country ?? null;
+                const stateId = prev?.state?.value ?? prev?.state ?? null;
+
+                const countryOpt = countryId ? ((countryOptions || []).find(opt => String(opt.value) === String(countryId)) || { value: countryId, label: prev?.country?.label || '' }) : null;
+
+                const stateOpt = stateId ? (
+                    (commStateOptions || []).find(opt => String(opt.value) === String(stateId))
+                    || (stateOptions || []).find(opt => String(opt.value) === String(stateId))
+                    || { value: stateId, label: prev?.state?.label || '' }
+                ) : null;
+
+                if (countryOpt !== prev.country || stateOpt !== prev.state) {
+                    return { ...prev, country: countryOpt || prev.country, state: stateOpt || prev.state };
+                }
+                return prev;
+            });
+        } catch (e) {
+            // swallow - reconciliation is best-effort
+        }
+    }, [countryOptions, stateOptions, commStateOptions]);
+
     // update api
 
     const [errors, setErrors] = useState({});
