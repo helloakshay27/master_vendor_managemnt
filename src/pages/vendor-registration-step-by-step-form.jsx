@@ -942,6 +942,10 @@ const VendorRegistrationStepByStepForm = () => {
         }
     }, [gstinClassificationOptions, basicInfo.gstinClassification]);
 
+    // General reconciliation: replace primitive ids in basicInfo with canonical option objects
+    // once the corresponding options arrays load. This prevents selectors from rendering raw ids.
+    
+
     const handleDeclarationOptionChange = (questionId, option) => {
         setSupplierDeclarations(prev => prev.map(d => d.question_id === questionId ? { ...d, selected_option: option.name, selected_option_id: option.value } : d));
     };
@@ -1165,8 +1169,17 @@ const VendorRegistrationStepByStepForm = () => {
         try {
             const office = supplierShowData.office_address || supplierShowData.officeAddress || supplierShowData.registered_address || supplierShowData.office;
             if (office) {
-                const officeCountry = office.pms_country_id ? ((countryOptions || []).find(opt => String(opt.value) === String(office.pms_country_id)) || { value: office.pms_country_id, label: office.country_name || '' }) : null;
-                const officeState = office.pms_state_id ? ((stateOptions || []).find(opt => String(opt.value) === String(office.pms_state_id)) || { value: office.pms_state_id, label: office.state_name || '' }) : null;
+                // support multiple possible id keys from backend (pms_country_id, country_id, etc.)
+                const officeCountryId = office.pms_country_id || office.country_id || office.countryId || null;
+                const officeCountry = officeCountryId ? ((countryOptions || []).find(opt => String(opt.value) === String(officeCountryId)) || { value: officeCountryId, label: office.country_name || office.country || '' }) : null;
+
+                // support multiple possible state id keys and search both state lists (registered/comm) as a fallback
+                const officeStateId = office.pms_state_id || office.state_id || office.stateId || null;
+                const officeState = officeStateId ? (
+                    (stateOptions || []).find(opt => String(opt.value) === String(officeStateId))
+                    || (commStateOptions || []).find(opt => String(opt.value) === String(officeStateId))
+                    || { value: officeStateId, label: office.state_name || office.state || '' }
+                ) : null;
                 setRegisteredAddress(prev => ({
                     ...prev,
                     id: office.id,
@@ -1188,11 +1201,19 @@ const VendorRegistrationStepByStepForm = () => {
 
             const comm = supplierShowData.communication_address || supplierShowData.communicationAddress || supplierShowData.communication;
             if (comm) {
-                const commCountry = comm.pms_country_id ? ((countryOptions || []).find(opt => String(opt.value) === String(comm.pms_country_id)) || { value: comm.pms_country_id, label: comm.country_name || '' }) : null;
-                const commState = comm.pms_state_id ? ((commStateOptions || []).find(opt => String(opt.value) === String(comm.pms_state_id)) || { value: comm.pms_state_id, label: comm.state_name || '' }) : null;
+                // support multiple possible id keys from backend for country/state
+                const commCountryId = comm.pms_country_id || comm.country_id || comm.countryId || null;
+                const commCountry = commCountryId ? ((countryOptions || []).find(opt => String(opt.value) === String(commCountryId)) || { value: commCountryId, label: comm.country_name || comm.country || '' }) : null;
+
+                const commStateId = comm.pms_state_id || comm.state_id || comm.stateId || null;
+                const commState = commStateId ? (
+                    (commStateOptions || []).find(opt => String(opt.value) === String(commStateId))
+                    || (stateOptions || []).find(opt => String(opt.value) === String(commStateId))
+                    || { value: commStateId, label: comm.state_name || comm.state || '' }
+                ) : null;
                 setCommunicationAddress(prev => ({
                     ...prev,
-                    id:comm.id,
+                    id: comm.id,
                     idPre: comm.id,
                     address1: comm.address || comm.address_line_two || prev.address1 || '',
                     address2: comm.address_line_two || comm.address_line_three || prev.address2 || '',
@@ -3053,6 +3074,31 @@ const VendorRegistrationStepByStepForm = () => {
     };
 
 
+
+    useEffect(() => {
+        const reconcile = (fieldKey, options) => {
+            try {
+                if (!options || options.length === 0) return;
+                const current = basicInfo[fieldKey];
+                if (!current) return;
+                const currentVal = (typeof current === 'object' ? current.value : current);
+                const match = (options || []).find(opt => String(opt.value) === String(currentVal) || String(opt.label) === String(currentVal));
+                if (match && match !== current) {
+                    setBasicInfo(prev => ({ ...prev, [fieldKey]: match }));
+                }
+            } catch (e) {
+                // ignore
+            }
+        };
+
+        reconcile('organizationType', organizationTypeOptions);
+        reconcile('vendorType', vendorTypeOptions);
+        reconcile('industryType', industryTypeOptions);
+        reconcile('natureOfBusiness', natureOfBusinessOptions);
+        reconcile('schemaGroup', schemaGroupOptions);
+
+        // run when any of these options or the basicInfo fields change
+    }, [organizationTypeOptions, vendorTypeOptions, industryTypeOptions, natureOfBusinessOptions, schemaGroupOptions, basicInfo.organizationType, basicInfo.vendorType, basicInfo.industryType, basicInfo.natureOfBusiness, basicInfo.schemaGroup]);
     // update api
 
     const [errors, setErrors] = useState({});
@@ -4469,7 +4515,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                 <SingleSelector
                                                     options={vendorTypeOptions || []}
                                                     placeholder="Select Vendor Type"
-                                                    // isDisabled={true}
+                                                    isDisabled={true}
                                                     value={basicInfo.vendorType}
                                                     onChange={val => updateBasicInfo('vendorType', val)}
                                                 />
