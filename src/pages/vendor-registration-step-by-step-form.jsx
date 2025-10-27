@@ -1019,6 +1019,16 @@ const VendorRegistrationStepByStepForm = () => {
         const gstinClassOption = (gstinClassificationOptions || []).find(opt => String(opt.value) === String(gstClassRaw))
             || (gstClassRaw ? { value: gstClassRaw, label: supplierShowData.gst_classification_name || String(gstClassRaw) } : null);
 
+        // Try to pick Nature of Business option object for preselection
+        const natureRaw = supplierShowData.nature_of_business_id;
+        const natureOption = (natureOfBusinessOptions || []).find(opt => String(opt.value) === String(natureRaw))
+            || (natureRaw ? { value: natureRaw, label: supplierShowData.nature_of_business_name || String(natureRaw) } : null);
+
+        // Try to pick Schema Group option object for preselection
+        const schemaGroupRaw = supplierShowData.schema_group_id;
+        const schemaGroupOption = (schemaGroupOptions || []).find(opt => String(opt.value) === String(schemaGroupRaw))
+            || (schemaGroupRaw ? { value: schemaGroupRaw, label: supplierShowData.schema_group_name || String(schemaGroupRaw) } : null);
+
         setBasicInfo(prev => ({
             ...prev,
             vendorOrganizationName: supplierShowData.organization_name || "",
@@ -1035,12 +1045,12 @@ const VendorRegistrationStepByStepForm = () => {
             email: supplierShowData.email || "",
             mobile: supplierShowData.mobile || "",
             dateOfIncorporation: supplierShowData.date_of_incorporation || "",
-            schemaGroup: supplierShowData.schema_group_id || "",
+            schemaGroup: schemaGroupOption,
             gstinNo: supplierShowData.gstin || "",
             // gstinApplicable: supplierShowData.gstin_applicable || "",
             // Add more mappings as needed
             llp: supplierShowData.llp_number || "",
-            natureOfBusiness: supplierShowData.nature_of_business_id || null,
+            natureOfBusiness: natureOption,
             gstinClassification: gstinClassOption,
             // Attach existing GSTIN attachment for UI display
             gstinAttachmentObj: gstinAttachmentObj,
@@ -4440,9 +4450,9 @@ const VendorRegistrationStepByStepForm = () => {
                                                 <SingleSelector
                                                     options={natureOfBusinessOptions || []}
                                                     placeholder="Select Nature of Business"
-                                                    isDisabled={true}
-                                                    value={natureOfBusinessOptions.find(opt => opt.value === basicInfo.natureOfBusiness)}
-                                                    onChange={val => updateBasicInfo('natureOfBusiness', val)}
+                                                            isDisabled={true}
+                                                            value={basicInfo.natureOfBusiness || null}
+                                                            onChange={val => updateBasicInfo('natureOfBusiness', val)}
                                                 />
                                                 {basicInfoErrors.natureOfBusiness && (
                                                     <div className="ValidationColor">{basicInfoErrors.natureOfBusiness}</div>
@@ -4639,12 +4649,15 @@ const VendorRegistrationStepByStepForm = () => {
                                                     PAN Attachment <span>*</span>
                                                     <TooltipIcon message="Please attach a clear PDF of your organization's PAN certificate. This is required for identity and tax verification." />
                                                 </label>
-                                                {/* Show existing PAN attachment if available */}
-                                                {basicInfo?.panAttachmentObj?.filename ? (
+                                                {/*
+                                                    Show existing PAN attachment only when it comes from the API (has a file_url).
+                                                    If the user picks a new file via input we store filename/content and should NOT show download link —
+                                                    instead render the selected filename as plain text.
+                                                */}
+                                                {basicInfo?.panAttachmentObj?.file_url ? (
                                                     <span className="ms-2">
                                                         <a
                                                             href={`${baseURL}${basicInfo.panAttachmentObj.file_url}`}
-                                                            // {basicInfo.panAttachmentObj.file_url || '#'}
                                                             download
                                                             className="text-primary d-flex align-items-center"
                                                         >
@@ -4655,6 +4668,11 @@ const VendorRegistrationStepByStepForm = () => {
                                                             </svg>
                                                             {basicInfo.panAttachmentObj.filename}
                                                         </a>
+                                                    </span>
+                                                ) : basicInfo?.panAttachmentObj?.filename ? (
+                                                    <span className="ms-2 d-flex align-items-center">
+                                                        <span className="me-2">Selected File:</span>
+                                                        <span className="text-muted">{basicInfo.panAttachmentObj.filename}</span>
                                                     </span>
                                                 ) : null}
                                                 <input
@@ -4692,8 +4710,8 @@ const VendorRegistrationStepByStepForm = () => {
                                                 </label>
                                                 <SingleSelector
                                                     options={schemaGroupOptions || []}
-                                                    value={schemaGroupOptions.find(opt => opt.value === basicInfo.schemaGroup) || null}
-                                                    onChange={val => updateBasicInfo('schemaGroup', val)}
+                                                            value={basicInfo.schemaGroup || null}
+                                                            onChange={val => updateBasicInfo('schemaGroup', val)}
                                                     placeholder="Select Schema Group"
                                                     isDisabled={true}
                                                 />
@@ -4767,11 +4785,13 @@ const VendorRegistrationStepByStepForm = () => {
                                                                     Corporate Identification Number Attachment  <span>*</span>
                                                                     <TooltipIcon message="Upload the official document or certificate to verify the details you have submitted. The document must be uploaded in PDF format. Corporate Identification Number Attachment." />
                                                                 </label>
-                                                                {/* Show existing CIN attachment if available */}
-                                                                {basicInfo?.cinAttachmentObj?.filename ? (
+                                                                {/* Show existing CIN attachment only when it comes from the API (has a file_url).
+                                                                    If the user picks a new file via input we store filename/content and should NOT show download link —
+                                                                    instead render the selected filename as plain text. */}
+                                                                {basicInfo?.cinAttachmentObj?.file_url ? (
                                                                     <span className="ms-2">
                                                                         <a
-                                                                            href={basicInfo.cinAttachmentObj.file_url || '#'}
+                                                                            href={`${baseURL}${basicInfo.cinAttachmentObj.file_url}`}
                                                                             download
                                                                             className="text-primary d-flex align-items-center"
                                                                         >
@@ -4782,6 +4802,11 @@ const VendorRegistrationStepByStepForm = () => {
                                                                             </svg>
                                                                             {basicInfo.cinAttachmentObj.filename}
                                                                         </a>
+                                                                    </span>
+                                                                ) : basicInfo?.cinAttachmentObj?.filename ? (
+                                                                    <span className="ms-2 d-flex align-items-center">
+                                                                        <span className="me-2">Selected File:</span>
+                                                                        <span className="text-muted">{basicInfo.cinAttachmentObj.filename}</span>
                                                                     </span>
                                                                 ) : null}
                                                                 <input
@@ -4852,11 +4877,13 @@ const VendorRegistrationStepByStepForm = () => {
                                                                     LLP No. Attachment  <span>*</span>
                                                                     <TooltipIcon message="Upload the official document or certificate to verify the details you have submitted. The document must be uploaded in PDF format. Corporate Identification Number Attachment." />
                                                                 </label>
-                                                                {/* Show existing LLP attachment if available */}
-                                                                {basicInfo?.llpAttachmentObj?.filename ? (
+                                                                {/* Show existing LLP attachment only when it comes from the API (has a file_url).
+                                                                    If the user picks a new file via input we store filename/content and should NOT show download link —
+                                                                    instead render the selected filename as plain text. */}
+                                                                {basicInfo?.llpAttachmentObj?.file_url ? (
                                                                     <span className="ms-2">
                                                                         <a
-                                                                            href={basicInfo.llpAttachmentObj.file_url || '#'}
+                                                                            href={`${baseURL}${basicInfo.llpAttachmentObj.file_url}`}
                                                                             download
                                                                             className="text-primary d-flex align-items-center"
                                                                         >
@@ -4867,6 +4894,11 @@ const VendorRegistrationStepByStepForm = () => {
                                                                             </svg>
                                                                             {basicInfo.llpAttachmentObj.filename}
                                                                         </a>
+                                                                    </span>
+                                                                ) : basicInfo?.llpAttachmentObj?.filename ? (
+                                                                    <span className="ms-2 d-flex align-items-center">
+                                                                        <span className="me-2">Selected File:</span>
+                                                                        <span className="text-muted">{basicInfo.llpAttachmentObj.filename}</span>
                                                                     </span>
                                                                 ) : null}
                                                                 <input
@@ -4990,11 +5022,13 @@ const VendorRegistrationStepByStepForm = () => {
                                                                     GSTIN Attachment <span>*</span>
                                                                     <TooltipIcon message="Upload a digital copy of the official GSTIN certificate or document showing your GST registration number. Ensure the document is legible and valid." />
                                                                 </label>
-                                                                {/* Show existing GSTIN attachment if available */}
-                                                                {basicInfo?.gstinAttachmentObj?.filename ? (
+                                                                {/* Show existing GSTIN attachment only when it comes from the API (has a file_url).
+                                                                    If the user picks a new file via input we store filename/content and should NOT show download link —
+                                                                    instead render the selected filename as plain text. */}
+                                                                {basicInfo?.gstinAttachmentObj?.file_url ? (
                                                                     <span className="ms-2">
                                                                         <a
-                                                                            href= {`${baseURL}${basicInfo.gstinAttachmentObj.file_url}`}
+                                                                            href={`${baseURL}${basicInfo.gstinAttachmentObj.file_url}`}
                                                                             download
                                                                             className="text-primary d-flex align-items-center"
                                                                         >
@@ -5005,6 +5039,11 @@ const VendorRegistrationStepByStepForm = () => {
                                                                             </svg>
                                                                             {basicInfo.gstinAttachmentObj.filename}
                                                                         </a>
+                                                                    </span>
+                                                                ) : basicInfo?.gstinAttachmentObj?.filename ? (
+                                                                    <span className="ms-2 d-flex align-items-center">
+                                                                        <span className="me-2">Selected File:</span>
+                                                                        <span className="text-muted">{basicInfo.gstinAttachmentObj.filename}</span>
                                                                     </span>
                                                                 ) : null}
                                                                 <input
@@ -5086,11 +5125,13 @@ const VendorRegistrationStepByStepForm = () => {
                                                             <label>
                                                                 Upload GSTIN Declaration  <span>*</span>
                                                             </label>
-                                                            {/* Show existing GSTIN Declaration if available */}
-                                                            {basicInfo?.gstinDeclarationObj?.filename ? (
+                                                            {/* Show existing GSTIN Declaration only when it comes from the API (has a file_url).
+                                                                If the user picks a new file via input we store filename/content and should NOT show download link —
+                                                                instead render the selected filename as plain text. */}
+                                                            {basicInfo?.gstinDeclarationObj?.file_url ? (
                                                                 <span className="ms-2">
                                                                     <a
-                                                                        href={`${baseURL}${basicInfo.gstinAttachmentObj.file_url}`}
+                                                                        href={`${baseURL}${basicInfo.gstinDeclarationObj.file_url}`}
                                                                         download
                                                                         className="text-primary d-flex align-items-center"
                                                                     >
@@ -5101,6 +5142,11 @@ const VendorRegistrationStepByStepForm = () => {
                                                                         </svg>
                                                                         {basicInfo?.gstinDeclarationObj?.filename || basicInfo?.gstinAttachmentObj?.filename}
                                                                     </a>
+                                                                </span>
+                                                            ) : basicInfo?.gstinDeclarationObj?.filename ? (
+                                                                <span className="ms-2 d-flex align-items-center">
+                                                                    <span className="me-2">Selected File:</span>
+                                                                    <span className="text-muted">{basicInfo.gstinDeclarationObj.filename}</span>
                                                                 </span>
                                                             ) : null}
                                                             <input
@@ -5446,11 +5492,13 @@ const VendorRegistrationStepByStepForm = () => {
                                                         MSME/Udyam Attachment <span>*</span>
                                                         <TooltipIcon message="Attach a clear, scanned copy or digital image of your MSME/Udyam registration certificate to verify your organization's classification under the MSME scheme. The document must be uploaded in PDF format." />
                                                     </label>
-                                                    {/* Show attachment from additionalDetails, not supplierData */}
-                                                    {additionalDetails?.msmeAttachmentObj?.filename ? (
+                                                    {/* Show MSME/Udyam attachment only when it comes from the API (has a file_url).
+                                                        If the user picks a new file via input we store filename/content and should NOT show download link —
+                                                        instead render the selected filename as plain text. */}
+                                                    {additionalDetails?.msmeAttachmentObj?.file_url ? (
                                                         <span className="ms-2">
                                                             <a
-                                                                href={`${baseURL}${additionalDetails?.msmeAttachmentObj.file_url}`}
+                                                                href={`${baseURL}${additionalDetails.msmeAttachmentObj.file_url}`}
                                                                 download
                                                                 className="text-primary d-flex align-items-center"
                                                             >
@@ -5461,6 +5509,11 @@ const VendorRegistrationStepByStepForm = () => {
                                                                 </svg>
                                                                 {additionalDetails.msmeAttachmentObj.filename}
                                                             </a>
+                                                        </span>
+                                                    ) : additionalDetails?.msmeAttachmentObj?.filename ? (
+                                                        <span className="ms-2 d-flex align-items-center">
+                                                            <span className="me-2">Selected File:</span>
+                                                            <span className="text-muted">{additionalDetails.msmeAttachmentObj.filename}</span>
                                                         </span>
                                                     ) : null}
                                                     <input
@@ -5545,11 +5598,13 @@ const VendorRegistrationStepByStepForm = () => {
                                                             Upload Declaration <span>*</span>
                                                         </label>
                                                         <TooltipIcon message="If you choose E-Invoice applicable 'No', please upload a signed declaration document to verify the details you have submitted. The document must be uploaded in PDF format. Ensure that the document is clear, legible, and properly signed." />
-                                                        {/* Show existing declaration from additionalDetails if available */}
-                                                        {additionalDetails?.msmeDeclarationObj?.filename ? (
+                                                        {/* Show MSME Declaration only when it comes from the API (has a file_url).
+                                                            If the user picks a new file via input we store filename/content and should NOT show download link —
+                                                            instead render the selected filename as plain text. */}
+                                                        {additionalDetails?.msmeDeclarationObj?.file_url ? (
                                                             <span className="ms-2">
                                                                 <a
-                                                                    href={`${baseURL}${additionalDetails?.msmeAttachmentObj.file_url}`}
+                                                                    href={`${baseURL}${additionalDetails.msmeDeclarationObj.file_url}`}
                                                                     download
                                                                     className="text-primary d-flex align-items-center"
                                                                 >
@@ -5560,6 +5615,11 @@ const VendorRegistrationStepByStepForm = () => {
                                                                     </svg>
                                                                     {additionalDetails?.msmeDeclarationObj?.filename || additionalDetails?.msmeAttachmentObj?.filename}
                                                                 </a>
+                                                            </span>
+                                                        ) : additionalDetails?.msmeDeclarationObj?.filename ? (
+                                                            <span className="ms-2 d-flex align-items-center">
+                                                                <span className="me-2">Selected File:</span>
+                                                                <span className="text-muted">{additionalDetails.msmeDeclarationObj.filename}</span>
                                                             </span>
                                                         ) : null}
                                                         <input
@@ -5647,7 +5707,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                             </svg>
 
                                                             <span className="mt-2 ms-2">
-                                                                Specimen For No Msme.pdf
+                                                                Specimen For No E-invoicing.pdf
                                                             </span>
                                                         </a>
                                                     </div>
@@ -6830,39 +6890,39 @@ const VendorRegistrationStepByStepForm = () => {
                                                     <TooltipIcon message="Provide a cancelled cheque or a bank statement copy that clearly displays your bank account details.This helps verify your account information. The document must be uploaded in PDF format" />
                                                 </label>
 
-                                                {/* Conditionally Render Existing File Download Link */}
-                                                {/* {console.log("bankDetail.attachment", bankDetail)} */}
-                                                {bankDetail?.attachment && (
-                                                    <span className="ms-2">
-                                                        <a
-                                                            href={`${baseURL}${bankDetail.attachment.attachment_url}`} // Ensure URL is correct
-                                                            download // Forces file download
-                                                            className="text-primary d-flex align-items-center"
-                                                        >
-                                                            <span className="me-2">Existing File:</span>
-                                                            {/* <TooltipIcon message="Indicate whether your organization is registered under the Goods and Services Tax (GST) Act."
-                               /> */}
-                                                            <svg
-                                                                xmlns="http://www.w3.org/2000/svg"
-                                                                width={24}
-                                                                height={24}
-                                                                fill="#DE7008"
-                                                                className="bi bi-download"
-                                                                viewBox="0 0 16 16"
+                                                {/* Conditionally Render Existing File Download Link
+                                                    Show download only when attachment has a server URL (attachment_url or file_url).
+                                                    If the attachment is a user-selected file (has filename but no server URL) show filename as plain text. */}
+                                                {bankDetail?.attachment ? (
+                                                    bankDetail.attachment.attachment_url || bankDetail.attachment.file_url ? (
+                                                        <span className="ms-2">
+                                                            <a
+                                                                href={`${baseURL}${bankDetail.attachment.attachment_url || bankDetail.attachment.file_url}`}
+                                                                download
+                                                                className="text-primary d-flex align-items-center"
                                                             >
-                                                                <path
-                                                                    d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
-                                                                // style={{ fill: "#de7008!important" }}
-                                                                />
-                                                                <path
-                                                                    d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
-                                                                // style={{ fill: "#de7008!important" }}
-                                                                />
-                                                            </svg>
-                                                            {bankDetail?.attachment.filename || bankDetail?.attachment.document_name }
-                                                        </a>
-                                                    </span>
-                                                )}
+                                                                <span className="me-2">Existing File:</span>
+                                                                <svg
+                                                                    xmlns="http://www.w3.org/2000/svg"
+                                                                    width={24}
+                                                                    height={24}
+                                                                    fill="#DE7008"
+                                                                    className="bi bi-download"
+                                                                    viewBox="0 0 16 16"
+                                                                >
+                                                                    <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                                                                    <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                                                                </svg>
+                                                                {bankDetail?.attachment.filename || bankDetail?.attachment.document_name}
+                                                            </a>
+                                                        </span>
+                                                    ) : bankDetail.attachment.filename ? (
+                                                        <span className="ms-2 d-flex align-items-center">
+                                                            <span className="me-2">Selected File:</span>
+                                                            <span className="text-muted">{bankDetail.attachment.filename}</span>
+                                                        </span>
+                                                    ) : null
+                                                ) : null}
 
                                                 {/* File Input for Uploading New Attachments */}
                                                 <input
