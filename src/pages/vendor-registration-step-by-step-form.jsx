@@ -1,8 +1,10 @@
 // Utility function to map majorCustomers state to major_customers_attributes
 const mapMajorCustomersToPayload = (majorCustomers) => {
     return majorCustomers.map((c) => ({
-        id: c.idPre || null,
+           // Ensure id is null when idPre is missing (explicit undefined/null check)
+        id: (typeof c.idPre !== 'undefined' && c.idPre !== null) ? c.idPre : null,
         name: c.companyName || '',
+        site_type: c.siteType || '',
         company_id: c.companyId || null,
         work_done: c.workDone || '',
         attachment: c.attachment || null,
@@ -23,7 +25,7 @@ const mapMajorCustomersToPayload = (majorCustomers) => {
 // Utility: Map contactPersons state to contact_people_attributes
 // Utility: Map owners state to directors_informations_attributes
 const mapOwnersToPayload = (owners) => owners.map((owner) => ({
-    id: owner.idPre || null,
+    id:  (typeof owner.idPre !== 'undefined' && owner.idPre !== null) ? owner.idPre : null,
     attachment: owner.attachment || '',
     first_name: owner.firstName || '',
     last_name: owner.lastName || '',
@@ -35,7 +37,7 @@ const mapOwnersToPayload = (owners) => owners.map((owner) => ({
     _destroy: false
 }));
 const mapContactPersonsToPayload = (contactPersons) => contactPersons.map((person) => ({
-    id: null,
+    id: (typeof person.idPre !== 'undefined' && person.idPre !== null) ? person.idPre : null,
     escalation_level: person.escalationLevel?.value || '',
     attachment: person.attachment || '',
     name_title_id: person.nameTitle?.value || null,
@@ -59,7 +61,7 @@ const mapContactPersonsToPayload = (contactPersons) => contactPersons.map((perso
     _destroy: false
 }));
 const mapBranchOfficesToPayload = (branchOffices) => branchOffices.map((office) => ({
-    id: office.idPre || null,
+    id: (typeof office.idPre !== 'undefined' && office.idPre !== null) ? office.idPre : null,
     // office.id ||
     gst_no: office.gst_no || '',
     gst_cert_file: office.gst_cert_file || '',
@@ -67,7 +69,7 @@ const mapBranchOfficesToPayload = (branchOffices) => branchOffices.map((office) 
     country_id: office.country?.value || null,
     state_id: office.state?.value || null,
     city_name: office.city || '',
-    pincode: office.pincode || '',
+    pin_code: office.pincode || '',
     tel_number: office.telephone || '',
     mobile: office.mobile || '',
     _destroy: false
@@ -122,11 +124,11 @@ const mapCommunicationAddressToPayload = (communicationAddress, sameAsRegistered
 
 const mapWarehousesToPayload = (warehouses) => {
     return warehouses.map((w) => ({
-        id: w.idPre || null,
+        id: (typeof w.idPre !== 'undefined' && w.idPre !== null) ? w.idPre : null,
         address: w.address || '',
         country_id: w.country?.value || null,
         state_id: w.state?.value || null,
-        city_id: w.city?.value || null,
+        city_name: w.city || null,
         pin_code: w.pincode || '',
         tel_number: w.telephone || '',
         mobile: w.mobile || '',
@@ -274,13 +276,32 @@ const VendorRegistrationStepByStepForm = () => {
         checklistConfig.forEach(cat => {
             cat.subcats.forEach(subcat => {
                 initial[subcat.id] = {
-                    questions: subcat.questions.map(q => ({
-                        id: q.id,
-                        value: '',
-                        comments: '',
-                        selectedOption: null,
-                        files: []
-                    }))
+                    questions: subcat.questions.map(q => {
+                        // Pre-fill value/comments/selectedOption from API if present
+                        const valueFromApi = (typeof q.answer !== 'undefined' && q.answer !== null) ? q.answer : '';
+                        const commentsFromApi = (typeof q.answer_comments !== 'undefined' && q.answer_comments !== null) ? q.answer_comments : (typeof q.answer_comment !== 'undefined' ? q.answer_comment : '');
+                        // If question has options and answer_option_id, try to pick the matching option object
+                        let selectedOption = null;
+                        try {
+                            if (q.options && Array.isArray(q.options) && (typeof q.answer_option_id !== 'undefined' && q.answer_option_id !== null)) {
+                                const match = q.options.find(opt => String(opt.value) === String(q.answer_option_id) || String(opt.id) === String(q.answer_option_id) || String(opt.value) === String(q.answer_option_id));
+                                if (match) selectedOption = { label: match.name || match.label || String(match.value || match.id || ''), value: match.value || match.id || match.label || match.name };
+                            }
+                        } catch (e) {
+                            selectedOption = null;
+                        }
+
+                        // Files: backend field may vary; try a few common keys on the question
+                        const filesFromApi = q.files || q.attachments || q.documents || q.question_attachments || [];
+
+                        return ({
+                            id: q.id,
+                            value: valueFromApi || '',
+                            comments: commentsFromApi || '',
+                            selectedOption: selectedOption,
+                            files: Array.isArray(filesFromApi) ? filesFromApi.map(f => ({ filename: f.document_name || f.filename || f.name || String(f), file_url: f.attachment_url || f.file_url || f.url || null })) : []
+                        });
+                    })
                 };
             });
         });
@@ -300,6 +321,8 @@ const VendorRegistrationStepByStepForm = () => {
             }))
         };
     });
+
+    console.log("checklist payload :",checklistPayload)
     // State for Questions section
     const [questions, setQuestions] = useState({
         expertise: '',
@@ -343,6 +366,25 @@ const VendorRegistrationStepByStepForm = () => {
         };
         fetchDesignationOptions();
     }, []);
+
+    // Fetch name/title options from the same dropdown endpoint (keeps a sensible fallback)
+    const [nameTitleOptions, setNameTitleOptions] = useState([]);
+
+    useEffect(() => {
+        const fetchNameTitleOptions = async () => {
+            try {
+                const response = await axios.get(`${baseURL}/pms/suppliers/dropdowns`);
+                const options = (response.data?.name_titles || []).map(item => ({ label: item.name, value: item.value }));
+                setNameTitleOptions(options);
+            } catch (err) {
+                // keep the default fallback
+                setNameTitleOptions(prev => (prev && prev.length > 0 ? prev : [{ label: 'Select', value: '' }]));
+            }
+        };
+        fetchNameTitleOptions();
+    }, []);
+
+    console.log("name title options:", nameTitleOptions)
     // Annual Turnover state as array of objects
     const [annualTurnover, setAnnualTurnover] = useState([
         { year: '2024-2025', turnover: '', attachment: null, keyMarkets: '' },
@@ -376,15 +418,15 @@ const VendorRegistrationStepByStepForm = () => {
     // console.log("annual turn over:", annualTurnover)
 
     // Name Title options for contact person
-    const nameTitleOptions = [
-        { label: 'Select', value: '' },
-        { label: 'Mr', value: 'Mr' },
-        { label: 'Ms', value: 'Ms' },
-        { label: 'Mrs', value: 'Mrs' },
-        { label: 'Dr', value: 'Dr' },
-        { label: 'M/s', value: 'M/s' },
-        { label: 'Company', value: 'Company' },
-    ];
+    // const nameTitleOptions = [
+    //     { label: 'Select', value: '' },
+    //     { label: 'Mr', value: 'Mr' },
+    //     { label: 'Ms', value: 'Ms' },
+    //     { label: 'Mrs', value: 'Mrs' },
+    //     { label: 'Dr', value: 'Dr' },
+    //     { label: 'M/s', value: 'M/s' },
+    //     { label: 'Company', value: 'Company' },
+    // ];
     // Escalation Level options for contact person
     const escalationLevelOptions = [
         { label: 'Level 1', value: 'Level 1' },
@@ -806,7 +848,7 @@ const VendorRegistrationStepByStepForm = () => {
                 }
             );
 
-            console.log("responce otp  verification:", response)
+            // console.log("responce otp  verification:", response)
             if (response.status === 200 && response.data && response.data.message === "OTP verified successfully") {
                 if (response.data.supplier_id) {
                     setSupplierId(response.data.supplier_id);
@@ -862,7 +904,7 @@ const VendorRegistrationStepByStepForm = () => {
                 setSupplierShowData(response.data);
 
                 setBankDetailsList(response.data?.bank_details || [])
-                console.log("supplier show data:", response.data.bank_details)
+                // console.log("supplier show data:", response.data.bank_details)
                 setStatutoryDetails(response.data?.vendor_statutory_details)
 
             } catch (error) {
@@ -872,6 +914,7 @@ const VendorRegistrationStepByStepForm = () => {
         fetchSupplierShowData();
     }, []);
     // Supplier declaration questions fetched from API
+    // console.log("bank details list:",bankDetailsList)
     const [supplierDeclarations, setSupplierDeclarations] = useState([]);
 
     useEffect(() => {
@@ -929,11 +972,12 @@ const VendorRegistrationStepByStepForm = () => {
         const panAttachmentObj = panAttachmentRaw ? {
             filename: panAttachmentRaw.document_name || panAttachmentRaw.filename || null,
             // try common fields for a server-side path/url
-            file_url: panAttachmentRaw.attachment_url ? `${baseURL}${panAttachmentRaw.attachment_url}` : null
+            file_url: panAttachmentRaw.attachment_url ? `${baseURL}${panAttachmentRaw.attachment_url}` : (panAttachmentRaw.file_url || panAttachmentRaw.url || panAttachmentRaw.attachment_url || null)
         } : null;
 
         // Build GSTIN attachment object (if backend provides it) so UI can show existing file like PAN
         const gstAttachmentRaw = Array.isArray(supplierShowData.gstin_attachments) && supplierShowData.gstin_attachments.length > 0 ? supplierShowData.gstin_attachments[0] : null;
+        // console.log("gst attachment raw:", gstAttachmentRaw)
         const gstinAttachmentObj = gstAttachmentRaw ? {
             filename: gstAttachmentRaw.document_name || gstAttachmentRaw.filename || null,
             file_url: gstAttachmentRaw.attachment_url ? `${baseURL}${gstAttachmentRaw.attachment_url}` : (gstAttachmentRaw.file_url || gstAttachmentRaw.url || gstAttachmentRaw.attachment_url || null)
@@ -959,7 +1003,7 @@ const VendorRegistrationStepByStepForm = () => {
 
         // Normalize GSTIN applicable into the selector option shape (handles '0'/'1', boolean, 'Yes'/'No')
         const gstRaw = supplierShowData.gstin_applicable;
-        console.log("row gstin:", gstRaw)
+        // console.log("row gstin:", gstRaw)
         let gstinOption = null;
         if (gstRaw === true || String(gstRaw) === "1" || String(gstRaw).toLowerCase() === 'yes') {
             gstinOption = { label: 'Yes', value: 'Yes' };
@@ -1011,6 +1055,17 @@ const VendorRegistrationStepByStepForm = () => {
             // gstinDeclaration: supplierShowData.gstin_declaration_attachments?.[0]?.document_name || null,
             // ...other fields as needed
         }));
+
+        // Map questions (expertise, structure) from supplierShowData if provided
+        try {
+            setQuestions(prev => ({
+                ...prev,
+                expertise: supplierShowData.que1 || supplierShowData.que_1 || supplierShowData.expertise || prev.expertise || '',
+                structure: supplierShowData.que2 || supplierShowData.que_2 || supplierShowData.structure || prev.structure || ''
+            }));
+        } catch (e) {
+            // ignore if supplierShowData doesn't contain these keys
+        }
         // Map a few additionalDetails fields from supplierShowData so they appear preselected
         try {
             const amcRaw = supplierShowData.amc_provided;
@@ -1202,7 +1257,9 @@ const VendorRegistrationStepByStepForm = () => {
                 const countryOption = countryOptions.find(opt => Number(opt.value) === Number(c.country_id)) || countryOptions.find(opt => opt.value === c.country_id) || (c.country_id ? { value: c.country_id, label: '' } : null);
                 return ({
                     idPre: c.id,
-                    id: c.id || Date.now() + Math.random(),
+                    id: c.id || null,
+                    // Map site type from API if present so the radio shows correctly ('working'|'previous')
+                    siteType: c.site_type || c.siteType || '',
                     companyName: c.name || c.company_name || '',
                     companyId: c.company_id || null,
                     workDone: c.work_done || '',
@@ -1499,7 +1556,7 @@ const VendorRegistrationStepByStepForm = () => {
             }
         }
 
-        console.log("errors***************:", errors)
+        // console.log("errors***************:", errors)
         setBasicInfoErrors(errors);
 
         // --- Additional Vendor Details validation (for * fields) ---
@@ -1546,7 +1603,7 @@ const VendorRegistrationStepByStepForm = () => {
             if (!additionalDetails.einvoiceDeclaration) additionalErrors.einvoiceDeclaration = 'This field is required.';
         }
 
-        console.log("additional errors:", additionalErrors)
+        // console.log("additional errors:", additionalErrors)
         setErrors(additionalErrors);
 
         // Return false if either section has errors
@@ -1667,7 +1724,7 @@ const VendorRegistrationStepByStepForm = () => {
     }, [communicationAddress.country]);
 
 
-    console.log("basic info after api com add:", communicationAddress)
+    // console.log("basic info after api com add:", communicationAddress)
     const [sameAsRegistered, setSameAsRegistered] = useState(false);
 
     const handleRegisteredAddressChange = (field, value) => {
@@ -3102,12 +3159,12 @@ const VendorRegistrationStepByStepForm = () => {
         }
     }
 
-    // console.log("payloaddddddd*********:", ppayload2)
+    console.log("payloaddddddd*********:", ppayload2)
 
 
     // console.log("basic info:", basicInfo)
 
-    console.log("additional details:", additionalDetails)
+    // console.log("additional details:", additionalDetails)
     // console.log("supplier id:", supplierId)
     // Save as Draft function
     const saveDraft = async () => {
@@ -3233,6 +3290,9 @@ const VendorRegistrationStepByStepForm = () => {
         }
     };
 
+
+    console.log("llp attach",[basicInfo.llpAttachmentObj])
+    console.log("cin attach",[basicInfo.cinAttachmentObj])
 
     const saveDraftStep1 = async () => {
         setLoading2(true)
@@ -4572,6 +4632,7 @@ const VendorRegistrationStepByStepForm = () => {
 
 
                                         {/* PAN Attachment */}
+                                        {/* {console.log("pan attachment:",basicInfo?.panAttachmentObj)} */}
                                         <div className="col-md-4 mt-2">
                                             <div className="form-group">
                                                 <label>
@@ -4582,7 +4643,8 @@ const VendorRegistrationStepByStepForm = () => {
                                                 {basicInfo?.panAttachmentObj?.filename ? (
                                                     <span className="ms-2">
                                                         <a
-                                                            href={basicInfo.panAttachmentObj.file_url || '#'}
+                                                            href={`${baseURL}${basicInfo.panAttachmentObj.file_url}`}
+                                                            // {basicInfo.panAttachmentObj.file_url || '#'}
                                                             download
                                                             className="text-primary d-flex align-items-center"
                                                         >
@@ -4932,7 +4994,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                                 {basicInfo?.gstinAttachmentObj?.filename ? (
                                                                     <span className="ms-2">
                                                                         <a
-                                                                            href={basicInfo.gstinAttachmentObj.file_url || '#'}
+                                                                            href= {`${baseURL}${basicInfo.gstinAttachmentObj.file_url}`}
                                                                             download
                                                                             className="text-primary d-flex align-items-center"
                                                                         >
@@ -5028,7 +5090,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                             {basicInfo?.gstinDeclarationObj?.filename ? (
                                                                 <span className="ms-2">
                                                                     <a
-                                                                        href={basicInfo.gstinDeclarationObj.file_url || '#'}
+                                                                        href={`${baseURL}${basicInfo.gstinAttachmentObj.file_url}`}
                                                                         download
                                                                         className="text-primary d-flex align-items-center"
                                                                     >
@@ -5037,7 +5099,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                                             <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
                                                                             <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
                                                                         </svg>
-                                                                        {basicInfo.gstinDeclarationObj.filename}
+                                                                        {basicInfo?.gstinDeclarationObj?.filename || basicInfo?.gstinAttachmentObj?.filename}
                                                                     </a>
                                                                 </span>
                                                             ) : null}
@@ -5242,7 +5304,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                         className="form-control"
                                                         placeholder="Select Major Activity"
                                                     />
-                                                    {console.log("majorActivity", majorActivity)}
+                                                    {/* {console.log("majorActivity", majorActivity)} */}
 
                                                     {errors.majorActivity && (
                                                         <div className="ValidationColor">
@@ -5388,7 +5450,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                     {additionalDetails?.msmeAttachmentObj?.filename ? (
                                                         <span className="ms-2">
                                                             <a
-                                                                href={additionalDetails.msmeAttachmentObj.file_url || '#'}
+                                                                href={`${baseURL}${additionalDetails?.msmeAttachmentObj.file_url}`}
                                                                 download
                                                                 className="text-primary d-flex align-items-center"
                                                             >
@@ -5487,7 +5549,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                         {additionalDetails?.msmeDeclarationObj?.filename ? (
                                                             <span className="ms-2">
                                                                 <a
-                                                                    href={additionalDetails.msmeDeclarationObj.file_url || '#'}
+                                                                    href={`${baseURL}${additionalDetails?.msmeAttachmentObj.file_url}`}
                                                                     download
                                                                     className="text-primary d-flex align-items-center"
                                                                 >
@@ -5496,7 +5558,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                                         <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
                                                                         <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
                                                                     </svg>
-                                                                    {additionalDetails.msmeDeclarationObj.filename}
+                                                                    {additionalDetails?.msmeDeclarationObj?.filename || additionalDetails?.msmeAttachmentObj?.filename}
                                                                 </a>
                                                             </span>
                                                         ) : null}
@@ -6773,7 +6835,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                 {bankDetail?.attachment && (
                                                     <span className="ms-2">
                                                         <a
-                                                            href={`${baseURL}${bankDetail.attachment}`} // Ensure URL is correct
+                                                            href={`${baseURL}${bankDetail.attachment.attachment_url}`} // Ensure URL is correct
                                                             download // Forces file download
                                                             className="text-primary d-flex align-items-center"
                                                         >
@@ -6797,7 +6859,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                                 // style={{ fill: "#de7008!important" }}
                                                                 />
                                                             </svg>
-                                                            {bankDetail?.attachment.filename}
+                                                            {bankDetail?.attachment.filename || bankDetail?.attachment.document_name }
                                                         </a>
                                                     </span>
                                                 )}
@@ -6871,6 +6933,8 @@ const VendorRegistrationStepByStepForm = () => {
                             {
                                 /* Show a note when fewer than 3 customers are present */
                             }
+
+                            {console.log("major customer:",majorCustomers)}
 
                             {majorCustomers.filter(mc => mc._destroy !== "true").map((customer, idx) => (
                                 // <div className="card mx-3 pb-4 mt-4" key={customer.id}>
@@ -10244,10 +10308,11 @@ const VendorRegistrationStepByStepForm = () => {
                                         isValid = validateStep3();
                                         if (!isValid) return;
                                     }
-                                    else if (currentStep === 4) {
-                                        isValid = validateStep4();
-                                        if (!isValid) return;
-                                    }
+                                    else 
+                                    //     if (currentStep === 4) {
+                                    //     isValid = validateStep4();
+                                    //     if (!isValid) return;
+                                    // }
                                     // // ...
                                     // Save
                                     // //  as draft logic
