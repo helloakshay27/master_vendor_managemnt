@@ -1650,10 +1650,11 @@ const VendorRegistrationStepByStepForm = () => {
         const fetchCountries = async () => {
             try {
                 const response = await axios.get(`${baseURL}/pms/suppliers/pms_country_list`);
-                // Assuming response.data is an array of country objects with id and name
+                // Normalize available id fields into option.value so matching with supplier payloads works
                 const options = (response.data.pms_country || []).map(country => ({
-                    label: country.name,
-                    value: country.value
+                    label: country.name || country.label || '',
+                    // prefer explicit ids if present, fall back to other common keys
+                    value: country.id ?? country.value ?? country.country_id ?? country.pms_country_id ?? country.code ?? ''
                 }));
                 setCountryOptions(options);
             } catch (error) {
@@ -1714,12 +1715,13 @@ const VendorRegistrationStepByStepForm = () => {
         }
         const fetchStates = async () => {
             try {
-                const response = await axios.get(`${baseURL}/pms/suppliers/pms_state_list?q[country_id_in]=${registeredAddress.country.value}`
-                );
-                // Assuming response.data is an array of state objects with id and name
+                const response = await axios.get(`${baseURL}/pms/suppliers/pms_state_list`, {
+                    params: { country_id: registeredAddress.country.value }
+                });
+                // Normalize state id fields into option.value
                 const options = (response.data.pms_state || []).map(state => ({
-                    label: state.name,
-                    value: state.value
+                    label: state.name || state.label || '',
+                    value: state.id ?? state.value ?? state.state_id ?? state.pms_state_id ?? ''
                 }));
                 setStateOptions(options);
             } catch (error) {
@@ -1743,8 +1745,8 @@ const VendorRegistrationStepByStepForm = () => {
                     params: { country_id: communicationAddress.country.value }
                 });
                 const options = (response.data.pms_state || []).map(state => ({
-                    label: state.name,
-                    value: state.value
+                    label: state.name || state.label || '',
+                    value: state.id ?? state.value ?? state.state_id ?? state.pms_state_id ?? ''
                 }));
                 setCommStateOptions(options);
             } catch (error) {
