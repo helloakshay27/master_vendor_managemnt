@@ -1,7 +1,7 @@
 // Utility function to map majorCustomers state to major_customers_attributes
 const mapMajorCustomersToPayload = (majorCustomers) => {
     return majorCustomers.map((c) => ({
-           // Ensure id is null when idPre is missing (explicit undefined/null check)
+        // Ensure id is null when idPre is missing (explicit undefined/null check)
         id: (typeof c.idPre !== 'undefined' && c.idPre !== null) ? c.idPre : null,
         name: c.companyName || '',
         site_type: c.siteType || '',
@@ -25,7 +25,7 @@ const mapMajorCustomersToPayload = (majorCustomers) => {
 // Utility: Map contactPersons state to contact_people_attributes
 // Utility: Map owners state to directors_informations_attributes
 const mapOwnersToPayload = (owners) => owners.map((owner) => ({
-    id:  (typeof owner.idPre !== 'undefined' && owner.idPre !== null) ? owner.idPre : null,
+    id: (typeof owner.idPre !== 'undefined' && owner.idPre !== null) ? owner.idPre : null,
     attachment: owner.attachment || '',
     first_name: owner.firstName || '',
     last_name: owner.lastName || '',
@@ -292,7 +292,23 @@ const VendorRegistrationStepByStepForm = () => {
                         }
 
                         // Files: backend field may vary; try a few common keys on the question
-                        const filesFromApi = q.files || q.attachments || q.documents || q.question_attachments || [];
+                        const filesFromApiRaw = q.files || q.attachments || q.documents || q.question_attachments || [];
+                        const filesFromApi = Array.isArray(filesFromApiRaw) ? filesFromApiRaw.slice() : [];
+
+                        // Some APIs return a single answer_file property (string path) — include it as an attachment object so UI can show a download link
+                        if (q.answer_file && (typeof q.answer_file === 'string' && q.answer_file.trim() !== '')) {
+                            // Try to derive a sensible filename from the URL/path
+                            let derivedName = q.answer_file_name || q.answer_filename || null;
+                            try {
+                                if (!derivedName) {
+                                    const parts = q.answer_file.split('/');
+                                    derivedName = decodeURIComponent((parts[parts.length - 1] || q.answer_file).split('?')[0]);
+                                }
+                            } catch (e) {
+                                derivedName = q.answer_file;
+                            }
+                            filesFromApi.push({ document_name: derivedName, attachment_url: q.answer_file });
+                        }
 
                         return ({
                             id: q.id,
@@ -322,7 +338,7 @@ const VendorRegistrationStepByStepForm = () => {
         };
     });
 
-    console.log("checklist payload :",checklistPayload)
+    console.log("checklist payload :", checklistPayload)
     // State for Questions section
     const [questions, setQuestions] = useState({
         expertise: '',
@@ -926,7 +942,7 @@ const VendorRegistrationStepByStepForm = () => {
 
     // Reconcile address country/state values with canonical option objects
     // This runs when option lists change so selects display labels even if options load after supplierShowData mapping
-   
+
     // Reconcile fallback GSTIN classification (or other selector fallbacks) with canonical option objects
     // This ensures the SingleSelector shows the option label (not a raw id) once options load asynchronously.
     useEffect(() => {
@@ -947,7 +963,7 @@ const VendorRegistrationStepByStepForm = () => {
 
     // General reconciliation: replace primitive ids in basicInfo with canonical option objects
     // once the corresponding options arrays load. This prevents selectors from rendering raw ids.
-    
+
 
     const handleDeclarationOptionChange = (questionId, option) => {
         setSupplierDeclarations(prev => prev.map(d => d.question_id === questionId ? { ...d, selected_option: option.name, selected_option_id: option.value } : d));
@@ -1005,7 +1021,7 @@ const VendorRegistrationStepByStepForm = () => {
         const llpAttachmentRaw = llpRaw1 || llpRaw2 || null;
         const llpAttachmentObj = llpAttachmentRaw ? {
             filename: llpAttachmentRaw.document_name || llpAttachmentRaw.filename || null,
-            file_url: llpAttachmentRaw.attachment_url? `${baseURL}${llpAttachmentRaw.attachment_url}` : (llpAttachmentRaw.file_url || llpAttachmentRaw.url || llpAttachmentRaw.attachment_url || null)
+            file_url: llpAttachmentRaw.attachment_url ? `${baseURL}${llpAttachmentRaw.attachment_url}` : (llpAttachmentRaw.file_url || llpAttachmentRaw.url || llpAttachmentRaw.attachment_url || null)
         } : null;
 
         // Normalize GSTIN applicable into the selector option shape (handles '0'/'1', boolean, 'Yes'/'No')
@@ -1808,7 +1824,7 @@ const VendorRegistrationStepByStepForm = () => {
         ];
         const regErrs = {};
         const commErrs = {};
- 
+
         // Regex for pin code and email
         const pinCodeRegex = /^[1-9][0-9]{5}$/;
         const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
@@ -1853,7 +1869,7 @@ const VendorRegistrationStepByStepForm = () => {
         });
         setAddressErrors({ registered: regErrs, communication: commErrs });
         // console.log("error1:",regErrs)
-//  console.log("error2:", commErrs)
+        //  console.log("error2:", commErrs)
         return Object.keys(regErrs).length === 0 && Object.keys(commErrs).length === 0;
     };
 
@@ -3105,7 +3121,7 @@ const VendorRegistrationStepByStepForm = () => {
         // run when any of these options or the basicInfo fields change
     }, [organizationTypeOptions, vendorTypeOptions, industryTypeOptions, natureOfBusinessOptions, schemaGroupOptions, basicInfo.organizationType, basicInfo.vendorType, basicInfo.industryType, basicInfo.natureOfBusiness, basicInfo.schemaGroup]);
 
-     useEffect(() => {
+    useEffect(() => {
         try {
             setRegisteredAddress(prev => {
                 const countryId = prev?.country?.value ?? prev?.country ?? null;
@@ -3396,8 +3412,8 @@ const VendorRegistrationStepByStepForm = () => {
     };
 
 
-    console.log("llp attach",[basicInfo.llpAttachmentObj])
-    console.log("cin attach",[basicInfo.cinAttachmentObj])
+    console.log("llp attach", [basicInfo.llpAttachmentObj])
+    console.log("cin attach", [basicInfo.cinAttachmentObj])
 
     const saveDraftStep1 = async () => {
         setLoading2(true)
@@ -4444,7 +4460,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                     <span className="me-3">
                                                         <span className="text-dark">:</span>
                                                     </span>
-                                                    {supplierShowData?.city_id || "-"}
+                                                    {supplierShowData?.site_name || "-"}
                                                 </label>
                                             </div>
                                         </div>
@@ -4457,7 +4473,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                     <span className="me-3">
                                                         <span className="text-dark">:</span>
                                                     </span>
-                                                    {supplierShowData?.department_id || "-"}
+                                                    {supplierShowData?.department_name || "-"}
                                                 </label>
                                             </div>
                                         </div>
@@ -4470,7 +4486,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                     <span className="me-3">
                                                         <span className="text-dark">:</span>
                                                     </span>
-                                                    {supplierShowData?.contact_person_name || "-"}
+                                                    {supplierShowData?.invited_by_name || "-"}
                                                 </label>
                                             </div>
                                         </div>
@@ -4545,9 +4561,9 @@ const VendorRegistrationStepByStepForm = () => {
                                                 <SingleSelector
                                                     options={natureOfBusinessOptions || []}
                                                     placeholder="Select Nature of Business"
-                                                            isDisabled={true}
-                                                            value={basicInfo.natureOfBusiness || null}
-                                                            onChange={val => updateBasicInfo('natureOfBusiness', val)}
+                                                    isDisabled={true}
+                                                    value={basicInfo.natureOfBusiness || null}
+                                                    onChange={val => updateBasicInfo('natureOfBusiness', val)}
                                                 />
                                                 {basicInfoErrors.natureOfBusiness && (
                                                     <div className="ValidationColor">{basicInfoErrors.natureOfBusiness}</div>
@@ -4805,8 +4821,8 @@ const VendorRegistrationStepByStepForm = () => {
                                                 </label>
                                                 <SingleSelector
                                                     options={schemaGroupOptions || []}
-                                                            value={basicInfo.schemaGroup || null}
-                                                            onChange={val => updateBasicInfo('schemaGroup', val)}
+                                                    value={basicInfo.schemaGroup || null}
+                                                    onChange={val => updateBasicInfo('schemaGroup', val)}
                                                     placeholder="Select Schema Group"
                                                     isDisabled={true}
                                                 />
@@ -6907,7 +6923,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                     value={[{ label: 'Yes', value: 'Yes' }, { label: 'No', value: 'No' }].find(opt => opt.value === virtualAccount) || null}
                                                     onChange={selected => setVirtualAccount(selected.value)}
                                                     placeholder="Select Virtual Account"
-                                                     isDisabled={!bankDetail.isNew}
+                                                    isDisabled={!bankDetail.isNew}
                                                 />
                                                 {/* {bankDetail.isNew &&
                                                     errors.account_type &&
@@ -7089,7 +7105,7 @@ const VendorRegistrationStepByStepForm = () => {
                                 /* Show a note when fewer than 3 customers are present */
                             }
 
-                            {console.log("major customer:",majorCustomers)}
+                            {console.log("major customer:", majorCustomers)}
 
                             {majorCustomers.filter(mc => mc._destroy !== "true").map((customer, idx) => (
                                 // <div className="card mx-3 pb-4 mt-4" key={customer.id}>
@@ -8387,12 +8403,39 @@ const VendorRegistrationStepByStepForm = () => {
                                                                                 type="file"
                                                                                 onChange={e => handleChecklistFileChange(subcat.id, q.id, e.target.files[0])}
                                                                             />
-                                                                            {/* Show uploaded file names */}
+                                                                            {/* Show uploaded file names or server-provided attachments with download link */}
                                                                             {qState.files && qState.files.length > 0 && (
                                                                                 <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
-                                                                                    {qState.files.map((f, i) => (
-                                                                                        <li key={i} style={{ fontSize: '12px' }}>{f.filename}</li>
-                                                                                    ))}
+                                                                                    {(() => {
+                                                                                        // Prefer user-selected local uploads (they won't have file_url)
+                                                                                        const localFiles = qState.files.filter(f => !f.file_url);
+                                                                                        const filesToShow = localFiles.length > 0 ? localFiles : qState.files;
+                                                                                        return filesToShow.map((f, i) => {
+                                                                                            const href = f.file_url ? (String(f.file_url).startsWith('http') ? f.file_url : `${baseURL}${f.file_url}`) : null;
+                                                                                            return (
+                                                                                                <li key={i} style={{ marginBottom: 4 }}>
+                                                                                                    {href ? (
+                                                                                                        <a href={href} download className="text-primary d-flex align-items-center mt-1" style={{ gap: 6 }}>
+                                                                                                            <svg
+                                                                                                                xmlns="http://www.w3.org/2000/svg"
+                                                                                                                width={24}
+                                                                                                                height={24}
+                                                                                                                fill="#DE7008"
+                                                                                                                className="bi bi-download"
+                                                                                                                viewBox="0 0 16 16"
+                                                                                                            >
+                                                                                                                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                                                                                                                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                                                                                                            </svg>
+                                                                                                            <span>{f.filename}</span>
+                                                                                                        </a>
+                                                                                                    ) : (
+                                                                                                        <span className="mt-2">{f.filename}</span>
+                                                                                                    )}
+                                                                                                </li>
+                                                                                            );
+                                                                                        });
+                                                                                    })()}
                                                                                 </ul>
                                                                             )}
                                                                         </td>
@@ -10124,7 +10167,7 @@ const VendorRegistrationStepByStepForm = () => {
 
                                 {/* Preview: Product & Services (readonly) */}
 
-                                <div className="row mb-3 mx-2 mt-4">
+                                {/* <div className="row mb-3 mx-2 mt-4">
                                     <div className="col-md-6">
                                         <div className="form-group">
                                             <label>Product & Services </label>
@@ -10133,7 +10176,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                 isDisabled={true} placeholder="Select Product & Services" />
                                         </div>
                                     </div>
-                                </div>
+                                </div> */}
 
 
                                 {/* Preview: Turnover Table (readonly) */}
@@ -10454,31 +10497,31 @@ const VendorRegistrationStepByStepForm = () => {
                                     }
                                     // Add more step validations as needed
                                     else
-                                         if (currentStep === 2) {
-                                        isValid = validateStep2();
-                                        if (!isValid) return;
-                                    }
-                                    else 
-                                    if (currentStep === 3) {
-                                        isValid = validateStep3();
-                                        if (!isValid) return;
-                                    }
-                                    else 
-                                    //     if (currentStep === 4) {
-                                    //     isValid = validateStep4();
-                                    //     if (!isValid) return;
-                                    // }
-                                    // // ...
-                                    // Save
-                                    // //  as draft logic
-                                    // if (typeof saveDraft === 'function') {
-                                    //     saveDraft();
-                                    // }
-                                    setCompleted((arr) => {
-                                        const copy = [...arr];
-                                        copy[currentStep] = true;
-                                        return copy;
-                                    });
+                                        if (currentStep === 2) {
+                                            isValid = validateStep2();
+                                            if (!isValid) return;
+                                        }
+                                        else
+                                            if (currentStep === 3) {
+                                                isValid = validateStep3();
+                                                if (!isValid) return;
+                                            }
+                                            else
+                                                //     if (currentStep === 4) {
+                                                //     isValid = validateStep4();
+                                                //     if (!isValid) return;
+                                                // }
+                                                // // ...
+                                                // Save
+                                                // //  as draft logic
+                                                // if (typeof saveDraft === 'function') {
+                                                //     saveDraft();
+                                                // }
+                                                setCompleted((arr) => {
+                                                    const copy = [...arr];
+                                                    copy[currentStep] = true;
+                                                    return copy;
+                                                });
                                     setCurrentStep((s) => Math.min(s + 1, steps.length - 1));
                                 }}
                                 disabled={currentStep === steps.length - 1}
