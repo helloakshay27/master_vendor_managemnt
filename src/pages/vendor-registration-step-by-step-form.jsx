@@ -368,6 +368,23 @@ const VendorRegistrationStepByStepForm = () => {
         };
         reader.readAsDataURL(file);
     };
+
+    // Handler for E-Invoice declaration file (convert File -> { filename, content, content_type })
+    const handleEinvoiceDeclarationFileChange = (file) => {
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            const base64String = reader.result.split(',')[1];
+            const attachment = {
+                filename: file.name,
+                content: base64String,
+                content_type: file.type || 'application/pdf',
+            };
+            // Store in additionalDetails using existing updater
+            updateAdditionalDetails('einvoiceDeclaration', attachment);
+        };
+        reader.readAsDataURL(file);
+    };
     // Designation options for contact person (fetched from API dropdowns)
     const [designationOptions, setDesignationOptions] = useState([]);
     useEffect(() => {
@@ -1138,6 +1155,13 @@ const VendorRegistrationStepByStepForm = () => {
                 file_url: msmeDeclRaw.attachment_url ? `${baseURL}${msmeDeclRaw.attachment_url}` : (msmeDeclRaw.file_url || msmeDeclRaw.url || msmeDeclRaw.attachment_url || null)
             } : null;
 
+            // Build E-Invoice declaration attachment (if provided by backend) so UI can show existing file
+            const einvoiceRaw1 = Array.isArray(supplierShowData.einvoicing_attachments) && supplierShowData.einvoicing_attachments.length > 0 ? supplierShowData.einvoicing_attachments[0] : (Array.isArray(supplierShowData.einvoice_attachments) && supplierShowData.einvoice_attachments.length > 0 ? supplierShowData.einvoice_attachments[0] : null);
+            const einvoiceDeclarationObj = einvoiceRaw1 ? {
+                filename: einvoiceRaw1.document_name || einvoiceRaw1.filename || null,
+                file_url: einvoiceRaw1.attachment_url ? `${baseURL}${einvoiceRaw1.attachment_url}` : (einvoiceRaw1.file_url || einvoiceRaw1.url || einvoiceRaw1.attachment_url || null)
+            } : null;
+
             // Einvoicing mapping (backend may use 'einvoicing' or 'einvoice')
             const einvoiceRaw = supplierShowData.einvoicing || supplierShowData.einvoice || supplierShowData.einvoicing_applicable;
             let einvoiceOption = null;
@@ -1178,6 +1202,8 @@ const VendorRegistrationStepByStepForm = () => {
                 // Attach MSME files for UI (existing server file shown via file_url)
                 msmeAttachmentObj: msmeAttachmentObj || prev.msmeAttachmentObj,
                 msmeDeclarationObj: msmeDeclarationObj || prev.msmeDeclarationObj,
+                // Preselect e-invoice declaration from supplier data (server file)
+                einvoiceDeclaration: einvoiceDeclarationObj || prev.einvoiceDeclaration,
                 // Einvoicing option
                 einvoice: einvoiceOption !== null ? einvoiceOption : prev.einvoice,
             }));
@@ -3223,7 +3249,8 @@ const VendorRegistrationStepByStepForm = () => {
             currency: additionalDetails.currencyType && additionalDetails.currencyType.value ? additionalDetails.currencyType.value : null,
             msme: additionalDetails.msmeUdyamApplicable && additionalDetails.msmeUdyamApplicable.value ? additionalDetails.msmeUdyamApplicable.value : null,
             einvoicing: additionalDetails.einvoice && additionalDetails.einvoice.value ? additionalDetails.einvoice.value : null,
-            einvoicing_declaration: additionalDetails.einvoiceDeclaration,
+            // einvoicing_declaration: additionalDetails.einvoiceDeclaration,
+             einvoicing_attachments: [additionalDetails.einvoiceDeclaration],
             msme_no: additionalDetails.msmeNo,
             classification_year: additionalDetails.classificationYear && additionalDetails.classificationYear.value ? additionalDetails.classificationYear.value : null,
             major_activity: additionalDetails.majorActivity && additionalDetails.majorActivity.value ? additionalDetails.majorActivity.value : null,
@@ -3424,7 +3451,7 @@ const VendorRegistrationStepByStepForm = () => {
                 organization_name: basicInfo.vendorOrganizationName,
 
                 cin_number: basicInfo.cin,
-                cin_attachment: [basicInfo.cinAttachmentObj],
+                cin_number_attachments: [basicInfo.cinAttachmentObj],
 
                 llp_number: basicInfo.llp,
                 llp_attachment: [basicInfo.llpAttachmentObj],
@@ -3462,7 +3489,7 @@ const VendorRegistrationStepByStepForm = () => {
                 currency: additionalDetails.currencyType && additionalDetails.currencyType.value ? additionalDetails.currencyType.value : null,
                 msme: additionalDetails.msmeUdyamApplicable && additionalDetails.msmeUdyamApplicable.value ? additionalDetails.msmeUdyamApplicable.value : null,
                 einvoicing: additionalDetails.einvoice && additionalDetails.einvoice.value ? additionalDetails.einvoice.value : null,
-                einvoicing_declaration: additionalDetails.einvoiceDeclaration,
+                einvoicing_attachments: [additionalDetails.einvoiceDeclaration],
                 msme_no: additionalDetails.msmeNo,
                 classification_year: additionalDetails.classificationYear && additionalDetails.classificationYear.value ? additionalDetails.classificationYear.value : null,
                 major_activity: additionalDetails.majorActivity && additionalDetails.majorActivity.value ? additionalDetails.majorActivity.value : null,
@@ -3505,7 +3532,7 @@ const VendorRegistrationStepByStepForm = () => {
                 organization_name: basicInfo.vendorOrganizationName,
 
                 cin_number: basicInfo.cin,
-                cin_attachment: [basicInfo.cinAttachmentObj],
+            cin_number_attachments: [basicInfo.cinAttachmentObj],
 
                 llp_number: basicInfo.llp,
                 llp_attachment: [basicInfo.llpAttachmentObj],
@@ -3537,7 +3564,8 @@ const VendorRegistrationStepByStepForm = () => {
                 currency: additionalDetails.currencyType && additionalDetails.currencyType.value ? additionalDetails.currencyType.value : null,
                 msme: additionalDetails.msmeUdyamApplicable && additionalDetails.msmeUdyamApplicable.value ? additionalDetails.msmeUdyamApplicable.value : null,
                 einvoicing: additionalDetails.einvoice && additionalDetails.einvoice.value ? additionalDetails.einvoice.value : null,
-                einvoicing_declaration: additionalDetails.einvoiceDeclaration,
+                // einvoicing_declaration: additionalDetails.einvoiceDeclaration,
+                 einvoicing_attachments: [additionalDetails.einvoiceDeclaration],
                 msme_no: additionalDetails.msmeNo,
                 classification_year: additionalDetails.classificationYear && additionalDetails.classificationYear.value ? additionalDetails.classificationYear.value : null,
                 major_activity: additionalDetails.majorActivity && additionalDetails.majorActivity.value ? additionalDetails.majorActivity.value : null,
@@ -3584,7 +3612,7 @@ const VendorRegistrationStepByStepForm = () => {
                 organization_name: basicInfo.vendorOrganizationName,
 
                 cin_number: basicInfo.cin,
-                cin_attachment: [basicInfo.cinAttachmentObj],
+                cin_number_attachments: [basicInfo.cinAttachmentObj],
 
                 llp_number: basicInfo.llp,
                 llp_attachment: [basicInfo.llpAttachmentObj],
@@ -3616,7 +3644,8 @@ const VendorRegistrationStepByStepForm = () => {
                 currency: additionalDetails.currencyType && additionalDetails.currencyType.value ? additionalDetails.currencyType.value : null,
                 msme: additionalDetails.msmeUdyamApplicable && additionalDetails.msmeUdyamApplicable.value ? additionalDetails.msmeUdyamApplicable.value : null,
                 einvoicing: additionalDetails.einvoice && additionalDetails.einvoice.value ? additionalDetails.einvoice.value : null,
-                einvoicing_declaration: additionalDetails.einvoiceDeclaration,
+                // einvoicing_declaration: additionalDetails.einvoiceDeclaration,
+                 einvoicing_attachments: [additionalDetails.einvoiceDeclaration],
                 msme_no: additionalDetails.msmeNo,
                 classification_year: additionalDetails.classificationYear && additionalDetails.classificationYear.value ? additionalDetails.classificationYear.value : null,
                 major_activity: additionalDetails.majorActivity && additionalDetails.majorActivity.value ? additionalDetails.majorActivity.value : null,
@@ -3702,7 +3731,8 @@ const VendorRegistrationStepByStepForm = () => {
                 currency: additionalDetails.currencyType && additionalDetails.currencyType.value ? additionalDetails.currencyType.value : null,
                 msme: additionalDetails.msmeUdyamApplicable && additionalDetails.msmeUdyamApplicable.value ? additionalDetails.msmeUdyamApplicable.value : null,
                 einvoicing: additionalDetails.einvoice && additionalDetails.einvoice.value ? additionalDetails.einvoice.value : null,
-                einvoicing_declaration: additionalDetails.einvoiceDeclaration,
+                // einvoicing_declaration: additionalDetails.einvoiceDeclaration,
+                 einvoicing_attachments: [additionalDetails.einvoiceDeclaration],
                 msme_no: additionalDetails.msmeNo,
                 classification_year: additionalDetails.classificationYear && additionalDetails.classificationYear.value ? additionalDetails.classificationYear.value : null,
                 major_activity: additionalDetails.majorActivity && additionalDetails.majorActivity.value ? additionalDetails.majorActivity.value : null,
@@ -3802,7 +3832,8 @@ const VendorRegistrationStepByStepForm = () => {
                 currency: additionalDetails.currencyType && additionalDetails.currencyType.value ? additionalDetails.currencyType.value : null,
                 msme: additionalDetails.msmeUdyamApplicable && additionalDetails.msmeUdyamApplicable.value ? additionalDetails.msmeUdyamApplicable.value : null,
                 einvoicing: additionalDetails.einvoice && additionalDetails.einvoice.value ? additionalDetails.einvoice.value : null,
-                einvoicing_declaration: additionalDetails.einvoiceDeclaration,
+                // einvoicing_declaration: additionalDetails.einvoiceDeclaration,
+                 einvoicing_attachments: [additionalDetails.einvoiceDeclaration],
                 msme_no: additionalDetails.msmeNo,
                 classification_year: additionalDetails.classificationYear && additionalDetails.classificationYear.value ? additionalDetails.classificationYear.value : null,
                 major_activity: additionalDetails.majorActivity && additionalDetails.majorActivity.value ? additionalDetails.majorActivity.value : null,
@@ -3912,7 +3943,8 @@ const VendorRegistrationStepByStepForm = () => {
                 currency: additionalDetails.currencyType && additionalDetails.currencyType.value ? additionalDetails.currencyType.value : null,
                 msme: additionalDetails.msmeUdyamApplicable && additionalDetails.msmeUdyamApplicable.value ? additionalDetails.msmeUdyamApplicable.value : null,
                 einvoicing: additionalDetails.einvoice && additionalDetails.einvoice.value ? additionalDetails.einvoice.value : null,
-                einvoicing_declaration: additionalDetails.einvoiceDeclaration,
+                // einvoicing_declaration: additionalDetails.einvoiceDeclaration,
+                 einvoicing_attachments: [additionalDetails.einvoiceDeclaration],
                 msme_no: additionalDetails.msmeNo,
                 classification_year: additionalDetails.classificationYear && additionalDetails.classificationYear.value ? additionalDetails.classificationYear.value : null,
                 major_activity: additionalDetails.majorActivity && additionalDetails.majorActivity.value ? additionalDetails.majorActivity.value : null,
@@ -4066,7 +4098,8 @@ const VendorRegistrationStepByStepForm = () => {
                 currency: additionalDetails.currencyType && additionalDetails.currencyType.value ? additionalDetails.currencyType.value : null,
                 msme: additionalDetails.msmeUdyamApplicable && additionalDetails.msmeUdyamApplicable.value ? additionalDetails.msmeUdyamApplicable.value : null,
                 einvoicing: additionalDetails.einvoice && additionalDetails.einvoice.value ? additionalDetails.einvoice.value : null,
-                einvoicing_declaration: additionalDetails.einvoiceDeclaration,
+                // einvoicing_declaration: additionalDetails.einvoiceDeclaration,
+                 einvoicing_attachments: [additionalDetails.einvoiceDeclaration],
                 msme_no: additionalDetails.msmeNo,
                 classification_year: additionalDetails.classificationYear && additionalDetails.classificationYear.value ? additionalDetails.classificationYear.value : null,
                 major_activity: additionalDetails.majorActivity && additionalDetails.majorActivity.value ? additionalDetails.majorActivity.value : null,
@@ -5671,7 +5704,11 @@ const VendorRegistrationStepByStepForm = () => {
                                                             download="Specimen_E-Invoicing_Declaration.docx"
                                                             className="text-primary d-flex align-items-center"
                                                             href={`${baseURL}/assets/NO_%20MSME.pdf`}
-                                                            target="_self" // Ensure it doesn't open in a new tab
+                                                            onClick={(e) => {
+                                                                // Force navigation in the same tab to avoid any target/_blank behavior
+                                                                e.preventDefault();
+                                                                window.location.href = `${baseURL}/assets/NO_%20MSME.pdf`;
+                                                            }}
                                                         >
                                                             <svg
                                                                 xmlns="http://www.w3.org/2000/svg"
@@ -5831,17 +5868,73 @@ const VendorRegistrationStepByStepForm = () => {
                                                         <label>
                                                             Upload Declaration <span>*</span>
                                                         </label>
+
+
                                                         <TooltipIcon message="If you choose E-Invoice applicable 'No', please upload a signed declaration document to verify the details you have submitted. The document must be uploaded in PDF format.Ensure that the document is clear, legible, and properly signed." />
+
+                                                         {/* Show existing server file or uploaded file preview */}
+                                                        {/* {additionalDetails.einvoiceDeclaration && (
+                                                            <div style={{ marginTop: 6 }}>
+                                                                {additionalDetails.einvoiceDeclaration.file_url ? (
+                                                                    <a
+                                                                        href={String(additionalDetails.einvoiceDeclaration.file_url).startsWith('http') ? additionalDetails.einvoiceDeclaration.file_url : `${baseURL}${additionalDetails.einvoiceDeclaration.file_url}`}
+                                                                        download
+                                                                        className="text-primary d-flex align-items-center mt-1"
+                                                                        style={{ gap: 6 }}
+                                                                    >
+                                                                        <svg
+                                                                            xmlns="http://www.w3.org/2000/svg"
+                                                                            width={20}
+                                                                            height={20}
+                                                                            fill="#DE7008"
+                                                                            className="bi bi-download"
+                                                                            viewBox="0 0 16 16"
+                                                                        >
+                                                                            <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                                                                            <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                                                                        </svg>
+                                                                        <span style={{ fontSize: 12 }}>{additionalDetails.einvoiceDeclaration.filename}</span>
+                                                                    </a>
+                                                                ) : (
+                                                                    <span style={{ fontSize: 12 }}>{additionalDetails.einvoiceDeclaration.filename} (uploaded)</span>
+                                                                )}
+                                                            </div>
+                                                        )} */}
+                                                        {additionalDetails.einvoiceDeclaration && (
+                                                            additionalDetails.einvoiceDeclaration.file_url ? (
+                                                                <span className="ms-2">
+                                                                    <a
+                                                                        href={String(additionalDetails.einvoiceDeclaration.file_url).startsWith('http') ? additionalDetails.einvoiceDeclaration.file_url : `${baseURL}${additionalDetails.einvoiceDeclaration.file_url}`}
+                                                                        download
+                                                                        className="text-primary d-flex align-items-center"
+                                                                    >
+                                                                        <span className="me-2">Uploaded Declaration:</span>
+                                                                        <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} fill="#DE7008" className="bi bi-download" viewBox="0 0 16 16">
+                                                                            <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                                                                            <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                                                                        </svg>
+                                                                        {additionalDetails.einvoiceDeclaration.filename}
+                                                                    </a>
+                                                                </span>
+                                                            ) : additionalDetails.einvoiceDeclaration.filename ? (
+                                                                <span className="ms-2 d-flex align-items-center">
+                                                                    <span className="me-2">Selected File:</span>
+                                                                    <span className="text-muted">{additionalDetails.einvoiceDeclaration.filename}</span>
+                                                                </span>
+                                                            ) : null
+                                                        )}
+                                                       
                                                         <input
                                                             className="form-control"
                                                             type="file"
                                                             accept=".pdf"
                                                             name=""
-                                                            onChange={e => updateAdditionalDetails('einvoiceDeclaration', e.target.files[0])}
+                                                            onChange={e => handleEinvoiceDeclarationFileChange(e.target.files[0])}
                                                         />
-                                                        {errors.einvoiceDeclaration && (
+                                                         {errors.einvoiceDeclaration && (
                                                             <div className="ValidationColor">{errors.einvoiceDeclaration}</div>
                                                         )}
+                                                       
                                                     </div>
                                                 </div>
                                             )}
@@ -8520,9 +8613,35 @@ const VendorRegistrationStepByStepForm = () => {
                                                                             />
                                                                             {qState.files && qState.files.length > 0 && (
                                                                                 <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
-                                                                                    {qState.files.map((f, i) => (
-                                                                                        <li key={i} style={{ fontSize: '12px' }}>{f.filename}</li>
-                                                                                    ))}
+                                                                                    {(() => {
+                                                                                        const localFiles = qState.files.filter(f => !f.file_url);
+                                                                                        const filesToShow = localFiles.length > 0 ? localFiles : qState.files;
+                                                                                        return filesToShow.map((f, i) => {
+                                                                                            const href = f.file_url ? (String(f.file_url).startsWith('http') ? f.file_url : `${baseURL}${f.file_url}`) : null;
+                                                                                            return (
+                                                                                                <li key={i} style={{ marginBottom: 4 }}>
+                                                                                                    {href ? (
+                                                                                                        <a href={href} download className="text-primary d-flex align-items-center mt-1" style={{ gap: 6 }}>
+                                                                                                            <svg
+                                                                                                                xmlns="http://www.w3.org/2000/svg"
+                                                                                                                width={20}
+                                                                                                                height={20}
+                                                                                                                fill="#DE7008"
+                                                                                                                className="bi bi-download"
+                                                                                                                viewBox="0 0 16 16"
+                                                                                                            >
+                                                                                                                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                                                                                                                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                                                                                                            </svg>
+                                                                                                            <span style={{ fontSize: 12 }}>{f.filename}</span>
+                                                                                                        </a>
+                                                                                                    ) : (
+                                                                                                        <span style={{ fontSize: 12 }}>{f.filename}{!f.file_url ? ' (uploaded)' : ''}</span>
+                                                                                                    )}
+                                                                                                </li>
+                                                                                            );
+                                                                                        });
+                                                                                    })()}
                                                                                 </ul>
                                                                             )}
                                                                         </td>
@@ -9279,7 +9398,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                                 download="Specimen_E-Invoicing_Declaration.docx"
                                                                 className="text-primary d-flex align-items-center"
                                                                 href={`${baseURL}/assets/NO_%20MSME.pdf`}
-                                                                target="_self"
+                                                                target="_blank"
                                                             >
                                                                 <svg
                                                                     xmlns="http://www.w3.org/2000/svg"
