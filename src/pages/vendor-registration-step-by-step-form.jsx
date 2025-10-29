@@ -73,7 +73,8 @@ const mapBranchOfficesToPayload = (branchOffices) => branchOffices.map((office) 
     pin_code: office.pincode || '',
     tel_number: office.telephone || '',
     mobile: office.mobile || '',
-    _destroy: false
+    // _destroy: false
+    _destroy: (office._destroy === true || office._destroy === "true") ? true : false
 }));
 
 
@@ -2193,12 +2194,24 @@ const VendorRegistrationStepByStepForm = () => {
         setBranchOffices(prev => prev.map((b, i) => i === idx ? { ...b, [field]: value } : b));
     };
 
-    const deleteBranchOffice = (id) => {
-        // setBranchOffices(prev => prev.length === 1 ? prev : prev.filter(branch => branch.id !== id));
-        setBranchOffices(prev => prev.length === 0 ? prev : prev.filter(branch => branch.id !== id));
-    };
+    // const deleteBranchOffice = (id) => {
+    //     // setBranchOffices(prev => prev.length === 1 ? prev : prev.filter(branch => branch.id !== id));
+    //     setBranchOffices(prev => prev.length === 0 ? prev : prev.filter(branch => branch.id !== id));
+    // };
 
+const deleteBranchOffice = (id) => {
+        setBranchOffices((prev) => {
+            const item = prev.find((c) => c.id === id);
+            if (!item) return prev;
 
+            if (item.isNew) {
+                return prev.filter((c) => c.id !== id);
+            }
+
+            // mark existing item for deletion using boolean true (backend mapper accepts both boolean or string)
+            return prev.map((c) => (c.id === id ? { ...c, _destroy: true } : c));
+        });
+    };
 
     const [contactPersons, setContactPersons] = useState([
 
@@ -2482,7 +2495,23 @@ const VendorRegistrationStepByStepForm = () => {
 
 
     const [majorCustomers, setMajorCustomers] = useState([
-
+{
+                id: Date.now() + Math.random(),
+                companyName: '',
+                workDone: '',
+                contactPerson: '',
+                designation: null,
+                country: null,
+                phone: '',
+                mobile: '',
+                yearOfAssociation: '',
+                businessLast12Months: '',
+                serviceFrom: '',
+                serviceTo: '',
+                stageOfProject: '',
+                majorCompetitors: '',
+                attachment: null
+            }
     ]);
 
     const addMajorCustomer = () => {
@@ -2551,15 +2580,6 @@ const VendorRegistrationStepByStepForm = () => {
             return prev.map((c) => (c.id === id ? { ...c, _destroy: true } : c));
         });
     };
-    
-    // Ensure at least one Major Customer entry exists when no preselected data is provided
-    // If supplierShowData contains major_customers they will be mapped elsewhere; only add when the local list is empty
-    useEffect(() => {
-        const hasPreselected = Array.isArray(supplierShowData?.major_customers) && supplierShowData.major_customers.length > 0;
-        if (!hasPreselected && majorCustomers.length === 0) {
-            addMajorCustomer();
-        }
-    }, [supplierShowData, majorCustomers.length]);
     // Supervisory Manpower & Resources Details dynamic section state and handlers
     const [supervisoryManpower, setSupervisoryManpower] = useState([
 
@@ -5658,11 +5678,14 @@ const VendorRegistrationStepByStepForm = () => {
                                                                 <a
                                                                     // href={`${baseURL}${bankDetail.attachment}`} // Ensure URL is correct
                                                                     // download // Forces file download
-                                                                    // className="text-primary d-flex align-items-center"
-                                                                      download
-                                                            className="text-primary d-flex align-items-center"
-                                                            href={`${baseURL}/assets/NO_%20MSME.pdf`}
+                                                                    // className="text-primary d-flex align-items-center"    
+                                                                    className="text-primary d-flex align-items-center"
+                                                                    href={`${baseURL}/assets/Spciman%20GST%20Declaration.pdf`}
+                                                                    // download
+                                                                    download="SGSTIN_Declaration.pdf"
+
                                                                 >
+
                                                                     {/* <span className="me-2">Existing File:</span> */}
                                                                     {/* <TooltipIcon message="Indicate whether your organization is registered under the Goods and Services Tax (GST) Act."
                                /> */}
@@ -5684,7 +5707,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                                         />
                                                                     </svg>
                                                                     <span className="mt-2 ms-2">
-                                                                        Specimen For No GSTIN Applicable.pdf
+                                                                        **Specimen For No GSTIN Applicable.pdf
                                                                     </span>
                                                                 </a>
                                                             </span>
@@ -6307,7 +6330,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                             className="text-primary d-flex align-items-center"
                                                             href={`${baseURL}/assets/Specimen_E-Invoicing_Declaration.docx`}
 
-                                                            
+
                                                             target="_self" // Ensure it doesn't open in a new tab
                                                         >
                                                             <svg
@@ -7961,7 +7984,7 @@ const VendorRegistrationStepByStepForm = () => {
                             </div>
 
                             {/* #2 */}
-                            {branchOffices.map((branch, idx) => (
+                            {branchOffices.filter(mc => mc._destroy !== true && mc._destroy !== "true").map((branch, idx) => (
                                 // <div className="card mx-3 pb-4 mt-4" key={branch.id}>
                                 <CollapsedCardKYC
                                     key={branch.id}
