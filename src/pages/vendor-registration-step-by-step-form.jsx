@@ -35,7 +35,8 @@ const mapOwnersToPayload = (owners) => owners.map((owner) => ({
     experience: owner.experience || '',
     email: owner.email || '',
     mobile: owner.mobile || '',
-    _destroy: false
+    // _destroy: false
+    _destroy: (owner._destroy === true || owner._destroy === "true") ? true : false
 }));
 const mapContactPersonsToPayload = (contactPersons) => contactPersons.map((person) => ({
     id: (typeof person.idPre !== 'undefined' && person.idPre !== null) ? person.idPre : null,
@@ -59,7 +60,8 @@ const mapContactPersonsToPayload = (contactPersons) => contactPersons.map((perso
     nationality_string: person.nationality?.label || '',
     // gender: person.gender?.label || '',
     birth_date: person.dob || '',
-    _destroy: false
+    // _destroy: false
+    _destroy: (person._destroy === true || person._destroy === "true") ? true : false
 }));
 const mapBranchOfficesToPayload = (branchOffices) => branchOffices.map((office) => ({
     id: (typeof office.idPre !== 'undefined' && office.idPre !== null) ? office.idPre : null,
@@ -98,6 +100,7 @@ const mapRegisteredAddressToPayload = (registeredAddress) => [{
     fax_number: '', // Add if available in state
     city_name: registeredAddress.city || '',
     _destroy: false
+    
 }];
 
 // Utility: Map communicationAddress state to communication_address_attributes
@@ -137,7 +140,8 @@ const mapWarehousesToPayload = (warehouses) => {
         contact_person: w.contactPerson || null,
         contact_person_email: w.contactPersonEmail || null,
         attachment: [w.attachment] || null,
-        _destroy: w._destroy === true ? true : false
+        // _destroy: w._destroy === true ? true : false
+        _destroy: (w._destroy === true || w._destroy === "true") ? true : false
     }));
 };
 
@@ -342,7 +346,7 @@ const VendorRegistrationStepByStepForm = () => {
         };
     });
 
-    console.log("checklist payload :", checklistPayload)
+    // console.log("checklist payload :", checklistPayload)
     // State for Questions section
     const [questions, setQuestions] = useState({
         expertise: '',
@@ -421,7 +425,7 @@ const VendorRegistrationStepByStepForm = () => {
         fetchNameTitleOptions();
     }, []);
 
-    console.log("name title options:", nameTitleOptions)
+    // console.log("name title options:", nameTitleOptions)
     // Annual Turnover state as array of objects
     const [annualTurnover, setAnnualTurnover] = useState([
         { year: '2024-2025', turnover: '', attachment: null, keyMarkets: '' },
@@ -2313,12 +2317,24 @@ const deleteBranchOffice = (id) => {
         setContactPersonErrors(prev => prev.map((err, i) => i === idx ? ({ ...err, [field]: undefined }) : err));
     };
 
-    const deleteContactPerson = (id) => {
-        setContactPersons((prev) =>
-            prev.length === 0 ? prev : prev.filter((person) => person.id !== id)
-        );
-    };
+    // const deleteContactPerson = (id) => {
+    //     setContactPersons((prev) =>
+    //         prev.length === 0 ? prev : prev.filter((person) => person.id !== id)
+    //     );
+    // };
+const deleteContactPerson = (id) => {
+    setContactPersons((prev) => {
+            const item = prev.find((c) => c.id === id);
+            if (!item) return prev;
 
+            if (item.isNew) {
+                return prev.filter((c) => c.id !== id);
+            }
+
+            // mark existing item for deletion using boolean true (backend mapper accepts both boolean or string)
+            return prev.map((c) => (c.id === id ? { ...c, _destroy: true } : c));
+        });
+    };
 
 
     // Owners / Directors Information dynamic section state and handlers
@@ -2381,9 +2397,22 @@ const deleteBranchOffice = (id) => {
         setOwners(prev => prev.map((o, i) => i === idx ? { ...o, [field]: value } : o));
     };
 
+    // const deleteOwner = (id) => {
+    //     setOwners(prev => prev.length === 0 ? prev : prev.filter(o => o.id !== id));
+    // };
     const deleteOwner = (id) => {
-        setOwners(prev => prev.length === 0 ? prev : prev.filter(o => o.id !== id));
-    };
+        setOwners((prev) => {
+            const item = prev.find((c) => c.id === id);
+            if (!item) return prev;
+
+            if (item.isNew) {
+                return prev.filter((c) => c.id !== id);
+            }
+
+            // mark existing item for deletion using boolean true (backend mapper accepts both boolean or string)
+            return prev.map((c) => (c.id === id ? { ...c, _destroy: true } : c));
+        });
+    };
     // Factory Warehouse Details dynamic section state and handlers
     const [warehouses, setWarehouses] = useState([
 
@@ -2489,29 +2518,25 @@ const deleteBranchOffice = (id) => {
         setWarehouses(prev => prev.map((w, i) => i === idx ? { ...w, [field]: value } : w))
     }
 
-    const deleteWarehouse = (id) => {
-        setWarehouses(prev => prev.length === 0 ? prev : prev.filter(w => w.id !== id));
-    };
+    // const deleteWarehouse = (id) => {
+    //     setWarehouses(prev => prev.length === 0 ? prev : prev.filter(w => w.id !== id));
+    // };
+const deleteWarehouse = (id) => {
+        setWarehouses((prev) => {
+            const item = prev.find((c) => c.id === id);
+            if (!item) return prev;
 
+            if (item.isNew) {
+                return prev.filter((c) => c.id !== id);
+            }
+
+            // mark existing item for deletion using boolean true (backend mapper accepts both boolean or string)
+            return prev.map((c) => (c.id === id ? { ...c, _destroy: true } : c));
+        });
+    };
 
     const [majorCustomers, setMajorCustomers] = useState([
-{
-                id: Date.now() + Math.random(),
-                companyName: '',
-                workDone: '',
-                contactPerson: '',
-                designation: null,
-                country: null,
-                phone: '',
-                mobile: '',
-                yearOfAssociation: '',
-                businessLast12Months: '',
-                serviceFrom: '',
-                serviceTo: '',
-                stageOfProject: '',
-                majorCompetitors: '',
-                attachment: null
-            }
+
     ]);
 
     const addMajorCustomer = () => {
@@ -2723,7 +2748,7 @@ const deleteBranchOffice = (id) => {
             return err;
         });
         setBranchErrors(branchErrs);
-
+console.log("branchErrs:",branchErrs)
         // Contact Persons
         const contactErrs = contactPersons.map(person => {
             const err = {};
@@ -2755,6 +2780,7 @@ const deleteBranchOffice = (id) => {
             return err;
         });
         setContactPersonErrors(contactErrs);
+        console.log("contactErrs:",contactErrs)
 
         // Warehouses
         const warehouseErrs = warehouses.map(warehouse => {
@@ -2777,6 +2803,7 @@ const deleteBranchOffice = (id) => {
             return err;
         });
         setWarehouseErrors(warehouseErrs);
+        console.log("warehouseErrs:",warehouseErrs)
         // Owners
         const ownerErrs = owners.map(owner => {
             const err = {};
@@ -2798,7 +2825,7 @@ const deleteBranchOffice = (id) => {
             return err;
         });
         setOwnerErrors(ownerErrs);
-
+console.log("ownerErrs:",ownerErrs)
 
         // Annual Turnover: if amount is provided, attachment is required
         const turnoverErrs = {};
@@ -2853,7 +2880,7 @@ const deleteBranchOffice = (id) => {
         });
         setMajorCustomerErrors(custErrs);
 
-
+console.log("custErrs:",custErrs)
 
         // Return true if all error objects are empty
         const allBranchesValid = branchErrs.every(e => Object.keys(e).length === 0);
@@ -3877,8 +3904,8 @@ const deleteBranchOffice = (id) => {
     };
 
 
-    console.log("llp attach", [basicInfo.llpAttachmentObj])
-    console.log("cin attach", [basicInfo.cinAttachmentObj])
+    // console.log("llp attach", [basicInfo.llpAttachmentObj])
+    // console.log("cin attach", [basicInfo.cinAttachmentObj])
 
     const saveDraftStep1 = async () => {
         setLoading2(true)
@@ -4096,8 +4123,8 @@ const deleteBranchOffice = (id) => {
 
                 // office_address_attributes: mapRegisteredAddressToPayload(registeredAddress),
                 // communication_address_attributes: mapCommunicationAddressToPayload(communicationAddress),
-                office_address_attributes: mapRegisteredAddressToPayload(registeredAddress)[0] || {},
-                communication_address_attributes: commAddrPayload,
+                // office_address_attributes: mapRegisteredAddressToPayload(registeredAddress)[0] || {},
+                // communication_address_attributes: commAddrPayload,
 
                 bank_details_attributes: bankDetailsList.map((item) => ({
                     ...item,
@@ -4183,16 +4210,16 @@ const deleteBranchOffice = (id) => {
 
                 // office_address_attributes: mapRegisteredAddressToPayload(registeredAddress),
                 // communication_address_attributes: mapCommunicationAddressToPayload(communicationAddress),
-                office_address_attributes: mapRegisteredAddressToPayload(registeredAddress)[0] || {},
-                communication_address_attributes: commAddrPayload,
+                // office_address_attributes: mapRegisteredAddressToPayload(registeredAddress)[0] || {},
+                // communication_address_attributes: commAddrPayload,
 
-                bank_details_attributes: bankDetailsList.map((item) => ({
-                    ...item,
-                    id: item.isNew ? null : item.id,
-                    attachment: item.isNew
-                        ? bankAttachments[item.id] || null
-                        : bankAttachments[item.id] || (item.attachment ? null : null),
-                })),
+                // bank_details_attributes: bankDetailsList.map((item) => ({
+                //     ...item,
+                //     id: item.isNew ? null : item.id,
+                //     attachment: item.isNew
+                //         ? bankAttachments[item.id] || null
+                //         : bankAttachments[item.id] || (item.attachment ? null : null),
+                // })),
 
                 branch_offices_attributes: mapBranchOfficesToPayload(branchOffices),
                 contact_people_attributes: mapContactPersonsToPayload(contactPersons),
@@ -4288,30 +4315,30 @@ const deleteBranchOffice = (id) => {
 
                 // office_address_attributes: mapRegisteredAddressToPayload(registeredAddress),
                 // communication_address_attributes: mapCommunicationAddressToPayload(communicationAddress),
-                office_address_attributes: mapRegisteredAddressToPayload(registeredAddress)[0] || {},
-                communication_address_attributes: commAddrPayload,
+                // office_address_attributes: mapRegisteredAddressToPayload(registeredAddress)[0] || {},
+                // communication_address_attributes: commAddrPayload,
 
-                bank_details_attributes: bankDetailsList.map((item) => ({
-                    ...item,
-                    id: item.isNew ? null : item.id,
-                    attachment: item.isNew
-                        ? bankAttachments[item.id] || null
-                        : bankAttachments[item.id] || (item.attachment ? null : null),
-                })),
+                // bank_details_attributes: bankDetailsList.map((item) => ({
+                //     ...item,
+                //     id: item.isNew ? null : item.id,
+                //     attachment: item.isNew
+                //         ? bankAttachments[item.id] || null
+                //         : bankAttachments[item.id] || (item.attachment ? null : null),
+                // })),
 
-                branch_offices_attributes: mapBranchOfficesToPayload(branchOffices),
-                contact_people_attributes: mapContactPersonsToPayload(contactPersons),
-                directors_informations_attributes: mapOwnersToPayload(owners),
-                factory_warehouses_attributes: mapWarehousesToPayload(warehouses),
-                major_customers_attributes: mapMajorCustomersToPayload(majorCustomers),
-                annual_turnovers_attributes: annualTurnover.map(item => ({
-                    id: item.idPre || null,
-                    financial_year: item.year,
-                    key_markets: item.keyMarkets,
-                    turnover: item.turnover,
-                    attachment: [item.attachment],
-                    destroy: false
-                })),
+                // branch_offices_attributes: mapBranchOfficesToPayload(branchOffices),
+                // contact_people_attributes: mapContactPersonsToPayload(contactPersons),
+                // directors_informations_attributes: mapOwnersToPayload(owners),
+                // factory_warehouses_attributes: mapWarehousesToPayload(warehouses),
+                // major_customers_attributes: mapMajorCustomersToPayload(majorCustomers),
+                // annual_turnovers_attributes: annualTurnover.map(item => ({
+                //     id: item.idPre || null,
+                //     financial_year: item.year,
+                //     key_markets: item.keyMarkets,
+                //     turnover: item.turnover,
+                //     attachment: [item.attachment],
+                //     destroy: false
+                // })),
 
 
                 statutory_details: statutoryPayload || []
@@ -4393,39 +4420,39 @@ const deleteBranchOffice = (id) => {
                 msme_attachment: [additionalDetails.msmeAttachmentObj] || [additionalDetails.msmeDeclarationObj],
                 // msme_declaration: additionalDetails.msmeDeclarationObj,
 
-                que1: questions.expertise,
-                // question1_attachment: questions.expertiseAttachment,
-                que2: questions.structure,
+                // que1: questions.expertise,
+                // // question1_attachment: questions.expertiseAttachment,
+                // que2: questions.structure,
 
                 // office_address_attributes: mapRegisteredAddressToPayload(registeredAddress),
                 // communication_address_attributes: mapCommunicationAddressToPayload(communicationAddress),
-                office_address_attributes: mapRegisteredAddressToPayload(registeredAddress)[0] || {},
-                communication_address_attributes: commAddrPayload,
+                // office_address_attributes: mapRegisteredAddressToPayload(registeredAddress)[0] || {},
+                // communication_address_attributes: commAddrPayload,
 
-                bank_details_attributes: bankDetailsList.map((item) => ({
-                    ...item,
-                    id: item.isNew ? null : item.id,
-                    attachment: item.isNew
-                        ? bankAttachments[item.id] || null
-                        : bankAttachments[item.id] || (item.attachment ? null : null),
-                })),
+                // bank_details_attributes: bankDetailsList.map((item) => ({
+                //     ...item,
+                //     id: item.isNew ? null : item.id,
+                //     attachment: item.isNew
+                //         ? bankAttachments[item.id] || null
+                //         : bankAttachments[item.id] || (item.attachment ? null : null),
+                // })),
 
-                branch_offices_attributes: mapBranchOfficesToPayload(branchOffices),
-                contact_people_attributes: mapContactPersonsToPayload(contactPersons),
-                directors_informations_attributes: mapOwnersToPayload(owners),
-                factory_warehouses_attributes: mapWarehousesToPayload(warehouses),
-                major_customers_attributes: mapMajorCustomersToPayload(majorCustomers),
-                annual_turnovers_attributes: annualTurnover.map(item => ({
-                    id: item.idPre || null,
-                    financial_year: item.year,
-                    key_markets: item.keyMarkets,
-                    turnover: item.turnover,
-                    attachment: [item.attachment],
-                    destroy: false
-                })),
+                // branch_offices_attributes: mapBranchOfficesToPayload(branchOffices),
+                // contact_people_attributes: mapContactPersonsToPayload(contactPersons),
+                // directors_informations_attributes: mapOwnersToPayload(owners),
+                // factory_warehouses_attributes: mapWarehousesToPayload(warehouses),
+                // major_customers_attributes: mapMajorCustomersToPayload(majorCustomers),
+                // annual_turnovers_attributes: annualTurnover.map(item => ({
+                //     id: item.idPre || null,
+                //     financial_year: item.year,
+                //     key_markets: item.keyMarkets,
+                //     turnover: item.turnover,
+                //     attachment: [item.attachment],
+                //     destroy: false
+                // })),
 
 
-                statutory_details: statutoryPayload || [],
+                // statutory_details: statutoryPayload || [],
                 checklist: checklistPayload
 
 
@@ -8133,7 +8160,7 @@ const deleteBranchOffice = (id) => {
 
                             {/* #3 */}
 
-                            {warehouses.map((warehouse, idx) => (
+                            {warehouses.filter(mc => mc._destroy !== true && mc._destroy !== "true").map((warehouse, idx) => (
                                 // <div className="card mx-3 pb-4 mt-4" key={warehouse.id}>
                                 <CollapsedCardKYC
                                     key={warehouse.id}
@@ -8335,7 +8362,7 @@ const deleteBranchOffice = (id) => {
 
 
                             {/* #4-------------------- */}
-                            {contactPersons.map((person, idx) => (
+                            {contactPersons.filter(mc => mc._destroy !== true && mc._destroy !== "true").map((person, idx) => (
 
                                 <CollapsedCardKYC
                                     key={person.id}
@@ -8613,7 +8640,7 @@ const deleteBranchOffice = (id) => {
 
 
 
-                            {owners.map((owner, idx) => (
+                            {owners.filter(mc => mc._destroy !== true && mc._destroy !== "true").map((owner, idx) => (
 
                                 <CollapsedCardKYC
                                     key={owner.id}
@@ -10976,7 +11003,7 @@ const deleteBranchOffice = (id) => {
 
 
 
-                                {majorCustomers.map((customer, idx) => (
+                                {majorCustomers.filter(mc => mc._destroy !== true && mc._destroy !== "true").map((customer, idx) => (
                                     <CollapsedCardKYC
                                         key={customer.id}
                                         title={`Client References${majorCustomers.length > 1 ? ` ${idx + 1}` : ''}`}
@@ -11264,7 +11291,7 @@ const deleteBranchOffice = (id) => {
 
 
 
-                                {branchOffices.map((branch, idx) => (
+                                {branchOffices.filter(mc => mc._destroy !== true && mc._destroy !== "true").map((branch, idx) => (
                                     <CollapsedCardKYC
                                         showDelete={false}
                                         key={branch.id}
@@ -11408,7 +11435,7 @@ const deleteBranchOffice = (id) => {
                                 ))}
 
 
-                                {warehouses.map((warehouse, idx) => (
+                                {warehouses.filter(mc => mc._destroy !== true && mc._destroy !== "true").map((warehouse, idx) => (
                                     <CollapsedCardKYC
                                         key={warehouse.id}
                                         title={`Factory Warehouse${warehouses.length > 1 ? ` ${idx + 1}` : ''}`}
@@ -11610,7 +11637,7 @@ const deleteBranchOffice = (id) => {
 
 
 
-                                {contactPersons.map((person, idx) => (
+                                {contactPersons.filter(mc => mc._destroy !== true && mc._destroy !== "true").map((person, idx) => (
                                     <CollapsedCardKYC
                                         key={person.id}
                                         title={`Contact Person${contactPersons.length > 1 ? ` ${idx + 1}` : ""}`}
@@ -11889,7 +11916,7 @@ const deleteBranchOffice = (id) => {
 
 
 
-                                {owners.map((owner, idx) => (
+                                {owners.filter(mc => mc._destroy !== true && mc._destroy !== "true").map((owner, idx) => (
                                     <CollapsedCardKYC
                                         key={owner.id}
                                         title={`Owner / Director${owners.length > 1 ? ` ${idx + 1}` : ''}`}
