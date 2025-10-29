@@ -19,7 +19,8 @@ const mapMajorCustomersToPayload = (majorCustomers) => {
         turn_over: c.businessLast12Months || '',
         major_competitors: c.majorCompetitors || '',
         stage_of_project: c.stageOfProject || '',
-        _destroy: c._destroy === true ? true : false
+        // accept both boolean true or string "true" used elsewhere in the code
+        _destroy: (c._destroy === true || c._destroy === "true") ? true : false
     }));
 };
 // Utility: Map contactPersons state to contact_people_attributes
@@ -132,8 +133,8 @@ const mapWarehousesToPayload = (warehouses) => {
         pin_code: w.pincode || '',
         tel_number: w.telephone || '',
         mobile: w.mobile || '',
-         contact_person: w.contactPerson || null,
-      contact_person_email: w.contactPersonEmail || null,
+        contact_person: w.contactPerson || null,
+        contact_person_email: w.contactPersonEmail || null,
         attachment: [w.attachment] || null,
         _destroy: w._destroy === true ? true : false
     }));
@@ -1363,7 +1364,7 @@ const VendorRegistrationStepByStepForm = () => {
                     id: c.id || null,
                     // Map site type from API if present so the radio shows correctly ('working'|'previous')
                     siteType: c.site_type || c.siteType || '',
-                    stageOfProject:c.stage_of_project || "",
+                    stageOfProject: c.stage_of_project || "",
                     companyName: c.name || c.company_name || '',
                     companyId: c.company_id || null,
                     workDone: c.work_done || '',
@@ -2546,9 +2547,19 @@ const VendorRegistrationStepByStepForm = () => {
                 return prev.filter((c) => c.id !== id);
             }
 
-            return prev.map((c) => (c.id === id ? { ...c, _destroy: "true" } : c));
+            // mark existing item for deletion using boolean true (backend mapper accepts both boolean or string)
+            return prev.map((c) => (c.id === id ? { ...c, _destroy: true } : c));
         });
     };
+    
+    // Ensure at least one Major Customer entry exists when no preselected data is provided
+    // If supplierShowData contains major_customers they will be mapped elsewhere; only add when the local list is empty
+    useEffect(() => {
+        const hasPreselected = Array.isArray(supplierShowData?.major_customers) && supplierShowData.major_customers.length > 0;
+        if (!hasPreselected && majorCustomers.length === 0) {
+            addMajorCustomer();
+        }
+    }, [supplierShowData, majorCustomers.length]);
     // Supervisory Manpower & Resources Details dynamic section state and handlers
     const [supervisoryManpower, setSupervisoryManpower] = useState([
 
@@ -3497,80 +3508,80 @@ const VendorRegistrationStepByStepForm = () => {
     };
 
     // console.log("before update:",additionalDetails.classificationYear.value)
- const handleStatutoryInputChange = (code, value, id, statutory_detail_value) => {
-    setStatutoryInputs(prev => ({
-      ...prev,
-      [code]: {
-        ...prev[code],
-        input: value,
-        id: id,
-      },
-    }));
-  };
-
-  const handleStatutoryFileChange = (code, file, id, statutory_detail_value) => {
-    const reader = new FileReader();
-
-    reader.onloadend = () => {
-      const base64String = reader.result.split(",")[1];
-
-      const attachment = {
-        filename: file.name,
-        content: base64String,
-        content_type: file.type,
-      };
-
-      // Update the statutoryInputs state with attachment
-      setStatutoryInputs((prev) => ({
-        ...prev,
-        [code]: {
-          ...prev[code],
-          file: attachment, // Save attachment object instead of raw File
-          id: id,
-          // input: statutory_detail_value
-        },
-      }));
+    const handleStatutoryInputChange = (code, value, id, statutory_detail_value) => {
+        setStatutoryInputs(prev => ({
+            ...prev,
+            [code]: {
+                ...prev[code],
+                input: value,
+                id: id,
+            },
+        }));
     };
 
-    if (file) {
-      reader.readAsDataURL(file);
-    }
-  };
+    const handleStatutoryFileChange = (code, file, id, statutory_detail_value) => {
+        const reader = new FileReader();
+
+        reader.onloadend = () => {
+            const base64String = reader.result.split(",")[1];
+
+            const attachment = {
+                filename: file.name,
+                content: base64String,
+                content_type: file.type,
+            };
+
+            // Update the statutoryInputs state with attachment
+            setStatutoryInputs((prev) => ({
+                ...prev,
+                [code]: {
+                    ...prev[code],
+                    file: attachment, // Save attachment object instead of raw File
+                    id: id,
+                    // input: statutory_detail_value
+                },
+            }));
+        };
+
+        if (file) {
+            reader.readAsDataURL(file);
+        }
+    };
 
 
 
 
 
-  const statutoryPayload = Object.entries(statutoryInputs).map(
-    ([code, { input, file, id }]) => ({
-      id,
-      // code,
-      statutory_detail_value: input || null,
-      statutory_detail_attachment: file || null,
-    })
-  );
+    const statutoryPayload = Object.entries(statutoryInputs).map(
+        ([code, { input, file, id }]) => ({
+            id,
+            // code,
+            statutory_detail_value: input || null,
+            statutory_detail_attachment: file || null,
+        })
+    );
 
-  
-  const validateStatutoryInputs = () => {
-    const errors = {};
 
-    Object.entries(statutoryInputs || {}).forEach(([code, { input, file }]) => {
-      const inputValue = (input || "").toString().trim().toLowerCase();
-      const isNotApplicable = inputValue === "not applicable";
+    const validateStatutoryInputs = () => {
+        const errors = {};
 
-      // Require file if input is provided and it's not 'not applicable'
-      if (inputValue && !isNotApplicable && !file) {
-        errors[code] = "Attachment is required.";
-      }
+        Object.entries(statutoryInputs || {}).forEach(([code, { input, file }]) => {
+            const inputValue = (input || "").toString().trim().toLowerCase();
+            const isNotApplicable = inputValue === "not applicable";
 
-      // Optional: You can add required input check too
-      // if (!inputValue && !file) {
-      //   errors[code] = "This field is required.";
-      // }
-    });
+            // Require file if input is provided and it's not 'not applicable'
+            if (inputValue && !isNotApplicable && !file) {
+                errors[code] = "Attachment is required.";
+            }
 
-    return errors;
-  };
+            // Optional: You can add required input check too
+            // if (!inputValue && !file) {
+            //   errors[code] = "This field is required.";
+            // }
+        });
+
+        return errors;
+    };
 
     // Validation wrapper for Step 5 (Statutory Details)
     const validateStep5 = () => {
@@ -3580,14 +3591,14 @@ const VendorRegistrationStepByStepForm = () => {
         return Object.keys(errs || {}).length === 0;
     };
 
-  // Show star on Attachment when corresponding input has a value (and not 'not applicable')
-  const shouldShowAttachmentStar = (code, defaultValue) => {
-    const valueFromState = statutoryInputs?.[code]?.input;
-    const effectiveValue =
-      valueFromState !== undefined ? valueFromState : defaultValue;
-    const normalized = (effectiveValue ?? "").toString().trim().toLowerCase();
-    return normalized.length > 0 && normalized !== "not applicable";
-  };
+    // Show star on Attachment when corresponding input has a value (and not 'not applicable')
+    const shouldShowAttachmentStar = (code, defaultValue) => {
+        const valueFromState = statutoryInputs?.[code]?.input;
+        const effectiveValue =
+            valueFromState !== undefined ? valueFromState : defaultValue;
+        const normalized = (effectiveValue ?? "").toString().trim().toLowerCase();
+        return normalized.length > 0 && normalized !== "not applicable";
+    };
 
 
 
@@ -3647,7 +3658,7 @@ const VendorRegistrationStepByStepForm = () => {
             msme: additionalDetails.msmeUdyamApplicable && additionalDetails.msmeUdyamApplicable.value ? additionalDetails.msmeUdyamApplicable.value : null,
             einvoicing: additionalDetails.einvoice && additionalDetails.einvoice.value ? additionalDetails.einvoice.value : null,
             // einvoicing_declaration: additionalDetails.einvoiceDeclaration,
-             einvoicing_attachments: [additionalDetails.einvoiceDeclaration],
+            einvoicing_attachments: [additionalDetails.einvoiceDeclaration],
             msme_no: additionalDetails.msmeNo,
             classification_year: additionalDetails.classificationYear && additionalDetails.classificationYear.value ? additionalDetails.classificationYear.value : null,
             major_activity: additionalDetails.majorActivity && additionalDetails.majorActivity.value ? additionalDetails.majorActivity.value : null,
@@ -3698,13 +3709,13 @@ const VendorRegistrationStepByStepForm = () => {
 
 
             annual_turnovers_attributes: annualTurnover.map(item => ({
-                    id: item.idPre ||null,
-                    financial_year: item.year,
-                    key_markets: item.keyMarkets,
-                    turnover: item.turnover,
-                    attachment: [item.attachment],
-                    destroy: false
-                })),
+                id: item.idPre || null,
+                financial_year: item.year,
+                key_markets: item.keyMarkets,
+                turnover: item.turnover,
+                attachment: [item.attachment],
+                destroy: false
+            })),
 
 
 
@@ -3939,7 +3950,7 @@ const VendorRegistrationStepByStepForm = () => {
                 organization_name: basicInfo.vendorOrganizationName,
 
                 cin_number: basicInfo.cin,
-            cin_number_attachments: [basicInfo.cinAttachmentObj],
+                cin_number_attachments: [basicInfo.cinAttachmentObj],
 
                 llp_number: basicInfo.llp,
                 llp_attachment: [basicInfo.llpAttachmentObj],
@@ -3972,7 +3983,7 @@ const VendorRegistrationStepByStepForm = () => {
                 msme: additionalDetails.msmeUdyamApplicable && additionalDetails.msmeUdyamApplicable.value ? additionalDetails.msmeUdyamApplicable.value : null,
                 einvoicing: additionalDetails.einvoice && additionalDetails.einvoice.value ? additionalDetails.einvoice.value : null,
                 // einvoicing_declaration: additionalDetails.einvoiceDeclaration,
-                 einvoicing_attachments: [additionalDetails.einvoiceDeclaration],
+                einvoicing_attachments: [additionalDetails.einvoiceDeclaration],
                 msme_no: additionalDetails.msmeNo,
                 classification_year: additionalDetails.classificationYear && additionalDetails.classificationYear.value ? additionalDetails.classificationYear.value : null,
                 major_activity: additionalDetails.majorActivity && additionalDetails.majorActivity.value ? additionalDetails.majorActivity.value : null,
@@ -4052,7 +4063,7 @@ const VendorRegistrationStepByStepForm = () => {
                 msme: additionalDetails.msmeUdyamApplicable && additionalDetails.msmeUdyamApplicable.value ? additionalDetails.msmeUdyamApplicable.value : null,
                 einvoicing: additionalDetails.einvoice && additionalDetails.einvoice.value ? additionalDetails.einvoice.value : null,
                 // einvoicing_declaration: additionalDetails.einvoiceDeclaration,
-                 einvoicing_attachments: [additionalDetails.einvoiceDeclaration],
+                einvoicing_attachments: [additionalDetails.einvoiceDeclaration],
                 msme_no: additionalDetails.msmeNo,
                 classification_year: additionalDetails.classificationYear && additionalDetails.classificationYear.value ? additionalDetails.classificationYear.value : null,
                 major_activity: additionalDetails.majorActivity && additionalDetails.majorActivity.value ? additionalDetails.majorActivity.value : null,
@@ -4139,7 +4150,7 @@ const VendorRegistrationStepByStepForm = () => {
                 msme: additionalDetails.msmeUdyamApplicable && additionalDetails.msmeUdyamApplicable.value ? additionalDetails.msmeUdyamApplicable.value : null,
                 einvoicing: additionalDetails.einvoice && additionalDetails.einvoice.value ? additionalDetails.einvoice.value : null,
                 // einvoicing_declaration: additionalDetails.einvoiceDeclaration,
-                 einvoicing_attachments: [additionalDetails.einvoiceDeclaration],
+                einvoicing_attachments: [additionalDetails.einvoiceDeclaration],
                 msme_no: additionalDetails.msmeNo,
                 classification_year: additionalDetails.classificationYear && additionalDetails.classificationYear.value ? additionalDetails.classificationYear.value : null,
                 major_activity: additionalDetails.majorActivity && additionalDetails.majorActivity.value ? additionalDetails.majorActivity.value : null,
@@ -4240,7 +4251,7 @@ const VendorRegistrationStepByStepForm = () => {
                 msme: additionalDetails.msmeUdyamApplicable && additionalDetails.msmeUdyamApplicable.value ? additionalDetails.msmeUdyamApplicable.value : null,
                 einvoicing: additionalDetails.einvoice && additionalDetails.einvoice.value ? additionalDetails.einvoice.value : null,
                 // einvoicing_declaration: additionalDetails.einvoiceDeclaration,
-                 einvoicing_attachments: [additionalDetails.einvoiceDeclaration],
+                einvoicing_attachments: [additionalDetails.einvoiceDeclaration],
                 msme_no: additionalDetails.msmeNo,
                 classification_year: additionalDetails.classificationYear && additionalDetails.classificationYear.value ? additionalDetails.classificationYear.value : null,
                 major_activity: additionalDetails.majorActivity && additionalDetails.majorActivity.value ? additionalDetails.majorActivity.value : null,
@@ -4351,7 +4362,7 @@ const VendorRegistrationStepByStepForm = () => {
                 msme: additionalDetails.msmeUdyamApplicable && additionalDetails.msmeUdyamApplicable.value ? additionalDetails.msmeUdyamApplicable.value : null,
                 einvoicing: additionalDetails.einvoice && additionalDetails.einvoice.value ? additionalDetails.einvoice.value : null,
                 // einvoicing_declaration: additionalDetails.einvoiceDeclaration,
-                 einvoicing_attachments: [additionalDetails.einvoiceDeclaration],
+                einvoicing_attachments: [additionalDetails.einvoiceDeclaration],
                 msme_no: additionalDetails.msmeNo,
                 classification_year: additionalDetails.classificationYear && additionalDetails.classificationYear.value ? additionalDetails.classificationYear.value : null,
                 major_activity: additionalDetails.majorActivity && additionalDetails.majorActivity.value ? additionalDetails.majorActivity.value : null,
@@ -4385,7 +4396,7 @@ const VendorRegistrationStepByStepForm = () => {
                 factory_warehouses_attributes: mapWarehousesToPayload(warehouses),
                 major_customers_attributes: mapMajorCustomersToPayload(majorCustomers),
                 annual_turnovers_attributes: annualTurnover.map(item => ({
-                    id: item.idPre ||null,
+                    id: item.idPre || null,
                     financial_year: item.year,
                     key_markets: item.keyMarkets,
                     turnover: item.turnover,
@@ -4514,7 +4525,7 @@ const VendorRegistrationStepByStepForm = () => {
                 msme: additionalDetails.msmeUdyamApplicable && additionalDetails.msmeUdyamApplicable.value ? additionalDetails.msmeUdyamApplicable.value : null,
                 einvoicing: additionalDetails.einvoice && additionalDetails.einvoice.value ? additionalDetails.einvoice.value : null,
                 // einvoicing_declaration: additionalDetails.einvoiceDeclaration,
-                 einvoicing_attachments: [additionalDetails.einvoiceDeclaration],
+                einvoicing_attachments: [additionalDetails.einvoiceDeclaration],
                 msme_no: additionalDetails.msmeNo,
                 classification_year: additionalDetails.classificationYear && additionalDetails.classificationYear.value ? additionalDetails.classificationYear.value : null,
                 major_activity: additionalDetails.majorActivity && additionalDetails.majorActivity.value ? additionalDetails.majorActivity.value : null,
@@ -4550,7 +4561,7 @@ const VendorRegistrationStepByStepForm = () => {
                 factory_warehouses_attributes: mapWarehousesToPayload(warehouses),
                 major_customers_attributes: mapMajorCustomersToPayload(majorCustomers),
                 annual_turnovers_attributes: annualTurnover.map(item => ({
-                    id: item.idPre ||null,
+                    id: item.idPre || null,
                     financial_year: item.year,
                     key_markets: item.keyMarkets,
                     turnover: [item.turnover],
@@ -5343,8 +5354,8 @@ const VendorRegistrationStepByStepForm = () => {
                                                                     Corporate Identification Number Attachment  <span>*</span>
                                                                     <TooltipIcon message="Upload the official document or certificate to verify the details you have submitted. The document must be uploaded in PDF format. Corporate Identification Number Attachment." />
                                                                 </label>
-                                                              
-                                                                 {/* Show existing CIN attachment only when it comes from the API (has a file_url).
+
+                                                                {/* Show existing CIN attachment only when it comes from the API (has a file_url).
                                                                     If the user picks a new file via input we store filename/content and should NOT show download link —
                                                                     instead render the selected filename as plain text. */}
                                                                 {basicInfo?.cinAttachmentObj?.file_url ? (
@@ -5388,7 +5399,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                                     }}
                                                                 />
 
-                                                                
+
                                                                 {basicInfoErrors.cinAttachment && (
                                                                     <div className="ValidationColor">{basicInfoErrors.cinAttachment}</div>
                                                                 )}
@@ -5439,9 +5450,9 @@ const VendorRegistrationStepByStepForm = () => {
                                                                     <TooltipIcon message="Upload the official document or certificate to verify the details you have submitted. The document must be uploaded in PDF format. Corporate Identification Number Attachment." />
                                                                 </label>
                                                                 {/* Show existing LLP attachment when provided by API; display selected filename when present. Input is disabled in preview. */}
-                                                             
 
-                                                                 {basicInfo?.llpAttachmentObj?.file_url ? (
+
+                                                                {basicInfo?.llpAttachmentObj?.file_url ? (
                                                                     <span className="ms-2">
                                                                         <a
                                                                             href={`${baseURL}${basicInfo.llpAttachmentObj.file_url}`}
@@ -5646,8 +5657,11 @@ const VendorRegistrationStepByStepForm = () => {
                                                             <span className="ms-2">
                                                                 <a
                                                                     // href={`${baseURL}${bankDetail.attachment}`} // Ensure URL is correct
-                                                                    download // Forces file download
-                                                                    className="text-primary d-flex align-items-center"
+                                                                    // download // Forces file download
+                                                                    // className="text-primary d-flex align-items-center"
+                                                                      download
+                                                            className="text-primary d-flex align-items-center"
+                                                            href={`${baseURL}/assets/NO_%20MSME.pdf`}
                                                                 >
                                                                     {/* <span className="me-2">Existing File:</span> */}
                                                                     {/* <TooltipIcon message="Indicate whether your organization is registered under the Goods and Services Tax (GST) Act."
@@ -5687,8 +5701,8 @@ const VendorRegistrationStepByStepForm = () => {
                                                                 Upload GSTIN Declaration  <span>*</span>
                                                             </label>
                                                             {/* Show existing GSTIN Declaration when provided by API; display selected filename when present. Keep input disabled in preview. */}
-                                                           
-                                                             {basicInfo?.gstinDeclarationObj?.file_url ? (
+
+                                                            {basicInfo?.gstinDeclarationObj?.file_url ? (
                                                                 <span className="ms-2">
                                                                     <a
                                                                         href={`${baseURL}${basicInfo.gstinDeclarationObj.file_url}`}
@@ -5746,7 +5760,7 @@ const VendorRegistrationStepByStepForm = () => {
                                     <h3 className="card-title">Additional Vendor Details</h3>
                                 </div>
 
-                                
+
                                 <div className="card-body mt-0">
                                     <div className="row">
 
@@ -5760,14 +5774,21 @@ const VendorRegistrationStepByStepForm = () => {
                                                     className="form-control"
                                                     type="text"
                                                     value={additionalDetails.deliveryLeadPeriod}
-                                                    onChange={e => updateAdditionalDetails('deliveryLeadPeriod', e.target.value)}
+                                                    // onChange={e => updateAdditionalDetails('deliveryLeadPeriod', e.target.value)}
+                                                    onChange={e => {
+                                                        const value = e.target.value;
+                                                        // Allow only digits (0–9)
+                                                        if (/^\d*$/.test(value)) {
+                                                            updateAdditionalDetails('deliveryLeadPeriod', value);
+                                                        }
+                                                    }}
                                                 />
                                             </div>
                                         </div>
                                         <div className="col-md-4">
 
 
-                                            
+
                                             <div className="form-group">
                                                 <label>
                                                     Specify Warranty Period (In Years)
@@ -5777,7 +5798,14 @@ const VendorRegistrationStepByStepForm = () => {
                                                     className="form-control"
                                                     type="text"
                                                     value={additionalDetails.warrantyPeriod}
-                                                    onChange={e => updateAdditionalDetails('warrantyPeriod', e.target.value)}
+                                                    // onChange={e => updateAdditionalDetails('warrantyPeriod', e.target.value)}
+                                                    onChange={e => {
+                                                        const value = e.target.value;
+                                                        // Allow only numbers (0–9)
+                                                        if (/^\d*$/.test(value)) {
+                                                            updateAdditionalDetails('warrantyPeriod', value);
+                                                        }
+                                                    }}
                                                 />
                                             </div>
                                         </div>
@@ -6043,30 +6071,30 @@ const VendorRegistrationStepByStepForm = () => {
                                                             Specimen For Yes Msme.pdf
                                                         </span>
                                                     </a>
-                                                                {/* Show MSME attachment (server) or selected filename in preview */}
-                                                                {additionalDetails?.msmeAttachmentObj?.file_url ? (
-                                                                    <div className="mt-2">
-                                                                        <a
-                                                                            href={`${additionalDetails.msmeAttachmentObj.file_url.startsWith('http') ? additionalDetails.msmeAttachmentObj.file_url : `${baseURL}${additionalDetails.msmeAttachmentObj.file_url}`}`}
-                                                                            download
-                                                                            className="text-primary d-flex align-items-center"
-                                                                        >
-                                                                            <span className="me-2">Existing MSME File:</span>
-                                                                            <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} fill="#DE7008" className="bi bi-download" viewBox="0 0 16 16">
-                                                                                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
-                                                                                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
-                                                                            </svg>
-                                                                            <span className="ms-2">{additionalDetails.msmeAttachmentObj.filename}</span>
-                                                                        </a>
-                                                                    </div>
-                                                                ) : additionalDetails?.msmeAttachmentObj?.filename ? (
-                                                                    <div className="mt-2 d-flex align-items-center">
-                                                                        <span className="me-2">Selected MSME File:</span>
-                                                                        <span className="text-muted">{additionalDetails.msmeAttachmentObj.filename}</span>
-                                                                    </div>
-                                                                ) : null}
-                                                                <input className="form-control mt-2" type="file" disabled />
-                                                            </div>
+                                                    {/* Show MSME attachment (server) or selected filename in preview */}
+                                                    {additionalDetails?.msmeAttachmentObj?.file_url ? (
+                                                        <div className="mt-2">
+                                                            <a
+                                                                href={`${additionalDetails.msmeAttachmentObj.file_url.startsWith('http') ? additionalDetails.msmeAttachmentObj.file_url : `${baseURL}${additionalDetails.msmeAttachmentObj.file_url}`}`}
+                                                                download
+                                                                className="text-primary d-flex align-items-center"
+                                                            >
+                                                                <span className="me-2">Existing MSME File:</span>
+                                                                <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} fill="#DE7008" className="bi bi-download" viewBox="0 0 16 16">
+                                                                    <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                                                                    <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                                                                </svg>
+                                                                <span className="ms-2">{additionalDetails.msmeAttachmentObj.filename}</span>
+                                                            </a>
+                                                        </div>
+                                                    ) : additionalDetails?.msmeAttachmentObj?.filename ? (
+                                                        <div className="mt-2 d-flex align-items-center">
+                                                            <span className="me-2">Selected MSME File:</span>
+                                                            <span className="text-muted">{additionalDetails.msmeAttachmentObj.filename}</span>
+                                                        </div>
+                                                    ) : null}
+                                                    <input className="form-control mt-2" type="file" disabled />
+                                                </div>
                                             </div>
                                         )}
                                         {/* MSME/Udyam Attachment */}
@@ -6277,7 +6305,9 @@ const VendorRegistrationStepByStepForm = () => {
                                                         <a
                                                             download="Specimen_E-Invoicing_Declaration.docx"
                                                             className="text-primary d-flex align-items-center"
-                                                            href={`${baseURL}/assets/NO_%20MSME.pdf`}
+                                                            href={`${baseURL}/assets/Specimen_E-Invoicing_Declaration.docx`}
+
+                                                            
                                                             target="_self" // Ensure it doesn't open in a new tab
                                                         >
                                                             <svg
@@ -6316,7 +6346,7 @@ const VendorRegistrationStepByStepForm = () => {
 
                                                         <TooltipIcon message="If you choose E-Invoice applicable 'No', please upload a signed declaration document to verify the details you have submitted. The document must be uploaded in PDF format.Ensure that the document is clear, legible, and properly signed." />
 
-                                                         {/* Show existing server file or uploaded file preview */}
+                                                        {/* Show existing server file or uploaded file preview */}
                                                         {/* {additionalDetails.einvoiceDeclaration && (
                                                             <div style={{ marginTop: 6 }}>
                                                                 {additionalDetails.einvoiceDeclaration.file_url ? (
@@ -6367,7 +6397,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                                 </span>
                                                             ) : null
                                                         )}
-                                                       
+
                                                         <input
                                                             className="form-control"
                                                             type="file"
@@ -6375,10 +6405,10 @@ const VendorRegistrationStepByStepForm = () => {
                                                             name=""
                                                             onChange={e => handleEinvoiceDeclarationFileChange(e.target.files[0])}
                                                         />
-                                                         {errors.einvoiceDeclaration && (
+                                                        {errors.einvoiceDeclaration && (
                                                             <div className="ValidationColor">{errors.einvoiceDeclaration}</div>
                                                         )}
-                                                       
+
                                                     </div>
                                                 </div>
                                             )}
@@ -7644,7 +7674,7 @@ const VendorRegistrationStepByStepForm = () => {
 
                             {console.log("major customer:", majorCustomers)}
 
-                            {majorCustomers.filter(mc => mc._destroy !== "true").map((customer, idx) => (
+                            {majorCustomers.filter(mc => mc._destroy !== true && mc._destroy !== "true").map((customer, idx) => (
                                 // <div className="card mx-3 pb-4 mt-4" key={customer.id}>
                                 <CollapsedCardKYC
                                     key={customer.id}
@@ -8273,9 +8303,9 @@ const VendorRegistrationStepByStepForm = () => {
                                 // </div>
                             ))}
                             <div className="row mt-2 ms-2 justify-content-start">
-                                <div className="col-md-3">
+                                <div className="col-md-6">
                                     <button className="purple-btn1" onClick={e => { e.preventDefault(); addWarehouse(); }}>
-                                        Add Manufacturing Factory / Plant
+                                        Add Manufacturing Factory / Plant Details
                                     </button>
                                 </div>
                             </div>
@@ -8545,7 +8575,7 @@ const VendorRegistrationStepByStepForm = () => {
 
                             ))}
                             <div className="row mt-2 ms-2 justify-content-start">
-                                <div className="col-md-2">
+                                <div className="col-md-4">
                                     <button
                                         className="purple-btn1"
                                         onClick={(e) => {
@@ -8553,7 +8583,7 @@ const VendorRegistrationStepByStepForm = () => {
                                             addContactPerson();
                                         }}
                                     >
-                                        Add Contact Person
+                                        Add Contact Person Details
                                     </button>
                                 </div>
                             </div>
@@ -8690,9 +8720,9 @@ const VendorRegistrationStepByStepForm = () => {
 
                             ))}
                             <div className="row mt-2 ms-2 justify-content-start">
-                                <div className="col-md-2">
+                                <div className="col-md-4">
                                     <button className="purple-btn1" onClick={e => { e.preventDefault(); addOwner(); }}>
-                                        Add Director
+                                        Add Director Details
                                     </button>
                                 </div>
                             </div>
@@ -8720,12 +8750,31 @@ const VendorRegistrationStepByStepForm = () => {
                                                 <tr key={item.year}>
                                                     <td>{item.year}</td>
                                                     <td>
-                                                        <input
+                                                        {/* <input
                                                             className="form-control"
                                                             type="number"
                                                             placeholder="Enter Turnover"
                                                             value={item.turnover}
                                                             onChange={e => handleAnnualTurnoverChange(idx, 'turnover', e.target.value)}
+                                                        /> */}
+
+
+                                                        <input
+                                                            className="form-control"
+                                                            type="number"
+                                                            placeholder="Enter Turnover"
+                                                            value={item.turnover}
+                                                            min="0"
+                                                            onKeyDown={e => {
+                                                                if (e.key === '-' || e.key === 'e' || e.key === 'E' || e.key === '+') {
+                                                                    e.preventDefault();
+                                                                }
+                                                            }}
+                                                            onChange={e => {
+                                                                const value = e.target.value;
+                                                                if (value < 0) return;
+                                                                handleAnnualTurnoverChange(idx, 'turnover', value);
+                                                            }}
                                                         />
                                                     </td>
                                                     <td>
@@ -8786,86 +8835,86 @@ const VendorRegistrationStepByStepForm = () => {
 
                                 {/* <div>{"*********************************************************"} </div> */}
 
-                               
 
 
-                                  {statutoryDetails?.map((field, index) => (
-                                                        <div className="row" key={`${field.id}-${index}`}>
-                                                          <div className="col-md-6 mt-3">
-                                                            <div className="form-group">
-                                                              <label>{field.name}</label>
-                                                              <input
-                                                                type="text"
-                                                                className="form-control"
-                                                                placeholder={`Enter ${field.name}`}
-                                                                // value={statutoryInputs[field.code]?.input || field.statutory_detail_value}
-                                                                value={
-                                                                  statutoryInputs[field.code]?.input !== undefined
-                                                                    ? statutoryInputs[field.code]?.input
-                                                                    : field.statutory_detail_value || ""
-                                                                }
-                                                                onChange={(e) =>
-                                                                  handleStatutoryInputChange(field.code, e.target.value, field.id, field.statutory_detail_value)
-                                                                }
-                                                              />
-                                                            </div>
-                                                          </div>
-                                
-                                                          <div className="col-md-6 mt-3">
-                                                            <div className="form-group">
-                                                              <div className="d-flex align-items-center mb-2">
-                                                                <label className="mb-0">
-                                                                  Attachment
-                                                                  {shouldShowAttachmentStar(
-                                                                    field.code,
-                                                                    field.statutory_detail_value
-                                                                  ) && <span>  *</span>}
-                                                                </label>
-                                                                {field?.attachment_url && (
-                                                                  <span className="ms-2">
-                                                                    <a
-                                                                      href={`${baseURL}${field?.attachment_url}`}
-                                                                      download
-                                                                      className="text-primary d-flex align-items-center"
-                                                                    >
-                                                                      <span className="me-2 ms-3">Existing Files:</span>
-                                                                      <svg
-                                                                        xmlns="http://www.w3.org/2000/svg"
-                                                                        width={24}
-                                                                        height={24}
-                                                                        fill="#DE7008"
-                                                                        className="bi bi-download"
-                                                                        viewBox="0 0 16 16"
-                                                                      >
-                                                                        <path
-                                                                          d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
-                                                                        />
-                                                                        <path
-                                                                          d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
-                                                                        />
-                                                                      </svg>
-                                                                      {/* {field?.name ? field.name : "No Document Available"} */}
-                                                                    </a>
-                                                                  </span>
-                                                                )}
-                                                              </div>
-                                                              <input
-                                                                type="file"
-                                                                className="form-control"
-                                                                accept=".pdf,.jpg,.jpeg,.png"
-                                                                onChange={(e) =>
-                                                                  handleStatutoryFileChange(field.code, e.target.files[0], field.id, field.statutory_detail_value)
-                                                                }
-                                                              />
-                                                              {statutoryErrors[field.code] && (
-                                                                <div className="ValidationColor">
-                                                                  {statutoryErrors[field.code]}
-                                                                </div>
-                                                              )}
-                                                            </div>
-                                                          </div>
-                                                        </div>
-                                                      ))}
+
+                                {statutoryDetails?.map((field, index) => (
+                                    <div className="row" key={`${field.id}-${index}`}>
+                                        <div className="col-md-6 mt-3">
+                                            <div className="form-group">
+                                                <label>{field.name}</label>
+                                                <input
+                                                    type="text"
+                                                    className="form-control"
+                                                    placeholder={`Enter ${field.name}`}
+                                                    // value={statutoryInputs[field.code]?.input || field.statutory_detail_value}
+                                                    value={
+                                                        statutoryInputs[field.code]?.input !== undefined
+                                                            ? statutoryInputs[field.code]?.input
+                                                            : field.statutory_detail_value || ""
+                                                    }
+                                                    onChange={(e) =>
+                                                        handleStatutoryInputChange(field.code, e.target.value, field.id, field.statutory_detail_value)
+                                                    }
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="col-md-6 mt-3">
+                                            <div className="form-group">
+                                                <div className="d-flex align-items-center mb-2">
+                                                    <label className="mb-0">
+                                                        Attachment
+                                                        {shouldShowAttachmentStar(
+                                                            field.code,
+                                                            field.statutory_detail_value
+                                                        ) && <span>  *</span>}
+                                                    </label>
+                                                    {field?.attachment_url && (
+                                                        <span className="ms-2">
+                                                            <a
+                                                                href={`${baseURL}${field?.attachment_url}`}
+                                                                download
+                                                                className="text-primary d-flex align-items-center"
+                                                            >
+                                                                <span className="me-2 ms-3">Existing Files:</span>
+                                                                <svg
+                                                                    xmlns="http://www.w3.org/2000/svg"
+                                                                    width={24}
+                                                                    height={24}
+                                                                    fill="#DE7008"
+                                                                    className="bi bi-download"
+                                                                    viewBox="0 0 16 16"
+                                                                >
+                                                                    <path
+                                                                        d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
+                                                                    />
+                                                                    <path
+                                                                        d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
+                                                                    />
+                                                                </svg>
+                                                                {/* {field?.name ? field.name : "No Document Available"} */}
+                                                            </a>
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <input
+                                                    type="file"
+                                                    className="form-control"
+                                                    accept=".pdf,.jpg,.jpeg,.png"
+                                                    onChange={(e) =>
+                                                        handleStatutoryFileChange(field.code, e.target.files[0], field.id, field.statutory_detail_value)
+                                                    }
+                                                />
+                                                {statutoryErrors[field.code] && (
+                                                    <div className="ValidationColor">
+                                                        {statutoryErrors[field.code]}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
 
 
@@ -9218,7 +9267,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                         <span className="me-3">
                                                             <span className="text-dark">:</span>
                                                         </span>
-                                                        {supplierShowData?.invited_by_name  || "-"}
+                                                        {supplierShowData?.invited_by_name || "-"}
                                                     </label>
                                                 </div>
                                             </div>
@@ -9625,41 +9674,41 @@ const VendorRegistrationStepByStepForm = () => {
                                                                 />
                                                             </div>
                                                         </div>
-                                                                                        <div className="col-md-4 mt-2">
-                                                                                            <div className="form-group">
-                                                                                                <label>
-                                                                                                    GSTIN Attachment <span>*</span>
-                                                                                                    <TooltipIcon message="Upload a digital copy of the official GSTIN certificate or document showing your GST registration number. Ensure the document is legible and valid." />
-                                                                                                </label>
-                                                                                                {/* Show existing GSTIN attachment when provided by API; display selected filename when present. Keep input disabled in preview. */}
-                                                                                                {basicInfo?.gstinAttachmentObj?.file_url ? (
-                                                                                                    <span className="ms-2">
-                                                                                                        <a
-                                                                                                            href={`${baseURL}${basicInfo.gstinAttachmentObj.file_url}`}
-                                                                                                            download
-                                                                                                            className="text-primary d-flex align-items-center"
-                                                                                                        >
-                                                                                                            <span className="me-2">Existing File:</span>
-                                                                                                            <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} fill="#DE7008" className="bi bi-download" viewBox="0 0 16 16">
-                                                                                                                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
-                                                                                                                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
-                                                                                                            </svg>
-                                                                                                            {basicInfo.gstinAttachmentObj.filename}
-                                                                                                        </a>
-                                                                                                    </span>
-                                                                                                ) : basicInfo?.gstinAttachmentObj?.filename ? (
-                                                                                                    <span className="ms-2 d-flex align-items-center">
-                                                                                                        <span className="me-2">Selected File:</span>
-                                                                                                        <span className="text-muted">{basicInfo.gstinAttachmentObj.filename}</span>
-                                                                                                    </span>
-                                                                                                ) : null}
-                                                                                                <input
-                                                                                                    className="form-control mt-2"
-                                                                                                    type="file"
-                                                                                                    disabled
-                                                                                                />
-                                                                                            </div>
-                                                                                        </div>
+                                                        <div className="col-md-4 mt-2">
+                                                            <div className="form-group">
+                                                                <label>
+                                                                    GSTIN Attachment <span>*</span>
+                                                                    <TooltipIcon message="Upload a digital copy of the official GSTIN certificate or document showing your GST registration number. Ensure the document is legible and valid." />
+                                                                </label>
+                                                                {/* Show existing GSTIN attachment when provided by API; display selected filename when present. Keep input disabled in preview. */}
+                                                                {basicInfo?.gstinAttachmentObj?.file_url ? (
+                                                                    <span className="ms-2">
+                                                                        <a
+                                                                            href={`${baseURL}${basicInfo.gstinAttachmentObj.file_url}`}
+                                                                            download
+                                                                            className="text-primary d-flex align-items-center"
+                                                                        >
+                                                                            <span className="me-2">Existing File:</span>
+                                                                            <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} fill="#DE7008" className="bi bi-download" viewBox="0 0 16 16">
+                                                                                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                                                                                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                                                                            </svg>
+                                                                            {basicInfo.gstinAttachmentObj.filename}
+                                                                        </a>
+                                                                    </span>
+                                                                ) : basicInfo?.gstinAttachmentObj?.filename ? (
+                                                                    <span className="ms-2 d-flex align-items-center">
+                                                                        <span className="me-2">Selected File:</span>
+                                                                        <span className="text-muted">{basicInfo.gstinAttachmentObj.filename}</span>
+                                                                    </span>
+                                                                ) : null}
+                                                                <input
+                                                                    className="form-control mt-2"
+                                                                    type="file"
+                                                                    disabled
+                                                                />
+                                                            </div>
+                                                        </div>
                                                     </>
                                                 )}
                                                 {basicInfo.gstinApplicable.label === 'No' && (
@@ -9732,428 +9781,295 @@ const VendorRegistrationStepByStepForm = () => {
                                     <div className="card-header3">
                                         <h3 className="card-title">Additional Vendor Details</h3>
                                     </div>
-                                   
 
 
 
-                                                                    <div className="card-body mt-0">
-                                    <div className="row">
 
-                                        <div className="col-md-4">
-                                            <div className="form-group">
-                                                <label>
-                                                    Delivery Lead Period (In Days)
-                                                    <TooltipIcon message="Enter the number of days required to deliver the product or service from the date of order confirmation." />
-                                                </label>
-                                                <input
-                                                    className="form-control"
-                                                    type="text"
-                                                    value={additionalDetails.deliveryLeadPeriod}
-                                                    onChange={e => updateAdditionalDetails('deliveryLeadPeriod', e.target.value)}
-                                                    disabled
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="col-md-4">
+                                    <div className="card-body mt-0">
+                                        <div className="row">
 
-
-                                            
-                                            <div className="form-group">
-                                                <label>
-                                                    Specify Warranty Period (In Years)
-                                                    <TooltipIcon message="Enter the duration of the warranty for the product or service, in years. This is the period during which the item will be covered for repairs or replacement." />
-                                                </label>
-                                                <input
-                                                    className="form-control"
-                                                    type="text"
-                                                    value={additionalDetails.warrantyPeriod}
-                                                    onChange={e => updateAdditionalDetails('warrantyPeriod', e.target.value)}
-                                                     disabled
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="col-md-4">
-                                            <div className="form-group">
-
-                                                <label>
-                                                    AMC Provided
-                                                    <TooltipIcon message="Please specify if an Annual Maintenance Contract (AMC) is included with the product or service. Select 'Yes if AMC is provided." />
-                                                </label>
-                                                <SingleSelector
-                                                    options={gstinApplicableOptions}
-                                                    value={additionalDetails.amcProvided}
-                                                    onChange={val => updateAdditionalDetails('amcProvided', val)}
-                                                    isDisabled={true}
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="col-md-4 mt-2">
-                                            <div className="form-group">
-                                                <label>
-                                                    Website
-                                                    <TooltipIcon message="Enter the URL of your company's website where users can lear more about your products or services." />
-                                                </label>
-                                                <input
-                                                    className="form-control"
-                                                    type="text"
-                                                    value={additionalDetails.website}
-                                                    onChange={e => updateAdditionalDetails('website', e.target.value)}
-                                                     disabled
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="col-md-4  mt-2">
-                                            <div className="form-group">
-                                                {/* Label with Tooltip */}
-                                                <label>
-                                                    Currency Type <span>*</span>
-                                                    {/* <TooltipIcon message="Please choose your country from the list" /> */}
-                                                </label>
-                                                <SingleSelector
-                                                    options={currencyOptions}
-                                                    placeholder="Select Currency Type"
-                                                    value={additionalDetails.currencyType}
-                                                    onChange={val => updateAdditionalDetails('currencyType', val)}
-                                                    isDisabled={true}
-                                                />
-                                                {errors.currencyType && (
-                                                    <div className="ValidationColor">{errors.currencyType}</div>
-                                                )}
-                                            </div>
-                                        </div>
-                                        <div className="col-md-4 mt-2">
-                                            <div className="form-group">
-
-                                                <label>
-                                                    MSME/Udyam Number Applicable  <span>*</span>
-                                                    <TooltipIcon message="Select whether your organization is registered under the MSME (Micro, Small, and Medium Enterprises) or Udyam scheme. Choose 'Yes' if applicable, otherwise select 'No.' By selecting 'No,' you confirm that your organization does not hold a valid MSME/Udyam registration number. A declaration is required, and this response will be timestamped to record the submission date and time." />
-                                                </label>
-                                                <SingleSelector
-                                                    value={additionalDetails.msmeUdyamApplicable}
-                                                    onChange={val => updateAdditionalDetails('msmeUdyamApplicable', val)}
-                                                    options={options}
-                                                    className="form-control"
-                                                    placeholder="Select MSME/Udyam Number Applicable"
-                                                     isDisabled={true}
-                                                />
-                                                {errors.msmeUdyamApplicable && (
-                                                    <div className="ValidationColor">{errors.msmeUdyamApplicable}</div>
-                                                )}
-
-                                            </div>
-                                        </div>
-
-                                        {additionalDetails.msmeUdyamApplicable?.value === "Yes" && (
-                                            <div className="col-md-4 mt-2">
+                                            <div className="col-md-4">
                                                 <div className="form-group">
-                                                    <label
-
-                                                    >
-                                                        MSME/Udyam Number <span>*</span>
-                                                        <TooltipIcon message="Enter your organization's valid MSME or Udyam registration number. This number is issued by the Ministry of Micro, Small, and Medium Enterprises (MSME) under the Udyam registration scheme" />
+                                                    <label>
+                                                        Delivery Lead Period (In Days)
+                                                        <TooltipIcon message="Enter the number of days required to deliver the product or service from the date of order confirmation." />
                                                     </label>
                                                     <input
                                                         className="form-control"
                                                         type="text"
-                                                        name="name"
-                                                        placeholder=""
-                                                        value={additionalDetails.msmeNo}
-                                                        onChange={e => updateAdditionalDetails('msmeNo', e.target.value)}
-                                                        disabled
-                                                    // value={supplierData?.msme_details?.msme_no}
-                                                    />
-                                                    {errors.msmeNo && (
-                                                        <div className="ValidationColor">{errors.msmeNo}</div>
-                                                    )}
-                                                    {/* Show error */}
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {additionalDetails.msmeUdyamApplicable?.value === "Yes" && (
-                                            <div className="col-md-4 mt-2">
-                                                <div className="form-group">
-                                                    <label >
-                                                        Classifiction Year <span>*</span>
-                                                    </label>
-
-                                                    <SingleSelector
-                                                        value={additionalDetails.classificationYear}
-                                                        onChange={val => updateAdditionalDetails('classificationYear', val)}
-                                                        options={optionsClassificationYear}
-                                                        className="form-control"
-                                                        placeholder="Select Classification Year"
-                                                         isDisabled={true}
-                                                    />
-
-                                                    {/* Show error */}
-                                                    {errors.classificationYear && (
-                                                        <div className="ValidationColor">
-                                                            {errors.classificationYear}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        )}
-
-
-                                        {additionalDetails.msmeUdyamApplicable?.value === "Yes" && (
-                                            <div className="col-md-4 mt-2">
-                                                <div className="form-group">
-                                                    <label>
-                                                        Major Activity <span>*</span>
-                                                    </label>
-
-
-                                                    <SingleSelector
-                                                        value={additionalDetails.majorActivity}
-                                                        onChange={val => updateAdditionalDetails('majorActivity', val)}
-                                                        options={optionsMajorActivity}
-                                                        className="form-control"
-                                                        placeholder="Select Major Activity"
-                                                         isDisabled={true}
-                                                    />
-                                                    {/* {console.log("majorActivity", majorActivity)} */}
-
-                                                    {errors.majorActivity && (
-                                                        <div className="ValidationColor">
-                                                            {errors.majorActivity}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {/* MSME/Udyam Valid From */}
-                                        {additionalDetails.msmeUdyamApplicable?.value === "Yes" && (
-                                            <div className="col-md-4 mt-2">
-                                                <div className="form-group">
-                                                    <label >
-                                                        MSME/Udyam Valid From <span>*</span>
-                                                        <TooltipIcon message="Enter the date when your MSME/Udyam registration became valid. This is the start date mentioned on your MSME/Udyam registration certificate for the financial year." />
-                                                    </label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="date"
-                                                        name="name"
-                                                        placeholder=""
-                                                        value={additionalDetails.validFrom}
-                                                        disabled={!!additionalDetails.classificationYear}
-                                                        onChange={e => updateAdditionalDetails('validFrom', e.target.value)}
-                                                        
-                                                    // value={supplierData?.msme_details?.valid_from}
-                                                    />
-                                                    {errors.validFrom && (
-                                                        <div className="ValidationColor">
-                                                            {errors.validFrom}
-                                                        </div>
-                                                    )}
-                                                    {/* Show error */}
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {/* MSME/Udyam Valid Till */}
-                                        {additionalDetails.msmeUdyamApplicable?.value === "Yes" && (
-                                            <div className="col-md-4 mt-2">
-                                                <div className="form-group">
-                                                    <label >
-                                                        MSME/Udyam Valid Till <span>*</span>
-                                                        <TooltipIcon message="Enter the date when your MSME/Udyam registration became valid. This is the end date mentioned on your MSME/Udyam registration certificate for the financial year." />
-                                                    </label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="date"
-                                                        name="name"
-                                                        placeholder=""
-                                                        value={additionalDetails.validTill}
-                                                        disabled={!!additionalDetails.classificationYear}
-                                                        onChange={e => updateAdditionalDetails('validTill', e.target.value)}
-                                                    // value={supplierData?.msme_details?.valid_till}
-                                                    />
-                                                    {errors.validTill && (
-                                                        <div className="ValidationColor">
-                                                            {errors.validTill}
-                                                        </div>
-                                                    )}
-                                                    {/* Show error */}
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {/* MSME Enterprise Type */}
-                                        {additionalDetails.msmeUdyamApplicable?.value === "Yes" && (
-                                            <div className="col-md-4 mt-2">
-                                                <div className="form-group">
-                                                    <label  >
-                                                        MSME Enterprise Type <span>*</span>
-                                                        <TooltipIcon message="Select the type of your organization under the MSME (Micro, Small, and Medium Enterprises) scheme. Choose from 'Micro,'Small,' or 'Medium' based on your organization's annual turnover and investment in plant and machinery." />
-                                                    </label>
-
-                                                    <SingleSelector
-                                                        value={additionalDetails.msmeEnterpriseType}
-                                                        onChange={val => updateAdditionalDetails('msmeEnterpriseType', val)}
-                                                        options={optionsEnterPrise}
-                                                        className="form-control"
-                                                        placeholder="Select option..."
-                                                         isDisabled={true}
-                                                    />
-                                                    {errors.msmeEnterpriseType && (
-                                                        <div className="ValidationColor">
-                                                            {errors.msmeEnterpriseType}
-                                                        </div>
-                                                    )}
-                                                    {/* Show error */}
-                                                </div>
-                                            </div>
-                                        )}
-
-
-
-                                        {/*  */}
-                                        {additionalDetails.msmeUdyamApplicable?.value === "Yes" && (
-                                            <div className="col-md-4 mt-2">
-                                                <div className="form-group">
-                                                    <label>
-                                                        Download Specimen <span>*</span>
-                                                    </label>
-                                                    <a
-                                                        download="Specimen_E-Invoicing_Declaration.docx"
-                                                        className="text-primary d-flex align-items-center"
-                                                        href={`${baseURL}/assets/Yes%20_%20msme.pdf`}
-                                                    >
-                                                        <svg
-                                                            xmlns="http://www.w3.org/2000/svg"
-                                                            width={24}
-                                                            height={24}
-                                                            fill="#DE7008"
-                                                            className="bi bi-download"
-                                                            viewBox="0 0 16 16"
-                                                        >
-                                                            <path
-                                                                d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
-                                                                style={{ fill: "#de7008!important" }}
-                                                            />
-                                                            <path
-                                                                d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
-                                                                style={{ fill: "#de7008!important" }}
-                                                            />
-                                                        </svg>
-                                                        <span className="mt-2 ms-2">
-                                                            Specimen For Yes Msme.pdf
-                                                        </span>
-                                                    </a>
-                                                                {/* Show MSME attachment (server) or selected filename in preview */}
-                                                                {additionalDetails?.msmeAttachmentObj?.file_url ? (
-                                                                    <div className="mt-2">
-                                                                        <a
-                                                                            href={`${additionalDetails.msmeAttachmentObj.file_url.startsWith('http') ? additionalDetails.msmeAttachmentObj.file_url : `${baseURL}${additionalDetails.msmeAttachmentObj.file_url}`}`}
-                                                                            download
-                                                                            className="text-primary d-flex align-items-center"
-                                                                        >
-                                                                            <span className="me-2">Existing MSME File:</span>
-                                                                            <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} fill="#DE7008" className="bi bi-download" viewBox="0 0 16 16">
-                                                                                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
-                                                                                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
-                                                                            </svg>
-                                                                            <span className="ms-2">{additionalDetails.msmeAttachmentObj.filename}</span>
-                                                                        </a>
-                                                                    </div>
-                                                                ) : additionalDetails?.msmeAttachmentObj?.filename ? (
-                                                                    <div className="mt-2 d-flex align-items-center">
-                                                                        <span className="me-2">Selected MSME File:</span>
-                                                                        <span className="text-muted">{additionalDetails.msmeAttachmentObj.filename}</span>
-                                                                    </div>
-                                                                ) : null}
-                                                                <input className="form-control mt-2" type="file" disabled />
-                                                            </div>
-                                            </div>
-                                        )}
-                                        {/* MSME/Udyam Attachment */}
-                                        {additionalDetails.msmeUdyamApplicable?.value === "Yes" && (
-
-
-                                            // MSME/Udyam Attachment field (show only from additionalDetails.msmeAttachmentObj)
-                                            <div className="col-md-4 mt-2">
-                                                <div className="form-group">
-                                                    <label>
-                                                        MSME/Udyam Attachment <span>*</span>
-                                                        <TooltipIcon message="Attach a clear, scanned copy or digital image of your MSME/Udyam registration certificate to verify your organization's classification under the MSME scheme. The document must be uploaded in PDF format." />
-                                                    </label>
-                                                    {/* Show MSME/Udyam attachment only when it comes from the API (has a file_url).
-                                                        If the user picks a new file via input we store filename/content and should NOT show download link —
-                                                        instead render the selected filename as plain text. */}
-                                                    {additionalDetails?.msmeAttachmentObj?.file_url ? (
-                                                        <span className="ms-2">
-                                                            <a
-                                                                href={`${baseURL}${additionalDetails.msmeAttachmentObj.file_url}`}
-                                                                download
-                                                                className="text-primary d-flex align-items-center"
-                                                            >
-                                                                <span className="me-2">Uploaded File:</span>
-                                                                <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} fill="#DE7008" className="bi bi-download" viewBox="0 0 16 16">
-                                                                    <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
-                                                                    <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
-                                                                </svg>
-                                                                {additionalDetails.msmeAttachmentObj.filename}
-                                                            </a>
-                                                        </span>
-                                                    ) : additionalDetails?.msmeAttachmentObj?.filename ? (
-                                                        <span className="ms-2 d-flex align-items-center">
-                                                            <span className="me-2">Selected File:</span>
-                                                            <span className="text-muted">{additionalDetails.msmeAttachmentObj.filename}</span>
-                                                        </span>
-                                                    ) : null}
-                                                    <input
-                                                        className="form-control mt-2"
-                                                        type="file"
-                                                        onChange={e => {
-                                                            const file = e.target.files[0];
-                                                            if (file) {
-                                                                const reader = new FileReader();
-                                                                reader.onload = function (ev) {
-                                                                    updateAdditionalDetails('msmeAttachmentObj', {
-                                                                        filename: file.name,
-                                                                        content: ev.target.result.split(',')[1],
-                                                                        content_type: file.type,
-                                                                    });
-                                                                };
-                                                                reader.readAsDataURL(file);
-                                                            }
-                                                        }}
-                                                        ref={fileInputRef}
-                                                        multiple
-                                                        accept=".pdf"
+                                                        value={additionalDetails.deliveryLeadPeriod}
+                                                        onChange={e => updateAdditionalDetails('deliveryLeadPeriod', e.target.value)}
                                                         disabled
                                                     />
-                                                    {errors.msmeAttachments && (
-                                                        <div className="ValidationColor">
-                                                            {errors.msmeAttachments}
-                                                        </div>
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4">
+
+
+
+                                                <div className="form-group">
+                                                    <label>
+                                                        Specify Warranty Period (In Years)
+                                                        <TooltipIcon message="Enter the duration of the warranty for the product or service, in years. This is the period during which the item will be covered for repairs or replacement." />
+                                                    </label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="text"
+                                                        value={additionalDetails.warrantyPeriod}
+                                                        onChange={e => updateAdditionalDetails('warrantyPeriod', e.target.value)}
+                                                        disabled
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4">
+                                                <div className="form-group">
+
+                                                    <label>
+                                                        AMC Provided
+                                                        <TooltipIcon message="Please specify if an Annual Maintenance Contract (AMC) is included with the product or service. Select 'Yes if AMC is provided." />
+                                                    </label>
+                                                    <SingleSelector
+                                                        options={gstinApplicableOptions}
+                                                        value={additionalDetails.amcProvided}
+                                                        onChange={val => updateAdditionalDetails('amcProvided', val)}
+                                                        isDisabled={true}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4 mt-2">
+                                                <div className="form-group">
+                                                    <label>
+                                                        Website
+                                                        <TooltipIcon message="Enter the URL of your company's website where users can lear more about your products or services." />
+                                                    </label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="text"
+                                                        value={additionalDetails.website}
+                                                        onChange={e => updateAdditionalDetails('website', e.target.value)}
+                                                        disabled
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="col-md-4  mt-2">
+                                                <div className="form-group">
+                                                    {/* Label with Tooltip */}
+                                                    <label>
+                                                        Currency Type <span>*</span>
+                                                        {/* <TooltipIcon message="Please choose your country from the list" /> */}
+                                                    </label>
+                                                    <SingleSelector
+                                                        options={currencyOptions}
+                                                        placeholder="Select Currency Type"
+                                                        value={additionalDetails.currencyType}
+                                                        onChange={val => updateAdditionalDetails('currencyType', val)}
+                                                        isDisabled={true}
+                                                    />
+                                                    {errors.currencyType && (
+                                                        <div className="ValidationColor">{errors.currencyType}</div>
                                                     )}
                                                 </div>
                                             </div>
-                                        )}
+                                            <div className="col-md-4 mt-2">
+                                                <div className="form-group">
 
+                                                    <label>
+                                                        MSME/Udyam Number Applicable  <span>*</span>
+                                                        <TooltipIcon message="Select whether your organization is registered under the MSME (Micro, Small, and Medium Enterprises) or Udyam scheme. Choose 'Yes' if applicable, otherwise select 'No.' By selecting 'No,' you confirm that your organization does not hold a valid MSME/Udyam registration number. A declaration is required, and this response will be timestamped to record the submission date and time." />
+                                                    </label>
+                                                    <SingleSelector
+                                                        value={additionalDetails.msmeUdyamApplicable}
+                                                        onChange={val => updateAdditionalDetails('msmeUdyamApplicable', val)}
+                                                        options={options}
+                                                        className="form-control"
+                                                        placeholder="Select MSME/Udyam Number Applicable"
+                                                        isDisabled={true}
+                                                    />
+                                                    {errors.msmeUdyamApplicable && (
+                                                        <div className="ValidationColor">{errors.msmeUdyamApplicable}</div>
+                                                    )}
 
-                                        <div className="row">
-                                            {additionalDetails.msmeUdyamApplicable?.value === "No" && (
-                                                <div className="col-md-4 mt-2 ms-3">
+                                                </div>
+                                            </div>
+
+                                            {additionalDetails.msmeUdyamApplicable?.value === "Yes" && (
+                                                <div className="col-md-4 mt-2">
                                                     <div className="form-group">
                                                         <label
+
                                                         >
+                                                            MSME/Udyam Number <span>*</span>
+                                                            <TooltipIcon message="Enter your organization's valid MSME or Udyam registration number. This number is issued by the Ministry of Micro, Small, and Medium Enterprises (MSME) under the Udyam registration scheme" />
+                                                        </label>
+                                                        <input
+                                                            className="form-control"
+                                                            type="text"
+                                                            name="name"
+                                                            placeholder=""
+                                                            value={additionalDetails.msmeNo}
+                                                            onChange={e => updateAdditionalDetails('msmeNo', e.target.value)}
+                                                            disabled
+                                                        // value={supplierData?.msme_details?.msme_no}
+                                                        />
+                                                        {errors.msmeNo && (
+                                                            <div className="ValidationColor">{errors.msmeNo}</div>
+                                                        )}
+                                                        {/* Show error */}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {additionalDetails.msmeUdyamApplicable?.value === "Yes" && (
+                                                <div className="col-md-4 mt-2">
+                                                    <div className="form-group">
+                                                        <label >
+                                                            Classifiction Year <span>*</span>
+                                                        </label>
+
+                                                        <SingleSelector
+                                                            value={additionalDetails.classificationYear}
+                                                            onChange={val => updateAdditionalDetails('classificationYear', val)}
+                                                            options={optionsClassificationYear}
+                                                            className="form-control"
+                                                            placeholder="Select Classification Year"
+                                                            isDisabled={true}
+                                                        />
+
+                                                        {/* Show error */}
+                                                        {errors.classificationYear && (
+                                                            <div className="ValidationColor">
+                                                                {errors.classificationYear}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            )}
+
+
+                                            {additionalDetails.msmeUdyamApplicable?.value === "Yes" && (
+                                                <div className="col-md-4 mt-2">
+                                                    <div className="form-group">
+                                                        <label>
+                                                            Major Activity <span>*</span>
+                                                        </label>
+
+
+                                                        <SingleSelector
+                                                            value={additionalDetails.majorActivity}
+                                                            onChange={val => updateAdditionalDetails('majorActivity', val)}
+                                                            options={optionsMajorActivity}
+                                                            className="form-control"
+                                                            placeholder="Select Major Activity"
+                                                            isDisabled={true}
+                                                        />
+                                                        {/* {console.log("majorActivity", majorActivity)} */}
+
+                                                        {errors.majorActivity && (
+                                                            <div className="ValidationColor">
+                                                                {errors.majorActivity}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* MSME/Udyam Valid From */}
+                                            {additionalDetails.msmeUdyamApplicable?.value === "Yes" && (
+                                                <div className="col-md-4 mt-2">
+                                                    <div className="form-group">
+                                                        <label >
+                                                            MSME/Udyam Valid From <span>*</span>
+                                                            <TooltipIcon message="Enter the date when your MSME/Udyam registration became valid. This is the start date mentioned on your MSME/Udyam registration certificate for the financial year." />
+                                                        </label>
+                                                        <input
+                                                            className="form-control"
+                                                            type="date"
+                                                            name="name"
+                                                            placeholder=""
+                                                            value={additionalDetails.validFrom}
+                                                            disabled={!!additionalDetails.classificationYear}
+                                                            onChange={e => updateAdditionalDetails('validFrom', e.target.value)}
+
+                                                        // value={supplierData?.msme_details?.valid_from}
+                                                        />
+                                                        {errors.validFrom && (
+                                                            <div className="ValidationColor">
+                                                                {errors.validFrom}
+                                                            </div>
+                                                        )}
+                                                        {/* Show error */}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* MSME/Udyam Valid Till */}
+                                            {additionalDetails.msmeUdyamApplicable?.value === "Yes" && (
+                                                <div className="col-md-4 mt-2">
+                                                    <div className="form-group">
+                                                        <label >
+                                                            MSME/Udyam Valid Till <span>*</span>
+                                                            <TooltipIcon message="Enter the date when your MSME/Udyam registration became valid. This is the end date mentioned on your MSME/Udyam registration certificate for the financial year." />
+                                                        </label>
+                                                        <input
+                                                            className="form-control"
+                                                            type="date"
+                                                            name="name"
+                                                            placeholder=""
+                                                            value={additionalDetails.validTill}
+                                                            disabled={!!additionalDetails.classificationYear}
+                                                            onChange={e => updateAdditionalDetails('validTill', e.target.value)}
+                                                        // value={supplierData?.msme_details?.valid_till}
+                                                        />
+                                                        {errors.validTill && (
+                                                            <div className="ValidationColor">
+                                                                {errors.validTill}
+                                                            </div>
+                                                        )}
+                                                        {/* Show error */}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* MSME Enterprise Type */}
+                                            {additionalDetails.msmeUdyamApplicable?.value === "Yes" && (
+                                                <div className="col-md-4 mt-2">
+                                                    <div className="form-group">
+                                                        <label  >
+                                                            MSME Enterprise Type <span>*</span>
+                                                            <TooltipIcon message="Select the type of your organization under the MSME (Micro, Small, and Medium Enterprises) scheme. Choose from 'Micro,'Small,' or 'Medium' based on your organization's annual turnover and investment in plant and machinery." />
+                                                        </label>
+
+                                                        <SingleSelector
+                                                            value={additionalDetails.msmeEnterpriseType}
+                                                            onChange={val => updateAdditionalDetails('msmeEnterpriseType', val)}
+                                                            options={optionsEnterPrise}
+                                                            className="form-control"
+                                                            placeholder="Select option..."
+                                                            isDisabled={true}
+                                                        />
+                                                        {errors.msmeEnterpriseType && (
+                                                            <div className="ValidationColor">
+                                                                {errors.msmeEnterpriseType}
+                                                            </div>
+                                                        )}
+                                                        {/* Show error */}
+                                                    </div>
+                                                </div>
+                                            )}
+
+
+
+                                            {/*  */}
+                                            {additionalDetails.msmeUdyamApplicable?.value === "Yes" && (
+                                                <div className="col-md-4 mt-2">
+                                                    <div className="form-group">
+                                                        <label>
                                                             Download Specimen <span>*</span>
                                                         </label>
-                                                        <TooltipIcon message="If you choose 'No' for e-invoicing, a specimen format will be available for download. This is for businesses not subject to e-invoicing under GST regulations. Please upload a signed declaration stating that your organization is not registered.The document must be uploaded in PDF format" />
                                                         <a
                                                             download="Specimen_E-Invoicing_Declaration.docx"
                                                             className="text-primary d-flex align-items-center"
-                                                            href={`${baseURL}/assets/NO_%20MSME.pdf`}
-                                                            onClick={(e) => {
-                                                                // Force navigation in the same tab to avoid any target/_blank behavior
-                                                                e.preventDefault();
-                                                                window.location.href = `${baseURL}/assets/NO_%20MSME.pdf`;
-                                                            }}
+                                                            href={`${baseURL}/assets/Yes%20_%20msme.pdf`}
                                                         >
                                                             <svg
                                                                 xmlns="http://www.w3.org/2000/svg"
@@ -10172,60 +10088,80 @@ const VendorRegistrationStepByStepForm = () => {
                                                                     style={{ fill: "#de7008!important" }}
                                                                 />
                                                             </svg>
-
                                                             <span className="mt-2 ms-2">
-                                                                Specimen For No Msme.pdf
+                                                                Specimen For Yes Msme.pdf
                                                             </span>
                                                         </a>
-                                                    </div>
-                                                </div>
-                                            )}
-
-                                            {additionalDetails.msmeUdyamApplicable?.value === "No" && (
-
-
-                                                // MSME Declaration Upload Section
-                                                <div className="col-md-4 mt-2">
-                                                    <div className="form-group">
-                                                        <label>
-                                                            Upload Declaration <span>*</span>
-                                                        </label>
-                                                        <TooltipIcon message="If you choose E-Invoice applicable 'No', please upload a signed declaration document to verify the details you have submitted. The document must be uploaded in PDF format. Ensure that the document is clear, legible, and properly signed." />
-                                                        {/* Show MSME Declaration only when it comes from the API (has a file_url).
-                                                            If the user picks a new file via input we store filename/content and should NOT show download link —
-                                                            instead render the selected filename as plain text. */}
-                                                        {additionalDetails?.msmeDeclarationObj?.file_url ? (
-                                                            <span className="ms-2">
+                                                        {/* Show MSME attachment (server) or selected filename in preview */}
+                                                        {additionalDetails?.msmeAttachmentObj?.file_url ? (
+                                                            <div className="mt-2">
                                                                 <a
-                                                                    href={`${baseURL}${additionalDetails.msmeDeclarationObj.file_url}`}
+                                                                    href={`${additionalDetails.msmeAttachmentObj.file_url.startsWith('http') ? additionalDetails.msmeAttachmentObj.file_url : `${baseURL}${additionalDetails.msmeAttachmentObj.file_url}`}`}
                                                                     download
                                                                     className="text-primary d-flex align-items-center"
                                                                 >
-                                                                    <span className="me-2">Uploaded Declaration:</span>
+                                                                    <span className="me-2">Existing MSME File:</span>
                                                                     <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} fill="#DE7008" className="bi bi-download" viewBox="0 0 16 16">
                                                                         <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
                                                                         <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
                                                                     </svg>
-                                                                    {additionalDetails?.msmeDeclarationObj?.filename || additionalDetails?.msmeAttachmentObj?.filename}
+                                                                    <span className="ms-2">{additionalDetails.msmeAttachmentObj.filename}</span>
+                                                                </a>
+                                                            </div>
+                                                        ) : additionalDetails?.msmeAttachmentObj?.filename ? (
+                                                            <div className="mt-2 d-flex align-items-center">
+                                                                <span className="me-2">Selected MSME File:</span>
+                                                                <span className="text-muted">{additionalDetails.msmeAttachmentObj.filename}</span>
+                                                            </div>
+                                                        ) : null}
+                                                        <input className="form-control mt-2" type="file" disabled />
+                                                    </div>
+                                                </div>
+                                            )}
+                                            {/* MSME/Udyam Attachment */}
+                                            {additionalDetails.msmeUdyamApplicable?.value === "Yes" && (
+
+
+                                                // MSME/Udyam Attachment field (show only from additionalDetails.msmeAttachmentObj)
+                                                <div className="col-md-4 mt-2">
+                                                    <div className="form-group">
+                                                        <label>
+                                                            MSME/Udyam Attachment <span>*</span>
+                                                            <TooltipIcon message="Attach a clear, scanned copy or digital image of your MSME/Udyam registration certificate to verify your organization's classification under the MSME scheme. The document must be uploaded in PDF format." />
+                                                        </label>
+                                                        {/* Show MSME/Udyam attachment only when it comes from the API (has a file_url).
+                                                        If the user picks a new file via input we store filename/content and should NOT show download link —
+                                                        instead render the selected filename as plain text. */}
+                                                        {additionalDetails?.msmeAttachmentObj?.file_url ? (
+                                                            <span className="ms-2">
+                                                                <a
+                                                                    href={`${baseURL}${additionalDetails.msmeAttachmentObj.file_url}`}
+                                                                    download
+                                                                    className="text-primary d-flex align-items-center"
+                                                                >
+                                                                    <span className="me-2">Uploaded File:</span>
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} fill="#DE7008" className="bi bi-download" viewBox="0 0 16 16">
+                                                                        <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                                                                        <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                                                                    </svg>
+                                                                    {additionalDetails.msmeAttachmentObj.filename}
                                                                 </a>
                                                             </span>
-                                                        ) : additionalDetails?.msmeDeclarationObj?.filename ? (
+                                                        ) : additionalDetails?.msmeAttachmentObj?.filename ? (
                                                             <span className="ms-2 d-flex align-items-center">
                                                                 <span className="me-2">Selected File:</span>
-                                                                <span className="text-muted">{additionalDetails.msmeDeclarationObj.filename}</span>
+                                                                <span className="text-muted">{additionalDetails.msmeAttachmentObj.filename}</span>
                                                             </span>
                                                         ) : null}
                                                         <input
-                                                            className="form-control"
+                                                            className="form-control mt-2"
                                                             type="file"
-                                                            accept=".pdf"
-                                                            name=""
                                                             onChange={e => {
                                                                 const file = e.target.files[0];
                                                                 if (file) {
                                                                     const reader = new FileReader();
                                                                     reader.onload = function (ev) {
-                                                                        updateAdditionalDetails('msmeDeclarationObj', {
+                                                                        updateAdditionalDetails('msmeAttachmentObj', {
                                                                             filename: file.name,
                                                                             content: ev.target.result.split(',')[1],
                                                                             content_type: file.type,
@@ -10234,92 +10170,205 @@ const VendorRegistrationStepByStepForm = () => {
                                                                     reader.readAsDataURL(file);
                                                                 }
                                                             }}
+                                                            ref={fileInputRef}
+                                                            multiple
+                                                            accept=".pdf"
+                                                            disabled
                                                         />
-                                                        {errors.msmeDeclaration && (
-                                                            <div className="ValidationColor">{errors.msmeDeclaration}</div>
+                                                        {errors.msmeAttachments && (
+                                                            <div className="ValidationColor">
+                                                                {errors.msmeAttachments}
+                                                            </div>
                                                         )}
                                                     </div>
                                                 </div>
                                             )}
-                                        </div>
 
 
-                                        {basicInfo.gstinApplicable.label === 'Yes' && (
-                                            <div className="col-md-4 mt-2">
-                                                <div className="form-group">
-
-                                                    <label>
-                                                        E-invoicing Applicable  <span>*</span>
-                                                        {/* <TooltipIcon message="Select whether your organization is registered under the MSME (Micro, Small, and Medium Enterprises) or Udyam scheme. Choose 'Yes' if applicable, otherwise select 'No.' By selecting 'No,' you confirm that your organization does not hold a valid MSME/Udyam registration number. A declaration is required, and this response will be timestamped to record the submission date and time." /> */}
-                                                    </label>
-                                                    <SingleSelector
-                                                        value={additionalDetails.einvoice}
-                                                        onChange={val => updateAdditionalDetails('einvoice', val)}
-                                                        options={options}
-                                                        className="form-control"
-                                                        placeholder="Selec E-invoicing Applicable ."
-                                                         isDisabled={true}
-                                                    />
-                                                    {errors.einvoice && (
-                                                        <div className="ValidationColor">{errors.einvoice}</div>
-                                                    )}
-
-                                                </div>
-                                            </div>
-                                        )}
-                                        <div className="row">
-                                            {additionalDetails.einvoice?.value === "No" && (
-                                                <div className="col-md-4 mt-2 ms-3">
-                                                    <div className="form-group">
-                                                        <label
-                                                        >
-                                                            Download Specimen <span>*</span>
-                                                        </label>
-                                                        <TooltipIcon message="If you choose 'No' for e-invoicing, a specimen format will be available for download. This is for businesses not subject to e-invoicing under GST regulations. Please upload a signed declaration stating that your organization is not registered.The document must be uploaded in PDF format" />
-                                                        <a
-                                                            download="Specimen_E-Invoicing_Declaration.docx"
-                                                            className="text-primary d-flex align-items-center"
-                                                            href={`${baseURL}/assets/NO_%20MSME.pdf`}
-                                                            target="_self" // Ensure it doesn't open in a new tab
-                                                        >
-                                                            <svg
-                                                                xmlns="http://www.w3.org/2000/svg"
-                                                                width={24}
-                                                                height={24}
-                                                                fill="#DE7008"
-                                                                className="bi bi-download"
-                                                                viewBox="0 0 16 16"
+                                            <div className="row">
+                                                {additionalDetails.msmeUdyamApplicable?.value === "No" && (
+                                                    <div className="col-md-4 mt-2 ms-3">
+                                                        <div className="form-group">
+                                                            <label
                                                             >
-                                                                <path
-                                                                    d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
-                                                                    style={{ fill: "#de7008!important" }}
-                                                                />
-                                                                <path
-                                                                    d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
-                                                                    style={{ fill: "#de7008!important" }}
-                                                                />
-                                                            </svg>
+                                                                Download Specimen <span>*</span>
+                                                            </label>
+                                                            <TooltipIcon message="If you choose 'No' for e-invoicing, a specimen format will be available for download. This is for businesses not subject to e-invoicing under GST regulations. Please upload a signed declaration stating that your organization is not registered.The document must be uploaded in PDF format" />
+                                                            <a
+                                                                download="Specimen_E-Invoicing_Declaration.docx"
+                                                                className="text-primary d-flex align-items-center"
+                                                                href={`${baseURL}/assets/NO_%20MSME.pdf`}
+                                                                onClick={(e) => {
+                                                                    // Force navigation in the same tab to avoid any target/_blank behavior
+                                                                    e.preventDefault();
+                                                                    window.location.href = `${baseURL}/assets/NO_%20MSME.pdf`;
+                                                                }}
+                                                            >
+                                                                <svg
+                                                                    xmlns="http://www.w3.org/2000/svg"
+                                                                    width={24}
+                                                                    height={24}
+                                                                    fill="#DE7008"
+                                                                    className="bi bi-download"
+                                                                    viewBox="0 0 16 16"
+                                                                >
+                                                                    <path
+                                                                        d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
+                                                                        style={{ fill: "#de7008!important" }}
+                                                                    />
+                                                                    <path
+                                                                        d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
+                                                                        style={{ fill: "#de7008!important" }}
+                                                                    />
+                                                                </svg>
 
-                                                            <span className="mt-2 ms-2">
-                                                                Specimen For No E-invoicing.pdf
-                                                            </span>
-                                                        </a>
+                                                                <span className="mt-2 ms-2">
+                                                                    Specimen For No Msme.pdf
+                                                                </span>
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {additionalDetails.msmeUdyamApplicable?.value === "No" && (
+
+
+                                                    // MSME Declaration Upload Section
+                                                    <div className="col-md-4 mt-2">
+                                                        <div className="form-group">
+                                                            <label>
+                                                                Upload Declaration <span>*</span>
+                                                            </label>
+                                                            <TooltipIcon message="If you choose E-Invoice applicable 'No', please upload a signed declaration document to verify the details you have submitted. The document must be uploaded in PDF format. Ensure that the document is clear, legible, and properly signed." />
+                                                            {/* Show MSME Declaration only when it comes from the API (has a file_url).
+                                                            If the user picks a new file via input we store filename/content and should NOT show download link —
+                                                            instead render the selected filename as plain text. */}
+                                                            {additionalDetails?.msmeDeclarationObj?.file_url ? (
+                                                                <span className="ms-2">
+                                                                    <a
+                                                                        href={`${baseURL}${additionalDetails.msmeDeclarationObj.file_url}`}
+                                                                        download
+                                                                        className="text-primary d-flex align-items-center"
+                                                                    >
+                                                                        <span className="me-2">Uploaded Declaration:</span>
+                                                                        <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} fill="#DE7008" className="bi bi-download" viewBox="0 0 16 16">
+                                                                            <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                                                                            <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                                                                        </svg>
+                                                                        {additionalDetails?.msmeDeclarationObj?.filename || additionalDetails?.msmeAttachmentObj?.filename}
+                                                                    </a>
+                                                                </span>
+                                                            ) : additionalDetails?.msmeDeclarationObj?.filename ? (
+                                                                <span className="ms-2 d-flex align-items-center">
+                                                                    <span className="me-2">Selected File:</span>
+                                                                    <span className="text-muted">{additionalDetails.msmeDeclarationObj.filename}</span>
+                                                                </span>
+                                                            ) : null}
+                                                            <input
+                                                                className="form-control"
+                                                                type="file"
+                                                                accept=".pdf"
+                                                                name=""
+                                                                onChange={e => {
+                                                                    const file = e.target.files[0];
+                                                                    if (file) {
+                                                                        const reader = new FileReader();
+                                                                        reader.onload = function (ev) {
+                                                                            updateAdditionalDetails('msmeDeclarationObj', {
+                                                                                filename: file.name,
+                                                                                content: ev.target.result.split(',')[1],
+                                                                                content_type: file.type,
+                                                                            });
+                                                                        };
+                                                                        reader.readAsDataURL(file);
+                                                                    }
+                                                                }}
+                                                            />
+                                                            {errors.msmeDeclaration && (
+                                                                <div className="ValidationColor">{errors.msmeDeclaration}</div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+
+
+                                            {basicInfo.gstinApplicable.label === 'Yes' && (
+                                                <div className="col-md-4 mt-2">
+                                                    <div className="form-group">
+
+                                                        <label>
+                                                            E-invoicing Applicable  <span>*</span>
+                                                            {/* <TooltipIcon message="Select whether your organization is registered under the MSME (Micro, Small, and Medium Enterprises) or Udyam scheme. Choose 'Yes' if applicable, otherwise select 'No.' By selecting 'No,' you confirm that your organization does not hold a valid MSME/Udyam registration number. A declaration is required, and this response will be timestamped to record the submission date and time." /> */}
+                                                        </label>
+                                                        <SingleSelector
+                                                            value={additionalDetails.einvoice}
+                                                            onChange={val => updateAdditionalDetails('einvoice', val)}
+                                                            options={options}
+                                                            className="form-control"
+                                                            placeholder="Selec E-invoicing Applicable ."
+                                                            isDisabled={true}
+                                                        />
+                                                        {errors.einvoice && (
+                                                            <div className="ValidationColor">{errors.einvoice}</div>
+                                                        )}
+
                                                     </div>
                                                 </div>
                                             )}
+                                            <div className="row">
+                                                {additionalDetails.einvoice?.value === "No" && (
+                                                    <div className="col-md-4 mt-2 ms-3">
+                                                        <div className="form-group">
+                                                            <label
+                                                            >
+                                                                Download Specimen <span>*</span>
+                                                            </label>
+                                                            <TooltipIcon message="If you choose 'No' for e-invoicing, a specimen format will be available for download. This is for businesses not subject to e-invoicing under GST regulations. Please upload a signed declaration stating that your organization is not registered.The document must be uploaded in PDF format" />
+                                                            <a
+                                                                download="Specimen_E-Invoicing_Declaration.docx"
+                                                                className="text-primary d-flex align-items-center"
+                                                                href={`${baseURL}/assets/NO_%20MSME.pdf`}
+                                                                target="_self" // Ensure it doesn't open in a new tab
+                                                            >
+                                                                <svg
+                                                                    xmlns="http://www.w3.org/2000/svg"
+                                                                    width={24}
+                                                                    height={24}
+                                                                    fill="#DE7008"
+                                                                    className="bi bi-download"
+                                                                    viewBox="0 0 16 16"
+                                                                >
+                                                                    <path
+                                                                        d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
+                                                                        style={{ fill: "#de7008!important" }}
+                                                                    />
+                                                                    <path
+                                                                        d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
+                                                                        style={{ fill: "#de7008!important" }}
+                                                                    />
+                                                                </svg>
 
-                                            {additionalDetails.einvoice?.value === "No" && (
-                                                <div className="col-md-4 mt-2">
-                                                    <div className="form-group">
-                                                        <label>
-                                                            Upload Declaration <span>*</span>
-                                                        </label>
+                                                                <span className="mt-2 ms-2">
+                                                                    Specimen For No E-invoicing.pdf
+                                                                </span>
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {additionalDetails.einvoice?.value === "No" && (
+                                                    <div className="col-md-4 mt-2">
+                                                        <div className="form-group">
+                                                            <label>
+                                                                Upload Declaration <span>*</span>
+                                                            </label>
 
 
-                                                        <TooltipIcon message="If you choose E-Invoice applicable 'No', please upload a signed declaration document to verify the details you have submitted. The document must be uploaded in PDF format.Ensure that the document is clear, legible, and properly signed." />
+                                                            <TooltipIcon message="If you choose E-Invoice applicable 'No', please upload a signed declaration document to verify the details you have submitted. The document must be uploaded in PDF format.Ensure that the document is clear, legible, and properly signed." />
 
-                                                         {/* Show existing server file or uploaded file preview */}
-                                                        {/* {additionalDetails.einvoiceDeclaration && (
+                                                            {/* Show existing server file or uploaded file preview */}
+                                                            {/* {additionalDetails.einvoiceDeclaration && (
                                                             <div style={{ marginTop: 6 }}>
                                                                 {additionalDetails.einvoiceDeclaration.file_url ? (
                                                                     <a
@@ -10346,50 +10395,50 @@ const VendorRegistrationStepByStepForm = () => {
                                                                 )}
                                                             </div>
                                                         )} */}
-                                                        {additionalDetails.einvoiceDeclaration && (
-                                                            additionalDetails.einvoiceDeclaration.file_url ? (
-                                                                <span className="ms-2">
-                                                                    <a
-                                                                        href={String(additionalDetails.einvoiceDeclaration.file_url).startsWith('http') ? additionalDetails.einvoiceDeclaration.file_url : `${baseURL}${additionalDetails.einvoiceDeclaration.file_url}`}
-                                                                        download
-                                                                        className="text-primary d-flex align-items-center"
-                                                                    >
-                                                                        <span className="me-2">Uploaded Declaration:</span>
-                                                                        <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} fill="#DE7008" className="bi bi-download" viewBox="0 0 16 16">
-                                                                            <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
-                                                                            <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
-                                                                        </svg>
-                                                                        {additionalDetails.einvoiceDeclaration.filename}
-                                                                    </a>
-                                                                </span>
-                                                            ) : additionalDetails.einvoiceDeclaration.filename ? (
-                                                                <span className="ms-2 d-flex align-items-center">
-                                                                    <span className="me-2">Selected File:</span>
-                                                                    <span className="text-muted">{additionalDetails.einvoiceDeclaration.filename}</span>
-                                                                </span>
-                                                            ) : null
-                                                        )}
-                                                       
-                                                        <input
-                                                            className="form-control"
-                                                            type="file"
-                                                            accept=".pdf"
-                                                            name=""
-                                                            onChange={e => handleEinvoiceDeclarationFileChange(e.target.files[0])}
-                                                            disabled
-                                                        />
-                                                         {errors.einvoiceDeclaration && (
-                                                            <div className="ValidationColor">{errors.einvoiceDeclaration}</div>
-                                                        )}
-                                                       
+                                                            {additionalDetails.einvoiceDeclaration && (
+                                                                additionalDetails.einvoiceDeclaration.file_url ? (
+                                                                    <span className="ms-2">
+                                                                        <a
+                                                                            href={String(additionalDetails.einvoiceDeclaration.file_url).startsWith('http') ? additionalDetails.einvoiceDeclaration.file_url : `${baseURL}${additionalDetails.einvoiceDeclaration.file_url}`}
+                                                                            download
+                                                                            className="text-primary d-flex align-items-center"
+                                                                        >
+                                                                            <span className="me-2">Uploaded Declaration:</span>
+                                                                            <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} fill="#DE7008" className="bi bi-download" viewBox="0 0 16 16">
+                                                                                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                                                                                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                                                                            </svg>
+                                                                            {additionalDetails.einvoiceDeclaration.filename}
+                                                                        </a>
+                                                                    </span>
+                                                                ) : additionalDetails.einvoiceDeclaration.filename ? (
+                                                                    <span className="ms-2 d-flex align-items-center">
+                                                                        <span className="me-2">Selected File:</span>
+                                                                        <span className="text-muted">{additionalDetails.einvoiceDeclaration.filename}</span>
+                                                                    </span>
+                                                                ) : null
+                                                            )}
+
+                                                            <input
+                                                                className="form-control"
+                                                                type="file"
+                                                                accept=".pdf"
+                                                                name=""
+                                                                onChange={e => handleEinvoiceDeclarationFileChange(e.target.files[0])}
+                                                                disabled
+                                                            />
+                                                            {errors.einvoiceDeclaration && (
+                                                                <div className="ValidationColor">{errors.einvoiceDeclaration}</div>
+                                                            )}
+
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            )}
+                                                )}
+                                            </div>
+
+
                                         </div>
-
-
                                     </div>
-                                </div>
                                 </div>
 
 
@@ -10512,7 +10561,7 @@ const VendorRegistrationStepByStepForm = () => {
                                     </div>
 
 
-                                   
+
                                 </div>
 
 
@@ -10613,11 +10662,11 @@ const VendorRegistrationStepByStepForm = () => {
                                                     <input className="form-control" type="text" value={communicationAddress.pincode || ''} disabled readOnly />
                                                 </div>
                                             </div>
-                                         
+
                                             <div className="col-md-4 mt-2">
                                                 <div className="form-group">
                                                     <label>
-                                                         Contact Number <span>*</span>
+                                                        Contact Number <span>*</span>
                                                     </label>
                                                     <input className="form-control" type="text" value={communicationAddress.mobile || ''} disabled readOnly />
                                                 </div>
@@ -10823,71 +10872,71 @@ const VendorRegistrationStepByStepForm = () => {
                                                     <input className="form-control" type="text" value={bankDetail.generated_virtual_account_code || ''} disabled readOnly />
                                                 </div>
                                             </div>
-                                           
 
-                                             {/* Cancelled Cheque / Bank Copy */}
-                                        <div className="col-md-4 mt-2">
-                                            <div className="form-group">
-                                                <label
 
-                                                >
-                                                    Cancelled Cheque / Bank Copy <span>*</span>
-                                                    <TooltipIcon message="Provide a cancelled cheque or a bank statement copy that clearly displays your bank account details.This helps verify your account information. The document must be uploaded in PDF format" />
-                                                </label>
+                                            {/* Cancelled Cheque / Bank Copy */}
+                                            <div className="col-md-4 mt-2">
+                                                <div className="form-group">
+                                                    <label
 
-                                                {/* Conditionally Render Existing File Download Link
+                                                    >
+                                                        Cancelled Cheque / Bank Copy <span>*</span>
+                                                        <TooltipIcon message="Provide a cancelled cheque or a bank statement copy that clearly displays your bank account details.This helps verify your account information. The document must be uploaded in PDF format" />
+                                                    </label>
+
+                                                    {/* Conditionally Render Existing File Download Link
                                                     Show download only when attachment has a server URL (attachment_url or file_url).
                                                     If the attachment is a user-selected file (has filename but no server URL) show filename as plain text. */}
-                                                {bankDetail?.attachment ? (
-                                                    bankDetail.attachment.attachment_url || bankDetail.attachment.file_url ? (
-                                                        <span className="ms-2">
-                                                            <a
-                                                                href={`${baseURL}${bankDetail.attachment.attachment_url || bankDetail.attachment.file_url}`}
-                                                                download
-                                                                className="text-primary d-flex align-items-center"
-                                                            >
-                                                                <span className="me-2">Existing File:</span>
-                                                                <svg
-                                                                    xmlns="http://www.w3.org/2000/svg"
-                                                                    width={24}
-                                                                    height={24}
-                                                                    fill="#DE7008"
-                                                                    className="bi bi-download"
-                                                                    viewBox="0 0 16 16"
+                                                    {bankDetail?.attachment ? (
+                                                        bankDetail.attachment.attachment_url || bankDetail.attachment.file_url ? (
+                                                            <span className="ms-2">
+                                                                <a
+                                                                    href={`${baseURL}${bankDetail.attachment.attachment_url || bankDetail.attachment.file_url}`}
+                                                                    download
+                                                                    className="text-primary d-flex align-items-center"
                                                                 >
-                                                                    <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
-                                                                    <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
-                                                                </svg>
-                                                                {bankDetail?.attachment.filename || bankDetail?.attachment.document_name}
-                                                            </a>
-                                                        </span>
-                                                    ) : bankDetail.attachment.filename ? (
-                                                        <span className="ms-2 d-flex align-items-center">
-                                                            <span className="me-2">Selected File:</span>
-                                                            <span className="text-muted">{bankDetail.attachment.filename}</span>
-                                                        </span>
-                                                    ) : null
-                                                ) : null}
+                                                                    <span className="me-2">Existing File:</span>
+                                                                    <svg
+                                                                        xmlns="http://www.w3.org/2000/svg"
+                                                                        width={24}
+                                                                        height={24}
+                                                                        fill="#DE7008"
+                                                                        className="bi bi-download"
+                                                                        viewBox="0 0 16 16"
+                                                                    >
+                                                                        <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                                                                        <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                                                                    </svg>
+                                                                    {bankDetail?.attachment.filename || bankDetail?.attachment.document_name}
+                                                                </a>
+                                                            </span>
+                                                        ) : bankDetail.attachment.filename ? (
+                                                            <span className="ms-2 d-flex align-items-center">
+                                                                <span className="me-2">Selected File:</span>
+                                                                <span className="text-muted">{bankDetail.attachment.filename}</span>
+                                                            </span>
+                                                        ) : null
+                                                    ) : null}
 
-                                                {/* File Input for Uploading New Attachments */}
-                                                <input
-                                                    className="form-control mt-2"
-                                                    type="file"
-                                                    onChange={(e) =>
-                                                        handleFileChangeBank(
-                                                            e.target.files[0],
-                                                            bankDetail.id
-                                                        )
-                                                    }
-                                                    ref={fileInputRef}
-                                                    multiple
-                                                    accept=".pdf"
-                                                    // disabled={!bankDetail.isNew}
-                                                    disabled
-                                                />
-                                               
+                                                    {/* File Input for Uploading New Attachments */}
+                                                    <input
+                                                        className="form-control mt-2"
+                                                        type="file"
+                                                        onChange={(e) =>
+                                                            handleFileChangeBank(
+                                                                e.target.files[0],
+                                                                bankDetail.id
+                                                            )
+                                                        }
+                                                        ref={fileInputRef}
+                                                        multiple
+                                                        accept=".pdf"
+                                                        // disabled={!bankDetail.isNew}
+                                                        disabled
+                                                    />
+
+                                                </div>
                                             </div>
-                                        </div>
                                             {/* Remark */}
                                             <div className="col-md-4 mt-2">
                                                 <div className="form-group">
@@ -10904,118 +10953,118 @@ const VendorRegistrationStepByStepForm = () => {
 
 
 
-   {majorCustomers.map((customer, idx) => (
+                                {majorCustomers.map((customer, idx) => (
                                     <CollapsedCardKYC
                                         key={customer.id}
                                         title={`Client References${majorCustomers.length > 1 ? ` ${idx + 1}` : ''}`}
                                     >
-                                       
+
                                         <div className="card-body mt-0">
-                                        <div className="row">
-                                            <div className="col-md-4">
-                                                <div className="form-group">
-                                                    <label className="mb-2">Site Type <span>*</span></label>
-                                                    <div className="d-flex">
-                                                        <label className="me-3 d-flex align-items-center">
-                                                            <input
-                                                                type="radio"
-                                                                name={`siteType_${customer.id}`}
-                                                                value="working"
-                                                                checked={customer.siteType === 'working'}
-                                                                onChange={() => handleMajorCustomerChange(idx, 'siteType', 'working')}
-                                                                style={{ width: '22px', height: '22px', accentColor: '#de7008' }}
-                                                                disabled
-                                                            />{' '}
-                                                            <span className="ms-2">Working Site</span>
-                                                        </label>
-                                                        <label className="d-flex align-items-center">
-                                                            <input
-                                                                type="radio"
-                                                                name={`siteType_${customer.id}`}
-                                                                value="previous"
-                                                                checked={customer.siteType === 'previous'}
-                                                                onChange={() => handleMajorCustomerChange(idx, 'siteType', 'previous')}
-                                                                style={{ width: '22px', height: '22px', accentColor: '#de7008' }}
-                                                                disabled
-                                                            />{' '}
-                                                            <span className="ms-2">Previous Site</span>
-                                                        </label>
+                                            <div className="row">
+                                                <div className="col-md-4">
+                                                    <div className="form-group">
+                                                        <label className="mb-2">Site Type <span>*</span></label>
+                                                        <div className="d-flex">
+                                                            <label className="me-3 d-flex align-items-center">
+                                                                <input
+                                                                    type="radio"
+                                                                    name={`siteType_${customer.id}`}
+                                                                    value="working"
+                                                                    checked={customer.siteType === 'working'}
+                                                                    onChange={() => handleMajorCustomerChange(idx, 'siteType', 'working')}
+                                                                    style={{ width: '22px', height: '22px', accentColor: '#de7008' }}
+                                                                    disabled
+                                                                />{' '}
+                                                                <span className="ms-2">Working Site</span>
+                                                            </label>
+                                                            <label className="d-flex align-items-center">
+                                                                <input
+                                                                    type="radio"
+                                                                    name={`siteType_${customer.id}`}
+                                                                    value="previous"
+                                                                    checked={customer.siteType === 'previous'}
+                                                                    onChange={() => handleMajorCustomerChange(idx, 'siteType', 'previous')}
+                                                                    style={{ width: '22px', height: '22px', accentColor: '#de7008' }}
+                                                                    disabled
+                                                                />{' '}
+                                                                <span className="ms-2">Previous Site</span>
+                                                            </label>
+                                                        </div>
+                                                        {majorCustomerErrors[idx]?.siteType && (
+                                                            <div className="ValidationColor">{majorCustomerErrors[idx].siteType}</div>
+                                                        )}
                                                     </div>
-                                                    {majorCustomerErrors[idx]?.siteType && (
-                                                        <div className="ValidationColor">{majorCustomerErrors[idx].siteType}</div>
-                                                    )}
                                                 </div>
-                                            </div>
 
 
-                                            <div className="col-md-2 mt-2">
-                                                <div className="form-group">
-                                                    <label>Service Provided From <span>*</span></label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="date"
-                                                        max={new Date().toISOString().split('T')[0]}
-                                                        value={customer.serviceFrom}
-                                                        onChange={e => handleMajorCustomerDateChange(idx, 'serviceFrom', e.target.value)}
-                                                        disabled
-                                                    />
-                                                    {majorCustomerErrors[idx]?.serviceFrom && (
-                                                        <div className="ValidationColor">{majorCustomerErrors[idx].serviceFrom}</div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                            {customer.siteType === 'previous' && (
                                                 <div className="col-md-2 mt-2">
                                                     <div className="form-group">
-                                                        <label>Service Provided To <span>*</span></label>
+                                                        <label>Service Provided From <span>*</span></label>
                                                         <input
                                                             className="form-control"
                                                             type="date"
                                                             max={new Date().toISOString().split('T')[0]}
-                                                            value={customer.serviceTo}
-                                                            onChange={e => handleMajorCustomerDateChange(idx, 'serviceTo', e.target.value)}
+                                                            value={customer.serviceFrom}
+                                                            onChange={e => handleMajorCustomerDateChange(idx, 'serviceFrom', e.target.value)}
                                                             disabled
                                                         />
-                                                        {majorCustomerErrors[idx]?.serviceTo && (
-                                                            <div className="ValidationColor">{majorCustomerErrors[idx].serviceTo}</div>
+                                                        {majorCustomerErrors[idx]?.serviceFrom && (
+                                                            <div className="ValidationColor">{majorCustomerErrors[idx].serviceFrom}</div>
                                                         )}
                                                     </div>
                                                 </div>
-                                            )}
-                                        </div>
-                                        <div className="row mt-2">
-                                            <div className="col-md-4">
-                                                <div className="form-group">
-                                                    <label>Client Name <span>*</span></label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="text"
-                                                        value={customer.companyName}
-                                                        onChange={e => handleMajorCustomerChange(idx, 'companyName', e.target.value)}
-                                                        disabled
-                                                    />
-                                                    {majorCustomerErrors[idx]?.companyName && (
-                                                        <div className="ValidationColor">{majorCustomerErrors[idx].companyName}</div>
-                                                    )}
-                                                </div>
+                                                {customer.siteType === 'previous' && (
+                                                    <div className="col-md-2 mt-2">
+                                                        <div className="form-group">
+                                                            <label>Service Provided To <span>*</span></label>
+                                                            <input
+                                                                className="form-control"
+                                                                type="date"
+                                                                max={new Date().toISOString().split('T')[0]}
+                                                                value={customer.serviceTo}
+                                                                onChange={e => handleMajorCustomerDateChange(idx, 'serviceTo', e.target.value)}
+                                                                disabled
+                                                            />
+                                                            {majorCustomerErrors[idx]?.serviceTo && (
+                                                                <div className="ValidationColor">{majorCustomerErrors[idx].serviceTo}</div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </div>
+                                            <div className="row mt-2">
+                                                <div className="col-md-4">
+                                                    <div className="form-group">
+                                                        <label>Client Name <span>*</span></label>
+                                                        <input
+                                                            className="form-control"
+                                                            type="text"
+                                                            value={customer.companyName}
+                                                            onChange={e => handleMajorCustomerChange(idx, 'companyName', e.target.value)}
+                                                            disabled
+                                                        />
+                                                        {majorCustomerErrors[idx]?.companyName && (
+                                                            <div className="ValidationColor">{majorCustomerErrors[idx].companyName}</div>
+                                                        )}
+                                                    </div>
+                                                </div>
 
-                                            <div className="col-md-4">
-                                                <div className="form-group">
-                                                    <label>Contact Person <span>*</span></label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="text"
-                                                        value={customer.contactPerson}
-                                                        onChange={e => handleMajorCustomerChange(idx, 'contactPerson', e.target.value)}
-                                                        disabled
-                                                    />
-                                                    {majorCustomerErrors[idx]?.contactPerson && (
-                                                        <div className="ValidationColor">{majorCustomerErrors[idx].contactPerson}</div>
-                                                    )}
+                                                <div className="col-md-4">
+                                                    <div className="form-group">
+                                                        <label>Contact Person <span>*</span></label>
+                                                        <input
+                                                            className="form-control"
+                                                            type="text"
+                                                            value={customer.contactPerson}
+                                                            onChange={e => handleMajorCustomerChange(idx, 'contactPerson', e.target.value)}
+                                                            disabled
+                                                        />
+                                                        {majorCustomerErrors[idx]?.contactPerson && (
+                                                            <div className="ValidationColor">{majorCustomerErrors[idx].contactPerson}</div>
+                                                        )}
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            {/* <div className="col-md-4  ">
+                                                {/* <div className="col-md-4  ">
                                                 <div className="form-group">
                                                     <label>Designation <span>*</span></label>
                                                     <SingleSelector
@@ -11028,21 +11077,21 @@ const VendorRegistrationStepByStepForm = () => {
                                                     )}
                                                 </div>
                                             </div> */}
-                                            <div className="col-md-4  ">
-                                                <div className="form-group">
-                                                    <label>Country <span>*</span></label>
-                                                    <SingleSelector
-                                                        options={countryOptions || []}
-                                                        value={customer.country}
-                                                        onChange={selected => handleMajorCustomerChange(idx, 'country', selected)}
-                                                        isDisabled={true}
-                                                    />
-                                                    {majorCustomerErrors[idx]?.country && (
-                                                        <div className="ValidationColor">{majorCustomerErrors[idx].country}</div>
-                                                    )}
+                                                <div className="col-md-4  ">
+                                                    <div className="form-group">
+                                                        <label>Country <span>*</span></label>
+                                                        <SingleSelector
+                                                            options={countryOptions || []}
+                                                            value={customer.country}
+                                                            onChange={selected => handleMajorCustomerChange(idx, 'country', selected)}
+                                                            isDisabled={true}
+                                                        />
+                                                        {majorCustomerErrors[idx]?.country && (
+                                                            <div className="ValidationColor">{majorCustomerErrors[idx].country}</div>
+                                                        )}
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            {/* <div className="col-md-4">
+                                                {/* <div className="col-md-4">
                                                 <div className="form-group">
                                                     <label>Phone No.</label>
                                                     <input
@@ -11053,42 +11102,42 @@ const VendorRegistrationStepByStepForm = () => {
                                                     />
                                                 </div>
                                             </div> */}
-                                            <div className="col-md-4 mt-2">
-                                                <div className="form-group">
-                                                    <label>Contact No. <span>*</span></label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="text"
-                                                        value={customer.mobile}
-                                                        maxLength={10}
-                                                        disabled
-                                                        onChange={e => {
-                                                            let newValue = e.target.value.replace(/[^0-9]/g, ''); // Only digits
-                                                            if (newValue.length > 10) {
-                                                                newValue = newValue.slice(0, 10);
-                                                            }
-                                                            handleMajorCustomerChange(idx, 'mobile', newValue);
-                                                            // Mobile number live validation
-                                                            let errorMsg = '';
-                                                            if (newValue && newValue.length !== 10) {
-                                                                errorMsg = 'Contact Number must be exactly 10 digits.';
-                                                            }
-                                                            setMajorCustomerErrors(prev => {
-                                                                const updated = [...prev];
-                                                                updated[idx] = {
-                                                                    ...updated[idx],
-                                                                    mobile: errorMsg
-                                                                };
-                                                                return updated;
-                                                            });
-                                                        }}
-                                                    />
-                                                    {majorCustomerErrors[idx]?.mobile && (
-                                                        <div className="ValidationColor">{majorCustomerErrors[idx].mobile}</div>
-                                                    )}
+                                                <div className="col-md-4 mt-2">
+                                                    <div className="form-group">
+                                                        <label>Contact No. <span>*</span></label>
+                                                        <input
+                                                            className="form-control"
+                                                            type="text"
+                                                            value={customer.mobile}
+                                                            maxLength={10}
+                                                            disabled
+                                                            onChange={e => {
+                                                                let newValue = e.target.value.replace(/[^0-9]/g, ''); // Only digits
+                                                                if (newValue.length > 10) {
+                                                                    newValue = newValue.slice(0, 10);
+                                                                }
+                                                                handleMajorCustomerChange(idx, 'mobile', newValue);
+                                                                // Mobile number live validation
+                                                                let errorMsg = '';
+                                                                if (newValue && newValue.length !== 10) {
+                                                                    errorMsg = 'Contact Number must be exactly 10 digits.';
+                                                                }
+                                                                setMajorCustomerErrors(prev => {
+                                                                    const updated = [...prev];
+                                                                    updated[idx] = {
+                                                                        ...updated[idx],
+                                                                        mobile: errorMsg
+                                                                    };
+                                                                    return updated;
+                                                                });
+                                                            }}
+                                                        />
+                                                        {majorCustomerErrors[idx]?.mobile && (
+                                                            <div className="ValidationColor">{majorCustomerErrors[idx].mobile}</div>
+                                                        )}
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            {/* <div className="col-md-4">
+                                                {/* <div className="col-md-4">
                                                 <div className="form-group">
                                                     <label>Year of Association <span>*</span></label>
                                                     <input
@@ -11102,51 +11151,51 @@ const VendorRegistrationStepByStepForm = () => {
                                                     )}
                                                 </div>
                                             </div> */}
-                                            <div className="col-md-4 mt-2">
-                                                <div className="form-group">
-                                                    <label>WO/PO Amount in Last 12 month in lacs <span>*</span></label>
-                                                    <input
-                                                        className="form-control"
-                                                        disabled
-                                                        type="number"
-                                                        min={0}
-                                                        value={customer.businessLast12Months}
-                                                        onChange={e => {
-                                                            let newValue = e.target.value;
-                                                            // Prevent negative numbers and '-' sign
-                                                            if (newValue.includes('-')) {
-                                                                newValue = newValue.replace(/-/g, '');
-                                                            }
-                                                            if (Number(newValue) < 0) {
-                                                                newValue = '';
-                                                            }
-                                                            handleMajorCustomerChange(idx, 'businessLast12Months', newValue);
-                                                        }}
-                                                        onKeyDown={e => {
-                                                            if (e.key === '-' || e.key === 'Subtract') {
-                                                                e.preventDefault();
-                                                            }
-                                                        }}
-                                                    />
-                                                    {majorCustomerErrors[idx]?.businessLast12Months && (
-                                                        <div className="ValidationColor">{majorCustomerErrors[idx].businessLast12Months}</div>
-                                                    )}
+                                                <div className="col-md-4 mt-2">
+                                                    <div className="form-group">
+                                                        <label>WO/PO Amount in Last 12 month in lacs <span>*</span></label>
+                                                        <input
+                                                            className="form-control"
+                                                            disabled
+                                                            type="number"
+                                                            min={0}
+                                                            value={customer.businessLast12Months}
+                                                            onChange={e => {
+                                                                let newValue = e.target.value;
+                                                                // Prevent negative numbers and '-' sign
+                                                                if (newValue.includes('-')) {
+                                                                    newValue = newValue.replace(/-/g, '');
+                                                                }
+                                                                if (Number(newValue) < 0) {
+                                                                    newValue = '';
+                                                                }
+                                                                handleMajorCustomerChange(idx, 'businessLast12Months', newValue);
+                                                            }}
+                                                            onKeyDown={e => {
+                                                                if (e.key === '-' || e.key === 'Subtract') {
+                                                                    e.preventDefault();
+                                                                }
+                                                            }}
+                                                        />
+                                                        {majorCustomerErrors[idx]?.businessLast12Months && (
+                                                            <div className="ValidationColor">{majorCustomerErrors[idx].businessLast12Months}</div>
+                                                        )}
+                                                    </div>
                                                 </div>
-                                            </div>
 
-                                            <div className="col-md-4 mt-2">
-                                                <div className="form-group">
-                                                    <label>Stage Of Project</label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="text"
-                                                        value={customer.stageOfProject}
-                                                        onChange={e => handleMajorCustomerChange(idx, 'stageOfProject', e.target.value)}
-                                                        disabled
-                                                    />
+                                                <div className="col-md-4 mt-2">
+                                                    <div className="form-group">
+                                                        <label>Stage Of Project</label>
+                                                        <input
+                                                            className="form-control"
+                                                            type="text"
+                                                            value={customer.stageOfProject}
+                                                            onChange={e => handleMajorCustomerChange(idx, 'stageOfProject', e.target.value)}
+                                                            disabled
+                                                        />
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            {/* <div className="col-md-4">
+                                                {/* <div className="col-md-4">
                                                 <div className="form-group">
                                                     <label>Major Competitors</label>
                                                     <input
@@ -11157,7 +11206,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                     />
                                                 </div>
                                             </div> */}
-                                            {/* <div className="col-md-4">
+                                                {/* <div className="col-md-4">
                                                 <div className="form-group">
                                                     <label>Attachment</label>
                                                     <input
@@ -11169,24 +11218,24 @@ const VendorRegistrationStepByStepForm = () => {
                                             </div> */}
 
 
-                                            <div className="col-md-4 mt-2">
-                                                <div className="form-group">
-                                                    <label> Product On Service Provided <span>*</span></label>
-                                                    <textarea
-                                                        className="form-control"
-                                                        type="text"
-                                                        value={customer.workDone}
-                                                        onChange={e => handleMajorCustomerChange(idx, 'workDone', e.target.value)}
-                                                        disabled
-                                                    />
-                                                    {majorCustomerErrors[idx]?.workDone && (
-                                                        <div className="ValidationColor">{majorCustomerErrors[idx].workDone}</div>
-                                                    )}
+                                                <div className="col-md-4 mt-2">
+                                                    <div className="form-group">
+                                                        <label> Product On Service Provided <span>*</span></label>
+                                                        <textarea
+                                                            className="form-control"
+                                                            type="text"
+                                                            value={customer.workDone}
+                                                            onChange={e => handleMajorCustomerChange(idx, 'workDone', e.target.value)}
+                                                            disabled
+                                                        />
+                                                        {majorCustomerErrors[idx]?.workDone && (
+                                                            <div className="ValidationColor">{majorCustomerErrors[idx].workDone}</div>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
 
-                                    </div>
+                                        </div>
                                     </CollapsedCardKYC>
                                 ))}
 
@@ -11194,215 +11243,215 @@ const VendorRegistrationStepByStepForm = () => {
 
                                 {branchOffices.map((branch, idx) => (
                                     <CollapsedCardKYC
-                                    showDelete={false}
+                                        showDelete={false}
                                         key={branch.id}
                                         title={`Branch Office${branchOffices.length > 1 ? ` (${idx + 1})` : ''}`}
                                     >
-                                       
-<div className="card-body mt-0">
-                                        <div className="row">
-                                            <div className="col-md-4">
-                                                <div className="form-group">
-                                                    <label>Address <span>*</span></label>
-                                                    <input className="form-control" type="text" value={branch.address} onChange={e => handleBranchChange(idx, 'address', e.target.value)}  disabled/>
-                                                    {branchErrors[idx]?.address && (
-                                                        <div className="ValidationColor">{branchErrors[idx].address}</div>
-                                                    )}
+
+                                        <div className="card-body mt-0">
+                                            <div className="row">
+                                                <div className="col-md-4">
+                                                    <div className="form-group">
+                                                        <label>Address <span>*</span></label>
+                                                        <input className="form-control" type="text" value={branch.address} onChange={e => handleBranchChange(idx, 'address', e.target.value)} disabled />
+                                                        {branchErrors[idx]?.address && (
+                                                            <div className="ValidationColor">{branchErrors[idx].address}</div>
+                                                        )}
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <div className="col-md-4 ">
-                                                <div className="form-group">
-                                                    <label>Country<span>*</span></label>
-                                                    <SingleSelector
-                                                        options={countries}
-                                                        value={branch.country || null}
-                                                        onChange={selected => handleBranchChange(idx, 'country', selected)}
-                                                        placeholder="Select Country"
-                                                        isDisabled={true}
-                                                    />
-                                                    {branchErrors[idx]?.country && (
-                                                        <div className="ValidationColor">{branchErrors[idx].country}</div>
-                                                    )}
+                                                <div className="col-md-4 ">
+                                                    <div className="form-group">
+                                                        <label>Country<span>*</span></label>
+                                                        <SingleSelector
+                                                            options={countries}
+                                                            value={branch.country || null}
+                                                            onChange={selected => handleBranchChange(idx, 'country', selected)}
+                                                            placeholder="Select Country"
+                                                            isDisabled={true}
+                                                        />
+                                                        {branchErrors[idx]?.country && (
+                                                            <div className="ValidationColor">{branchErrors[idx].country}</div>
+                                                        )}
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <div className="col-md-4 ">
-                                                <div className="form-group">
-                                                    <label>State <span>*</span></label>
-                                                    <SingleSelector
-                                                        options={states}
-                                                        value={branch.state || null}
-                                                        onChange={selected => handleBranchChange(idx, 'state', selected)}
-                                                        placeholder="Select State"
-                                                        isDisabled={true}
-                                                    />
-                                                    {branchErrors[idx]?.state && (
-                                                        <div className="ValidationColor">{branchErrors[idx].state}</div>
-                                                    )}
+                                                <div className="col-md-4 ">
+                                                    <div className="form-group">
+                                                        <label>State <span>*</span></label>
+                                                        <SingleSelector
+                                                            options={states}
+                                                            value={branch.state || null}
+                                                            onChange={selected => handleBranchChange(idx, 'state', selected)}
+                                                            placeholder="Select State"
+                                                            isDisabled={true}
+                                                        />
+                                                        {branchErrors[idx]?.state && (
+                                                            <div className="ValidationColor">{branchErrors[idx].state}</div>
+                                                        )}
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <div className="col-md-4 mt-2">
-                                                <div className="form-group">
-                                                    <label>City <span>*</span></label>
-                                                    <input className="form-control" type="text" disabled value={branch.city} onChange={e => handleBranchChange(idx, 'city', e.target.value)} />
-                                                    {branchErrors[idx]?.city && (
-                                                        <div className="ValidationColor">{branchErrors[idx].city}</div>
-                                                    )}
+                                                <div className="col-md-4 mt-2">
+                                                    <div className="form-group">
+                                                        <label>City <span>*</span></label>
+                                                        <input className="form-control" type="text" disabled value={branch.city} onChange={e => handleBranchChange(idx, 'city', e.target.value)} />
+                                                        {branchErrors[idx]?.city && (
+                                                            <div className="ValidationColor">{branchErrors[idx].city}</div>
+                                                        )}
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <div className="col-md-4 mt-2">
-                                                <div className="form-group">
-                                                    <label>Pin Code<span>*</span></label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="text"
-                                                        value={branch.pincode}
-                                                        maxLength={6}
-                                                        disabled
-                                                        onChange={e => {
-                                                            let newValue = e.target.value;
-                                                            // Restrict to max 6 digits
-                                                            if (newValue.length > 6) {
-                                                                newValue = newValue.slice(0, 6);
-                                                            }
-                                                            handleBranchChange(idx, 'pincode', newValue);
-                                                            // Pin code live validation
-                                                            const pinCodeRegex = /^[1-9][0-9]{5}$/;
-                                                            let errorMsg = '';
-                                                            if (newValue && !pinCodeRegex.test(newValue)) {
-                                                                errorMsg = 'Pin Code must be a 6-digit number.';
-                                                            }
-                                                            // Update branchErrors for this branch
-                                                            setBranchErrors(prev => {
-                                                                const updated = [...prev];
-                                                                updated[idx] = {
-                                                                    ...updated[idx],
-                                                                    pincode: errorMsg
-                                                                };
-                                                                return updated;
-                                                            });
-                                                        }}
-                                                    />
-                                                    {branchErrors[idx]?.pincode && (
-                                                        <div className="ValidationColor">{branchErrors[idx].pincode}</div>
-                                                    )}
+                                                <div className="col-md-4 mt-2">
+                                                    <div className="form-group">
+                                                        <label>Pin Code<span>*</span></label>
+                                                        <input
+                                                            className="form-control"
+                                                            type="text"
+                                                            value={branch.pincode}
+                                                            maxLength={6}
+                                                            disabled
+                                                            onChange={e => {
+                                                                let newValue = e.target.value;
+                                                                // Restrict to max 6 digits
+                                                                if (newValue.length > 6) {
+                                                                    newValue = newValue.slice(0, 6);
+                                                                }
+                                                                handleBranchChange(idx, 'pincode', newValue);
+                                                                // Pin code live validation
+                                                                const pinCodeRegex = /^[1-9][0-9]{5}$/;
+                                                                let errorMsg = '';
+                                                                if (newValue && !pinCodeRegex.test(newValue)) {
+                                                                    errorMsg = 'Pin Code must be a 6-digit number.';
+                                                                }
+                                                                // Update branchErrors for this branch
+                                                                setBranchErrors(prev => {
+                                                                    const updated = [...prev];
+                                                                    updated[idx] = {
+                                                                        ...updated[idx],
+                                                                        pincode: errorMsg
+                                                                    };
+                                                                    return updated;
+                                                                });
+                                                            }}
+                                                        />
+                                                        {branchErrors[idx]?.pincode && (
+                                                            <div className="ValidationColor">{branchErrors[idx].pincode}</div>
+                                                        )}
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            {/* <div className="col-md-4 mt-2">
+                                                {/* <div className="col-md-4 mt-2">
                                                 <div className="form-group">
                                                     <label>Telephone Phone No.</label>
                                                     <input className="form-control" type="text" value={branch.telephone} onChange={e => handleBranchChange(idx, 'telephone', e.target.value)} />
                                                 </div>
                                             </div> */}
-                                            <div className="col-md-4 mt-2">
-                                                <div className="form-group">
-                                                    <label>Contact Number</label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="text"
-                                                        value={branch.mobile}
-                                                        disabled
-                                                        maxLength={10}
-                                                        onChange={e => {
-                                                            let newValue = e.target.value.replace(/[^0-9]/g, ''); // Only digits
-                                                            if (newValue.length > 10) {
-                                                                newValue = newValue.slice(0, 10);
-                                                            }
-                                                            handleBranchChange(idx, 'mobile', newValue);
-                                                            // Mobile number live validation
-                                                            let errorMsg = '';
-                                                            if (newValue && newValue.length !== 10) {
-                                                                errorMsg = 'Contact Number must be exactly 10 digits.';
-                                                            }
-                                                            setBranchErrors(prev => {
-                                                                const updated = [...prev];
-                                                                updated[idx] = {
-                                                                    ...updated[idx],
-                                                                    mobile: errorMsg
-                                                                };
-                                                                return updated;
-                                                            });
-                                                        }}
-                                                    />
-                                                    {branchErrors[idx]?.mobile && (
-                                                        <div className="ValidationColor">{branchErrors[idx].mobile}</div>
-                                                    )}
+                                                <div className="col-md-4 mt-2">
+                                                    <div className="form-group">
+                                                        <label>Contact Number</label>
+                                                        <input
+                                                            className="form-control"
+                                                            type="text"
+                                                            value={branch.mobile}
+                                                            disabled
+                                                            maxLength={10}
+                                                            onChange={e => {
+                                                                let newValue = e.target.value.replace(/[^0-9]/g, ''); // Only digits
+                                                                if (newValue.length > 10) {
+                                                                    newValue = newValue.slice(0, 10);
+                                                                }
+                                                                handleBranchChange(idx, 'mobile', newValue);
+                                                                // Mobile number live validation
+                                                                let errorMsg = '';
+                                                                if (newValue && newValue.length !== 10) {
+                                                                    errorMsg = 'Contact Number must be exactly 10 digits.';
+                                                                }
+                                                                setBranchErrors(prev => {
+                                                                    const updated = [...prev];
+                                                                    updated[idx] = {
+                                                                        ...updated[idx],
+                                                                        mobile: errorMsg
+                                                                    };
+                                                                    return updated;
+                                                                });
+                                                            }}
+                                                        />
+                                                        {branchErrors[idx]?.mobile && (
+                                                            <div className="ValidationColor">{branchErrors[idx].mobile}</div>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
 
-                                        
+
                                     </CollapsedCardKYC>
                                 ))}
 
 
- {warehouses.map((warehouse, idx) => (
+                                {warehouses.map((warehouse, idx) => (
                                     <CollapsedCardKYC
                                         key={warehouse.id}
                                         title={`Factory Warehouse${warehouses.length > 1 ? ` ${idx + 1}` : ''}`}
                                     >
 
                                         <div className="card-body mt-0">
-                                        <div className="row">
-                                            <div className="col-md-4">
-                                                <div className="form-group">
-                                                    <label>Address <span>*</span></label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="text"
-                                                        value={warehouse.address}
-                                                        onChange={e => handleWarehouseChange(idx, 'address', e.target.value)}
-                                                        disabled
-                                                    />
-                                                    {warehouseErrors[idx]?.address && (
-                                                        <div className="ValidationColor">{warehouseErrors[idx].address}</div>
-                                                    )}
+                                            <div className="row">
+                                                <div className="col-md-4">
+                                                    <div className="form-group">
+                                                        <label>Address <span>*</span></label>
+                                                        <input
+                                                            className="form-control"
+                                                            type="text"
+                                                            value={warehouse.address}
+                                                            onChange={e => handleWarehouseChange(idx, 'address', e.target.value)}
+                                                            disabled
+                                                        />
+                                                        {warehouseErrors[idx]?.address && (
+                                                            <div className="ValidationColor">{warehouseErrors[idx].address}</div>
+                                                        )}
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <div className="col-md-4  ">
-                                                <div className="form-group">
-                                                    <label>Country<span>*</span></label>
-                                                    <SingleSelector
-                                                        options={countries || []}
-                                                        value={warehouse.country}
-                                                        onChange={selected => handleWarehouseChange(idx, 'country', selected)}
-                                                        isDisabled={true}
-                                                    />
-                                                    {warehouseErrors[idx]?.country && (
-                                                        <div className="ValidationColor">{warehouseErrors[idx].country}</div>
-                                                    )}
+                                                <div className="col-md-4  ">
+                                                    <div className="form-group">
+                                                        <label>Country<span>*</span></label>
+                                                        <SingleSelector
+                                                            options={countries || []}
+                                                            value={warehouse.country}
+                                                            onChange={selected => handleWarehouseChange(idx, 'country', selected)}
+                                                            isDisabled={true}
+                                                        />
+                                                        {warehouseErrors[idx]?.country && (
+                                                            <div className="ValidationColor">{warehouseErrors[idx].country}</div>
+                                                        )}
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <div className="col-md-4  ">
-                                                <div className="form-group">
-                                                    <label>State <span>*</span></label>
-                                                    <SingleSelector
-                                                        options={states || []}
-                                                        value={warehouse.state}
-                                                        onChange={selected => handleWarehouseChange(idx, 'state', selected)}
-                                                        isDisabled={true}
-                                                    />
-                                                    {warehouseErrors[idx]?.state && (
-                                                        <div className="ValidationColor">{warehouseErrors[idx].state}</div>
-                                                    )}
+                                                <div className="col-md-4  ">
+                                                    <div className="form-group">
+                                                        <label>State <span>*</span></label>
+                                                        <SingleSelector
+                                                            options={states || []}
+                                                            value={warehouse.state}
+                                                            onChange={selected => handleWarehouseChange(idx, 'state', selected)}
+                                                            isDisabled={true}
+                                                        />
+                                                        {warehouseErrors[idx]?.state && (
+                                                            <div className="ValidationColor">{warehouseErrors[idx].state}</div>
+                                                        )}
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <div className="col-md-4  mt-2">
-                                                <div className="form-group">
-                                                    <label>City <span>*</span></label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="text"
-                                                        value={warehouse.city}
-                                                        onChange={e => handleWarehouseChange(idx, 'city', e.target.value)}
-                                                        disabled
-                                                    />
-                                                    {warehouseErrors[idx]?.city && (
-                                                        <div className="ValidationColor">{warehouseErrors[idx].city}</div>
-                                                    )}
+                                                <div className="col-md-4  mt-2">
+                                                    <div className="form-group">
+                                                        <label>City <span>*</span></label>
+                                                        <input
+                                                            className="form-control"
+                                                            type="text"
+                                                            value={warehouse.city}
+                                                            onChange={e => handleWarehouseChange(idx, 'city', e.target.value)}
+                                                            disabled
+                                                        />
+                                                        {warehouseErrors[idx]?.city && (
+                                                            <div className="ValidationColor">{warehouseErrors[idx].city}</div>
+                                                        )}
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            {/* <div className="col-md-4  mt-2">
+                                                {/* <div className="col-md-4  mt-2">
                                                 <div className="form-group">
                                                     <label>Telephone Phone No.</label>
                                                     <input
@@ -11413,124 +11462,124 @@ const VendorRegistrationStepByStepForm = () => {
                                                     />
                                                 </div>
                                             </div> */}
-                                            <div className="col-md-4  mt-2">
-                                                <div className="form-group">
-                                                    <label>Contact Number <span>*</span></label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="text"
-                                                        value={warehouse.mobile}
-                                                        onChange={e => {
-                                                            // Allow only digits and limit to 10 characters
-                                                            const digits = e.target.value.replace(/\D/g, '').slice(0, 10);
-                                                            handleWarehouseChange(idx, 'mobile', digits);
-                                                        }}
-                                                        maxLength={10}
-                                                        disabled
-                                                    />
-                                                    {warehouseErrors[idx]?.mobile && (
-                                                        <div className="ValidationColor">{warehouseErrors[idx].mobile}</div>
-                                                    )}
+                                                <div className="col-md-4  mt-2">
+                                                    <div className="form-group">
+                                                        <label>Contact Number <span>*</span></label>
+                                                        <input
+                                                            className="form-control"
+                                                            type="text"
+                                                            value={warehouse.mobile}
+                                                            onChange={e => {
+                                                                // Allow only digits and limit to 10 characters
+                                                                const digits = e.target.value.replace(/\D/g, '').slice(0, 10);
+                                                                handleWarehouseChange(idx, 'mobile', digits);
+                                                            }}
+                                                            maxLength={10}
+                                                            disabled
+                                                        />
+                                                        {warehouseErrors[idx]?.mobile && (
+                                                            <div className="ValidationColor">{warehouseErrors[idx].mobile}</div>
+                                                        )}
+                                                    </div>
                                                 </div>
-                                            </div>
 
-                                            <div className="col-md-4 mt-2">
-                                                <div className="form-group">
-                                                    <label>Contact Person <span>*</span></label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="text"
-                                                        value={warehouse.contactPerson || ''}
-                                                        onChange={e => handleWarehouseChange(idx, 'contactPerson', e.target.value)}
-                                                        disabled
-                                                    />
-                                                    {warehouseErrors[idx]?.contactPerson && (
-                                                        <div className="ValidationColor">{warehouseErrors[idx].contactPerson}</div>
-                                                    )}
+                                                <div className="col-md-4 mt-2">
+                                                    <div className="form-group">
+                                                        <label>Contact Person <span>*</span></label>
+                                                        <input
+                                                            className="form-control"
+                                                            type="text"
+                                                            value={warehouse.contactPerson || ''}
+                                                            onChange={e => handleWarehouseChange(idx, 'contactPerson', e.target.value)}
+                                                            disabled
+                                                        />
+                                                        {warehouseErrors[idx]?.contactPerson && (
+                                                            <div className="ValidationColor">{warehouseErrors[idx].contactPerson}</div>
+                                                        )}
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <div className="col-md-4 mt-2">
-                                                <div className="form-group">
-                                                    <label>Contact Person Email <span>*</span></label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="email"
-                                                        placeholder="eg.: abc@gmail.com"
-                                                        value={warehouse.contactPersonEmail || ''}
-                                                        disabled
-                                                        onChange={e => {
-                                                            const val = e.target.value;
-                                                            // update warehouse state
-                                                            handleWarehouseChange(idx, 'contactPersonEmail', val);
-                                                            // live-validate email format and set inline error
-                                                            const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
-                                                            let errMsg = '';
-                                                            if (val && !emailRegex.test(val)) {
-                                                                errMsg = 'Invalid Email. eg.: abc@gmail.com';
-                                                            }
-                                                            setWarehouseErrors(prev => {
-                                                                const copy = Array.isArray(prev) ? [...prev] : [];
-                                                                // ensure index exists
-                                                                while (copy.length <= idx) copy.push({});
-                                                                copy[idx] = { ...copy[idx], contactPersonEmail: errMsg || undefined };
-                                                                return copy;
-                                                            });
-                                                        }}
-                                                    />
-                                                    {warehouseErrors[idx]?.contactPersonEmail && (
-                                                        <div className="ValidationColor">{warehouseErrors[idx].contactPersonEmail}</div>
-                                                    )}
+                                                <div className="col-md-4 mt-2">
+                                                    <div className="form-group">
+                                                        <label>Contact Person Email <span>*</span></label>
+                                                        <input
+                                                            className="form-control"
+                                                            type="email"
+                                                            placeholder="eg.: abc@gmail.com"
+                                                            value={warehouse.contactPersonEmail || ''}
+                                                            disabled
+                                                            onChange={e => {
+                                                                const val = e.target.value;
+                                                                // update warehouse state
+                                                                handleWarehouseChange(idx, 'contactPersonEmail', val);
+                                                                // live-validate email format and set inline error
+                                                                const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+                                                                let errMsg = '';
+                                                                if (val && !emailRegex.test(val)) {
+                                                                    errMsg = 'Invalid Email. eg.: abc@gmail.com';
+                                                                }
+                                                                setWarehouseErrors(prev => {
+                                                                    const copy = Array.isArray(prev) ? [...prev] : [];
+                                                                    // ensure index exists
+                                                                    while (copy.length <= idx) copy.push({});
+                                                                    copy[idx] = { ...copy[idx], contactPersonEmail: errMsg || undefined };
+                                                                    return copy;
+                                                                });
+                                                            }}
+                                                        />
+                                                        {warehouseErrors[idx]?.contactPersonEmail && (
+                                                            <div className="ValidationColor">{warehouseErrors[idx].contactPersonEmail}</div>
+                                                        )}
+                                                    </div>
                                                 </div>
-                                            </div>
 
-                                            <div className="col-md-4  mt-2">
-                                                <div className="form-group">
-                                                    <label>Attachment</label>
-                                                    {warehouse.attachment && (
-                                                        Array.isArray(warehouse.attachment) ? (
-                                                            <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
-                                                                {warehouse.attachment.map((att, ai) => {
-                                                                    const filename = att?.document_name || att?.filename || att?.name || String(att);
-                                                                    const rawUrl = att?.attachment_url || att?.file_url || att?.url || (typeof att === 'string' ? att : null);
-                                                                    const href = rawUrl ? (String(rawUrl).startsWith('http') ? rawUrl : `${baseURL}${rawUrl}`) : null;
-                                                                    return (
-                                                                        <li key={ai} style={{ marginBottom: 6 }}>
-                                                                            {href ? (
-                                                                                <a href={href} download className="text-primary d-flex align-items-center">
+                                                <div className="col-md-4  mt-2">
+                                                    <div className="form-group">
+                                                        <label>Attachment</label>
+                                                        {warehouse.attachment && (
+                                                            Array.isArray(warehouse.attachment) ? (
+                                                                <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
+                                                                    {warehouse.attachment.map((att, ai) => {
+                                                                        const filename = att?.document_name || att?.filename || att?.name || String(att);
+                                                                        const rawUrl = att?.attachment_url || att?.file_url || att?.url || (typeof att === 'string' ? att : null);
+                                                                        const href = rawUrl ? (String(rawUrl).startsWith('http') ? rawUrl : `${baseURL}${rawUrl}`) : null;
+                                                                        return (
+                                                                            <li key={ai} style={{ marginBottom: 6 }}>
+                                                                                {href ? (
+                                                                                    <a href={href} download className="text-primary d-flex align-items-center">
+                                                                                        <span style={{ fontSize: 12 }}>{filename}</span>
+                                                                                    </a>
+                                                                                ) : (
                                                                                     <span style={{ fontSize: 12 }}>{filename}</span>
-                                                                                </a>
-                                                                            ) : (
-                                                                                <span style={{ fontSize: 12 }}>{filename}</span>
-                                                                            )}
-                                                                        </li>
-                                                                    );
-                                                                })}
-                                                            </ul>
-                                                        ) : (
-                                                            typeof warehouse.attachment === 'string' ? (
-                                                                <a href={`${baseURL}${warehouse.attachment}`} download className="text-primary d-flex align-items-center mt-2">
-                                                                    <span className="me-2">Existing File:</span>
-                                                                    <span>{warehouse.attachment.split('/').pop()}</span>
-                                                                </a>
-                                                            ) : warehouse.attachment.filename ? (
-                                                                <div className="mt-0">Existing File: {warehouse.attachment.filename}</div>
-                                                            ) : warehouse.attachment.name ? (
-                                                                <div className="mt-0">Existing File: {warehouse.attachment.name}</div>
-                                                            ) : null
-                                                        )
-                                                    )}
-                                                    <input
-                                                        className="form-control"
-                                                        disabled
-                                                        type="file"
-                                                        onChange={e => handleWarehouseChange(idx, 'attachment', e.target.files[0])}
-                                                    />
-                                                    {/* Show existing or selected file name/link */}
+                                                                                )}
+                                                                            </li>
+                                                                        );
+                                                                    })}
+                                                                </ul>
+                                                            ) : (
+                                                                typeof warehouse.attachment === 'string' ? (
+                                                                    <a href={`${baseURL}${warehouse.attachment}`} download className="text-primary d-flex align-items-center mt-2">
+                                                                        <span className="me-2">Existing File:</span>
+                                                                        <span>{warehouse.attachment.split('/').pop()}</span>
+                                                                    </a>
+                                                                ) : warehouse.attachment.filename ? (
+                                                                    <div className="mt-0">Existing File: {warehouse.attachment.filename}</div>
+                                                                ) : warehouse.attachment.name ? (
+                                                                    <div className="mt-0">Existing File: {warehouse.attachment.name}</div>
+                                                                ) : null
+                                                            )
+                                                        )}
+                                                        <input
+                                                            className="form-control"
+                                                            disabled
+                                                            type="file"
+                                                            onChange={e => handleWarehouseChange(idx, 'attachment', e.target.files[0])}
+                                                        />
+                                                        {/* Show existing or selected file name/link */}
 
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
                                     </CollapsedCardKYC>
                                 ))}
 
@@ -11543,277 +11592,277 @@ const VendorRegistrationStepByStepForm = () => {
                                         key={person.id}
                                         title={`Contact Person${contactPersons.length > 1 ? ` ${idx + 1}` : ""}`}
                                     >
-                                       
-                                                                            <div className="card-body mt-0">
-                                        <div className="row">
-                                            {/* Escalation Level */}
-                                            <div className="col-md-4  ">
-                                                <div className="form-group">
-                                                    <label>
-                                                        Escalation Level<span>*</span>
-                                                        <TooltipIcon message="Select the escalation level for the contact person. This indicates the priority or seniority in the escalation process for any issues or concerns." />
-                                                    </label>
-                                                    <SingleSelector
-                                                        options={escalationLevelOptions}
-                                                        value={person.escalationLevel}
-                                                        onChange={(selected) =>
-                                                            handleContactPersonChange(idx, "escalationLevel", selected)
-                                                        }
-                                                        isDisabled={true}
-                                                    />
-                                                    {contactPersonErrors[idx]?.escalationLevel && (
-                                                        <div className="ValidationColor">{contactPersonErrors[idx].escalationLevel}</div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                            {/* Name Title */}
-                                            <div className="col-md-4 ">
-                                                <div className="form-group">
-                                                    <label>
-                                                        Name Title <span>*</span>
-                                                        <TooltipIcon message="Select the appropriate title for the employee (e.g. Mr., Mrs., Dr. Ms.). This helps in addressing the employee correctly in formal communications." />
-                                                    </label>
-                                                    <SingleSelector
-                                                        options={nameTitleOptions}
-                                                        value={person.nameTitle}
-                                                        onChange={(selected) =>
-                                                            handleContactPersonChange(idx, "nameTitle", selected)
-                                                        }
-                                                        isDisabled={true}
-                                                    />
-                                                    {contactPersonErrors[idx]?.nameTitle && (
-                                                        <div className="ValidationColor">{contactPersonErrors[idx].nameTitle}</div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                            {/* First Name */}
-                                            <div className="col-md-4">
-                                                <div className="form-group">
-                                                    <label>
-                                                        First Name <span>*</span>
-                                                        <TooltipIcon message="Please provide the first name Of the designated contact person for your organization. This is required for direct correspondence." />
-                                                    </label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="text"
-                                                        value={person.firstName}
-                                                        onChange={(e) =>
-                                                            handleContactPersonChange(idx, "firstName", e.target.value)
-                                                        }
-                                                         disabled
-                                                    />
-                                                    {contactPersonErrors[idx]?.firstName && (
-                                                        <div className="ValidationColor">{contactPersonErrors[idx].firstName}</div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                            {/* Last Name */}
-                                            <div className="col-md-4 mt-2">
-                                                <div className="form-group">
-                                                    <label>
-                                                        Last Name<span>*</span>
-                                                        <TooltipIcon message="Please provide the last name of the designated contact person for your organization. This is required for direct correspondence." />
-                                                    </label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="text"
-                                                        value={person.lastName}
-                                                        onChange={(e) =>
-                                                            handleContactPersonChange(idx, "lastName", e.target.value)
-                                                        }
-                                                         disabled
-                                                    />
-                                                    {contactPersonErrors[idx]?.lastName && (
-                                                        <div className="ValidationColor">{contactPersonErrors[idx].lastName}</div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                            {/* Designation */}
-                                            <div className="col-md-4  mt-2">
-                                                <div className="form-group">
-                                                    <label>
-                                                        Designation<span>*</span>
-                                                        <TooltipIcon message="Enter the official designation or job title of the contact person within the organization." />
-                                                    </label>
-                                                    <SingleSelector
-                                                        options={designationOptions}
-                                                        value={person.designation}
-                                                        onChange={(selected) =>
-                                                            handleContactPersonChange(idx, "designation", selected)
-                                                        }
-                                                        isDisabled={true}
-                                                    />
-                                                    {contactPersonErrors[idx]?.designation && (
-                                                        <div className="ValidationColor">{contactPersonErrors[idx].designation}</div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                            {/* Primary Email */}
-                                            <div className="col-md-4  mt-2">
-                                                <div className="form-group">
-                                                    <label>
-                                                        Primary Email ID <span>*</span>
-                                                        <TooltipIcon message=" Enter the primary email address of the contact person. This will be used for communication and correspondence." />
-                                                    </label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="text"
-                                                        placeholder="eg.: abc@gmail.com"
-                                                        value={person.primaryEmail}
-                                                         disabled
-                                                        onChange={(e) => {
-                                                            const val = e.target.value;
-                                                            handleContactPersonChange(idx, "primaryEmail", val);
-                                                            const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
-                                                            let err = '';
-                                                            if (!val) {
-                                                                err = 'Primary Email is required.';
-                                                            } else if (!emailRegex.test(val)) {
-                                                                err = 'Invalid Email. eg.: abc@gmail.com';
-                                                            }
-                                                            setContactPersonErrors(prev => {
-                                                                const copy = Array.isArray(prev) ? [...prev] : [];
-                                                                while (copy.length <= idx) copy.push({});
-                                                                copy[idx] = { ...copy[idx], primaryEmail: err || undefined };
-                                                                return copy;
-                                                            });
-                                                        }}
-                                                    />
-                                                    {contactPersonErrors[idx]?.primaryEmail && (
-                                                        <div className="ValidationColor">{contactPersonErrors[idx].primaryEmail}</div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                            {/* Secondary Email */}
-                                            <div className="col-md-4  mt-2">
-                                                <div className="form-group">
-                                                    <label>Secondary Email ID</label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="text"
-                                                         disabled
-                                                        placeholder="eg.: abc@gmail.com"
-                                                        value={person.secondaryEmail}
-                                                        onChange={(e) => {
-                                                            const val = e.target.value;
-                                                            handleContactPersonChange(idx, "secondaryEmail", val);
-                                                            const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
-                                                            let err = '';
-                                                            if (val && !emailRegex.test(val)) {
-                                                                err = 'Invalid Email. eg.: abc@gmail.com';
-                                                            }
-                                                            setContactPersonErrors(prev => {
-                                                                const copy = Array.isArray(prev) ? [...prev] : [];
-                                                                while (copy.length <= idx) copy.push({});
-                                                                copy[idx] = { ...copy[idx], secondaryEmail: err || undefined };
-                                                                return copy;
-                                                            });
-                                                        }}
-                                                    />
-                                                    {contactPersonErrors[idx]?.secondaryEmail && (
-                                                        <div className="ValidationColor">{contactPersonErrors[idx].secondaryEmail}</div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                            {/* Primary Mobile */}
-                                            <div className="col-md-4  mt-2">
-                                                <div className="form-group">
-                                                    <label>
-                                                        Primary Contact No. <span>*</span>
-                                                        <TooltipIcon message="Enter the contact person's primary mobile number. This will be used for urgent communication and notifications." />
-                                                    </label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="text"
-                                                        value={person.primaryMobile}
-                                                        onChange={(e) =>
-                                                            handleContactPersonChange(idx, "primaryMobile", e.target.value)
-                                                        }
-                                                         disabled
-                                                    />
-                                                    {contactPersonErrors[idx]?.primaryMobile && (
-                                                        <div className="ValidationColor">{contactPersonErrors[idx].primaryMobile}</div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                            {/* Secondary Mobile */}
-                                            <div className="col-md-4  mt-2">
-                                                <div className="form-group">
-                                                    <label>Secondary Contact No.</label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="text"
-                                                        value={person.secondaryMobile}
-                                                        onChange={(e) =>
-                                                            handleContactPersonChange(idx, "secondaryMobile", e.target.value)
-                                                        }
-                                                         disabled
-                                                    />
-                                                    {contactPersonErrors[idx]?.secondaryMobile && (
-                                                        <div className="ValidationColor">{contactPersonErrors[idx].secondaryMobile}</div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                            {/* Nationality */}
-                                            <div className="col-md-4  mt-2">
-                                                <div className="form-group">
-                                                    <label>Nationality</label>
-                                                    <SingleSelector
-                                                        options={[
-                                                            { label: 'Indian', value: 'Indian' },
-                                                            { label: 'Chinese', value: 'Chinese' },
-                                                            { label: 'American', value: 'American' }
-                                                        ]}
-                                                        value={person.nationality}
-                                                        onChange={(selected) =>
-                                                            handleContactPersonChange(idx, "nationality", selected)
-                                                        }
-                                                        isDisabled={true}
-                                                    />
-                                                </div>
-                                            </div>
 
-                                            {/* Date of Birth */}
-                                            <div className="col-md-4  mt-2">
-                                                <div className="form-group">
-                                                    <label>Date of Birth</label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="date"
-                                                        value={person.dob}
-                                                         disabled
-                                                        onChange={(e) =>
-                                                            handleContactPersonChange(idx, "dob", e.target.value)
-                                                        }
-                                                    />
-                                                    {contactPersonErrors[idx]?.dob && (
-                                                        <div className="ValidationColor">{contactPersonErrors[idx].dob}</div>
-                                                    )}
+                                        <div className="card-body mt-0">
+                                            <div className="row">
+                                                {/* Escalation Level */}
+                                                <div className="col-md-4  ">
+                                                    <div className="form-group">
+                                                        <label>
+                                                            Escalation Level<span>*</span>
+                                                            <TooltipIcon message="Select the escalation level for the contact person. This indicates the priority or seniority in the escalation process for any issues or concerns." />
+                                                        </label>
+                                                        <SingleSelector
+                                                            options={escalationLevelOptions}
+                                                            value={person.escalationLevel}
+                                                            onChange={(selected) =>
+                                                                handleContactPersonChange(idx, "escalationLevel", selected)
+                                                            }
+                                                            isDisabled={true}
+                                                        />
+                                                        {contactPersonErrors[idx]?.escalationLevel && (
+                                                            <div className="ValidationColor">{contactPersonErrors[idx].escalationLevel}</div>
+                                                        )}
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            {/* Attachment */}
-                                            <div className="col-md-4  mt-2">
-                                                <div className="form-group">
-                                                    <label>Attachment</label>
-                                                    <input
-                                                        className="form-control"
-                                                        disabled
-                                                        type="file"
-                                                        onChange={(e) =>
-                                                            handleContactPersonChange(idx, "attachment", e.target.files[0])
-                                                        }
-                                                    />
+                                                {/* Name Title */}
+                                                <div className="col-md-4 ">
+                                                    <div className="form-group">
+                                                        <label>
+                                                            Name Title <span>*</span>
+                                                            <TooltipIcon message="Select the appropriate title for the employee (e.g. Mr., Mrs., Dr. Ms.). This helps in addressing the employee correctly in formal communications." />
+                                                        </label>
+                                                        <SingleSelector
+                                                            options={nameTitleOptions}
+                                                            value={person.nameTitle}
+                                                            onChange={(selected) =>
+                                                                handleContactPersonChange(idx, "nameTitle", selected)
+                                                            }
+                                                            isDisabled={true}
+                                                        />
+                                                        {contactPersonErrors[idx]?.nameTitle && (
+                                                            <div className="ValidationColor">{contactPersonErrors[idx].nameTitle}</div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                {/* First Name */}
+                                                <div className="col-md-4">
+                                                    <div className="form-group">
+                                                        <label>
+                                                            First Name <span>*</span>
+                                                            <TooltipIcon message="Please provide the first name Of the designated contact person for your organization. This is required for direct correspondence." />
+                                                        </label>
+                                                        <input
+                                                            className="form-control"
+                                                            type="text"
+                                                            value={person.firstName}
+                                                            onChange={(e) =>
+                                                                handleContactPersonChange(idx, "firstName", e.target.value)
+                                                            }
+                                                            disabled
+                                                        />
+                                                        {contactPersonErrors[idx]?.firstName && (
+                                                            <div className="ValidationColor">{contactPersonErrors[idx].firstName}</div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                {/* Last Name */}
+                                                <div className="col-md-4 mt-2">
+                                                    <div className="form-group">
+                                                        <label>
+                                                            Last Name<span>*</span>
+                                                            <TooltipIcon message="Please provide the last name of the designated contact person for your organization. This is required for direct correspondence." />
+                                                        </label>
+                                                        <input
+                                                            className="form-control"
+                                                            type="text"
+                                                            value={person.lastName}
+                                                            onChange={(e) =>
+                                                                handleContactPersonChange(idx, "lastName", e.target.value)
+                                                            }
+                                                            disabled
+                                                        />
+                                                        {contactPersonErrors[idx]?.lastName && (
+                                                            <div className="ValidationColor">{contactPersonErrors[idx].lastName}</div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                {/* Designation */}
+                                                <div className="col-md-4  mt-2">
+                                                    <div className="form-group">
+                                                        <label>
+                                                            Designation<span>*</span>
+                                                            <TooltipIcon message="Enter the official designation or job title of the contact person within the organization." />
+                                                        </label>
+                                                        <SingleSelector
+                                                            options={designationOptions}
+                                                            value={person.designation}
+                                                            onChange={(selected) =>
+                                                                handleContactPersonChange(idx, "designation", selected)
+                                                            }
+                                                            isDisabled={true}
+                                                        />
+                                                        {contactPersonErrors[idx]?.designation && (
+                                                            <div className="ValidationColor">{contactPersonErrors[idx].designation}</div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                {/* Primary Email */}
+                                                <div className="col-md-4  mt-2">
+                                                    <div className="form-group">
+                                                        <label>
+                                                            Primary Email ID <span>*</span>
+                                                            <TooltipIcon message=" Enter the primary email address of the contact person. This will be used for communication and correspondence." />
+                                                        </label>
+                                                        <input
+                                                            className="form-control"
+                                                            type="text"
+                                                            placeholder="eg.: abc@gmail.com"
+                                                            value={person.primaryEmail}
+                                                            disabled
+                                                            onChange={(e) => {
+                                                                const val = e.target.value;
+                                                                handleContactPersonChange(idx, "primaryEmail", val);
+                                                                const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+                                                                let err = '';
+                                                                if (!val) {
+                                                                    err = 'Primary Email is required.';
+                                                                } else if (!emailRegex.test(val)) {
+                                                                    err = 'Invalid Email. eg.: abc@gmail.com';
+                                                                }
+                                                                setContactPersonErrors(prev => {
+                                                                    const copy = Array.isArray(prev) ? [...prev] : [];
+                                                                    while (copy.length <= idx) copy.push({});
+                                                                    copy[idx] = { ...copy[idx], primaryEmail: err || undefined };
+                                                                    return copy;
+                                                                });
+                                                            }}
+                                                        />
+                                                        {contactPersonErrors[idx]?.primaryEmail && (
+                                                            <div className="ValidationColor">{contactPersonErrors[idx].primaryEmail}</div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                {/* Secondary Email */}
+                                                <div className="col-md-4  mt-2">
+                                                    <div className="form-group">
+                                                        <label>Secondary Email ID</label>
+                                                        <input
+                                                            className="form-control"
+                                                            type="text"
+                                                            disabled
+                                                            placeholder="eg.: abc@gmail.com"
+                                                            value={person.secondaryEmail}
+                                                            onChange={(e) => {
+                                                                const val = e.target.value;
+                                                                handleContactPersonChange(idx, "secondaryEmail", val);
+                                                                const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+                                                                let err = '';
+                                                                if (val && !emailRegex.test(val)) {
+                                                                    err = 'Invalid Email. eg.: abc@gmail.com';
+                                                                }
+                                                                setContactPersonErrors(prev => {
+                                                                    const copy = Array.isArray(prev) ? [...prev] : [];
+                                                                    while (copy.length <= idx) copy.push({});
+                                                                    copy[idx] = { ...copy[idx], secondaryEmail: err || undefined };
+                                                                    return copy;
+                                                                });
+                                                            }}
+                                                        />
+                                                        {contactPersonErrors[idx]?.secondaryEmail && (
+                                                            <div className="ValidationColor">{contactPersonErrors[idx].secondaryEmail}</div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                {/* Primary Mobile */}
+                                                <div className="col-md-4  mt-2">
+                                                    <div className="form-group">
+                                                        <label>
+                                                            Primary Contact No. <span>*</span>
+                                                            <TooltipIcon message="Enter the contact person's primary mobile number. This will be used for urgent communication and notifications." />
+                                                        </label>
+                                                        <input
+                                                            className="form-control"
+                                                            type="text"
+                                                            value={person.primaryMobile}
+                                                            onChange={(e) =>
+                                                                handleContactPersonChange(idx, "primaryMobile", e.target.value)
+                                                            }
+                                                            disabled
+                                                        />
+                                                        {contactPersonErrors[idx]?.primaryMobile && (
+                                                            <div className="ValidationColor">{contactPersonErrors[idx].primaryMobile}</div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                {/* Secondary Mobile */}
+                                                <div className="col-md-4  mt-2">
+                                                    <div className="form-group">
+                                                        <label>Secondary Contact No.</label>
+                                                        <input
+                                                            className="form-control"
+                                                            type="text"
+                                                            value={person.secondaryMobile}
+                                                            onChange={(e) =>
+                                                                handleContactPersonChange(idx, "secondaryMobile", e.target.value)
+                                                            }
+                                                            disabled
+                                                        />
+                                                        {contactPersonErrors[idx]?.secondaryMobile && (
+                                                            <div className="ValidationColor">{contactPersonErrors[idx].secondaryMobile}</div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                {/* Nationality */}
+                                                <div className="col-md-4  mt-2">
+                                                    <div className="form-group">
+                                                        <label>Nationality</label>
+                                                        <SingleSelector
+                                                            options={[
+                                                                { label: 'Indian', value: 'Indian' },
+                                                                { label: 'Chinese', value: 'Chinese' },
+                                                                { label: 'American', value: 'American' }
+                                                            ]}
+                                                            value={person.nationality}
+                                                            onChange={(selected) =>
+                                                                handleContactPersonChange(idx, "nationality", selected)
+                                                            }
+                                                            isDisabled={true}
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                {/* Date of Birth */}
+                                                <div className="col-md-4  mt-2">
+                                                    <div className="form-group">
+                                                        <label>Date of Birth</label>
+                                                        <input
+                                                            className="form-control"
+                                                            type="date"
+                                                            value={person.dob}
+                                                            disabled
+                                                            onChange={(e) =>
+                                                                handleContactPersonChange(idx, "dob", e.target.value)
+                                                            }
+                                                        />
+                                                        {contactPersonErrors[idx]?.dob && (
+                                                            <div className="ValidationColor">{contactPersonErrors[idx].dob}</div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                {/* Attachment */}
+                                                <div className="col-md-4  mt-2">
+                                                    <div className="form-group">
+                                                        <label>Attachment</label>
+                                                        <input
+                                                            className="form-control"
+                                                            disabled
+                                                            type="file"
+                                                            onChange={(e) =>
+                                                                handleContactPersonChange(idx, "attachment", e.target.files[0])
+                                                            }
+                                                        />
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
                                     </CollapsedCardKYC>
                                 ))}
 
 
 
 
-                               
+
 
 
 
@@ -11866,27 +11915,27 @@ const VendorRegistrationStepByStepForm = () => {
                                                         <input className="form-control" type="text" value={owner.mobile || ''} disabled readOnly />
                                                     </div>
                                                 </div>
-                                               
 
-                                                  <div className="col-md-4 mt-2">
-                                                <div className="form-group">
-                                                    <label>Attachment</label>
-                                                    {owner?.attachment && (
-                                                        <div className="">
 
-                                                            <span>Existing File : {owner.attachment.name || owner.attachment.filename || 'Selected file'}</span>
+                                                <div className="col-md-4 mt-2">
+                                                    <div className="form-group">
+                                                        <label>Attachment</label>
+                                                        {owner?.attachment && (
+                                                            <div className="">
 
-                                                        </div>
-                                                    )}
-                                                    <input
-                                                        className="form-control"
-                                                        disabled
-                                                        type="file"
-                                                        onChange={e => handleOwnerChange(idx, 'attachment', e.target.files[0])}
-                                                    />
+                                                                <span>Existing File : {owner.attachment.name || owner.attachment.filename || 'Selected file'}</span>
 
+                                                            </div>
+                                                        )}
+                                                        <input
+                                                            className="form-control"
+                                                            disabled
+                                                            type="file"
+                                                            onChange={e => handleOwnerChange(idx, 'attachment', e.target.files[0])}
+                                                        />
+
+                                                    </div>
                                                 </div>
-                                            </div>
                                             </div>
                                         </div>
 
@@ -11895,7 +11944,7 @@ const VendorRegistrationStepByStepForm = () => {
 
 
 
-                             
+
 
                                 {/* Preview: Product & Services (readonly) */}
 
@@ -11913,195 +11962,195 @@ const VendorRegistrationStepByStepForm = () => {
 
                                 {/* Preview: Turnover Table (readonly) */}
 
-                                
-                                 <div className="mx-3 mt-4">
-                                <div className="col-md-12">
-                                    <h5 className="mb-3">Annual Turnover
-                                        <TooltipIcon message="Enter the value of Turnover in Lacs." />
-                                    </h5>
-                                </div>
-                                <div className="tbl-container mt-3 ">
-                                    <table className=" w-100">
-                                        <thead>
-                                            <tr>
-                                                <th>FY</th>
-                                                <th>Turnover in Lacs</th>
-                                                <th>Attachment</th>
-                                                <th>Key Markets</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {annualTurnover.map((item, idx) => (
-                                                <tr key={item.year}>
-                                                    <td>{item.year}</td>
-                                                    <td>
-                                                        <input
-                                                        disabled
-                                                            className="form-control"
-                                                            type="number"
-                                                            placeholder="Enter Turnover"
-                                                            value={item.turnover}
-                                                            onChange={e => handleAnnualTurnoverChange(idx, 'turnover', e.target.value)}
-                                                        />
-                                                    </td>
-                                                    <td>
-                                                        {item.attachment && (
-                                                            <div className="mb-2">
-                                                                {typeof item.attachment === 'string' ? (
-                                                                    <a href={`${baseURL}${item.attachment}`} target="_blank" rel="noreferrer" className="text-primary d-flex align-items-center">
-                                                                        <span className="me-2">{item.attachment.split('/').pop()}</span>
-                                                                    </a>
-                                                                ) : (
-                                                                    <span>Existing File : {item.attachment.filename || item.attachment.name || 'Selected file'}</span>
-                                                                )}
-                                                            </div>
-                                                        )}
-                                                        <input
-                                                            className="form-control"
-                                                            type="file"
-                                                             disabled
-                                                            onChange={e => handleAnnualTurnoverFileChange(idx, e.target.files[0])}
-                                                        />
-                                                        {turnoverErrors[item.year]?.attachment && (
-                                                            <div className="ValidationColor">{turnoverErrors[item.year].attachment}</div>
-                                                        )}
-                                                    </td>
-                                                    <td>
-                                                        <input
-                                                            className="form-control"
-                                                            type="text"
-                                                            placeholder="Enter Key Markets"
-                                                            value={item.keyMarkets}
-                                                             disabled
-                                                            onChange={e => handleAnnualTurnoverChange(idx, 'keyMarkets', e.target.value)}
-                                                        />
-                                                    </td>
+
+                                <div className="mx-3 mt-4">
+                                    <div className="col-md-12">
+                                        <h5 className="mb-3">Annual Turnover
+                                            <TooltipIcon message="Enter the value of Turnover in Lacs." />
+                                        </h5>
+                                    </div>
+                                    <div className="tbl-container mt-3 ">
+                                        <table className=" w-100">
+                                            <thead>
+                                                <tr>
+                                                    <th>FY</th>
+                                                    <th>Turnover in Lacs</th>
+                                                    <th>Attachment</th>
+                                                    <th>Key Markets</th>
                                                 </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
+                                            </thead>
+                                            <tbody>
+                                                {annualTurnover.map((item, idx) => (
+                                                    <tr key={item.year}>
+                                                        <td>{item.year}</td>
+                                                        <td>
+                                                            <input
+                                                                disabled
+                                                                className="form-control"
+                                                                type="number"
+                                                                placeholder="Enter Turnover"
+                                                                value={item.turnover}
+                                                                onChange={e => handleAnnualTurnoverChange(idx, 'turnover', e.target.value)}
+                                                            />
+                                                        </td>
+                                                        <td>
+                                                            {item.attachment && (
+                                                                <div className="mb-2">
+                                                                    {typeof item.attachment === 'string' ? (
+                                                                        <a href={`${baseURL}${item.attachment}`} target="_blank" rel="noreferrer" className="text-primary d-flex align-items-center">
+                                                                            <span className="me-2">{item.attachment.split('/').pop()}</span>
+                                                                        </a>
+                                                                    ) : (
+                                                                        <span>Existing File : {item.attachment.filename || item.attachment.name || 'Selected file'}</span>
+                                                                    )}
+                                                                </div>
+                                                            )}
+                                                            <input
+                                                                className="form-control"
+                                                                type="file"
+                                                                disabled
+                                                                onChange={e => handleAnnualTurnoverFileChange(idx, e.target.files[0])}
+                                                            />
+                                                            {turnoverErrors[item.year]?.attachment && (
+                                                                <div className="ValidationColor">{turnoverErrors[item.year].attachment}</div>
+                                                            )}
+                                                        </td>
+                                                        <td>
+                                                            <input
+                                                                className="form-control"
+                                                                type="text"
+                                                                placeholder="Enter Key Markets"
+                                                                value={item.keyMarkets}
+                                                                disabled
+                                                                onChange={e => handleAnnualTurnoverChange(idx, 'keyMarkets', e.target.value)}
+                                                            />
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
-                            </div>
 
                                 {/* ****** */}
 
-                                 <div className="card mx-4 pb-4 mt-4">
-                            <div className="row mt-4 mx-2">
+                                <div className="card mx-4 pb-4 mt-4">
+                                    <div className="row mt-4 mx-2">
 
-                                {statutoryDetails && statutoryDetails.length > 0 && (
+                                        {statutoryDetails && statutoryDetails.length > 0 && (
 
-                                    <div className="col-md-12">
-                                        <h5 className="mb-3">Additional Vendor Statutory Details
-                                            <TooltipIcon message="If not applicable then keep The field blank Additional Vendor Statutory Details." />
-                                        </h5>
-                                    </div>
-                                )}
+                                            <div className="col-md-12">
+                                                <h5 className="mb-3">Additional Vendor Statutory Details
+                                                    <TooltipIcon message="If not applicable then keep The field blank Additional Vendor Statutory Details." />
+                                                </h5>
+                                            </div>
+                                        )}
 
-                                {/* <div>{"*********************************************************"} </div> */}
-
-                               
+                                        {/* <div>{"*********************************************************"} </div> */}
 
 
-                                  {statutoryDetails?.map((field, index) => (
-                                                        <div className="row" key={`${field.id}-${index}`}>
-                                                          <div className="col-md-6 mt-3">
-                                                            <div className="form-group">
-                                                              <label>{field.name}</label>
-                                                              <input
-                                                                type="text"
-                                                                className="form-control"
-                                                                placeholder={`Enter ${field.name}`}
-                                                                // value={statutoryInputs[field.code]?.input || field.statutory_detail_value}
-                                                                value={
-                                                                  statutoryInputs[field.code]?.input !== undefined
+
+
+                                        {statutoryDetails?.map((field, index) => (
+                                            <div className="row" key={`${field.id}-${index}`}>
+                                                <div className="col-md-6 mt-3">
+                                                    <div className="form-group">
+                                                        <label>{field.name}</label>
+                                                        <input
+                                                            type="text"
+                                                            className="form-control"
+                                                            placeholder={`Enter ${field.name}`}
+                                                            // value={statutoryInputs[field.code]?.input || field.statutory_detail_value}
+                                                            value={
+                                                                statutoryInputs[field.code]?.input !== undefined
                                                                     ? statutoryInputs[field.code]?.input
                                                                     : field.statutory_detail_value || ""
-                                                                }
-                                                                onChange={(e) =>
-                                                                  handleStatutoryInputChange(field.code, e.target.value, field.id, field.statutory_detail_value)
-                                                                }
-                                                                disabled
-                                                              />
-                                                            </div>
-                                                          </div>
-                                
-                                                          <div className="col-md-6 mt-3">
-                                                            <div className="form-group">
-                                                              <div className="d-flex align-items-center mb-2">
-                                                                <label className="mb-0">
-                                                                  Attachment
-                                                                  {shouldShowAttachmentStar(
+                                                            }
+                                                            onChange={(e) =>
+                                                                handleStatutoryInputChange(field.code, e.target.value, field.id, field.statutory_detail_value)
+                                                            }
+                                                            disabled
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                <div className="col-md-6 mt-3">
+                                                    <div className="form-group">
+                                                        <div className="d-flex align-items-center mb-2">
+                                                            <label className="mb-0">
+                                                                Attachment
+                                                                {shouldShowAttachmentStar(
                                                                     field.code,
                                                                     field.statutory_detail_value
-                                                                  ) && <span>  *</span>}
-                                                                </label>
-                                                                {field?.attachment_url && (
-                                                                  <span className="ms-2">
+                                                                ) && <span>  *</span>}
+                                                            </label>
+                                                            {field?.attachment_url && (
+                                                                <span className="ms-2">
                                                                     <a
-                                                                      href={`${baseURL}${field?.attachment_url}`}
-                                                                      download
-                                                                      className="text-primary d-flex align-items-center"
+                                                                        href={`${baseURL}${field?.attachment_url}`}
+                                                                        download
+                                                                        className="text-primary d-flex align-items-center"
                                                                     >
-                                                                      <span className="me-2 ms-3">Existing Files:</span>
-                                                                      <svg
-                                                                        xmlns="http://www.w3.org/2000/svg"
-                                                                        width={24}
-                                                                        height={24}
-                                                                        fill="#DE7008"
-                                                                        className="bi bi-download"
-                                                                        viewBox="0 0 16 16"
-                                                                      >
-                                                                        <path
-                                                                          d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
-                                                                        />
-                                                                        <path
-                                                                          d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
-                                                                        />
-                                                                      </svg>
-                                                                      {/* {field?.name ? field.name : "No Document Available"} */}
+                                                                        <span className="me-2 ms-3">Existing Files:</span>
+                                                                        <svg
+                                                                            xmlns="http://www.w3.org/2000/svg"
+                                                                            width={24}
+                                                                            height={24}
+                                                                            fill="#DE7008"
+                                                                            className="bi bi-download"
+                                                                            viewBox="0 0 16 16"
+                                                                        >
+                                                                            <path
+                                                                                d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
+                                                                            />
+                                                                            <path
+                                                                                d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
+                                                                            />
+                                                                        </svg>
+                                                                        {/* {field?.name ? field.name : "No Document Available"} */}
                                                                     </a>
-                                                                  </span>
-                                                                )}
-                                                              </div>
-                                                              <input
-                                                                type="file"
-                                                                 disabled
-                                                                className="form-control"
-                                                                accept=".pdf,.jpg,.jpeg,.png"
-                                                                onChange={(e) =>
-                                                                  handleStatutoryFileChange(field.code, e.target.files[0], field.id, field.statutory_detail_value)
-                                                                }
-                                                              />
-                                                              {statutoryErrors[field.code] && (
-                                                                <div className="ValidationColor">
-                                                                  {statutoryErrors[field.code]}
-                                                                </div>
-                                                              )}
-                                                            </div>
-                                                          </div>
+                                                                </span>
+                                                            )}
                                                         </div>
-                                                      ))}
-                            </div>
-
-
-
-
-                            <div className="mb-3 mx-3 mt-5">
-                                <h5 className="mb-3">Questions</h5>
-                                <div className="row mb-3">
-                                    <div className="col-md-12 mb-3">
-                                        <label>Mention about your company expertise, briefly</label>
-                                        <textarea
-                                            className="form-control"
-                                            rows="3"
-                                            placeholder="Describe your company expertise"
-                                            value={questions.expertise}
-                                             disabled
-                                            onChange={e => handleQuestionChange('expertise', e.target.value)}
-                                        ></textarea>
+                                                        <input
+                                                            type="file"
+                                                            disabled
+                                                            className="form-control"
+                                                            accept=".pdf,.jpg,.jpeg,.png"
+                                                            onChange={(e) =>
+                                                                handleStatutoryFileChange(field.code, e.target.files[0], field.id, field.statutory_detail_value)
+                                                            }
+                                                        />
+                                                        {statutoryErrors[field.code] && (
+                                                            <div className="ValidationColor">
+                                                                {statutoryErrors[field.code]}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
                                     </div>
-                                </div>
-                                {/* <div className="row mb-3">
+
+
+
+
+                                    <div className="mb-3 mx-3 mt-5">
+                                        <h5 className="mb-3">Questions</h5>
+                                        <div className="row mb-3">
+                                            <div className="col-md-12 mb-3">
+                                                <label>Mention about your company expertise, briefly</label>
+                                                <textarea
+                                                    className="form-control"
+                                                    rows="3"
+                                                    placeholder="Describe your company expertise"
+                                                    value={questions.expertise}
+                                                    disabled
+                                                    onChange={e => handleQuestionChange('expertise', e.target.value)}
+                                                ></textarea>
+                                            </div>
+                                        </div>
+                                        {/* <div className="row mb-3">
                                     <div className="col-md-4 offset-md-8 mb-3">
                                         <input
                                             className="form-control"
@@ -12110,263 +12159,263 @@ const VendorRegistrationStepByStepForm = () => {
                                         />
                                     </div>
                                 </div> */}
-                                <div className="row mb-3">
-                                    <div className="col-md-12 mb-3">
-                                        <label>What is the organization and structure of the company / firm?</label>
-                                        <textarea
-                                            className="form-control"
-                                            rows="3"
-                                            placeholder="Describe the organization and structure"
-                                            value={questions.structure}
-                                             disabled
-                                            onChange={e => handleQuestionChange('structure', e.target.value)}
-                                        ></textarea>
+                                        <div className="row mb-3">
+                                            <div className="col-md-12 mb-3">
+                                                <label>What is the organization and structure of the company / firm?</label>
+                                                <textarea
+                                                    className="form-control"
+                                                    rows="3"
+                                                    placeholder="Describe the organization and structure"
+                                                    value={questions.structure}
+                                                    disabled
+                                                    onChange={e => handleQuestionChange('structure', e.target.value)}
+                                                ></textarea>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
 
                                 {/* ...existing code... */}
 
-                                 {checklistConfig.filter(cat => cat.snag_cat_name === "Financial Pre-Qualification").map((cat, catIdx) => (
-                                <div className="card mx-3 pb-4 mt-4" key={cat.snag_category}>
-                                    <div className="card-header3">
-                                        <h3 className="card-title">{cat.snag_cat_name} (Preview)</h3>
-                                    </div>
-                                    <div className="card-body mt-0">
-                                        <div className="tbl-container mt-3 ">
-                                            <table className="w-100">
-                                                <thead>
-                                                    <tr>
-                                                        <th>Sr. No.</th>
-                                                        <th>Particulars</th>
-                                                        <th>Response</th>
-                                                        <th>Required Documents</th>
-                                                        <th>Remark if any</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    {cat.subcats.map((subcat, subIdx) => (
-                                                        <React.Fragment key={subcat.id}>
-                                                            <tr>
-                                                                <td>{subIdx + 1}</td>
-                                                                <td ><b>{subcat.name}</b></td>
-                                                                <td></td>
-                                                                <td></td>
-                                                                <td></td>
-                                                            </tr>
-                                                            {subcat.questions.map((q, qIdx) => {
-                                                                const qState = (checklistResponses[subcat.id]?.questions || [])[qIdx] || {};
-                                                                return (
-                                                                    <tr key={q.id}>
-                                                                        <td>{`${subIdx + 1}.${qIdx + 1}`}</td>
-                                                                        <td>{q.descr}</td>
-                                                                        <td>
-                                                                            {q.qtype === 'multiple' ? (
-                                                                                <SingleSelector
-                                                                                    options={(q.options || []).map(opt => ({ label: opt.name, value: opt.value }))}
-                                                                                    value={qState.selectedOption}
-                                                                                    onChange={selected => handleChecklistOptionChange(subcat.id, q.id, selected)}
-                                                                                    placeholder="Select"
-                                                                                    isDisabled={true}
-                                                                                />
-                                                                            ) : (
+                                {checklistConfig.filter(cat => cat.snag_cat_name === "Financial Pre-Qualification").map((cat, catIdx) => (
+                                    <div className="card mx-3 pb-4 mt-4" key={cat.snag_category}>
+                                        <div className="card-header3">
+                                            <h3 className="card-title">{cat.snag_cat_name} (Preview)</h3>
+                                        </div>
+                                        <div className="card-body mt-0">
+                                            <div className="tbl-container mt-3 ">
+                                                <table className="w-100">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Sr. No.</th>
+                                                            <th>Particulars</th>
+                                                            <th>Response</th>
+                                                            <th>Required Documents</th>
+                                                            <th>Remark if any</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {cat.subcats.map((subcat, subIdx) => (
+                                                            <React.Fragment key={subcat.id}>
+                                                                <tr>
+                                                                    <td>{subIdx + 1}</td>
+                                                                    <td ><b>{subcat.name}</b></td>
+                                                                    <td></td>
+                                                                    <td></td>
+                                                                    <td></td>
+                                                                </tr>
+                                                                {subcat.questions.map((q, qIdx) => {
+                                                                    const qState = (checklistResponses[subcat.id]?.questions || [])[qIdx] || {};
+                                                                    return (
+                                                                        <tr key={q.id}>
+                                                                            <td>{`${subIdx + 1}.${qIdx + 1}`}</td>
+                                                                            <td>{q.descr}</td>
+                                                                            <td>
+                                                                                {q.qtype === 'multiple' ? (
+                                                                                    <SingleSelector
+                                                                                        options={(q.options || []).map(opt => ({ label: opt.name, value: opt.value }))}
+                                                                                        value={qState.selectedOption}
+                                                                                        onChange={selected => handleChecklistOptionChange(subcat.id, q.id, selected)}
+                                                                                        placeholder="Select"
+                                                                                        isDisabled={true}
+                                                                                    />
+                                                                                ) : (
+                                                                                    <input
+                                                                                        className="form-control"
+                                                                                        type="text"
+                                                                                        placeholder="Enter response"
+                                                                                        value={qState.value || ''}
+                                                                                        disabled
+                                                                                        onChange={e => handleChecklistResponseChange(subcat.id, q.id, 'value', e.target.value)}
+                                                                                    />
+                                                                                )}
+                                                                            </td>
+                                                                            <td>
                                                                                 <input
                                                                                     className="form-control"
-                                                                                    type="text"
-                                                                                    placeholder="Enter response"
-                                                                                    value={qState.value || ''}
+                                                                                    type="file"
                                                                                     disabled
-                                                                                    onChange={e => handleChecklistResponseChange(subcat.id, q.id, 'value', e.target.value)}
+                                                                                    onChange={e => handleChecklistFileChange(subcat.id, q.id, e.target.files[0])}
                                                                                 />
-                                                                            )}
-                                                                        </td>
-                                                                        <td>
-                                                                            <input
-                                                                                className="form-control"
-                                                                                type="file"
-                                                                                disabled
-                                                                                onChange={e => handleChecklistFileChange(subcat.id, q.id, e.target.files[0])}
-                                                                            />
-                                                                            {/* Show uploaded file names or server-provided attachments with download link */}
-                                                                            {qState.files && qState.files.length > 0 && (
-                                                                                <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
-                                                                                    {(() => {
-                                                                                        // Prefer user-selected local uploads (they won't have file_url)
-                                                                                        const localFiles = qState.files.filter(f => !f.file_url);
-                                                                                        const filesToShow = localFiles.length > 0 ? localFiles : qState.files;
-                                                                                        return filesToShow.map((f, i) => {
-                                                                                            const href = f.file_url ? (String(f.file_url).startsWith('http') ? f.file_url : `${baseURL}${f.file_url}`) : null;
-                                                                                            return (
-                                                                                                <li key={i} style={{ marginBottom: 4 }}>
-                                                                                                    {href ? (
-                                                                                                        <a href={href} download className="text-primary d-flex align-items-center mt-1" style={{ gap: 6 }}>
-                                                                                                            <svg
-                                                                                                                xmlns="http://www.w3.org/2000/svg"
-                                                                                                                width={24}
-                                                                                                                height={24}
-                                                                                                                fill="#DE7008"
-                                                                                                                className="bi bi-download"
-                                                                                                                viewBox="0 0 16 16"
-                                                                                                            >
-                                                                                                                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
-                                                                                                                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
-                                                                                                            </svg>
-                                                                                                            <span>{f.filename}</span>
-                                                                                                        </a>
-                                                                                                    ) : (
-                                                                                                        <span className="mt-2">{f.filename}</span>
-                                                                                                    )}
-                                                                                                </li>
-                                                                                            );
-                                                                                        });
-                                                                                    })()}
-                                                                                </ul>
-                                                                            )}
-                                                                        </td>
-                                                                        <td>
-                                                                            <textarea
-                                                                                className="form-control"
-                                                                                type="text"
-                                                                                disabled
-                                                                                placeholder=" Enter Remark"
-                                                                                value={qState.comments || ''}
-                                                                                onChange={e => handleChecklistResponseChange(subcat.id, q.id, 'comments', e.target.value)}
-                                                                            />
-                                                                        </td>
-                                                                    </tr>
-                                                                );
-                                                            })}
-                                                        </React.Fragment>
-                                                    ))}
-                                                </tbody>
-                                            </table>
+                                                                                {/* Show uploaded file names or server-provided attachments with download link */}
+                                                                                {qState.files && qState.files.length > 0 && (
+                                                                                    <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
+                                                                                        {(() => {
+                                                                                            // Prefer user-selected local uploads (they won't have file_url)
+                                                                                            const localFiles = qState.files.filter(f => !f.file_url);
+                                                                                            const filesToShow = localFiles.length > 0 ? localFiles : qState.files;
+                                                                                            return filesToShow.map((f, i) => {
+                                                                                                const href = f.file_url ? (String(f.file_url).startsWith('http') ? f.file_url : `${baseURL}${f.file_url}`) : null;
+                                                                                                return (
+                                                                                                    <li key={i} style={{ marginBottom: 4 }}>
+                                                                                                        {href ? (
+                                                                                                            <a href={href} download className="text-primary d-flex align-items-center mt-1" style={{ gap: 6 }}>
+                                                                                                                <svg
+                                                                                                                    xmlns="http://www.w3.org/2000/svg"
+                                                                                                                    width={24}
+                                                                                                                    height={24}
+                                                                                                                    fill="#DE7008"
+                                                                                                                    className="bi bi-download"
+                                                                                                                    viewBox="0 0 16 16"
+                                                                                                                >
+                                                                                                                    <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                                                                                                                    <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                                                                                                                </svg>
+                                                                                                                <span>{f.filename}</span>
+                                                                                                            </a>
+                                                                                                        ) : (
+                                                                                                            <span className="mt-2">{f.filename}</span>
+                                                                                                        )}
+                                                                                                    </li>
+                                                                                                );
+                                                                                            });
+                                                                                        })()}
+                                                                                    </ul>
+                                                                                )}
+                                                                            </td>
+                                                                            <td>
+                                                                                <textarea
+                                                                                    className="form-control"
+                                                                                    type="text"
+                                                                                    disabled
+                                                                                    placeholder=" Enter Remark"
+                                                                                    value={qState.comments || ''}
+                                                                                    onChange={e => handleChecklistResponseChange(subcat.id, q.id, 'comments', e.target.value)}
+                                                                                />
+                                                                            </td>
+                                                                        </tr>
+                                                                    );
+                                                                })}
+                                                            </React.Fragment>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            ))}
+                                ))}
 
-                            {/* Technical Pre-Qualification Table */}
-                            {checklistConfig.filter(cat => cat.snag_cat_name === "Technical Pre-Qualification").map((cat, catIdx) => (
-                                <div className="card mx-3 pb-4 mt-4" key={cat.snag_category}>
-                                    <div className="card-header3">
-                                        <h3 className="card-title">{cat.snag_cat_name} (Preview)</h3>
-                                    </div>
-                                    <div className="card-body mt-0">
-                                        <div className="tbl-container mt-3 ">
-                                            <table className="w-100">
-                                                <thead>
-                                                    <tr>
-                                                        <th>Sr. No.</th>
-                                                        <th>Particulars</th>
-                                                        <th>Response</th>
-                                                        <th>Required Documents</th>
-                                                        <th>Remark if any</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    {cat.subcats.map((subcat, subIdx) => (
-                                                        <React.Fragment key={subcat.id}>
-                                                            <tr>
-                                                                <td>{subIdx + 1}</td>
-                                                                <td><b>{subcat.name}</b></td>
-                                                                <td></td>
-                                                                <td></td>
-                                                                <td></td>
-                                                            </tr>
-                                                            {subcat.questions.map((q, qIdx) => {
-                                                                const qState = (checklistResponses[subcat.id]?.questions || [])[qIdx] || {};
-                                                                return (
-                                                                    <tr key={q.id}>
-                                                                        <td>{`${subIdx + 1}.${qIdx + 1}`}</td>
-                                                                        <td>{q.descr}</td>
-                                                                        <td style={{ minWidth: '150px' }}>
-                                                                            {q.qtype === 'multiple' ? (
-                                                                                <SingleSelector
-                                                                                    options={(q.options || []).map(opt => ({ label: opt.name, value: opt.value }))}
-                                                                                    value={qState.selectedOption}
-                                                                                    onChange={selected => handleChecklistOptionChange(subcat.id, q.id, selected)}
-                                                                                    placeholder="Select"
-                                                                                    isDisabled={true}
-                                                                                />
-                                                                            ) : (
+                                {/* Technical Pre-Qualification Table */}
+                                {checklistConfig.filter(cat => cat.snag_cat_name === "Technical Pre-Qualification").map((cat, catIdx) => (
+                                    <div className="card mx-3 pb-4 mt-4" key={cat.snag_category}>
+                                        <div className="card-header3">
+                                            <h3 className="card-title">{cat.snag_cat_name} (Preview)</h3>
+                                        </div>
+                                        <div className="card-body mt-0">
+                                            <div className="tbl-container mt-3 ">
+                                                <table className="w-100">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Sr. No.</th>
+                                                            <th>Particulars</th>
+                                                            <th>Response</th>
+                                                            <th>Required Documents</th>
+                                                            <th>Remark if any</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {cat.subcats.map((subcat, subIdx) => (
+                                                            <React.Fragment key={subcat.id}>
+                                                                <tr>
+                                                                    <td>{subIdx + 1}</td>
+                                                                    <td><b>{subcat.name}</b></td>
+                                                                    <td></td>
+                                                                    <td></td>
+                                                                    <td></td>
+                                                                </tr>
+                                                                {subcat.questions.map((q, qIdx) => {
+                                                                    const qState = (checklistResponses[subcat.id]?.questions || [])[qIdx] || {};
+                                                                    return (
+                                                                        <tr key={q.id}>
+                                                                            <td>{`${subIdx + 1}.${qIdx + 1}`}</td>
+                                                                            <td>{q.descr}</td>
+                                                                            <td style={{ minWidth: '150px' }}>
+                                                                                {q.qtype === 'multiple' ? (
+                                                                                    <SingleSelector
+                                                                                        options={(q.options || []).map(opt => ({ label: opt.name, value: opt.value }))}
+                                                                                        value={qState.selectedOption}
+                                                                                        onChange={selected => handleChecklistOptionChange(subcat.id, q.id, selected)}
+                                                                                        placeholder="Select"
+                                                                                        isDisabled={true}
+                                                                                    />
+                                                                                ) : (
+                                                                                    <input
+                                                                                        className="form-control"
+                                                                                        type="text"
+                                                                                        placeholder="Enter response"
+                                                                                        value={qState.value || ''}
+                                                                                        disabled
+                                                                                        onChange={e => handleChecklistResponseChange(subcat.id, q.id, 'value', e.target.value)}
+                                                                                    />
+                                                                                )}
+                                                                            </td>
+                                                                            <td>
                                                                                 <input
                                                                                     className="form-control"
-                                                                                    type="text"
-                                                                                    placeholder="Enter response"
-                                                                                    value={qState.value || ''}
+                                                                                    type="file"
                                                                                     disabled
-                                                                                    onChange={e => handleChecklistResponseChange(subcat.id, q.id, 'value', e.target.value)}
+                                                                                    onChange={e => handleChecklistFileChange(subcat.id, q.id, e.target.files[0])}
                                                                                 />
-                                                                            )}
-                                                                        </td>
-                                                                        <td>
-                                                                            <input
-                                                                                className="form-control"
-                                                                                type="file"
-                                                                                disabled
-                                                                                onChange={e => handleChecklistFileChange(subcat.id, q.id, e.target.files[0])}
-                                                                            />
-                                                                            {qState.files && qState.files.length > 0 && (
-                                                                                <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
-                                                                                    {(() => {
-                                                                                        const localFiles = qState.files.filter(f => !f.file_url);
-                                                                                        const filesToShow = localFiles.length > 0 ? localFiles : qState.files;
-                                                                                        return filesToShow.map((f, i) => {
-                                                                                            const href = f.file_url ? (String(f.file_url).startsWith('http') ? f.file_url : `${baseURL}${f.file_url}`) : null;
-                                                                                            return (
-                                                                                                <li key={i} style={{ marginBottom: 4 }}>
-                                                                                                    {href ? (
-                                                                                                        <a href={href} download className="text-primary d-flex align-items-center mt-1" style={{ gap: 6 }}>
-                                                                                                            <svg
-                                                                                                                xmlns="http://www.w3.org/2000/svg"
-                                                                                                                width={20}
-                                                                                                                height={20}
-                                                                                                                fill="#DE7008"
-                                                                                                                className="bi bi-download"
-                                                                                                                viewBox="0 0 16 16"
-                                                                                                            >
-                                                                                                                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
-                                                                                                                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
-                                                                                                            </svg>
-                                                                                                            <span style={{ fontSize: 12 }}>{f.filename}</span>
-                                                                                                        </a>
-                                                                                                    ) : (
-                                                                                                        <span style={{ fontSize: 12 }}>{f.filename}{!f.file_url ? ' (uploaded)' : ''}</span>
-                                                                                                    )}
-                                                                                                </li>
-                                                                                            );
-                                                                                        });
-                                                                                    })()}
-                                                                                </ul>
-                                                                            )}
-                                                                        </td>
-                                                                        <td>
-                                                                            <textarea
-                                                                                className="form-control"
-                                                                                type="text"
-                                                                                placeholder=" Enter Remark"
-                                                                                disabled
-                                                                                value={qState.comments || ''}
-                                                                                onChange={e => handleChecklistResponseChange(subcat.id, q.id, 'comments', e.target.value)}
-                                                                            />
-                                                                        </td>
-                                                                    </tr>
-                                                                );
-                                                            })}
-                                                        </React.Fragment>
-                                                    ))}
-                                                    {/* Show checklistPayload for review */}
-                                                    {/* <div className="mt-4 mx-3">
+                                                                                {qState.files && qState.files.length > 0 && (
+                                                                                    <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
+                                                                                        {(() => {
+                                                                                            const localFiles = qState.files.filter(f => !f.file_url);
+                                                                                            const filesToShow = localFiles.length > 0 ? localFiles : qState.files;
+                                                                                            return filesToShow.map((f, i) => {
+                                                                                                const href = f.file_url ? (String(f.file_url).startsWith('http') ? f.file_url : `${baseURL}${f.file_url}`) : null;
+                                                                                                return (
+                                                                                                    <li key={i} style={{ marginBottom: 4 }}>
+                                                                                                        {href ? (
+                                                                                                            <a href={href} download className="text-primary d-flex align-items-center mt-1" style={{ gap: 6 }}>
+                                                                                                                <svg
+                                                                                                                    xmlns="http://www.w3.org/2000/svg"
+                                                                                                                    width={20}
+                                                                                                                    height={20}
+                                                                                                                    fill="#DE7008"
+                                                                                                                    className="bi bi-download"
+                                                                                                                    viewBox="0 0 16 16"
+                                                                                                                >
+                                                                                                                    <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                                                                                                                    <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                                                                                                                </svg>
+                                                                                                                <span style={{ fontSize: 12 }}>{f.filename}</span>
+                                                                                                            </a>
+                                                                                                        ) : (
+                                                                                                            <span style={{ fontSize: 12 }}>{f.filename}{!f.file_url ? ' (uploaded)' : ''}</span>
+                                                                                                        )}
+                                                                                                    </li>
+                                                                                                );
+                                                                                            });
+                                                                                        })()}
+                                                                                    </ul>
+                                                                                )}
+                                                                            </td>
+                                                                            <td>
+                                                                                <textarea
+                                                                                    className="form-control"
+                                                                                    type="text"
+                                                                                    placeholder=" Enter Remark"
+                                                                                    disabled
+                                                                                    value={qState.comments || ''}
+                                                                                    onChange={e => handleChecklistResponseChange(subcat.id, q.id, 'comments', e.target.value)}
+                                                                                />
+                                                                            </td>
+                                                                        </tr>
+                                                                    );
+                                                                })}
+                                                            </React.Fragment>
+                                                        ))}
+                                                        {/* Show checklistPayload for review */}
+                                                        {/* <div className="mt-4 mx-3">
                 <h5>Checklist Payload Preview</h5>
                 <pre style={{ background: '#f8f9fa', padding: '12px', fontSize: '12px', maxHeight: '300px', overflow: 'auto' }}>{JSON.stringify(checklistPayload, null, 2)}</pre>
             </div> */}
-                                                </tbody>
-                                            </table>
+                                                    </tbody>
+                                                </table>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            ))}
+                                ))}
 
 
 
@@ -12462,64 +12511,64 @@ const VendorRegistrationStepByStepForm = () => {
                                 </button>
                             )}
 
-                              {currentStep !== 7 && (
-                            <button
-                                className="purple-btn2 me-2"
-                                // onClick={() => {
-                                //     setCompleted((arr) => {
-                                //         const copy = [...arr];
-                                //         copy[currentStep] = true;
-                                //         return copy;
-                                //     });
-                                //     setCurrentStep((s) => Math.min(s + 1, steps.length - 1));
-                                // }}
+                            {currentStep !== 7 && (
+                                <button
+                                    className="purple-btn2 me-2"
+                                    // onClick={() => {
+                                    //     setCompleted((arr) => {
+                                    //         const copy = [...arr];
+                                    //         copy[currentStep] = true;
+                                    //         return copy;
+                                    //     });
+                                    //     setCurrentStep((s) => Math.min(s + 1, steps.length - 1));
+                                    // }}
 
 
-                                onClick={() => {
-                                    // Step-wise validation logic
-                                    let isValid = true;
-                                    if (currentStep === 1) {
-                                        isValid = validateBasicInfo();
-                                        if (!isValid) return;
-                                    }
-                                    // Add more step validations as needed
-                                    else
-                                        if (currentStep === 2) {
-                                            isValid = validateStep2();
+                                    onClick={() => {
+                                        // Step-wise validation logic
+                                        let isValid = true;
+                                        if (currentStep === 1) {
+                                            isValid = validateBasicInfo();
                                             if (!isValid) return;
                                         }
+                                        // Add more step validations as needed
                                         else
-                                            if (currentStep === 3) {
-                                                isValid = validateStep3();
+                                            if (currentStep === 2) {
+                                                isValid = validateStep2();
                                                 if (!isValid) return;
                                             }
                                             else
-                                                    if (currentStep === 4) {
-                                                    isValid = validateStep4();
+                                                if (currentStep === 3) {
+                                                    isValid = validateStep3();
                                                     if (!isValid) return;
                                                 }
                                                 else
-                                                    if (currentStep === 5) {
-                                                    isValid = validateStep5();
-                                                    if (!isValid) return;
-                                                }
-                                                // // ...
-                                                // Save
-                                                // //  as draft logic
-                                                // if (typeof saveDraft === 'function') {
-                                                //     saveDraft();
-                                                // }
-                                                setCompleted((arr) => {
-                                                    const copy = [...arr];
-                                                    copy[currentStep] = true;
-                                                    return copy;
-                                                });
-                                    setCurrentStep((s) => Math.min(s + 1, steps.length - 1));
-                                }}
-                                disabled={currentStep === steps.length - 1}
-                            >
-                                Next
-                            </button>
+                                                    if (currentStep === 4) {
+                                                        isValid = validateStep4();
+                                                        if (!isValid) return;
+                                                    }
+                                                    else
+                                                        if (currentStep === 5) {
+                                                            isValid = validateStep5();
+                                                            if (!isValid) return;
+                                                        }
+                                        // // ...
+                                        // Save
+                                        // //  as draft logic
+                                        // if (typeof saveDraft === 'function') {
+                                        //     saveDraft();
+                                        // }
+                                        setCompleted((arr) => {
+                                            const copy = [...arr];
+                                            copy[currentStep] = true;
+                                            return copy;
+                                        });
+                                        setCurrentStep((s) => Math.min(s + 1, steps.length - 1));
+                                    }}
+                                    disabled={currentStep === steps.length - 1}
+                                >
+                                    Next
+                                </button>
                             )}
 
                             {currentStep === steps.length - 1 ? (
