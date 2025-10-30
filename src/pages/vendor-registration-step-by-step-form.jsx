@@ -1342,6 +1342,16 @@ const VendorRegistrationStepByStepForm = () => {
                     ? ((qualificationOptions || []).find(opt => String(opt.value) === String(d.qualification) || String(opt.label) === String(d.qualification))
                         || { value: d.qualification, label: d.qualification })
                     : null;
+                // Normalize attachment value (backend may provide a string path or an object)
+                let attachmentVal = null;
+                const rawAtt = d.attachment || d.attachment_url || d.file_url || d.document_path || d.document || null;
+                if (rawAtt) {
+                    if (typeof rawAtt === 'string') {
+                        attachmentVal = rawAtt;
+                    } else if (rawAtt.document_name || rawAtt.filename || rawAtt.file_url || rawAtt.url) {
+                        attachmentVal = rawAtt.document_name || rawAtt.filename || rawAtt.file_url || rawAtt.url;
+                    }
+                }
 
                 return ({
                     idPre: d.id,
@@ -1353,7 +1363,7 @@ const VendorRegistrationStepByStepForm = () => {
                     experience: d.experience || "",
                     email: d.email || "",
                     mobile: d.mobile || "",
-                    attachment: null,
+                    attachment: attachmentVal || null,
                     isNew: false,
                 });
             });
@@ -1445,6 +1455,16 @@ const VendorRegistrationStepByStepForm = () => {
                     || (cp.designation_id ? { value: cp.designation_id, label: cp.designation_name || String(cp.designation_id) } : null);
 
                 const nationality = cp.nationality_string ? { label: cp.nationality_string, value: cp.nationality_string } : null;
+                // Normalize attachment value (backend may provide a string path or an object)
+                let attachmentVal = null;
+                const rawAtt = cp.attachment || cp.attachment_url || cp.file_url || cp.document_path || cp.document || null;
+                if (rawAtt) {
+                    if (typeof rawAtt === 'string') {
+                        attachmentVal = rawAtt;
+                    } else if (rawAtt.document_name || rawAtt.filename || rawAtt.file_url || rawAtt.url) {
+                        attachmentVal = rawAtt.document_name || rawAtt.filename || rawAtt.file_url || rawAtt.url;
+                    }
+                }
 
                 return {
                     idPre: cp.id,
@@ -1461,7 +1481,7 @@ const VendorRegistrationStepByStepForm = () => {
                     secondaryMobile: cp.secondary_mobile || '',
                     nationality: nationality,
                     dob: cp.birth_date || cp.dob || '',
-                    attachment: null,
+                    attachment: attachmentVal || null,
                     isNew: false,
                 };
             });
@@ -4983,7 +5003,7 @@ const VendorRegistrationStepByStepForm = () => {
         let cancelled = false;
         const fetchSteps = async () => {
             try {
-                const res = await fetch('https://vendors.lockated.com/pms/suppliers/8898/build_vrf_steps');
+                const res = await fetch(`${baseURL}/pms/suppliers/${id}/build_vrf_steps`);
                 if (!res.ok) throw new Error('Failed to fetch steps');
                 const data = await res.json();
                 if (cancelled) return;
@@ -7974,8 +7994,8 @@ const VendorRegistrationStepByStepForm = () => {
                                                         {/* Conditionally Render Existing File Download Link
                                                     Show download only when attachment has a server URL (attachment_url or file_url).
                                                     If the attachment is a user-selected file (has filename but no server URL) show filename as plain text. */}
-                                                        {bankDetail?.attachment ? (
-                                                            bankDetail.attachment.attachment_url || bankDetail.attachment.file_url ? (
+                                                        {bankDetail?.attachment || bankAttachments[bankDetail.id] ? (
+                                                            bankDetail?.attachment?.attachment_url || bankDetail?.attachment?.file_url ? (
                                                                 <span className="ms-2">
                                                                     <a
                                                                         href={`${baseURL}${bankDetail.attachment.attachment_url || bankDetail.attachment.file_url}`}
@@ -7997,14 +8017,20 @@ const VendorRegistrationStepByStepForm = () => {
                                                                         {bankDetail?.attachment.filename || bankDetail?.attachment.document_name}
                                                                     </a>
                                                                 </span>
-                                                            ) : bankDetail.attachment.filename ? (
-                                                                <span className="ms-2 d-flex align-items-center">
-                                                                    <span className="me-2">Selected File:</span>
-                                                                    <span className="text-muted">{bankDetail.attachment.filename}</span>
-                                                                </span>
-                                                            ) : null
+                                                            ) :
+                                                                (bankAttachments && bankAttachments[bankDetail.id]) ? (
+                                                                    <span className=" d-flex align-items-center">
+                                                                        <span className="me-2">Selected File:</span>
+                                                                        <span className="text-muted">{bankAttachments[bankDetail.id]?.filename}</span>
+                                                                    </span>
+                                                                )
+
+                                                                    : null
                                                         ) : null}
 
+
+                                                        {/*  */}
+                                                        {/* {console.log(" check bank",bankAttachments[bankDetail.id]?.filename)} */}
                                                         {/* File Input for Uploading New Attachments */}
                                                         <input
                                                             className="form-control mt-2"
@@ -8677,6 +8703,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                                             const filename = att?.document_name || att?.filename || att?.name || String(att);
                                                                             const rawUrl = att?.attachment_url || att?.file_url || att?.url || (typeof att === 'string' ? att : null);
                                                                             const href = rawUrl ? (String(rawUrl).startsWith('http') ? rawUrl : `${baseURL}${rawUrl}`) : null;
+                                                                            console.log("href:", href)
                                                                             return (
                                                                                 <li key={ai} style={{ marginBottom: 6 }}>
                                                                                     {href ? (
@@ -8692,23 +8719,32 @@ const VendorRegistrationStepByStepForm = () => {
                                                                     </ul>
                                                                 ) : (
                                                                     typeof warehouse.attachment === 'string' ? (
-                                                                        <a href={`${baseURL}${warehouse.attachment}`} download className="text-primary d-flex align-items-center mt-2">
+                                                                        <a href={`${baseURL}${warehouse.attachment}`} download className="text-primary d-flex align-items-center ">
                                                                             <span className="me-2">Existing File:</span>
+                                                                            <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} fill="#DE7008" className="bi bi-download" viewBox="0 0 16 16">
+                                                                                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                                                                                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                                                                            </svg>
                                                                             <span>{warehouse.attachment.split('/').pop()}</span>
+
                                                                         </a>
                                                                     ) : warehouse.attachment.filename ? (
-                                                                        <div className="mt-0">Existing File: {warehouse.attachment.filename}</div>
+                                                                        <div className="mt-0">Selected File: {warehouse.attachment.filename}</div>
                                                                     ) : warehouse.attachment.name ? (
-                                                                        <div className="mt-0">Existing File: {warehouse.attachment.name}</div>
+                                                                        <div className="mt-0">Selected File: {warehouse.attachment.name}</div>
                                                                     ) : null
                                                                 )
                                                             )}
+                                                            {/* {console.log("warehouse:", `${baseURL}${warehouse.attachment}`)} */}
                                                             <input
                                                                 className="form-control"
                                                                 type="file"
                                                                 onChange={e => handleWarehouseChange(idx, 'attachment', e.target.files[0])}
                                                             />
                                                             {/* Show existing or selected file name/link */}
+
+
+
 
                                                         </div>
                                                     </div>
@@ -8980,6 +9016,45 @@ const VendorRegistrationStepByStepForm = () => {
                                                     <div className="col-md-4  mt-2">
                                                         <div className="form-group">
                                                             <label>Attachment</label>
+                                                            {person.attachment && (
+                                                                Array.isArray(person.attachment) ? (
+                                                                    <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
+                                                                        {person.attachment.map((att, ai) => {
+                                                                            const filename = att?.document_name || att?.filename || att?.name || String(att);
+                                                                            const rawUrl = att?.attachment_url || att?.file_url || att?.url || (typeof att === 'string' ? att : null);
+                                                                            const href = rawUrl ? (String(rawUrl).startsWith('http') ? rawUrl : `${baseURL}${rawUrl}`) : null;
+                                                                            return (
+                                                                                <li key={ai} style={{ marginBottom: 6 }}>
+                                                                                    {href ? (
+                                                                                        <a href={href} download className="text-primary d-flex align-items-center">
+                                                                                            <span style={{ fontSize: 12 }}>{filename}</span>
+                                                                                        </a>
+                                                                                    ) : (
+                                                                                        <span style={{ fontSize: 12 }}>{filename}</span>
+                                                                                    )}
+                                                                                </li>
+                                                                            );
+                                                                        })}
+                                                                    </ul>
+                                                                ) : (
+                                                                    typeof person.attachment === 'string' ? (
+                                                                        <a href={`${baseURL}${person.attachment}`} download className="text-primary d-flex align-items-center ">
+                                                                            <span className="me-2">Existing File:</span>
+                                                                            <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} fill="#DE7008" className="bi bi-download" viewBox="0 0 16 16">
+                                                                                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                                                                                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                                                                            </svg>
+                                                                            <span>{person.attachment.split('/').pop()}</span>
+
+                                                                        </a>
+                                                                    ) : person.attachment.filename ? (
+                                                                        <div className="mt-0">Selected File: {person.attachment.filename}</div>
+                                                                    ) : person.attachment.name ? (
+                                                                        <div className="mt-0">Selected File: {person.attachment.name}</div>
+                                                                    ) : null
+                                                                )
+                                                            )}
+
                                                             <input
                                                                 className="form-control"
                                                                 type="file"
@@ -9101,7 +9176,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                     </div>
                                                     <div className="col-md-4 mt-2">
                                                         <div className="form-group">
-                                                            <label>Mobile Number <span>*</span></label>
+                                                            <label>Contact Number <span>*</span></label>
                                                             <input
                                                                 className="form-control"
                                                                 type="text"
@@ -9122,13 +9197,46 @@ const VendorRegistrationStepByStepForm = () => {
                                                     <div className="col-md-4 mt-2">
                                                         <div className="form-group">
                                                             <label>Attachment</label>
-                                                            {owner?.attachment && (
-                                                                <div className="">
-
-                                                                    <span>Existing File : {owner.attachment.name || owner.attachment.filename || 'Selected file'}</span>
-
-                                                                </div>
+                                                            {owner.attachment && (
+                                                                Array.isArray(owner.attachment) ? (
+                                                                    <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
+                                                                        {owner.attachment.map((att, ai) => {
+                                                                            const filename = att?.document_name || att?.filename || att?.name || String(att);
+                                                                            const rawUrl = att?.attachment_url || att?.file_url || att?.url || (typeof att === 'string' ? att : null);
+                                                                            const href = rawUrl ? (String(rawUrl).startsWith('http') ? rawUrl : `${baseURL}${rawUrl}`) : null;
+                                                                            return (
+                                                                                <li key={ai} style={{ marginBottom: 6 }}>
+                                                                                    {href ? (
+                                                                                        <a href={href} download className="text-primary d-flex align-items-center">
+                                                                                            <span style={{ fontSize: 12 }}>{filename}</span>
+                                                                                        </a>
+                                                                                    ) : (
+                                                                                        <span style={{ fontSize: 12 }}>{filename}</span>
+                                                                                    )}
+                                                                                </li>
+                                                                            );
+                                                                        })}
+                                                                    </ul>
+                                                                ) : (
+                                                                    typeof owner.attachment === 'string' ? (
+                                                                        <a href={`${baseURL}${owner.attachment}`} download className="text-primary d-flex align-items-center">
+                                                                            <span className="me-2">Existing File:</span>
+                                                                            <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} fill="#DE7008" className="bi bi-download" viewBox="0 0 16 16">
+                                                                                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                                                                                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                                                                            </svg>
+                                                                            <span>{owner.attachment.split('/').pop()}</span>
+                                                                        </a>
+                                                                    ) : owner.attachment.filename ? (
+                                                                        <div className="mt-0">Selected File: {owner.attachment.filename}</div>
+                                                                    ) : owner.attachment.name ? (
+                                                                        <div className="mt-0">Selected File: {owner.attachment.name}</div>
+                                                                    ) : null
+                                                                )
                                                             )}
+
+
+
                                                             <input
                                                                 className="form-control"
                                                                 type="file"
@@ -9205,14 +9313,21 @@ const VendorRegistrationStepByStepForm = () => {
                                                                 />
                                                             </td>
                                                             <td>
+
+                                                               
                                                                 {item.attachment && (
                                                                     <div className="mb-2">
                                                                         {typeof item.attachment === 'string' ? (
                                                                             <a href={`${baseURL}${item.attachment}`} target="_blank" rel="noreferrer" className="text-primary d-flex align-items-center">
+                                                                                 <span className="me-2">Existing File:</span>
+                                                                            <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} fill="#DE7008" className="bi bi-download" viewBox="0 0 16 16">
+                                                                                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                                                                                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                                                                            </svg>
                                                                                 <span className="me-2">{item.attachment.split('/').pop()}</span>
                                                                             </a>
                                                                         ) : (
-                                                                            <span>Existing File : {item.attachment.filename || item.attachment.name || 'Selected file'}</span>
+                                                                            <span>Selected File : {item.attachment.filename || item.attachment.name || 'Selected file'}</span>
                                                                         )}
                                                                     </div>
                                                                 )}
@@ -11332,8 +11447,11 @@ const VendorRegistrationStepByStepForm = () => {
                                                             {/* Conditionally Render Existing File Download Link
                                                     Show download only when attachment has a server URL (attachment_url or file_url).
                                                     If the attachment is a user-selected file (has filename but no server URL) show filename as plain text. */}
-                                                            {bankDetail?.attachment ? (
-                                                                bankDetail.attachment.attachment_url || bankDetail.attachment.file_url ? (
+
+
+
+                                                            {bankDetail?.attachment || bankAttachments[bankDetail.id] ? (
+                                                                bankDetail?.attachment?.attachment_url || bankDetail?.attachment?.file_url ? (
                                                                     <span className="ms-2">
                                                                         <a
                                                                             href={`${baseURL}${bankDetail.attachment.attachment_url || bankDetail.attachment.file_url}`}
@@ -11355,12 +11473,15 @@ const VendorRegistrationStepByStepForm = () => {
                                                                             {bankDetail?.attachment.filename || bankDetail?.attachment.document_name}
                                                                         </a>
                                                                     </span>
-                                                                ) : bankDetail.attachment.filename ? (
-                                                                    <span className="ms-2 d-flex align-items-center">
-                                                                        <span className="me-2">Selected File:</span>
-                                                                        <span className="text-muted">{bankDetail.attachment.filename}</span>
-                                                                    </span>
-                                                                ) : null
+                                                                ) :
+                                                                    (bankAttachments && bankAttachments[bankDetail.id]) ? (
+                                                                        <span className=" d-flex align-items-center">
+                                                                            <span className="me-2">Selected File:</span>
+                                                                            <span className="text-muted">{bankAttachments[bankDetail.id]?.filename}</span>
+                                                                        </span>
+                                                                    )
+
+                                                                        : null
                                                             ) : null}
 
                                                             {/* File Input for Uploading New Attachments */}
@@ -12011,14 +12132,19 @@ const VendorRegistrationStepByStepForm = () => {
                                                                         </ul>
                                                                     ) : (
                                                                         typeof warehouse.attachment === 'string' ? (
-                                                                            <a href={`${baseURL}${warehouse.attachment}`} download className="text-primary d-flex align-items-center mt-2">
+                                                                            <a href={`${baseURL}${warehouse.attachment}`} download className="text-primary d-flex align-items-center ">
                                                                                 <span className="me-2">Existing File:</span>
+                                                                                <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} fill="#DE7008" className="bi bi-download" viewBox="0 0 16 16">
+                                                                                    <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                                                                                    <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                                                                                </svg>
                                                                                 <span>{warehouse.attachment.split('/').pop()}</span>
+
                                                                             </a>
                                                                         ) : warehouse.attachment.filename ? (
-                                                                            <div className="mt-0">Existing File: {warehouse.attachment.filename}</div>
+                                                                            <div className="mt-0">Selected File: {warehouse.attachment.filename}</div>
                                                                         ) : warehouse.attachment.name ? (
-                                                                            <div className="mt-0">Existing File: {warehouse.attachment.name}</div>
+                                                                            <div className="mt-0">Selected File: {warehouse.attachment.name}</div>
                                                                         ) : null
                                                                     )
                                                                 )}
@@ -12299,6 +12425,45 @@ const VendorRegistrationStepByStepForm = () => {
                                                         <div className="col-md-4  mt-2">
                                                             <div className="form-group">
                                                                 <label>Attachment</label>
+                                                                {person.attachment && (
+                                                                    Array.isArray(person.attachment) ? (
+                                                                        <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
+                                                                            {person.attachment.map((att, ai) => {
+                                                                                const filename = att?.document_name || att?.filename || att?.name || String(att);
+                                                                                const rawUrl = att?.attachment_url || att?.file_url || att?.url || (typeof att === 'string' ? att : null);
+                                                                                const href = rawUrl ? (String(rawUrl).startsWith('http') ? rawUrl : `${baseURL}${rawUrl}`) : null;
+                                                                                return (
+                                                                                    <li key={ai} style={{ marginBottom: 6 }}>
+                                                                                        {href ? (
+                                                                                            <a href={href} download className="text-primary d-flex align-items-center">
+                                                                                                <span style={{ fontSize: 12 }}>{filename}</span>
+                                                                                            </a>
+                                                                                        ) : (
+                                                                                            <span style={{ fontSize: 12 }}>{filename}</span>
+                                                                                        )}
+                                                                                    </li>
+                                                                                );
+                                                                            })}
+                                                                        </ul>
+                                                                    ) : (
+                                                                        typeof person.attachment === 'string' ? (
+                                                                            <a href={`${baseURL}${person.attachment}`} download className="text-primary d-flex align-items-center ">
+                                                                                <span className="me-2">Existing File:</span>
+                                                                                <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} fill="#DE7008" className="bi bi-download" viewBox="0 0 16 16">
+                                                                                    <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                                                                                    <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                                                                                </svg>
+                                                                                <span>{person.attachment.split('/').pop()}</span>
+
+                                                                            </a>
+                                                                        ) : person.attachment.filename ? (
+                                                                            <div className="mt-0">Selected File: {person.attachment.filename}</div>
+                                                                        ) : person.attachment.name ? (
+                                                                            <div className="mt-0">Selected File: {person.attachment.name}</div>
+                                                                        ) : null
+                                                                    )
+                                                                )}
+
                                                                 <input
                                                                     className="form-control"
                                                                     disabled
@@ -12375,12 +12540,43 @@ const VendorRegistrationStepByStepForm = () => {
                                                         <div className="col-md-4 mt-2">
                                                             <div className="form-group">
                                                                 <label>Attachment</label>
-                                                                {owner?.attachment && (
-                                                                    <div className="">
 
-                                                                        <span>Existing File : {owner.attachment.name || owner.attachment.filename || 'Selected file'}</span>
-
-                                                                    </div>
+                                                                {owner.attachment && (
+                                                                    Array.isArray(owner.attachment) ? (
+                                                                        <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
+                                                                            {owner.attachment.map((att, ai) => {
+                                                                                const filename = att?.document_name || att?.filename || att?.name || String(att);
+                                                                                const rawUrl = att?.attachment_url || att?.file_url || att?.url || (typeof att === 'string' ? att : null);
+                                                                                const href = rawUrl ? (String(rawUrl).startsWith('http') ? rawUrl : `${baseURL}${rawUrl}`) : null;
+                                                                                return (
+                                                                                    <li key={ai} style={{ marginBottom: 6 }}>
+                                                                                        {href ? (
+                                                                                            <a href={href} download className="text-primary d-flex align-items-center">
+                                                                                                <span style={{ fontSize: 12 }}>{filename}</span>
+                                                                                            </a>
+                                                                                        ) : (
+                                                                                            <span style={{ fontSize: 12 }}>{filename}</span>
+                                                                                        )}
+                                                                                    </li>
+                                                                                );
+                                                                            })}
+                                                                        </ul>
+                                                                    ) : (
+                                                                        typeof owner.attachment === 'string' ? (
+                                                                            <a href={`${baseURL}${owner.attachment}`} download className="text-primary d-flex align-items-center">
+                                                                                <span className="me-2">Existing File:</span>
+                                                                                <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} fill="#DE7008" className="bi bi-download" viewBox="0 0 16 16">
+                                                                                    <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                                                                                    <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                                                                                </svg>
+                                                                                <span>{owner.attachment.split('/').pop()}</span>
+                                                                            </a>
+                                                                        ) : owner.attachment.filename ? (
+                                                                            <div className="mt-0">Selected File: {owner.attachment.filename}</div>
+                                                                        ) : owner.attachment.name ? (
+                                                                            <div className="mt-0">Selected File: {owner.attachment.name}</div>
+                                                                        ) : null
+                                                                    )
                                                                 )}
                                                                 <input
                                                                     className="form-control"
