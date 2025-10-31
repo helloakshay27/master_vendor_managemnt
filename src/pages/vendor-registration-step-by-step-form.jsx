@@ -939,21 +939,26 @@ const VendorRegistrationStepByStepForm = () => {
             ]);
         }
     }, [bankDetailsList.length]);
+    // Exposed helper to (re)load supplier show data so other UI actions
+    // (like Back navigation) can refresh the step-specific state.
+    const reloadSupplierShowData = async () => {
+        try {
+            const response = await axios.get(`${baseURL}/pms/suppliers/${id}/supplier_show.json`);
+            setSupplierShowData(response?.data);
+
+            setBankDetailsList(response?.data?.bank_details || []);
+            // console.log("supplier show data:", response.data.bank_details)
+            setStatutoryDetails(response?.data?.statutory_details);
+        } catch (error) {
+            console.error('Error fetching supplier show data:', error);
+        }
+    };
+
+    console.log("****************** statutory details:", statutoryDetails);
+
     useEffect(() => {
-        const fetchSupplierShowData = async () => {
-            try {
-                const response = await axios.get(`${baseURL}/pms/suppliers/${id}/supplier_show.json`);
-                setSupplierShowData(response.data);
-
-                setBankDetailsList(response.data?.bank_details || [])
-                // console.log("supplier show data:", response.data.bank_details)
-                setStatutoryDetails(response.data?.statutory_details)
-
-            } catch (error) {
-                console.error('Error fetching supplier show data:', error);
-            }
-        };
-        fetchSupplierShowData();
+        // initial load
+        reloadSupplierShowData();
     }, []);
     // Supplier declaration questions fetched from API
     // console.log("bank details list:",bankDetailsList)
@@ -13287,12 +13292,21 @@ console.log("statutory details payload:",statutoryPayload)
                                 <button
                                     className="purple-btn1"
                                     onClick={() => {
+                                        // compute target step index first
+                                        const target = Math.max(currentStep - 1, 0);
+
                                         setCompleted((arr) => {
                                             const copy = [...arr];
-                                            copy[currentStep - 1] = false;
+                                            copy[target] = false;
                                             return copy;
                                         });
-                                        setCurrentStep((s) => Math.max(s - 1, 0));
+
+                                        // navigate to target step
+                                        setCurrentStep(target);
+
+                                        // refresh data for that step by reloading supplier show data
+                                        // (this will re-run the mapping useEffect that applies supplierShowData to local states)
+                                        reloadSupplierShowData();
                                     }}
                                     disabled={normalize(steps[currentStep]?.label || '') === normalize('OTP Verification')}
                                 >
