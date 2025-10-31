@@ -4806,7 +4806,7 @@ const VendorRegistrationStepByStepForm = () => {
         setLoading(true);
         const payload = {
             pms_supplier: {
-                status: "detail_submitted_by_vendor",
+                status: "details_submitted_by_vendor",
                 // company_id: supplierShowData?.company_id || null,
                 // organization_name: basicInfo.vendorOrganizationName,
 
