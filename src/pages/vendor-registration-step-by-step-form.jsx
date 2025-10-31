@@ -85,7 +85,8 @@ const mapRegisteredAddressToPayload = (registeredAddress) => [{
     id: registeredAddress.id || null,
     address: registeredAddress.address1 || '',
     address_type: 'office',
-    email: registeredAddress.billingEmail || '',
+    email: registeredAddress.orderingEmail || '',
+    email2: registeredAddress.billingEmail || '',
     mobile: registeredAddress.mobile || '',
     address_line_two: registeredAddress.address2 || '',
     address_line_three: registeredAddress.address3 || '',
@@ -1272,8 +1273,8 @@ const VendorRegistrationStepByStepForm = () => {
                     pincode: office.pin_code || office.pin_code || office.pinCode || prev.pincode || '',
                     telephone: office.telephone_number || office.tel_number || prev.telephone || '',
                     mobile: office.mobile || prev.mobile || '',
-                    orderingEmail: office.email || prev.orderingEmail || '',
-                    billingEmail: office.email || prev.billingEmail || '',
+                    orderingEmail: office.email || prev.orderingEmail || office.ordering_email || '',
+                    billingEmail: office.email || prev.billingEmail || office.billing_account_email || '',
                 }));
             }
 
@@ -2301,13 +2302,13 @@ const VendorRegistrationStepByStepForm = () => {
             // if (item.isNew) {
             //     return prev.filter((c) => c.id !== id);
             // }
-              // If idPre is not present, set isNew = true before filtering
-        if (!item.idPre) {
-            return prev
-                .map((c) => (c.id === id ? { ...c, isNew: true } : c))
-                .filter((c) => c.id !== id);
-        }
-          if (item.isNew) {
+            // If idPre is not present, set isNew = true before filtering
+            if (!item.idPre) {
+                return prev
+                    .map((c) => (c.id === id ? { ...c, isNew: true } : c))
+                    .filter((c) => c.id !== id);
+            }
+            if (item.isNew) {
                 return prev.filter((c) => c.id !== id);
             }
 
@@ -2429,13 +2430,13 @@ const VendorRegistrationStepByStepForm = () => {
             // if (item.isNew) {
             //     return prev.filter((c) => c.id !== id);
             // }
-              // If idPre is not present, set isNew = true before filtering
-        if (!item.idPre) {
-            return prev
-                .map((c) => (c.id === id ? { ...c, isNew: true } : c))
-                .filter((c) => c.id !== id);
-        }
-          if (item.isNew) {
+            // If idPre is not present, set isNew = true before filtering
+            if (!item.idPre) {
+                return prev
+                    .map((c) => (c.id === id ? { ...c, isNew: true } : c))
+                    .filter((c) => c.id !== id);
+            }
+            if (item.isNew) {
                 return prev.filter((c) => c.id !== id);
             }
 
@@ -2517,13 +2518,13 @@ const VendorRegistrationStepByStepForm = () => {
             //     return prev.filter((c) => c.id !== id);
             // }
 
-              // If idPre is not present, set isNew = true before filtering
-        if (!item.idPre) {
-            return prev
-                .map((c) => (c.id === id ? { ...c, isNew: true } : c))
-                .filter((c) => c.id !== id);
-        }
-          if (item.isNew) {
+            // If idPre is not present, set isNew = true before filtering
+            if (!item.idPre) {
+                return prev
+                    .map((c) => (c.id === id ? { ...c, isNew: true } : c))
+                    .filter((c) => c.id !== id);
+            }
+            if (item.isNew) {
                 return prev.filter((c) => c.id !== id);
             }
 
@@ -2648,13 +2649,13 @@ const VendorRegistrationStepByStepForm = () => {
             //     return prev.filter((c) => c.id !== id);
             // }
 
-              // If idPre is not present, set isNew = true before filtering
-        if (!item.idPre) {
-            return prev
-                .map((c) => (c.id === id ? { ...c, isNew: true } : c))
-                .filter((c) => c.id !== id);
-        }
-          if (item.isNew) {
+            // If idPre is not present, set isNew = true before filtering
+            if (!item.idPre) {
+                return prev
+                    .map((c) => (c.id === id ? { ...c, isNew: true } : c))
+                    .filter((c) => c.id !== id);
+            }
+            if (item.isNew) {
                 return prev.filter((c) => c.id !== id);
             }
 
@@ -2724,19 +2725,19 @@ const VendorRegistrationStepByStepForm = () => {
         setMajorCustomers((prev) => {
             const item = prev.find((c) => c.id === id);
             if (!item) return prev;
-console.log("item major:",item)
-          
-        //       if (!item.idpre) {
-        //     return prev.filter((c) => c.id !== id);
-        // }
+            console.log("item major:", item)
 
-         // If idPre is not present, set isNew = true before filtering
-        if (!item.idPre) {
-            return prev
-                .map((c) => (c.id === id ? { ...c, isNew: true } : c))
-                .filter((c) => c.id !== id);
-        }
-          if (item.isNew) {
+            //       if (!item.idpre) {
+            //     return prev.filter((c) => c.id !== id);
+            // }
+
+            // If idPre is not present, set isNew = true before filtering
+            if (!item.idPre) {
+                return prev
+                    .map((c) => (c.id === id ? { ...c, isNew: true } : c))
+                    .filter((c) => c.id !== id);
+            }
+            if (item.isNew) {
                 return prev.filter((c) => c.id !== id);
             }
 
@@ -4305,13 +4306,16 @@ console.log("item major:",item)
     };
 
     // console.log("add:", registeredAddress,communicationAddress, mapRegisteredAddressToPayload(registeredAddress))
-
+    //  const regAddrPayload = mapRegisteredAddressToPayload(registeredAddress)[0]|| {};
+            // console.log("reg_address_attributes:", regAddrPayload.email2);
     // console.log("base info:", basicInfo)
     const saveDraftStep2 = async () => {
         setLoading2(true)
-        console.log("sameAsRegistered value:", sameAsRegistered);
+        // console.log("sameAsRegistered value:", sameAsRegistered);
         const commAddrPayload = mapCommunicationAddressToPayload(communicationAddress, sameAsRegistered)[0] || {};
-        console.log("communication_address_attributes:", commAddrPayload);
+        // console.log("communication_address_attributes:", commAddrPayload);
+        const regAddrPayload = mapRegisteredAddressToPayload(registeredAddress)[0] || {};
+        // console.log("reg_address_attributes:", regAddrPayload);
         const payload = {
             pms_supplier: {
                 status: "draft",
@@ -4366,6 +4370,8 @@ console.log("item major:",item)
                 // communication_address_attributes: mapCommunicationAddressToPayload(communicationAddress),
                 office_address_attributes: mapRegisteredAddressToPayload(registeredAddress)[0] || {},
                 communication_address_attributes: commAddrPayload,
+                ordering_email: regAddrPayload?.email,
+                billing_account_email: regAddrPayload?.email2,
             }
         };
         console.log(" payload for address step:", payload)
@@ -7189,6 +7195,8 @@ console.log("item major:",item)
                                 </div>
                             )}
 
+                            {console.log("regb add", registeredAddress)}
+
                             {isSectionVisible('communication address') && (
                                 <div className="card mx-3 pb-4 mt-4">
                                     <div className="card-header3">
@@ -8445,7 +8453,7 @@ console.log("item major:",item)
                                     </div>
                                 </>
                             )}
-{/* {console.log("major cust:",majorCustomers)} */}
+                            {/* {console.log("major cust:",majorCustomers)} */}
                             {/* #2 */}
                             {isSectionVisible('branch office') && (
                                 <>
@@ -8813,7 +8821,7 @@ console.log("item major:",item)
                                 </>
                             )}
 
-{/* {console.log("warehouses:",warehouses)} */}
+                            {/* {console.log("warehouses:",warehouses)} */}
                             {/* #4-------------------- */}
                             {isSectionVisible('contact person') && (
                                 <>
@@ -12696,36 +12704,36 @@ console.log("item major:",item)
                                                                 <td>
 
 
-                                                                        {item?.attachment ? (
-                                                                    item?.attachment?.attachment_url || item?.attachment?.file_url ? (
-                                                                        <span className="">
-                                                                            <a
-                                                                                href={`${baseURL}${item.attachment.attachment_url || item.attachment.file_url}`}
-                                                                                download
-                                                                                className="text-primary d-flex align-items-center"
-                                                                            >
-                                                                                <span className="me-2">Existing File:</span>
-                                                                                <svg
-                                                                                    xmlns="http://www.w3.org/2000/svg"
-                                                                                    width={24}
-                                                                                    height={24}
-                                                                                    fill="#DE7008"
-                                                                                    className="bi bi-download"
-                                                                                    viewBox="0 0 16 16"
+                                                                    {item?.attachment ? (
+                                                                        item?.attachment?.attachment_url || item?.attachment?.file_url ? (
+                                                                            <span className="">
+                                                                                <a
+                                                                                    href={`${baseURL}${item.attachment.attachment_url || item.attachment.file_url}`}
+                                                                                    download
+                                                                                    className="text-primary d-flex align-items-center"
                                                                                 >
-                                                                                    <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
-                                                                                    <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
-                                                                                </svg>
-                                                                                {item?.attachment.filename || item?.attachment.document_name}
-                                                                            </a>
-                                                                        </span>
-                                                                    ) : item.attachment.filename ? (
-                                                                        <span className="d-flex align-items-center">
-                                                                            <span className="me-2">Selected File:</span>
-                                                                            <span className="text-muted">{item.attachment.filename}</span>
-                                                                        </span>
-                                                                    ) : null
-                                                                ) : null}
+                                                                                    <span className="me-2">Existing File:</span>
+                                                                                    <svg
+                                                                                        xmlns="http://www.w3.org/2000/svg"
+                                                                                        width={24}
+                                                                                        height={24}
+                                                                                        fill="#DE7008"
+                                                                                        className="bi bi-download"
+                                                                                        viewBox="0 0 16 16"
+                                                                                    >
+                                                                                        <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                                                                                        <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                                                                                    </svg>
+                                                                                    {item?.attachment.filename || item?.attachment.document_name}
+                                                                                </a>
+                                                                            </span>
+                                                                        ) : item.attachment.filename ? (
+                                                                            <span className="d-flex align-items-center">
+                                                                                <span className="me-2">Selected File:</span>
+                                                                                <span className="text-muted">{item.attachment.filename}</span>
+                                                                            </span>
+                                                                        ) : null
+                                                                    ) : null}
                                                                     <input
                                                                         className="form-control"
                                                                         type="file"
