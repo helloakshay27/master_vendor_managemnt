@@ -2298,7 +2298,16 @@ const VendorRegistrationStepByStepForm = () => {
             const item = prev.find((c) => c.id === id);
             if (!item) return prev;
 
-            if (item.isNew) {
+            // if (item.isNew) {
+            //     return prev.filter((c) => c.id !== id);
+            // }
+              // If idPre is not present, set isNew = true before filtering
+        if (!item.idPre) {
+            return prev
+                .map((c) => (c.id === id ? { ...c, isNew: true } : c))
+                .filter((c) => c.id !== id);
+        }
+          if (item.isNew) {
                 return prev.filter((c) => c.id !== id);
             }
 
@@ -2417,7 +2426,16 @@ const VendorRegistrationStepByStepForm = () => {
             const item = prev.find((c) => c.id === id);
             if (!item) return prev;
 
-            if (item.isNew) {
+            // if (item.isNew) {
+            //     return prev.filter((c) => c.id !== id);
+            // }
+              // If idPre is not present, set isNew = true before filtering
+        if (!item.idPre) {
+            return prev
+                .map((c) => (c.id === id ? { ...c, isNew: true } : c))
+                .filter((c) => c.id !== id);
+        }
+          if (item.isNew) {
                 return prev.filter((c) => c.id !== id);
             }
 
@@ -2495,7 +2513,17 @@ const VendorRegistrationStepByStepForm = () => {
             const item = prev.find((c) => c.id === id);
             if (!item) return prev;
 
-            if (item.isNew) {
+            // if (item.isNew) {
+            //     return prev.filter((c) => c.id !== id);
+            // }
+
+              // If idPre is not present, set isNew = true before filtering
+        if (!item.idPre) {
+            return prev
+                .map((c) => (c.id === id ? { ...c, isNew: true } : c))
+                .filter((c) => c.id !== id);
+        }
+          if (item.isNew) {
                 return prev.filter((c) => c.id !== id);
             }
 
@@ -2616,7 +2644,17 @@ const VendorRegistrationStepByStepForm = () => {
             const item = prev.find((c) => c.id === id);
             if (!item) return prev;
 
-            if (item.isNew) {
+            // if (item.isNew) {
+            //     return prev.filter((c) => c.id !== id);
+            // }
+
+              // If idPre is not present, set isNew = true before filtering
+        if (!item.idPre) {
+            return prev
+                .map((c) => (c.id === id ? { ...c, isNew: true } : c))
+                .filter((c) => c.id !== id);
+        }
+          if (item.isNew) {
                 return prev.filter((c) => c.id !== id);
             }
 
@@ -2686,8 +2724,19 @@ const VendorRegistrationStepByStepForm = () => {
         setMajorCustomers((prev) => {
             const item = prev.find((c) => c.id === id);
             if (!item) return prev;
+console.log("item major:",item)
+          
+        //       if (!item.idpre) {
+        //     return prev.filter((c) => c.id !== id);
+        // }
 
-            if (item.isNew) {
+         // If idPre is not present, set isNew = true before filtering
+        if (!item.idPre) {
+            return prev
+                .map((c) => (c.id === id ? { ...c, isNew: true } : c))
+                .filter((c) => c.id !== id);
+        }
+          if (item.isNew) {
                 return prev.filter((c) => c.id !== id);
             }
 
@@ -8396,7 +8445,7 @@ const VendorRegistrationStepByStepForm = () => {
                                     </div>
                                 </>
                             )}
-
+{/* {console.log("major cust:",majorCustomers)} */}
                             {/* #2 */}
                             {isSectionVisible('branch office') && (
                                 <>
@@ -8764,7 +8813,7 @@ const VendorRegistrationStepByStepForm = () => {
                                 </>
                             )}
 
-
+{/* {console.log("warehouses:",warehouses)} */}
                             {/* #4-------------------- */}
                             {isSectionVisible('contact person') && (
                                 <>
