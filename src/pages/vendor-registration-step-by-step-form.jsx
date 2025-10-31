@@ -3372,6 +3372,7 @@ const VendorRegistrationStepByStepForm = () => {
         }
     }, [bankDetailsList]);
 
+    
     const handleCountryChange = (selectedOption, bankId) => {
         setBankDetailsList((prevList) =>
             prevList.map((bankDetail) =>
@@ -3877,17 +3878,18 @@ const VendorRegistrationStepByStepForm = () => {
 
     // console.log("before update:",additionalDetails.classificationYear.value)
     const handleStatutoryInputChange = (code, value, id, statutory_detail_value) => {
+        console.log("statutory_detail_value:", statutory_detail_value);
         setStatutoryInputs(prev => ({
             ...prev,
             [code]: {
                 ...prev[code],
-                input: value,
+                input: value || statutory_detail_value,
                 id: id,
             },
         }));
     };
 
-    const handleStatutoryFileChange = (code, file, id, statutory_detail_value) => {
+    const handleStatutoryFileChange = (code, file, id,value, statutory_detail_value) => {
         const reader = new FileReader();
 
         reader.onloadend = () => {
@@ -3905,6 +3907,7 @@ const VendorRegistrationStepByStepForm = () => {
                 [code]: {
                     ...prev[code],
                     file: attachment, // Save attachment object instead of raw File
+                    input: value || statutory_detail_value,
                     id: id,
                     // input: statutory_detail_value
                 },
@@ -3914,10 +3917,13 @@ const VendorRegistrationStepByStepForm = () => {
         if (file) {
             reader.readAsDataURL(file);
         }
+
+        console.log("Exact file:", statutoryInputs[code]?.file?.filename);
+
     };
 
 
-
+    console.log("sat input :", statutoryInputs)
 
 
     const statutoryPayload = Object.entries(statutoryInputs).map(
@@ -3928,7 +3934,7 @@ const VendorRegistrationStepByStepForm = () => {
             statutory_detail_attachment: file || null,
         })
     );
-
+    // console.log("sat input attach payload:",statutoryPayload)
 
     const validateStatutoryInputs = () => {
         const errors = {};
@@ -4095,7 +4101,7 @@ const VendorRegistrationStepByStepForm = () => {
         }
     }
 
-    console.log("payloaddddddd*********:", ppayload2)
+    // console.log("payloaddddddd*********:", ppayload2)
 
 
     // console.log("basic info:", basicInfo)
@@ -4307,7 +4313,7 @@ const VendorRegistrationStepByStepForm = () => {
 
     // console.log("add:", registeredAddress,communicationAddress, mapRegisteredAddressToPayload(registeredAddress))
     //  const regAddrPayload = mapRegisteredAddressToPayload(registeredAddress)[0]|| {};
-            // console.log("reg_address_attributes:", regAddrPayload.email2);
+    // console.log("reg_address_attributes:", regAddrPayload.email2);
     // console.log("base info:", basicInfo)
     const saveDraftStep2 = async () => {
         setLoading2(true)
@@ -4580,7 +4586,7 @@ const VendorRegistrationStepByStepForm = () => {
         }
     };
 
-
+console.log("statutory details payload:",statutoryPayload)
     const saveDraftStep5 = async () => {
         setLoading2(true)
         console.log("sameAsRegistered value:", sameAsRegistered);
@@ -5110,8 +5116,8 @@ const VendorRegistrationStepByStepForm = () => {
     // Helper: a step is completed if completed[idx] is true
     // The line between step i and i+1 is colored only if completed[i] is true
 
-    console.log("enabled sections :", enabledSections)
-    console.log("enabled steps :", steps)
+    // console.log("enabled sections :", enabledSections)
+    // console.log("enabled steps :", steps)
 
 
 
@@ -9446,9 +9452,10 @@ const VendorRegistrationStepByStepForm = () => {
 
 
 
-
+{console.log("statutoryDetails:",statutoryDetails)}
                                         {statutoryDetails?.map((field, index) => (
                                             <div className="row" key={`${field.id}-${index}`}>
+                                                {/* {console.log("stat field:",field.code)} */}
                                                 <div className="col-md-6 mt-3">
                                                     <div className="form-group">
                                                         <label>{field.name}</label>
@@ -9479,33 +9486,58 @@ const VendorRegistrationStepByStepForm = () => {
                                                                     field.statutory_detail_value
                                                                 ) && <span>  *</span>}
                                                             </label>
-                                                            {field?.attachment_url && (
-                                                                <span className="ms-2">
-                                                                    <a
-                                                                        href={`${baseURL}${field?.attachment_url}`}
-                                                                        download
-                                                                        className="text-primary d-flex align-items-center"
-                                                                    >
-                                                                        <span className="me-2 ms-3">Existing Files:</span>
-                                                                        <svg
-                                                                            xmlns="http://www.w3.org/2000/svg"
-                                                                            width={24}
-                                                                            height={24}
-                                                                            fill="#DE7008"
-                                                                            className="bi bi-download"
-                                                                            viewBox="0 0 16 16"
-                                                                        >
-                                                                            <path
-                                                                                d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
-                                                                            />
-                                                                            <path
-                                                                                d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
-                                                                            />
-                                                                        </svg>
-                                                                        {/* {field?.name ? field.name : "No Document Available"} */}
-                                                                    </a>
-                                                                </span>
+
+
+
+                                                            {(field?.attachment?.url) ? (
+                                                                <>
+                                                                    {/* // ✅ Case 1: Existing file from backend */}
+                                                                    {!(statutoryInputs[field?.code]?.file?.filename) && (
+                                                                        <span className="ms-2">
+                                                                            <a
+                                                                                href={`${baseURL}${field?.attachment?.url}`}
+                                                                                download
+                                                                                className="text-primary d-flex align-items-center"
+                                                                            >
+                                                                                <span className="ms-2 me-2">Existing File:</span>
+                                                                                <svg
+                                                                                    xmlns="http://www.w3.org/2000/svg"
+                                                                                    width={24}
+                                                                                    height={24}
+                                                                                    fill="#DE7008"
+                                                                                    className="bi bi-download"
+                                                                                    viewBox="0 0 16 16"
+                                                                                >
+                                                                                    <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                                                                                    <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                                                                                </svg>
+                                                                                {field?.attachment?.filename || "-"}
+                                                                            </a>
+                                                                        </span>)}
+
+                                                                    {statutoryInputs[field?.code]?.file?.filename && (
+                                                                        <span className="d-flex align-items-center ">
+                                                                            <span className="ms-2 me-2">Selected File:</span>
+                                                                            <span className="text-muted">
+                                                                                {statutoryInputs[field?.code]?.file?.filename}
+                                                                            </span>
+                                                                        </span>
+                                                                    )}
+
+
+                                                                </>
+                                                            ) : (
+                                                                // 🔄 Case 2: Local uploaded file
+                                                                statutoryInputs[field?.code]?.file?.filename && (
+                                                                    <span className="d-flex align-items-center ms-2">
+                                                                        <span className="me-2 ms-3">Selected File:</span>
+                                                                        <span className="text-muted">
+                                                                            {statutoryInputs[field?.code]?.file?.filename}
+                                                                        </span>
+                                                                    </span>
+                                                                )
                                                             )}
+
                                                         </div>
                                                         <input
                                                             type="file"
@@ -12815,33 +12847,56 @@ const VendorRegistrationStepByStepForm = () => {
                                                                         field.statutory_detail_value
                                                                     ) && <span>  *</span>}
                                                                 </label>
-                                                                {field?.attachment_url && (
-                                                                    <span className="ms-2">
-                                                                        <a
-                                                                            href={`${baseURL}${field?.attachment_url}`}
-                                                                            download
-                                                                            className="text-primary d-flex align-items-center"
-                                                                        >
-                                                                            <span className="me-2 ms-3">Existing Files:</span>
-                                                                            <svg
-                                                                                xmlns="http://www.w3.org/2000/svg"
-                                                                                width={24}
-                                                                                height={24}
-                                                                                fill="#DE7008"
-                                                                                className="bi bi-download"
-                                                                                viewBox="0 0 16 16"
+                                                                
+
+                                                                   {(field?.attachment?.url) ? (
+                                                                <>
+                                                                    {/* // ✅ Case 1: Existing file from backend */}
+                                                                    {!(statutoryInputs[field?.code]?.file?.filename) && (
+                                                                        <span className="ms-2">
+                                                                            <a
+                                                                                href={`${baseURL}${field?.attachment?.url}`}
+                                                                                download
+                                                                                className="text-primary d-flex align-items-center"
                                                                             >
-                                                                                <path
-                                                                                    d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"
-                                                                                />
-                                                                                <path
-                                                                                    d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"
-                                                                                />
-                                                                            </svg>
-                                                                            {/* {field?.name ? field.name : "No Document Available"} */}
-                                                                        </a>
+                                                                                <span className="ms-2 me-2">Existing File:</span>
+                                                                                <svg
+                                                                                    xmlns="http://www.w3.org/2000/svg"
+                                                                                    width={24}
+                                                                                    height={24}
+                                                                                    fill="#DE7008"
+                                                                                    className="bi bi-download"
+                                                                                    viewBox="0 0 16 16"
+                                                                                >
+                                                                                    <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                                                                                    <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                                                                                </svg>
+                                                                                {field?.attachment?.filename || "-"}
+                                                                            </a>
+                                                                        </span>)}
+
+                                                                    {statutoryInputs[field?.code]?.file?.filename && (
+                                                                        <span className="d-flex align-items-center ">
+                                                                            <span className="ms-2 me-2">Selected File:</span>
+                                                                            <span className="text-muted">
+                                                                                {statutoryInputs[field?.code]?.file?.filename}
+                                                                            </span>
+                                                                        </span>
+                                                                    )}
+
+
+                                                                </>
+                                                            ) : (
+                                                                // 🔄 Case 2: Local uploaded file
+                                                                statutoryInputs[field?.code]?.file?.filename && (
+                                                                    <span className="d-flex align-items-center ms-2">
+                                                                        <span className="me-2 ms-3">Selected File:</span>
+                                                                        <span className="text-muted">
+                                                                            {statutoryInputs[field?.code]?.file?.filename}
+                                                                        </span>
                                                                     </span>
-                                                                )}
+                                                                )
+                                                            )}
                                                             </div>
                                                             <input
                                                                 type="file"
