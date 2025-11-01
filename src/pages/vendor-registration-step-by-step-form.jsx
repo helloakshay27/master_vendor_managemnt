@@ -173,17 +173,17 @@ const VendorRegistrationStepByStepForm = () => {
     const [checklistResponses, setChecklistResponses] = useState({});
     const [checklistConfig, setChecklistConfig] = useState([]);
 
-     const fetchChecklistConfig = async () => {
-            try {
-                const response = await axios.get(`${baseURL}/pms/suppliers/${id}/checklist_configuration`);
-                setChecklistConfig(response.data || []);
-                // console.log("check list:", response.data)
-            } catch (error) {
-                setChecklistConfig([]);
-            }
-        };
+    const fetchChecklistConfig = async () => {
+        try {
+            const response = await axios.get(`${baseURL}/pms/suppliers/${id}/checklist_configuration`);
+            setChecklistConfig(response.data || []);
+            // console.log("check list:", response.data)
+        } catch (error) {
+            setChecklistConfig([]);
+        }
+    };
     useEffect(() => {
-       
+
         fetchChecklistConfig();
     }, []);
 
@@ -2003,12 +2003,12 @@ const VendorRegistrationStepByStepForm = () => {
                     const contentType = (fileObj && (fileObj.content_type || fileObj.type || '')).toString();
                     // const isPdf = (contentType || '').toLowerCase() === 'application/pdf' || filename.toLowerCase().endsWith('.pdf');
                     // ✅ Allow PDF, DOC, and DOCX
-    const isAllowedFile =
-        ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
-            .includes((contentType || '').toLowerCase()) ||
-        filename.toLowerCase().endsWith('.pdf') ||
-        filename.toLowerCase().endsWith('.doc') ||
-        filename.toLowerCase().endsWith('.docx');
+                    const isAllowedFile =
+                        ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
+                            .includes((contentType || '').toLowerCase()) ||
+                        filename.toLowerCase().endsWith('.pdf') ||
+                        filename.toLowerCase().endsWith('.doc') ||
+                        filename.toLowerCase().endsWith('.docx');
 
                     if (!isAllowedFile) {
                         additionalErrors.einvoiceDeclaration = 'File must be a PDF , DOC, or DOCX.';
@@ -2157,11 +2157,89 @@ const VendorRegistrationStepByStepForm = () => {
     const [sameAsRegistered, setSameAsRegistered] = useState(false);
 
     const handleRegisteredAddressChange = (field, value) => {
-        setRegisteredAddress(prev => ({ ...prev, [field]: value }));
+        setRegisteredAddress(prev => {
+            const updated = { ...prev, [field]: value };
+            // If state changes, reset dependent county value so stale county isn't kept
+            if (field === 'state') {
+                // use null to clear any selected county (matches initial state shape)
+                updated.county = null;
+            }
+            // If country changes, reset state and county so previously selected state/county don't remain
+            if (field === 'country') {
+                updated.state = null;
+                updated.county = null;
+            }
+
+            // If communication address is same as registered, mirror the change to communicationAddress
+            if (sameAsRegistered) {
+                setCommunicationAddress(updated);
+            }
+
+            return updated;
+        });
+
+        // Clear county/state validation error when state or country changes
+        if (field === 'state' || field === 'country') {
+            setAddressErrors(prev => {
+                const reg = { ...(prev.registered || {}) };
+                if (reg.hasOwnProperty('county')) {
+                    delete reg.county;
+                }
+                if (field === 'country' && reg.hasOwnProperty('state')) {
+                    delete reg.state;
+                }
+
+                // Also clear communication errors when sameAsRegistered is active
+                const comm = { ...(prev.communication || {}) };
+                if (sameAsRegistered) {
+                    if (comm.hasOwnProperty('county')) {
+                        delete comm.county;
+                    }
+                    if (field === 'country' && comm.hasOwnProperty('state')) {
+                        delete comm.state;
+                    }
+                }
+
+                return { ...prev, registered: reg, communication: comm };
+            });
+        }
     };
 
     const handleCommunicationAddressChange = (field, value) => {
-        setCommunicationAddress(prev => ({ ...prev, [field]: value }));
+        setCommunicationAddress(prev => {
+            const updated = { ...prev, [field]: value };
+            // If communication country changes, reset dependent state and other location fields
+            if (field === 'country') {
+                updated.state = null;
+                // updated.city = '';
+                // updated.pincode = '';
+            }
+            // If communication state changes, clear city (dependent)
+            // if (field === 'state') {
+            //     updated.city = '';
+            //     updated.pincode = '';
+            // }
+            return updated;
+        });
+
+        // Clear communication-specific validation errors when country/state changes
+        if (field === 'country' || field === 'state') {
+            setAddressErrors(prev => {
+                const comm = { ...(prev.communication || {}) };
+                if (field === 'country') {
+                    if (comm.hasOwnProperty('state')) delete comm.state;
+                    if (comm.hasOwnProperty('country')) delete comm.country;
+                    // if (comm.hasOwnProperty('city')) delete comm.city;
+                    // if (comm.hasOwnProperty('pincode')) delete comm.pincode;
+                }
+                if (field === 'state') {
+                    if (comm.hasOwnProperty('state')) delete comm.state;
+                    // if (comm.hasOwnProperty('city')) delete comm.city;
+                    // if (comm.hasOwnProperty('pincode')) delete comm.pincode;
+                }
+                return { ...prev, communication: comm };
+            });
+        }
     };
 
     const handleSameAsRegisteredAddress = (e) => {
@@ -3322,11 +3400,11 @@ const VendorRegistrationStepByStepForm = () => {
 
                 // If an attachment is present, validate it's a PDF and <= 5 MB
                 // console.log("warehouse attachment:", warehouse.attachment || warehouse.attachmentObj);
-                console.log("warehouse attachmentObj:",warehouse.attachment, warehouse.attachmentObj);
+                console.log("warehouse attachmentObj:", warehouse.attachment, warehouse.attachmentObj);
                 if (warehouse.attachment || warehouse.attachmentObj) {
                     const fileObj = warehouse.attachmentObj || warehouse.attachment;
-                    const filename = (fileObj && (fileObj.filename || fileObj.name || fileObj.document_name  || '')).toString();
-                    const contentType = (fileObj && (fileObj.content_type || fileObj.type || fileObj.attachment_url  || '')).toString();
+                    const filename = (fileObj && (fileObj.filename || fileObj.name || fileObj.document_name || '')).toString();
+                    const contentType = (fileObj && (fileObj.content_type || fileObj.type || fileObj.attachment_url || '')).toString();
                     const isPdf = (contentType || '').toLowerCase() === 'application/pdf' || filename.toLowerCase().endsWith('.pdf');
                     if (!isPdf) {
                         err.attachment = 'File must be a PDF.';
@@ -3383,31 +3461,31 @@ const VendorRegistrationStepByStepForm = () => {
                 if (person.secondaryEmail && !emailRegex.test(person.secondaryEmail)) {
                     err.secondaryEmail = 'Please enter a valid email address. eg.: abc@gmail.com';
                 }
-                
+
 
                 if (person.attachment || person.attachmentObj) {
-    const fileObj = person.attachmentObj || person.attachment;
-    const filename = (fileObj && (fileObj.filename || fileObj.name || fileObj.document_name|| '')).toString();
-    const contentType = (fileObj && (fileObj.content_type || fileObj.type || fileObj.attachment_url  || '')).toString();
-    const isPdf = (contentType || '').toLowerCase() === 'application/pdf' || filename.toLowerCase().endsWith('.pdf');
-    if (!isPdf) {
-        err.attachment = 'File must be a PDF.';
-    } else {
-        const MAX_BYTES = 5 * 1024 * 1024; // 5 MB
-        let size = 0;
-        if (fileObj && typeof fileObj.size === 'number') {
-            size = fileObj.size;
-        } else if (fileObj && fileObj.content) {
-            const b64 = fileObj.content.split(',').pop();
-            if (b64) {
-                size = Math.floor((b64.length * 3) / 4);
-            }
-        }
-        if (size > 0 && size > MAX_BYTES) {
-            err.attachment = 'File size must be 5 MB or less.';
-        }
-    }
-}
+                    const fileObj = person.attachmentObj || person.attachment;
+                    const filename = (fileObj && (fileObj.filename || fileObj.name || fileObj.document_name || '')).toString();
+                    const contentType = (fileObj && (fileObj.content_type || fileObj.type || fileObj.attachment_url || '')).toString();
+                    const isPdf = (contentType || '').toLowerCase() === 'application/pdf' || filename.toLowerCase().endsWith('.pdf');
+                    if (!isPdf) {
+                        err.attachment = 'File must be a PDF.';
+                    } else {
+                        const MAX_BYTES = 5 * 1024 * 1024; // 5 MB
+                        let size = 0;
+                        if (fileObj && typeof fileObj.size === 'number') {
+                            size = fileObj.size;
+                        } else if (fileObj && fileObj.content) {
+                            const b64 = fileObj.content.split(',').pop();
+                            if (b64) {
+                                size = Math.floor((b64.length * 3) / 4);
+                            }
+                        }
+                        if (size > 0 && size > MAX_BYTES) {
+                            err.attachment = 'File size must be 5 MB or less.';
+                        }
+                    }
+                }
 
 
                 return err;
@@ -3438,28 +3516,28 @@ const VendorRegistrationStepByStepForm = () => {
                 }
 
                 if (owner.attachment || owner.attachmentObj) {
-    const fileObj = owner.attachmentObj || owner.attachment;
-    const filename = (fileObj && (fileObj.filename || fileObj.name || fileObj.document_name||'')).toString();
-    const contentType = (fileObj && (fileObj.content_type || fileObj.type || fileObj.attachment_url  || '')).toString();
-    const isPdf = (contentType || '').toLowerCase() === 'application/pdf' || filename.toLowerCase().endsWith('.pdf');
-    if (!isPdf) {
-        err.attachment = 'File must be a PDF.';
-    } else {
-        const MAX_BYTES = 5 * 1024 * 1024; // 5 MB
-        let size = 0;
-        if (fileObj && typeof fileObj.size === 'number') {
-            size = fileObj.size;
-        } else if (fileObj && fileObj.content) {
-            const b64 = fileObj.content.split(',').pop();
-            if (b64) {
-                size = Math.floor((b64.length * 3) / 4);
-            }
-        }
-        if (size > 0 && size > MAX_BYTES) {
-            err.attachment = 'File size must be 5 MB or less.';
-        }
-    }
-}
+                    const fileObj = owner.attachmentObj || owner.attachment;
+                    const filename = (fileObj && (fileObj.filename || fileObj.name || fileObj.document_name || '')).toString();
+                    const contentType = (fileObj && (fileObj.content_type || fileObj.type || fileObj.attachment_url || '')).toString();
+                    const isPdf = (contentType || '').toLowerCase() === 'application/pdf' || filename.toLowerCase().endsWith('.pdf');
+                    if (!isPdf) {
+                        err.attachment = 'File must be a PDF.';
+                    } else {
+                        const MAX_BYTES = 5 * 1024 * 1024; // 5 MB
+                        let size = 0;
+                        if (fileObj && typeof fileObj.size === 'number') {
+                            size = fileObj.size;
+                        } else if (fileObj && fileObj.content) {
+                            const b64 = fileObj.content.split(',').pop();
+                            if (b64) {
+                                size = Math.floor((b64.length * 3) / 4);
+                            }
+                        }
+                        if (size > 0 && size > MAX_BYTES) {
+                            err.attachment = 'File size must be 5 MB or less.';
+                        }
+                    }
+                }
 
 
                 return err;
@@ -3481,8 +3559,8 @@ const VendorRegistrationStepByStepForm = () => {
                     } else {
                         // If an attachment is present, validate PDF + size
                         const fileObj = entry.attachmentObj || entry.attachment;
-                        const filename = (fileObj && (fileObj.filename || fileObj.name || fileObj.document_name|| '')).toString();
-                        const contentType = (fileObj && (fileObj.content_type || fileObj.type || fileObj.attachment_url  || '')).toString();
+                        const filename = (fileObj && (fileObj.filename || fileObj.name || fileObj.document_name || '')).toString();
+                        const contentType = (fileObj && (fileObj.content_type || fileObj.type || fileObj.attachment_url || '')).toString();
                         const isPdf = (contentType || '').toLowerCase() === 'application/pdf' || filename.toLowerCase().endsWith('.pdf');
                         if (!isPdf) {
                             turnoverErrs[fy] = { attachment: 'File must be a PDF.' };
@@ -5081,7 +5159,7 @@ const VendorRegistrationStepByStepForm = () => {
         setLoading2(true)
         // console.log("sameAsRegistered value:", sameAsRegistered);
         const commAddrPayload = mapCommunicationAddressToPayload(communicationAddress, sameAsRegistered)[0] || {};
-        console.log("******checklist:",checklistPayload)
+        console.log("******checklist:", checklistPayload)
         // console.log("communication_address_attributes:", commAddrPayload);
         // Validate checklist files: ensure each provided file is a PDF and <= 5 MB
         const validateChecklistFiles = (cp) => {
@@ -9811,7 +9889,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                                 onChange={e => handleOwnerChange(idx, 'attachment', e.target.files[0])}
                                                             />
 
-                                                             {ownerErrors[idx]?.attachment && (
+                                                            {ownerErrors[idx]?.attachment && (
                                                                 <div className="ValidationColor">{ownerErrors[idx].attachment}</div>
                                                             )}
 
@@ -10176,7 +10254,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                                                 </td>
                                                                                 <td>
 
-                                                                                       {/* Show uploaded file names or server-provided attachments with download link */}
+                                                                                    {/* Show uploaded file names or server-provided attachments with download link */}
                                                                                     {qState.files && qState.files.length > 0 && (
                                                                                         <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
                                                                                             {(() => {
@@ -10216,7 +10294,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                                                         type="file"
                                                                                         onChange={e => handleChecklistFileChange(subcat.id, q.id, e.target.files[0])}
                                                                                     />
-                                                                                 
+
 
                                                                                     {/* Show validation errors for checklist files near the input */}
                                                                                     {(() => {
@@ -10344,7 +10422,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                                                         onChange={e => handleChecklistFileChange(subcat.id, q.id, e.target.files[0])}
                                                                                     />
 
-                                                                                     {/* Show validation errors for checklist files near the input */}
+                                                                                    {/* Show validation errors for checklist files near the input */}
                                                                                     {(() => {
                                                                                         const msgs = (errors && errors.checklistFiles && errors.checklistFiles[subcat.id] && errors.checklistFiles[subcat.id][q.id]) || [];
                                                                                         if (!msgs || msgs.length === 0) return null;
@@ -10355,7 +10433,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                                                             </div>
                                                                                         );
                                                                                     })()}
-                                                                                    
+
                                                                                 </td>
                                                                                 <td>
                                                                                     <textarea
