@@ -172,8 +172,8 @@ const VendorRegistrationStepByStepForm = () => {
     // State for checklist responses
     const [checklistResponses, setChecklistResponses] = useState({});
     const [checklistConfig, setChecklistConfig] = useState([]);
-    useEffect(() => {
-        const fetchChecklistConfig = async () => {
+
+     const fetchChecklistConfig = async () => {
             try {
                 const response = await axios.get(`${baseURL}/pms/suppliers/${id}/checklist_configuration`);
                 setChecklistConfig(response.data || []);
@@ -182,6 +182,8 @@ const VendorRegistrationStepByStepForm = () => {
                 setChecklistConfig([]);
             }
         };
+    useEffect(() => {
+       
         fetchChecklistConfig();
     }, []);
 
@@ -270,11 +272,32 @@ const VendorRegistrationStepByStepForm = () => {
             setChecklistResponses(prev => ({
                 ...prev,
                 [subcatId]: {
+                    // Replace any existing files for the same question — do not append
                     questions: (prev[subcatId]?.questions || []).map(q =>
-                        q.id === qId ? { ...q, files: [...(q.files || []), fileObj] } : q
+                        q.id === qId ? { ...q, files: [fileObj] } : q
                     )
                 }
             }));
+            // Clear checklist validation errors for this specific question (if any)
+            setErrors(prev => {
+                if (!prev || !prev.checklistFiles) return prev || {};
+                const next = { ...prev };
+                const sub = { ...(next.checklistFiles[subcatId] || {}) };
+                if (sub[qId]) delete sub[qId];
+                if (Object.keys(sub).length === 0) {
+                    // remove entire subcat key
+                    const cf = { ...next.checklistFiles };
+                    delete cf[subcatId];
+                    if (Object.keys(cf).length === 0) {
+                        delete next.checklistFiles;
+                    } else {
+                        next.checklistFiles = cf;
+                    }
+                } else {
+                    next.checklistFiles = { ...next.checklistFiles, [subcatId]: sub };
+                }
+                return next;
+            });
         };
         reader.readAsDataURL(file);
     };
@@ -1727,10 +1750,58 @@ const VendorRegistrationStepByStepForm = () => {
                 }
                 if (!basicInfo.gstinAttachmentObj) {
                     errors.gstinAttachment = 'This field is required.';
+                } else {
+                    // Validate it's a PDF and size <= 5 MB when possible
+                    const fileObj = basicInfo.gstinAttachmentObj;
+                    const filename = (fileObj.filename || fileObj.name || '').toString();
+                    const contentType = (fileObj.content_type || fileObj.type || '').toString();
+                    const isPdf = contentType.toLowerCase() === 'application/pdf' || filename.toLowerCase().endsWith('.pdf');
+                    if (!isPdf) {
+                        errors.gstinAttachment = 'File must be a PDF.';
+                    } else {
+                        const MAX_BYTES = 5 * 1024 * 1024; // 5 MB
+                        let size = 0;
+                        if (typeof fileObj.size === 'number') {
+                            size = fileObj.size;
+                        } else if (fileObj.content) {
+                            // content is likely base64 string; estimate byte size
+                            const b64 = fileObj.content.split(',').pop();
+                            if (b64) {
+                                // each 4 chars of base64 represent 3 bytes
+                                size = Math.floor((b64.length * 3) / 4);
+                            }
+                        }
+                        if (size > 0 && size > MAX_BYTES) {
+                            errors.gstinAttachment = 'File size must be 5 MB or less.';
+                        }
+                    }
                 }
             } else if (gstinApplicableLabel === 'No') {
                 if (!basicInfo.gstinDeclarationObj) {
                     errors.gstinDeclaration = 'This field is required.';
+                } else {
+                    // Validate declaration file is PDF and <= 5 MB when information is available
+                    const fileObj = basicInfo.gstinDeclarationObj;
+                    const filename = (fileObj.filename || fileObj.name || '').toString();
+                    const contentType = (fileObj.content_type || fileObj.type || '').toString();
+                    const isPdf = contentType.toLowerCase() === 'application/pdf' || filename.toLowerCase().endsWith('.pdf');
+                    if (!isPdf) {
+                        errors.gstinDeclaration = 'File must be a PDF.';
+                    } else {
+                        const MAX_BYTES = 5 * 1024 * 1024; // 5 MB
+                        let size = 0;
+                        if (typeof fileObj.size === 'number') {
+                            size = fileObj.size;
+                        } else if (fileObj.content) {
+                            const b64 = fileObj.content.split(',').pop();
+                            if (b64) {
+                                size = Math.floor((b64.length * 3) / 4);
+                            }
+                        }
+                        if (size > 0 && size > MAX_BYTES) {
+                            errors.gstinDeclaration = 'File size must be 5 MB or less.';
+                        }
+                    }
                 }
             }
 
@@ -1746,7 +1817,32 @@ const VendorRegistrationStepByStepForm = () => {
                         errors.cin = 'CIN must be 21 alphanumeric characters.';
                     }
                 }
-                if (!basicInfo.cinAttachmentObj) errors.cinAttachment = 'This field is required';
+                if (!basicInfo.cinAttachmentObj) {
+                    errors.cinAttachment = 'This field is required';
+                } else {
+                    // Validate CIN attachment is PDF and <= 5 MB when information is available
+                    const fileObj = basicInfo.cinAttachmentObj;
+                    const filename = (fileObj.filename || fileObj.name || '').toString();
+                    const contentType = (fileObj.content_type || fileObj.type || '').toString();
+                    const isPdf = contentType.toLowerCase() === 'application/pdf' || filename.toLowerCase().endsWith('.pdf');
+                    if (!isPdf) {
+                        errors.cinAttachment = 'File must be a PDF.';
+                    } else {
+                        const MAX_BYTES = 5 * 1024 * 1024; // 5 MB
+                        let size = 0;
+                        if (typeof fileObj.size === 'number') {
+                            size = fileObj.size;
+                        } else if (fileObj.content) {
+                            const b64 = fileObj.content.split(',').pop();
+                            if (b64) {
+                                size = Math.floor((b64.length * 3) / 4);
+                            }
+                        }
+                        if (size > 0 && size > MAX_BYTES) {
+                            errors.cinAttachment = 'File size must be 5 MB or less.';
+                        }
+                    }
+                }
             }
 
             // Special case: if organizationType is Limited Liability Partnership (LLP), LLP No. and attachment required
@@ -1760,7 +1856,32 @@ const VendorRegistrationStepByStepForm = () => {
                         errors.llp = 'LLP must be in the format AAR-1165.';
                     }
                 }
-                if (!basicInfo.llpAttachmentObj) errors.llpAttachment = 'This field is required.';
+                if (!basicInfo.llpAttachmentObj) {
+                    errors.llpAttachment = 'This field is required.';
+                } else {
+                    // Validate LLP attachment is PDF and <= 5 MB when information is available
+                    const fileObj = basicInfo.llpAttachmentObj;
+                    const filename = (fileObj.filename || fileObj.name || '').toString();
+                    const contentType = (fileObj.content_type || fileObj.type || '').toString();
+                    const isPdf = contentType.toLowerCase() === 'application/pdf' || filename.toLowerCase().endsWith('.pdf');
+                    if (!isPdf) {
+                        errors.llpAttachment = 'File must be a PDF.';
+                    } else {
+                        const MAX_BYTES = 5 * 1024 * 1024; // 5 MB
+                        let size = 0;
+                        if (typeof fileObj.size === 'number') {
+                            size = fileObj.size;
+                        } else if (fileObj.content) {
+                            const b64 = fileObj.content.split(',').pop();
+                            if (b64) {
+                                size = Math.floor((b64.length * 3) / 4);
+                            }
+                        }
+                        if (size > 0 && size > MAX_BYTES) {
+                            errors.llpAttachment = 'File size must be 5 MB or less.';
+                        }
+                    }
+                }
             }
 
             // Date of Incorporation should not be a future date (if provided)
@@ -1806,11 +1927,61 @@ const VendorRegistrationStepByStepForm = () => {
                 if (!additionalDetails.msmeEnterpriseType || (typeof additionalDetails.msmeEnterpriseType === 'object' && !additionalDetails.msmeEnterpriseType.value && !additionalDetails.msmeEnterpriseType.label)) {
                     additionalErrors.msmeEnterpriseType = 'This field is required.';
                 }
-                if (!additionalDetails.msmeAttachmentObj) additionalErrors.msmeAttachments = 'This field is required.';
+                if (!additionalDetails.msmeAttachmentObj) {
+                    additionalErrors.msmeAttachments = 'This field is required.';
+                } else {
+                    // Validate MSME attachment is PDF and <= 5 MB when information is available
+                    const fileObj = additionalDetails.msmeAttachmentObj;
+                    const filename = (fileObj.filename || fileObj.name || '').toString();
+                    const contentType = (fileObj.content_type || fileObj.type || '').toString();
+                    const isPdf = contentType.toLowerCase() === 'application/pdf' || filename.toLowerCase().endsWith('.pdf');
+                    if (!isPdf) {
+                        additionalErrors.msmeAttachments = 'File must be a PDF.';
+                    } else {
+                        const MAX_BYTES = 5 * 1024 * 1024; // 5 MB
+                        let size = 0;
+                        if (typeof fileObj.size === 'number') {
+                            size = fileObj.size;
+                        } else if (fileObj.content) {
+                            const b64 = fileObj.content.split(',').pop();
+                            if (b64) {
+                                size = Math.floor((b64.length * 3) / 4);
+                            }
+                        }
+                        if (size > 0 && size > MAX_BYTES) {
+                            additionalErrors.msmeAttachments = 'File size must be 5 MB or less.';
+                        }
+                    }
+                }
             }
             // If MSME/Udyam is No, declaration required
             if (additionalDetails.msmeUdyamApplicable?.value === 'No') {
-                if (!additionalDetails.msmeDeclarationObj) additionalErrors.msmeDeclaration = 'This field is required.';
+                if (!additionalDetails.msmeDeclarationObj) {
+                    additionalErrors.msmeDeclaration = 'This field is required.';
+                } else {
+                    // Validate MSME declaration file is PDF and <= 5 MB when information is available
+                    const fileObj = additionalDetails.msmeDeclarationObj;
+                    const filename = (fileObj.filename || fileObj.name || '').toString();
+                    const contentType = (fileObj.content_type || fileObj.type || '').toString();
+                    const isPdf = contentType.toLowerCase() === 'application/pdf' || filename.toLowerCase().endsWith('.pdf');
+                    if (!isPdf) {
+                        additionalErrors.msmeDeclaration = 'File must be a PDF.';
+                    } else {
+                        const MAX_BYTES = 5 * 1024 * 1024; // 5 MB
+                        let size = 0;
+                        if (typeof fileObj.size === 'number') {
+                            size = fileObj.size;
+                        } else if (fileObj.content) {
+                            const b64 = fileObj.content.split(',').pop();
+                            if (b64) {
+                                size = Math.floor((b64.length * 3) / 4);
+                            }
+                        }
+                        if (size > 0 && size > MAX_BYTES) {
+                            additionalErrors.msmeDeclaration = 'File size must be 5 MB or less.';
+                        }
+                    }
+                }
             }
 
             // E-invoicing Applicable required if GSTIN Applicable is Yes
@@ -1819,9 +1990,33 @@ const VendorRegistrationStepByStepForm = () => {
                     additionalErrors.einvoice = 'This field is required.';
                 }
             }
-            // If E-invoicing is No, declaration required
+            // If E-invoicing is No, declaration required (validate PDF + <= 5MB)
             if (additionalDetails.einvoice?.value === 'No') {
-                if (!additionalDetails.einvoiceDeclaration) additionalErrors.einvoiceDeclaration = 'This field is required.';
+                if (!additionalDetails.einvoiceDeclarationObj && !additionalDetails.einvoiceDeclaration) {
+                    additionalErrors.einvoiceDeclaration = 'This field is required.';
+                } else {
+                    const fileObj = additionalDetails.einvoiceDeclarationObj || additionalDetails.einvoiceDeclaration;
+                    const filename = (fileObj && (fileObj.filename || fileObj.name || '')).toString();
+                    const contentType = (fileObj && (fileObj.content_type || fileObj.type || '')).toString();
+                    const isPdf = (contentType || '').toLowerCase() === 'application/pdf' || filename.toLowerCase().endsWith('.pdf');
+                    if (!isPdf) {
+                        additionalErrors.einvoiceDeclaration = 'File must be a PDF.';
+                    } else {
+                        const MAX_BYTES = 5 * 1024 * 1024; // 5 MB
+                        let size = 0;
+                        if (fileObj && typeof fileObj.size === 'number') {
+                            size = fileObj.size;
+                        } else if (fileObj && fileObj.content) {
+                            const b64 = fileObj.content.split(',').pop();
+                            if (b64) {
+                                size = Math.floor((b64.length * 3) / 4);
+                            }
+                        }
+                        if (size > 0 && size > MAX_BYTES) {
+                            additionalErrors.einvoiceDeclaration = 'File size must be 5 MB or less.';
+                        }
+                    }
+                }
             }
 
             // console.log("additional errors:", additionalErrors)
@@ -2213,6 +2408,29 @@ const VendorRegistrationStepByStepForm = () => {
 
                     if (!bankAttachments[bankDetail.id]) {
                         validationErrors.cancelled_cheque = "Cancelled Cheque / Bank Copy is required.";
+                    } else {
+                        // Validate file is PDF and <= 5 MB when possible
+                        const fileObj = bankAttachments[bankDetail.id];
+                        const filename = (fileObj && (fileObj.filename || fileObj.name || '')).toString();
+                        const contentType = (fileObj && (fileObj.content_type || fileObj.type || '')).toString();
+                        const isPdf = (contentType || '').toLowerCase() === 'application/pdf' || filename.toLowerCase().endsWith('.pdf');
+                        if (!isPdf) {
+                            validationErrors.cancelled_cheque = 'File must be a PDF.';
+                        } else {
+                            const MAX_BYTES = 5 * 1024 * 1024; // 5 MB
+                            let size = 0;
+                            if (fileObj && typeof fileObj.size === 'number') {
+                                size = fileObj.size;
+                            } else if (fileObj && fileObj.content) {
+                                const b64 = fileObj.content.split(',').pop();
+                                if (b64) {
+                                    size = Math.floor((b64.length * 3) / 4);
+                                }
+                            }
+                            if (size > 0 && size > MAX_BYTES) {
+                                validationErrors.cancelled_cheque = 'File size must be 5 MB or less.';
+                            }
+                        }
                     }
                 }
             });
@@ -3090,6 +3308,34 @@ const VendorRegistrationStepByStepForm = () => {
                 if (!warehouse.country) err.country = 'Country is required.';
                 if (!warehouse.state) err.state = 'State is required.';
                 if (!warehouse.city) err.city = 'City is required.';
+
+                // If an attachment is present, validate it's a PDF and <= 5 MB
+                // console.log("warehouse attachment:", warehouse.attachment || warehouse.attachmentObj);
+                console.log("warehouse attachmentObj:",warehouse.attachment, warehouse.attachmentObj);
+                if (warehouse.attachment || warehouse.attachmentObj) {
+                    const fileObj = warehouse.attachmentObj || warehouse.attachment;
+                    const filename = (fileObj && (fileObj.filename || fileObj.name || fileObj.document_name  || '')).toString();
+                    const contentType = (fileObj && (fileObj.content_type || fileObj.type || fileObj.attachment_url  || '')).toString();
+                    const isPdf = (contentType || '').toLowerCase() === 'application/pdf' || filename.toLowerCase().endsWith('.pdf');
+                    if (!isPdf) {
+                        err.attachment = 'File must be a PDF.';
+                    } else {
+                        const MAX_BYTES = 5 * 1024 * 1024; // 5 MB
+                        let size = 0;
+                        if (fileObj && typeof fileObj.size === 'number') {
+                            size = fileObj.size;
+                        } else if (fileObj && fileObj.content) {
+                            const b64 = fileObj.content.split(',').pop();
+                            if (b64) {
+                                size = Math.floor((b64.length * 3) / 4);
+                            }
+                        }
+                        if (size > 0 && size > MAX_BYTES) {
+                            err.attachment = 'File size must be 5 MB or less.';
+                        }
+                    }
+                }
+
                 return err;
             });
             setWarehouseErrors(warehouseErrs);
@@ -3126,6 +3372,32 @@ const VendorRegistrationStepByStepForm = () => {
                 if (person.secondaryEmail && !emailRegex.test(person.secondaryEmail)) {
                     err.secondaryEmail = 'Please enter a valid email address. eg.: abc@gmail.com';
                 }
+                
+
+                if (person.attachment || person.attachmentObj) {
+    const fileObj = person.attachmentObj || person.attachment;
+    const filename = (fileObj && (fileObj.filename || fileObj.name || fileObj.document_name|| '')).toString();
+    const contentType = (fileObj && (fileObj.content_type || fileObj.type || fileObj.attachment_url  || '')).toString();
+    const isPdf = (contentType || '').toLowerCase() === 'application/pdf' || filename.toLowerCase().endsWith('.pdf');
+    if (!isPdf) {
+        err.attachment = 'File must be a PDF.';
+    } else {
+        const MAX_BYTES = 5 * 1024 * 1024; // 5 MB
+        let size = 0;
+        if (fileObj && typeof fileObj.size === 'number') {
+            size = fileObj.size;
+        } else if (fileObj && fileObj.content) {
+            const b64 = fileObj.content.split(',').pop();
+            if (b64) {
+                size = Math.floor((b64.length * 3) / 4);
+            }
+        }
+        if (size > 0 && size > MAX_BYTES) {
+            err.attachment = 'File size must be 5 MB or less.';
+        }
+    }
+}
+
 
                 return err;
             });
@@ -3154,6 +3426,31 @@ const VendorRegistrationStepByStepForm = () => {
                     err.mobile = 'Mobile Number must be a 10-digit number.';
                 }
 
+                if (owner.attachment || owner.attachmentObj) {
+    const fileObj = owner.attachmentObj || owner.attachment;
+    const filename = (fileObj && (fileObj.filename || fileObj.name || fileObj.document_name||'')).toString();
+    const contentType = (fileObj && (fileObj.content_type || fileObj.type || fileObj.attachment_url  || '')).toString();
+    const isPdf = (contentType || '').toLowerCase() === 'application/pdf' || filename.toLowerCase().endsWith('.pdf');
+    if (!isPdf) {
+        err.attachment = 'File must be a PDF.';
+    } else {
+        const MAX_BYTES = 5 * 1024 * 1024; // 5 MB
+        let size = 0;
+        if (fileObj && typeof fileObj.size === 'number') {
+            size = fileObj.size;
+        } else if (fileObj && fileObj.content) {
+            const b64 = fileObj.content.split(',').pop();
+            if (b64) {
+                size = Math.floor((b64.length * 3) / 4);
+            }
+        }
+        if (size > 0 && size > MAX_BYTES) {
+            err.attachment = 'File size must be 5 MB or less.';
+        }
+    }
+}
+
+
                 return err;
             });
             setOwnerErrors(ownerErrs);
@@ -3166,8 +3463,34 @@ const VendorRegistrationStepByStepForm = () => {
             (annualTurnover || []).forEach(entry => {
                 const fy = entry.year;
                 const amountProvided = entry.turnover !== undefined && entry.turnover !== null && String(entry.turnover) !== '';
-                if (amountProvided && !entry.attachment) {
-                    turnoverErrs[fy] = { attachment: 'Attachment is required for the declared turnover.' };
+                if (amountProvided) {
+                    // Require attachment if amount provided
+                    if (!entry.attachment && !entry.attachmentObj) {
+                        turnoverErrs[fy] = { attachment: 'Attachment is required for the declared turnover.' };
+                    } else {
+                        // If an attachment is present, validate PDF + size
+                        const fileObj = entry.attachmentObj || entry.attachment;
+                        const filename = (fileObj && (fileObj.filename || fileObj.name || fileObj.document_name|| '')).toString();
+                        const contentType = (fileObj && (fileObj.content_type || fileObj.type || fileObj.attachment_url  || '')).toString();
+                        const isPdf = (contentType || '').toLowerCase() === 'application/pdf' || filename.toLowerCase().endsWith('.pdf');
+                        if (!isPdf) {
+                            turnoverErrs[fy] = { attachment: 'File must be a PDF.' };
+                        } else {
+                            const MAX_BYTES = 5 * 1024 * 1024; // 5 MB
+                            let size = 0;
+                            if (fileObj && typeof fileObj.size === 'number') {
+                                size = fileObj.size;
+                            } else if (fileObj && fileObj.content) {
+                                const b64 = fileObj.content.split(',').pop();
+                                if (b64) {
+                                    size = Math.floor((b64.length * 3) / 4);
+                                }
+                            }
+                            if (size > 0 && size > MAX_BYTES) {
+                                turnoverErrs[fy] = { attachment: 'File size must be 5 MB or less.' };
+                            }
+                        }
+                    }
                 }
             });
             setTurnoverErrors(turnoverErrs);
@@ -3377,7 +3700,7 @@ const VendorRegistrationStepByStepForm = () => {
         }
     }, [bankDetailsList]);
 
-    
+
     const handleCountryChange = (selectedOption, bankId) => {
         setBankDetailsList((prevList) =>
             prevList.map((bankDetail) =>
@@ -3894,7 +4217,7 @@ const VendorRegistrationStepByStepForm = () => {
         }));
     };
 
-    const handleStatutoryFileChange = (code, file, id,value, statutory_detail_value) => {
+    const handleStatutoryFileChange = (code, file, id, value, statutory_detail_value) => {
         const reader = new FileReader();
 
         reader.onloadend = () => {
@@ -3912,7 +4235,7 @@ const VendorRegistrationStepByStepForm = () => {
                 [code]: {
                     ...prev[code],
                     file: attachment, // Save attachment object instead of raw File
-                    input: value ,
+                    input: value || statutory_detail_value,
                     id: id,
                     // input: statutory_detail_value
                 },
@@ -3951,6 +4274,34 @@ const VendorRegistrationStepByStepForm = () => {
             // Require file if input is provided and it's not 'not applicable'
             if (inputValue && !isNotApplicable && !file) {
                 errors[code] = "Attachment is required.";
+                return; // no file to validate further
+            }
+
+            // If a file is present, validate PDF type and size (<= 5 MB)
+            if (file) {
+                const fileObj = file;
+                const filename = (fileObj && (fileObj.filename || fileObj.name || '')).toString();
+                const contentType = (fileObj && (fileObj.content_type || fileObj.type || '')).toString();
+                const isPdf = (contentType || '').toLowerCase() === 'application/pdf' || filename.toLowerCase().endsWith('.pdf');
+                if (!isPdf) {
+                    errors[code] = 'File must be a PDF.';
+                    return;
+                }
+
+                const MAX_BYTES = 5 * 1024 * 1024; // 5 MB
+                let size = 0;
+                if (fileObj && typeof fileObj.size === 'number') {
+                    size = fileObj.size;
+                } else if (fileObj && fileObj.content) {
+                    const b64 = fileObj.content.split(',').pop();
+                    if (b64) {
+                        size = Math.floor((b64.length * 3) / 4);
+                    }
+                }
+                if (size > 0 && size > MAX_BYTES) {
+                    errors[code] = 'File size must be 5 MB or less.';
+                    return;
+                }
             }
 
             // Optional: You can add required input check too
@@ -4591,7 +4942,7 @@ const VendorRegistrationStepByStepForm = () => {
         }
     };
 
-console.log("statutory details payload:",statutoryPayload)
+    console.log("statutory details payload:", statutoryPayload)
     const saveDraftStep5 = async () => {
         setLoading2(true)
         console.log("sameAsRegistered value:", sameAsRegistered);
@@ -4705,9 +5056,63 @@ console.log("statutory details payload:",statutoryPayload)
     // console.log("checklist :", checklistPayload)
     const saveDraftStep6 = async () => {
         setLoading2(true)
-        console.log("sameAsRegistered value:", sameAsRegistered);
+        // console.log("sameAsRegistered value:", sameAsRegistered);
         const commAddrPayload = mapCommunicationAddressToPayload(communicationAddress, sameAsRegistered)[0] || {};
+        console.log("******checklist:",checklistPayload)
         // console.log("communication_address_attributes:", commAddrPayload);
+        // Validate checklist files: ensure each provided file is a PDF and <= 5 MB
+        const validateChecklistFiles = (cp) => {
+            const MAX_BYTES = 5 * 1024 * 1024; // 5 MB
+            // structured problems: { [subcatId]: { [questionId]: [messages] } }
+            const problems = {};
+            Object.entries(cp || {}).forEach(([subcatId, data]) => {
+                const qs = data.questions || [];
+                qs.forEach((q) => {
+                    (q.files || []).forEach((file, idx) => {
+                        const fileObj = file || {};
+                        const filename = (fileObj.filename || fileObj.name || '').toString();
+                        const contentType = (fileObj.content_type || fileObj.type || fileObj.url || '').toString();
+                        const isPdf = (contentType || '').toLowerCase() === 'application/pdf' || filename.toLowerCase().endsWith('.pdf');
+                        if (!isPdf) {
+                            problems[subcatId] = problems[subcatId] || {};
+                            problems[subcatId][q.id] = problems[subcatId][q.id] || [];
+                            problems[subcatId][q.id].push('File must be a PDF.');
+                            return;
+                        }
+                        // size check: use size if provided else estimate from base64 content
+                        let size = 0;
+                        if (typeof fileObj.size === 'number') {
+                            size = fileObj.size;
+                        } else if (fileObj.content) {
+                            const b64 = (fileObj.content || '').split(',').pop();
+                            if (b64) size = Math.floor((b64.length * 3) / 4);
+                        }
+                        if (size > 0 && size > MAX_BYTES) {
+                            problems[subcatId] = problems[subcatId] || {};
+                            problems[subcatId][q.id] = problems[subcatId][q.id] || [];
+                            problems[subcatId][q.id].push('File size must be 5 MB or less.');
+                        }
+                    });
+                });
+            });
+            return problems;
+        };
+
+        const checklistFileProblems = validateChecklistFiles(checklistPayload);
+        if (Object.keys(checklistFileProblems).length > 0) {
+            // attach to global errors so UI can show them; caller should stop
+            setErrors(prev => ({ ...prev, checklistFiles: checklistFileProblems }));
+            setLoading2(false);
+            return;
+        }
+        // No checklist file problems -> clear any previous checklistFiles errors
+        setErrors(prev => {
+            if (!prev || !prev.checklistFiles) return prev || {};
+            const next = { ...prev };
+            delete next.checklistFiles;
+            return next;
+        });
+
         const payload = {
             pms_supplier: {
                 status: "draft",
@@ -5263,7 +5668,7 @@ console.log("statutory details payload:",statutoryPayload)
                                                 <div className="col-md-6">
                                                     <div className="form-group">
                                                         <label>Secondary Mobile No.</label>
-                                                        <input className="form-control" type="text" value={supplierShowData?.alternate_mobile || "-"} placeholder="Enter secondary mobile number" disabled />
+                                                        <input className="form-control" type="text" value={supplierShowData?.mobile || "-"} placeholder="Enter secondary mobile number" disabled />
                                                     </div>
                                                 </div>
                                             </div>
@@ -6158,7 +6563,7 @@ console.log("statutory details payload:",statutoryPayload)
                                                                             />
                                                                         </svg>
                                                                         <span className="mt-2 ms-2">
-                                                                            **Specimen For No GSTIN Applicable.pdf
+                                                                            Specimen For No GSTIN Applicable.pdf
                                                                         </span>
                                                                     </a>
                                                                 </span>
@@ -8824,6 +9229,9 @@ console.log("statutory details payload:",statutoryPayload)
                                                                 type="file"
                                                                 onChange={e => handleWarehouseChange(idx, 'attachment', e.target.files[0])}
                                                             />
+                                                            {warehouseErrors[idx]?.attachment && (
+                                                                <div className="ValidationColor">{warehouseErrors[idx].attachment}</div>
+                                                            )}
                                                             {/* Show existing or selected file name/link */}
 
 
@@ -9173,6 +9581,9 @@ console.log("statutory details payload:",statutoryPayload)
                                                                     handleContactPersonChange(idx, "attachment", e.target.files[0])
                                                                 }
                                                             />
+                                                            {contactPersonErrors[idx]?.attachment && (
+                                                                <div className="ValidationColor">{contactPersonErrors[idx].attachment}</div>
+                                                            )}
                                                         </div>
                                                     </div>
                                                 </div>
@@ -9377,6 +9788,10 @@ console.log("statutory details payload:",statutoryPayload)
                                                                 onChange={e => handleOwnerChange(idx, 'attachment', e.target.files[0])}
                                                             />
 
+                                                             {ownerErrors[idx]?.attachment && (
+                                                                <div className="ValidationColor">{ownerErrors[idx].attachment}</div>
+                                                            )}
+
                                                         </div>
                                                     </div>
                                                 </div>
@@ -9531,7 +9946,7 @@ console.log("statutory details payload:",statutoryPayload)
 
 
 
-{console.log("statutoryDetails:",statutoryDetails)}
+                                        {console.log("statutoryDetails:", statutoryDetails)}
                                         {statutoryDetails?.map((field, index) => (
                                             <div className="row" key={`${field.id}-${index}`}>
                                                 {/* {console.log("stat field:",field.code)} */}
@@ -9739,12 +10154,8 @@ console.log("statutory details payload:",statutoryPayload)
                                                                                     )}
                                                                                 </td>
                                                                                 <td>
-                                                                                    <input
-                                                                                        className="form-control"
-                                                                                        type="file"
-                                                                                        onChange={e => handleChecklistFileChange(subcat.id, q.id, e.target.files[0])}
-                                                                                    />
-                                                                                    {/* Show uploaded file names or server-provided attachments with download link */}
+
+                                                                                       {/* Show uploaded file names or server-provided attachments with download link */}
                                                                                     {qState.files && qState.files.length > 0 && (
                                                                                         <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
                                                                                             {(() => {
@@ -9779,6 +10190,24 @@ console.log("statutory details payload:",statutoryPayload)
                                                                                             })()}
                                                                                         </ul>
                                                                                     )}
+                                                                                    <input
+                                                                                        className="form-control"
+                                                                                        type="file"
+                                                                                        onChange={e => handleChecklistFileChange(subcat.id, q.id, e.target.files[0])}
+                                                                                    />
+                                                                                 
+
+                                                                                    {/* Show validation errors for checklist files near the input */}
+                                                                                    {(() => {
+                                                                                        const msgs = (errors && errors.checklistFiles && errors.checklistFiles[subcat.id] && errors.checklistFiles[subcat.id][q.id]) || [];
+                                                                                        if (!msgs || msgs.length === 0) return null;
+                                                                                        // show only the first message as plain text
+                                                                                        return (
+                                                                                            <div className="ValidationColor" style={{ fontSize: 13 }}>
+                                                                                                <div>{msgs[0]}</div>
+                                                                                            </div>
+                                                                                        );
+                                                                                    })()}
                                                                                 </td>
                                                                                 <td>
                                                                                     <textarea
@@ -9854,11 +10283,7 @@ console.log("statutory details payload:",statutoryPayload)
                                                                                     )}
                                                                                 </td>
                                                                                 <td>
-                                                                                    <input
-                                                                                        className="form-control"
-                                                                                        type="file"
-                                                                                        onChange={e => handleChecklistFileChange(subcat.id, q.id, e.target.files[0])}
-                                                                                    />
+
                                                                                     {qState.files && qState.files.length > 0 && (
                                                                                         <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
                                                                                             {(() => {
@@ -9892,6 +10317,24 @@ console.log("statutory details payload:",statutoryPayload)
                                                                                             })()}
                                                                                         </ul>
                                                                                     )}
+                                                                                    <input
+                                                                                        className="form-control"
+                                                                                        type="file"
+                                                                                        onChange={e => handleChecklistFileChange(subcat.id, q.id, e.target.files[0])}
+                                                                                    />
+
+                                                                                     {/* Show validation errors for checklist files near the input */}
+                                                                                    {(() => {
+                                                                                        const msgs = (errors && errors.checklistFiles && errors.checklistFiles[subcat.id] && errors.checklistFiles[subcat.id][q.id]) || [];
+                                                                                        if (!msgs || msgs.length === 0) return null;
+                                                                                        // show only the first message as plain text
+                                                                                        return (
+                                                                                            <div className="ValidationColor" style={{ fontSize: 13 }}>
+                                                                                                <div>{msgs[0]}</div>
+                                                                                            </div>
+                                                                                        );
+                                                                                    })()}
+                                                                                    
                                                                                 </td>
                                                                                 <td>
                                                                                     <textarea
@@ -12926,56 +13369,56 @@ console.log("statutory details payload:",statutoryPayload)
                                                                         field.statutory_detail_value
                                                                     ) && <span>  *</span>}
                                                                 </label>
-                                                                
 
-                                                                   {(field?.attachment?.url) ? (
-                                                                <>
-                                                                    {/* // ✅ Case 1: Existing file from backend */}
-                                                                    {!(statutoryInputs[field?.code]?.file?.filename) && (
-                                                                        <span className="ms-2">
-                                                                            <a
-                                                                                href={`${baseURL}${field?.attachment?.url}`}
-                                                                                download
-                                                                                className="text-primary d-flex align-items-center"
-                                                                            >
-                                                                                <span className="ms-2 me-2">Existing File:</span>
-                                                                                <svg
-                                                                                    xmlns="http://www.w3.org/2000/svg"
-                                                                                    width={24}
-                                                                                    height={24}
-                                                                                    fill="#DE7008"
-                                                                                    className="bi bi-download"
-                                                                                    viewBox="0 0 16 16"
+
+                                                                {(field?.attachment?.url) ? (
+                                                                    <>
+                                                                        {/* // ✅ Case 1: Existing file from backend */}
+                                                                        {!(statutoryInputs[field?.code]?.file?.filename) && (
+                                                                            <span className="ms-2">
+                                                                                <a
+                                                                                    href={`${baseURL}${field?.attachment?.url}`}
+                                                                                    download
+                                                                                    className="text-primary d-flex align-items-center"
                                                                                 >
-                                                                                    <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
-                                                                                    <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
-                                                                                </svg>
-                                                                                {field?.attachment?.filename || "-"}
-                                                                            </a>
-                                                                        </span>)}
+                                                                                    <span className="ms-2 me-2">Existing File:</span>
+                                                                                    <svg
+                                                                                        xmlns="http://www.w3.org/2000/svg"
+                                                                                        width={24}
+                                                                                        height={24}
+                                                                                        fill="#DE7008"
+                                                                                        className="bi bi-download"
+                                                                                        viewBox="0 0 16 16"
+                                                                                    >
+                                                                                        <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                                                                                        <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                                                                                    </svg>
+                                                                                    {field?.attachment?.filename || "-"}
+                                                                                </a>
+                                                                            </span>)}
 
-                                                                    {statutoryInputs[field?.code]?.file?.filename && (
-                                                                        <span className="d-flex align-items-center ">
-                                                                            <span className="ms-2 me-2">Selected File:</span>
+                                                                        {statutoryInputs[field?.code]?.file?.filename && (
+                                                                            <span className="d-flex align-items-center ">
+                                                                                <span className="ms-2 me-2">Selected File:</span>
+                                                                                <span className="text-muted">
+                                                                                    {statutoryInputs[field?.code]?.file?.filename}
+                                                                                </span>
+                                                                            </span>
+                                                                        )}
+
+
+                                                                    </>
+                                                                ) : (
+                                                                    // 🔄 Case 2: Local uploaded file
+                                                                    statutoryInputs[field?.code]?.file?.filename && (
+                                                                        <span className="d-flex align-items-center ms-2">
+                                                                            <span className="me-2 ms-3">Selected File:</span>
                                                                             <span className="text-muted">
                                                                                 {statutoryInputs[field?.code]?.file?.filename}
                                                                             </span>
                                                                         </span>
-                                                                    )}
-
-
-                                                                </>
-                                                            ) : (
-                                                                // 🔄 Case 2: Local uploaded file
-                                                                statutoryInputs[field?.code]?.file?.filename && (
-                                                                    <span className="d-flex align-items-center ms-2">
-                                                                        <span className="me-2 ms-3">Selected File:</span>
-                                                                        <span className="text-muted">
-                                                                            {statutoryInputs[field?.code]?.file?.filename}
-                                                                        </span>
-                                                                    </span>
-                                                                )
-                                                            )}
+                                                                    )
+                                                                )}
                                                             </div>
                                                             <input
                                                                 type="file"
@@ -13381,6 +13824,7 @@ console.log("statutory details payload:",statutoryPayload)
                                         // refresh data for that step by reloading supplier show data
                                         // (this will re-run the mapping useEffect that applies supplierShowData to local states)
                                         reloadSupplierShowData();
+                                        fetchChecklistConfig();
                                     }}
                                     disabled={normalize(steps[currentStep]?.label || '') === normalize('OTP Verification')}
                                 >
