@@ -2001,9 +2001,17 @@ const VendorRegistrationStepByStepForm = () => {
                     const fileObj = additionalDetails.einvoiceDeclarationObj || additionalDetails.einvoiceDeclaration;
                     const filename = (fileObj && (fileObj.filename || fileObj.name || '')).toString();
                     const contentType = (fileObj && (fileObj.content_type || fileObj.type || '')).toString();
-                    const isPdf = (contentType || '').toLowerCase() === 'application/pdf' || filename.toLowerCase().endsWith('.pdf');
-                    if (!isPdf) {
-                        additionalErrors.einvoiceDeclaration = 'File must be a PDF.';
+                    // const isPdf = (contentType || '').toLowerCase() === 'application/pdf' || filename.toLowerCase().endsWith('.pdf');
+                    // ✅ Allow PDF, DOC, and DOCX
+    const isAllowedFile =
+        ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
+            .includes((contentType || '').toLowerCase()) ||
+        filename.toLowerCase().endsWith('.pdf') ||
+        filename.toLowerCase().endsWith('.doc') ||
+        filename.toLowerCase().endsWith('.docx');
+
+                    if (!isAllowedFile) {
+                        additionalErrors.einvoiceDeclaration = 'File must be a PDF , DOC, or DOCX.';
                     } else {
                         const MAX_BYTES = 5 * 1024 * 1024; // 5 MB
                         let size = 0;
