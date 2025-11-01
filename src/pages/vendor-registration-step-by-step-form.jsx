@@ -4253,7 +4253,7 @@ const VendorRegistrationStepByStepForm = () => {
                 cin_number_attachments: [basicInfo.cinAttachmentObj],
 
                 llp_number: basicInfo.llp,
-                llp_attachment: [basicInfo.llpAttachmentObj],
+                llp_attachments: [basicInfo.llpAttachmentObj],
 
                 type_of_organization_id: basicInfo.organizationType && basicInfo.organizationType.value ? basicInfo.organizationType.value : null,
                 nature_of_business_id: basicInfo.natureOfBusiness,
@@ -4337,7 +4337,7 @@ const VendorRegistrationStepByStepForm = () => {
                 cin_number_attachments: [basicInfo.cinAttachmentObj],
 
                 llp_number: basicInfo.llp,
-                llp_attachment: [basicInfo.llpAttachmentObj],
+                llp_attachments: [basicInfo.llpAttachmentObj],
 
                 type_of_organization_id: basicInfo.organizationType && basicInfo.organizationType.value ? basicInfo.organizationType.value : null,
                 nature_of_business_id: basicInfo.natureOfBusiness,
@@ -4419,7 +4419,7 @@ const VendorRegistrationStepByStepForm = () => {
                 cin_number_attachments: [basicInfo.cinAttachmentObj],
 
                 llp_number: basicInfo.llp,
-                llp_attachment: [basicInfo.llpAttachmentObj],
+                llp_attachments: [basicInfo.llpAttachmentObj],
 
                 type_of_organization_id: basicInfo.organizationType && basicInfo.organizationType.value ? basicInfo.organizationType.value : null,
                 nature_of_business_id: basicInfo.natureOfBusiness,
@@ -4506,7 +4506,7 @@ const VendorRegistrationStepByStepForm = () => {
                 cin_attachment: [basicInfo.cinAttachmentObj],
 
                 llp_number: basicInfo.llp,
-                llp_attachment: [basicInfo.llpAttachmentObj],
+                llp_attachments: [basicInfo.llpAttachmentObj],
 
                 type_of_organization_id: basicInfo.organizationType && basicInfo.organizationType.value ? basicInfo.organizationType.value : null,
                 nature_of_business_id: basicInfo.natureOfBusiness,
@@ -4607,7 +4607,7 @@ console.log("statutory details payload:",statutoryPayload)
                 cin_attachment: [basicInfo.cinAttachmentObj],
 
                 llp_number: basicInfo.llp,
-                llp_attachment: [basicInfo.llpAttachmentObj],
+                llp_attachments: [basicInfo.llpAttachmentObj],
 
                 type_of_organization_id: basicInfo.organizationType && basicInfo.organizationType.value ? basicInfo.organizationType.value : null,
                 nature_of_business_id: basicInfo.natureOfBusiness,
@@ -4718,7 +4718,7 @@ console.log("statutory details payload:",statutoryPayload)
                 cin_attachment: [basicInfo.cinAttachmentObj],
 
                 llp_number: basicInfo.llp,
-                llp_attachment: [basicInfo.llpAttachmentObj],
+                llp_attachments: [basicInfo.llpAttachmentObj],
 
                 type_of_organization_id: basicInfo.organizationType && basicInfo.organizationType.value ? basicInfo.organizationType.value : null,
                 nature_of_business_id: basicInfo.natureOfBusiness,
@@ -13314,7 +13314,7 @@ console.log("statutory details payload:",statutoryPayload)
                                 </button>
                             )}
 
-                            {currentStep !== 7 && (
+                            {/* {currentStep !== 7 && (
                                 <button
                                     className="purple-btn2 me-2"
                                     // onClick={() => {
@@ -13372,7 +13372,7 @@ console.log("statutory details payload:",statutoryPayload)
                                 >
                                     Next
                                 </button>
-                            )}
+                            )} */}
 
                             {currentStep === steps.length - 1 ? (
                                 <button
@@ -13439,7 +13439,8 @@ console.log("statutory details payload:",statutoryPayload)
                                         // setCurrentStep((s) => Math.min(s + 1, steps.length - 1));
                                     }}
                                 >
-                                    Save as Draft & Next
+                                    Save  & Next
+                                    {/* Save as Draft & Next */}
                                 </button>
                             )}
                         </div>
