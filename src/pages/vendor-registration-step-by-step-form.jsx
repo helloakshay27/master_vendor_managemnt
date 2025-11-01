@@ -1349,8 +1349,17 @@ const VendorRegistrationStepByStepForm = () => {
                 id: b.id || Date.now() + Math.random(),
                 address: b.address || "",
                 // Prefer to pick the canonical option object from countryOptions/stateOptions by id so selectors show labels
-                country: b.country_id ? ((countryOptions || []).find(opt => String(opt.value) === String(b.country_id)) || { value: b.country_id, label: b.country_name || String(b.country_id) }) : null,
-                state: b.state_id ? ((stateOptions || []).find(opt => String(opt.value) === String(b.state_id)) || { value: b.state_id, label: b.state_name || String(b.state_id) }) : null,
+                country: b.country_id ? (
+                    (countryOptions || []).find(opt => String(opt.value) === String(b.country_id))
+                    || (countries || []).find(opt => String(opt.value) === String(b.country_id))
+                    || { value: b.country_id, label: b.country_name || String(b.country_id) }
+                ) : null,
+                state: b.state_id ? (
+                    (stateOptions || []).find(opt => String(opt.value) === String(b.state_id))
+                    || (states || []).find(opt => String(opt.value) === String(b.state_id))
+                    || (commStateOptions || []).find(opt => String(opt.value) === String(b.state_id))
+                    || { value: b.state_id, label: b.state_name || String(b.state_id) }
+                ) : null,
                 city: b.city_name || b.city || "",
                 pincode: b.pin_code || b.pincode || null,
                 telephone: b.tel_number || b.telephone || "",
@@ -1437,8 +1446,17 @@ const VendorRegistrationStepByStepForm = () => {
         // Map factory_warehouses from API to local warehouses state
         if (Array.isArray(supplierShowData.factory_warehouses) && supplierShowData.factory_warehouses.length > 0) {
             const mappedWarehouses = supplierShowData.factory_warehouses.map(w => {
-                const countryOpt = w.country_id ? ((countryOptions || []).find(opt => String(opt.value) === String(w.country_id)) || { value: w.country_id, label: w.country_name || String(w.country_id) }) : null;
-                const stateOpt = w.state_id ? ((stateOptions || []).find(opt => String(opt.value) === String(w.state_id)) || { value: w.state_id, label: w.state_name || String(w.state_id) }) : null;
+                const countryOpt = w.country_id ? (
+                    (countryOptions || []).find(opt => String(opt.value) === String(w.country_id))
+                    || (countries || []).find(opt => String(opt.value) === String(w.country_id))
+                    || { value: w.country_id, label: w.country_name || String(w.country_id) }
+                ) : null;
+                const stateOpt = w.state_id ? (
+                    (stateOptions || []).find(opt => String(opt.value) === String(w.state_id))
+                    || (states || []).find(opt => String(opt.value) === String(w.state_id))
+                    || (commStateOptions || []).find(opt => String(opt.value) === String(w.state_id))
+                    || { value: w.state_id, label: w.state_name || String(w.state_id) }
+                ) : null;
 
                 // // Normalize attachment value (backend may provide a string path or an object)
                 // let attachmentVal = null;
@@ -2537,44 +2555,7 @@ const VendorRegistrationStepByStepForm = () => {
 
     const [branchOffices, setBranchOffices] = useState([]);
 
-    // Reconcile branchOffices country/state with canonical option objects when option lists load
-    useEffect(() => {
-        try {
-            if (!branchOffices || branchOffices.length === 0) return;
-            const updated = branchOffices.map(b => {
-                let changed = false;
-                let country = b.country;
-                let state = b.state;
-
-                const currentCountryVal = (country && typeof country === 'object') ? country.value : country;
-                if (typeof currentCountryVal !== 'undefined' && currentCountryVal !== null) {
-                    const matchCountry = (countryOptions || []).find(opt => String(opt.value) === String(currentCountryVal));
-                    if (matchCountry && matchCountry !== country) {
-                        country = matchCountry;
-                        changed = true;
-                    }
-                }
-
-                const currentStateVal = (state && typeof state === 'object') ? state.value : state;
-                if (typeof currentStateVal !== 'undefined' && currentStateVal !== null) {
-                    const matchState = (stateOptions || []).find(opt => String(opt.value) === String(currentStateVal));
-                    if (matchState && matchState !== state) {
-                        state = matchState;
-                        changed = true;
-                    }
-                }
-
-                return changed ? { ...b, country, state } : b;
-            });
-
-            // Only update when something actually changed to avoid re-renders
-            const anyChange = updated.some((u, i) => u !== branchOffices[i]);
-            if (anyChange) setBranchOffices(updated);
-        } catch (e) {
-            // silent
-        }
-    }, [countryOptions, stateOptions, branchOffices]);
-
+   
     const addBranchOffice = () => {
         setBranchOffices(prev => ([
             ...prev,
@@ -2595,6 +2576,18 @@ const VendorRegistrationStepByStepForm = () => {
         // If country changes or is cleared, reset the associated state field
         if (field === 'country') {
             setBranchOffices(prev => prev.map((b, i) => i === idx ? { ...b, country: value, state: null } : b));
+            // fetch states for this country so the state selector options update
+            try {
+                const countryId = value ? (value.value ?? value) : null;
+                if (countryId) {
+                    fetchStates3(countryId);
+                } else {
+                    // clear states when no country selected
+                    setStates3([]);
+                }
+            } catch (e) {
+                // ignore
+            }
             return;
         }
 
@@ -2909,6 +2902,19 @@ const VendorRegistrationStepByStepForm = () => {
             setWarehouses(prev => prev.map((w, i) => i === idx ? { ...w, country: value, state: null } : w))
             // also clear any existing state-level validation error for this warehouse if present
             setWarehouseErrors(prev => prev.map((err, i) => i === idx ? ({ ...err, state: undefined }) : err))
+
+            // fetch states for the selected country so warehouse state selector populates
+            try {
+                const countryId = value ? (value.value ?? value) : null;
+                if (countryId) {
+                    fetchStates(countryId);
+                } else {
+                    setStates([]);
+                }
+            } catch (e) {
+                // ignore
+            }
+
             return
         }
 
@@ -3739,6 +3745,8 @@ const VendorRegistrationStepByStepForm = () => {
 
     const [countries, setCountries] = useState([]);
     const [states, setStates] = useState([]);
+     const [states2, setStates2] = useState([]);
+     const [states3, setStates3] = useState([]);
     const [selectedCountry, setSelectedCountry] = useState(null);
     const [selectedState, setSelectedState] = useState(null);
 
@@ -3763,7 +3771,171 @@ const VendorRegistrationStepByStepForm = () => {
         fetchCountries();
     }, []);
 
-    const fetchStates = async (countryId) => {
+
+     
+    // When countries or states load (they're fetched async), reconcile any warehouses that
+    // were prepopulated from the server with primitive ids or fallback objects so the
+    // SingleSelector value references an option object from the options array and
+    // react-select will display the proper label instead of the raw id.
+    useEffect(() => {
+        if ((!countries || countries.length === 0) && (!states || states.length === 0)) return;
+        if (!Array.isArray(warehouses) || warehouses.length === 0) return;
+
+        // If any warehouse has a country but its state value cannot be found in the
+        // currently-loaded `states` array, fetch states for that country first so
+        // the reconciliation below can match to the correct option object.
+        for (const w of warehouses) {
+            try {
+                const countryVal = w?.country ? (w.country.value ?? w.country) : null;
+                const stateVal = w?.state ? (w.state.value ?? w.state) : null;
+                if (countryVal != null && stateVal != null) {
+                    const found = (states || []).find(opt => String(opt.value) === String(stateVal));
+                    if (!found) {
+                        // populate states for this country; effect will re-run after states are set
+                        try { fetchStates(countryVal); } catch (e) { /* ignore */ }
+                        return;
+                    }
+                }
+            } catch (e) {
+                // ignore
+            }
+        }
+
+        setWarehouses(prev => prev.map(w => {
+            try {
+                const countryVal = w?.country ? (w.country.value ?? w.country) : null;
+                const stateVal = w?.state ? (w.state.value ?? w.state) : null;
+
+                const resolvedCountry = countryVal != null
+                    ? ((countries || []).find(opt => String(opt.value) === String(countryVal)) || w.country)
+                    : w.country;
+
+                const resolvedState = stateVal != null
+                    ? ((states || []).find(opt => String(opt.value) === String(stateVal)) || w.state)
+                    : w.state;
+
+                // Only change object if a resolution was found to avoid unnecessary renders
+                if (resolvedCountry !== w.country || resolvedState !== w.state) {
+                    return { ...w, country: resolvedCountry, state: resolvedState };
+                }
+            } catch (e) {
+                // ignore and keep existing
+            }
+            return w;
+        }));
+    }, [countries, states, warehouses]);
+
+
+      useEffect(() => {
+        if ((!countries || countries.length === 0) && (!states3 || states3.length === 0)) return;
+        if (!Array.isArray(branchOffices) || branchOffices.length === 0) return;
+
+        // If any warehouse has a country but its state value cannot be found in the
+        // currently-loaded `states` array, fetch states for that country first so
+        // the reconciliation below can match to the correct option object.
+        for (const b of branchOffices) {
+            try {
+                const countryVal = b?.country ? (b.country.value ?? b.country) : null;
+                const stateVal = b?.state ? (b.state.value ?? b.state) : null;
+                if (countryVal != null && stateVal != null) {
+                    const found = (states3 || []).find(opt => String(opt.value) === String(stateVal));
+                    if (!found) {
+                        // populate states for this country; effect will re-run after states are set
+                        try { fetchStates3(countryVal); } catch (e) { /* ignore */ }
+                        return;
+                    }
+                }
+            } catch (e) {
+                // ignore
+            }
+        }
+
+        setBranchOffices(prev => prev.map(w => {
+            try {
+                const countryVal = w?.country ? (w.country.value ?? w.country) : null;
+                const stateVal = w?.state ? (w.state.value ?? w.state) : null;
+
+                const resolvedCountry = countryVal != null
+                    ? ((countries || []).find(opt => String(opt.value) === String(countryVal)) || w.country)
+                    : w.country;
+
+                const resolvedState = stateVal != null
+                    ? ((states3 || []).find(opt => String(opt.value) === String(stateVal)) || w.state)
+                    : w.state;
+
+                // Only change object if a resolution was found to avoid unnecessary renders
+                if (resolvedCountry !== w.country || resolvedState !== w.state) {
+                    return { ...w, country: resolvedCountry, state: resolvedState };
+                }
+            } catch (e) {
+                // ignore and keep existing
+            }
+            return w;
+        }));
+    }, [countries, states3, branchOffices]);
+     // Reconcile branchOffices country/state with canonical option objects when option lists load
+    // useEffect(() => {
+    //     try {
+    //         if (!branchOffices || branchOffices.length === 0) return;
+    //         // If any branch has a country and a preselected state but the state option
+    //         // isn't available in the current `states` list, fetch states for that
+    //         // branch country so the reconciliation can run after states load.
+    //         for (const b of branchOffices) {
+    //             try {
+    //                 const countryVal = b?.country ? (b.country.value ?? b.country) : null;
+    //                 const stateVal = b?.state ? (b.state.value ?? b.state) : null;
+    //                 if (countryVal != null && stateVal != null) {
+    //                     const found = (states3 || []).find(opt => String(opt.value) === String(stateVal));
+    //                     if (!found) {
+    //                         try { fetchStates3(countryVal); } catch (e) { /* ignore */ }
+    //                         return;
+    //                     }
+    //                 }
+    //             } catch (e) {
+    //                 // ignore
+    //             }
+    //         }
+
+    //         const updated = branchOffices.map(b => {
+    //             let changed = false;
+    //             let country = b.country;
+    //             let state = b.state;
+
+    //             const currentCountryVal = (country && typeof country === 'object') ? country.value : country;
+    //             if (typeof currentCountryVal !== 'undefined' && currentCountryVal !== null) {
+    //                 // Try to match country using either `countryOptions` or `countries` (different parts of the file use both)
+    //                 const countryList = (countryOptions && countryOptions.length) ? countryOptions : (countries && countries.length ? countries : []);
+    //                 const matchCountry = (countryList || []).find(opt => String(opt.value) === String(currentCountryVal) || String(opt.value) === String(currentCountryVal));
+    //                 if (matchCountry && matchCountry !== country) {
+    //                     country = matchCountry;
+    //                     changed = true;
+    //                 }
+    //             }
+
+    //             const currentStateVal = (state && typeof state === 'object') ? state.value : state;
+    //             if (typeof currentStateVal !== 'undefined' && currentStateVal !== null) {
+    //                 // Try to match state using either `stateOptions` or `states` (different sections use different variable names)
+    //                 const stateList = (stateOptions && stateOptions.length) ? stateOptions : (states3 && states3.length ? states3 : []);
+    //                 const matchState = (stateList || []).find(opt => String(opt.value) === String(currentStateVal) || String(opt.value) === String(currentStateVal));
+    //                 if (matchState && matchState !== state) {
+    //                     state = matchState;
+    //                     changed = true;
+    //                 }
+    //             }
+
+    //             return changed ? { ...b, country, state } : b;
+    //         });
+
+    //         // Only update when something actually changed to avoid re-renders
+    //         const anyChange = updated.some((u, i) => u !== branchOffices[i]);
+    //         if (anyChange) setBranchOffices(updated);
+    //     } catch (e) {
+    //         // silent
+    //     }
+    // }, [countryOptions, stateOptions, countries, states3, branchOffices]);
+
+
+   const fetchStates = async (countryId) => {
         try {
             const response = await axios.get(
                 `${baseURL}/pms/dropdown_states?country_id=${countryId}&token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`
@@ -3780,11 +3952,46 @@ const VendorRegistrationStepByStepForm = () => {
         }
     };
 
+    const fetchStates2 = async (countryId) => {
+        try {
+            const response = await axios.get(
+                `${baseURL}/pms/dropdown_states?country_id=${countryId}&token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`
+            );
+
+            const formattedStates = response.data.states.map((state) => ({
+                value: state.value,
+                label: state.name, // Map 'name' to 'label' for react-select
+            }));
+
+            setStates2(formattedStates);
+        } catch (error) {
+            console.error("Error fetching states:", error);
+        }
+    };
+
+    const fetchStates3= async (countryId) => {
+        try {
+            const response = await axios.get(
+                `${baseURL}/pms/dropdown_states?country_id=${countryId}&token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`
+            );
+
+            const formattedStates = response.data.states.map((state) => ({
+                value: state.value,
+                label: state.name, // Map 'name' to 'label' for react-select
+            }));
+
+            setStates3(formattedStates);
+        } catch (error) {
+            console.error("Error fetching states:", error);
+        }
+    };
+
+
     useEffect(() => {
         if (bankDetailsList.length > 0) {
             const firstBank = bankDetailsList[0];
             setSelectedCountry(firstBank.country_id);
-            fetchStates(firstBank.country_id); // Fetch states when country is set
+            fetchStates2(firstBank.country_id); // Fetch states when country is set
             setSelectedState(firstBank.state_id);
         }
     }, [bankDetailsList]);
@@ -3800,7 +4007,7 @@ const VendorRegistrationStepByStepForm = () => {
         );
 
         if (selectedOption) {
-            fetchStates(selectedOption.value); // Fetch states for selected country
+            fetchStates2(selectedOption.value); // Fetch states for selected country
         }
     };
 
@@ -8142,9 +8349,9 @@ const VendorRegistrationStepByStepForm = () => {
 
 
                                                         <SingleSelector
-                                                            options={states}
+                                                            options={states2}
                                                             value={
-                                                                states.find(
+                                                                states2?.find(
                                                                     (s) => s.value === bankDetail.state_id
                                                                 ) || null
                                                             }
@@ -8998,7 +9205,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                             <label>Country<span>*</span></label>
                                                             <SingleSelector
                                                                 options={countries}
-                                                                value={branch.country || null}
+                                                                value={typeof branch.country === 'object' && branch.country ? branch.country : (countries || []).find(c => String(c.value) === String((branch.country && branch.country.value) || branch.country) ) || null}
                                                                 onChange={selected => handleBranchChange(idx, 'country', selected)}
                                                                 placeholder="Select Country"
                                                             />
@@ -9011,8 +9218,8 @@ const VendorRegistrationStepByStepForm = () => {
                                                         <div className="form-group">
                                                             <label>State <span>*</span></label>
                                                             <SingleSelector
-                                                                options={states}
-                                                                value={branch.state || null}
+                                                                options={states3}
+                                                                value={typeof branch.state === 'object' && branch.state ? branch.state : (states3 || []).find(s => String(s.value) === String((branch.state && branch.state.value) || branch.state) ) || null}
                                                                 onChange={selected => handleBranchChange(idx, 'state', selected)}
                                                                 placeholder="Select State"
                                                             />
