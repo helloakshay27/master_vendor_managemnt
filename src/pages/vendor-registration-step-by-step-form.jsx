@@ -8703,9 +8703,24 @@ console.log("statutory details payload:",statutoryPayload)
                                                                 type="text"
                                                                 value={warehouse.mobile}
                                                                 onChange={e => {
-                                                                    // Allow only digits and limit to 10 characters
-                                                                    const digits = e.target.value.replace(/\D/g, '').slice(0, 10);
-                                                                    handleWarehouseChange(idx, 'mobile', digits);
+                                                                    // Only allow digits and cap to 10 chars
+                                                                    let newValue = e.target.value.replace(/[^0-9]/g, '');
+                                                                    if (newValue.length > 10) newValue = newValue.slice(0, 10);
+
+                                                                    // update warehouse model
+                                                                    handleWarehouseChange(idx, 'mobile', newValue);
+
+                                                                    // live validation: show error if present and not exactly 10 digits
+                                                                    let errorMsg = '';
+                                                                    if (newValue && newValue.length !== 10) {
+                                                                        errorMsg = 'Contact Number must be exactly 10 digits.';
+                                                                    }
+                                                                    setWarehouseErrors(prev => {
+                                                                        const updated = Array.isArray(prev) ? [...prev] : [];
+                                                                        // ensure an object exists at this index
+                                                                        updated[idx] = { ...(updated[idx] || {}), mobile: errorMsg };
+                                                                        return updated;
+                                                                    });
                                                                 }}
                                                                 maxLength={10}
                                                             />
@@ -9019,9 +9034,25 @@ console.log("statutory details payload:",statutoryPayload)
                                                                 className="form-control"
                                                                 type="text"
                                                                 value={person.primaryMobile}
-                                                                onChange={(e) =>
-                                                                    handleContactPersonChange(idx, "primaryMobile", e.target.value)
-                                                                }
+                                                                onChange={(e) => {
+                                                                    // allow only digits and cap to 10
+                                                                    let newValue = String(e.target.value || '').replace(/[^0-9]/g, '');
+                                                                    if (newValue.length > 10) newValue = newValue.slice(0, 10);
+                                                                    // update model
+                                                                    handleContactPersonChange(idx, "primaryMobile", newValue);
+
+                                                                    // live validation: require exactly 10 digits when present
+                                                                    let err = '';
+                                                                    if (newValue && newValue.length !== 10) {
+                                                                        err = 'Contact Number must be exactly 10 digits.';
+                                                                    }
+                                                                    setContactPersonErrors(prev => {
+                                                                        const copy = Array.isArray(prev) ? [...prev] : [];
+                                                                        while (copy.length <= idx) copy.push({});
+                                                                        copy[idx] = { ...copy[idx], primaryMobile: err || undefined };
+                                                                        return copy;
+                                                                    });
+                                                                }}
                                                             />
                                                             {contactPersonErrors[idx]?.primaryMobile && (
                                                                 <div className="ValidationColor">{contactPersonErrors[idx].primaryMobile}</div>
@@ -9036,9 +9067,25 @@ console.log("statutory details payload:",statutoryPayload)
                                                                 className="form-control"
                                                                 type="text"
                                                                 value={person.secondaryMobile}
-                                                                onChange={(e) =>
-                                                                    handleContactPersonChange(idx, "secondaryMobile", e.target.value)
-                                                                }
+                                                                onChange={(e) => {
+                                                                    // allow only digits and cap to 10
+                                                                    let newValue = String(e.target.value || '').replace(/[^0-9]/g, '');
+                                                                    if (newValue.length > 10) newValue = newValue.slice(0, 10);
+                                                                    // update model
+                                                                    handleContactPersonChange(idx, "secondaryMobile", newValue);
+
+                                                                    // live validation: require exactly 10 digits when present
+                                                                    let err = '';
+                                                                    if (newValue && newValue.length !== 10) {
+                                                                        err = 'Contact Number must be exactly 10 digits.';
+                                                                    }
+                                                                    setContactPersonErrors(prev => {
+                                                                        const copy = Array.isArray(prev) ? [...prev] : [];
+                                                                        while (copy.length <= idx) copy.push({});
+                                                                        copy[idx] = { ...copy[idx], secondaryMobile: err || undefined };
+                                                                        return copy;
+                                                                    });
+                                                                }}
                                                             />
                                                             {contactPersonErrors[idx]?.secondaryMobile && (
                                                                 <div className="ValidationColor">{contactPersonErrors[idx].secondaryMobile}</div>
@@ -9231,7 +9278,21 @@ console.log("statutory details payload:",statutoryPayload)
                                                                 className="form-control"
                                                                 type="text"
                                                                 value={owner.email}
-                                                                onChange={e => handleOwnerChange(idx, 'email', e.target.value)}
+                                                                onChange={e => {
+                                                                    const val = e.target.value;
+                                                                    handleOwnerChange(idx, 'email', val);
+                                                                    const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+                                                                    let err = '';
+                                                                    if (val && !emailRegex.test(val)) {
+                                                                        err = 'Invalid Email. eg.: abc@gmail.com';
+                                                                    }
+                                                                    setOwnerErrors(prev => {
+                                                                        const copy = Array.isArray(prev) ? [...prev] : [];
+                                                                        while (copy.length <= idx) copy.push({});
+                                                                        copy[idx] = { ...copy[idx], email: err || undefined };
+                                                                        return copy;
+                                                                    });
+                                                                }}
                                                             />
                                                             {ownerErrors[idx]?.email && (
                                                                 <div className="ValidationColor">{ownerErrors[idx].email}</div>
@@ -9249,8 +9310,21 @@ console.log("statutory details payload:",statutoryPayload)
                                                                 maxLength={10}
                                                                 value={owner.mobile}
                                                                 onChange={e => {
-                                                                    const digits = (e.target.value || '').replace(/\D/g, '').slice(0, 10);
-                                                                    handleOwnerChange(idx, 'mobile', digits);
+                                                                    let newValue = String(e.target.value || '').replace(/[^0-9]/g, '');
+                                                                    if (newValue.length > 10) newValue = newValue.slice(0, 10);
+                                                                    handleOwnerChange(idx, 'mobile', newValue);
+
+                                                                    // live validation: show error if present and not exactly 10 digits
+                                                                    let err = '';
+                                                                    if (newValue && newValue.length !== 10) {
+                                                                        err = 'Contact Number must be exactly 10 digits.';
+                                                                    }
+                                                                    setOwnerErrors(prev => {
+                                                                        const copy = Array.isArray(prev) ? [...prev] : [];
+                                                                        while (copy.length <= idx) copy.push({});
+                                                                        copy[idx] = { ...copy[idx], mobile: err || undefined };
+                                                                        return copy;
+                                                                    });
                                                                 }}
                                                             />
                                                             {ownerErrors[idx]?.mobile && (
