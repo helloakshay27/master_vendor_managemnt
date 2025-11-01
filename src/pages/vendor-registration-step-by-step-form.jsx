@@ -5263,7 +5263,7 @@ console.log("statutory details payload:",statutoryPayload)
                                                 <div className="col-md-6">
                                                     <div className="form-group">
                                                         <label>Secondary Mobile No.</label>
-                                                        <input className="form-control" type="text" value={supplierShowData?.mobile || "-"} placeholder="Enter secondary mobile number" disabled />
+                                                        <input className="form-control" type="text" value={supplierShowData?.alternate_mobile || "-"} placeholder="Enter secondary mobile number" disabled />
                                                     </div>
                                                 </div>
                                             </div>
