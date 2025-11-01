@@ -3912,7 +3912,7 @@ const VendorRegistrationStepByStepForm = () => {
                 [code]: {
                     ...prev[code],
                     file: attachment, // Save attachment object instead of raw File
-                    input: value || statutory_detail_value,
+                    input: value ,
                     id: id,
                     // input: statutory_detail_value
                 },
