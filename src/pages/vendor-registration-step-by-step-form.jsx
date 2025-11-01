@@ -748,6 +748,9 @@ const VendorRegistrationStepByStepForm = () => {
 
     const [statutoryInputs, setStatutoryInputs] = useState({});
     const [statutoryErrors, setStatutoryErrors] = useState({});
+    // Keep a ref of the latest input values to avoid races between input change
+    // setState (which is async) and immediate file uploads that need the latest value.
+    const statutoryInputRefs = useRef({});
 
 
     // ***********************************
@@ -4206,18 +4209,23 @@ const VendorRegistrationStepByStepForm = () => {
 
     // console.log("before update:",additionalDetails.classificationYear.value)
     const handleStatutoryInputChange = (code, value, id, statutory_detail_value) => {
-        console.log("statutory_detail_value:", statutory_detail_value);
+        // Keep the latest input in a ref so file uploads can read it synchronously
+        const newInput = (typeof value !== 'undefined' && value !== null) ? value : (statutory_detail_value || '');
+        statutoryInputRefs.current = { ...(statutoryInputRefs.current || {}), [code]: newInput };
         setStatutoryInputs(prev => ({
             ...prev,
             [code]: {
                 ...prev[code],
-                input: value || statutory_detail_value,
+                input: newInput,
                 id: id,
             },
         }));
     };
 
     const handleStatutoryFileChange = (code, file, id, value, statutory_detail_value) => {
+        // If no file provided, nothing to do
+        if (!file) return;
+
         const reader = new FileReader();
 
         reader.onloadend = () => {
@@ -4230,28 +4238,35 @@ const VendorRegistrationStepByStepForm = () => {
             };
 
             // Update the statutoryInputs state with attachment
-            setStatutoryInputs((prev) => ({
-                ...prev,
-                [code]: {
-                    ...prev[code],
-                    file: attachment, // Save attachment object instead of raw File
-                    input: value || statutory_detail_value,
-                    id: id,
-                    // input: statutory_detail_value
-                },
-            }));
+            // Preserve any existing input value unless an explicit `value` is provided.
+            setStatutoryInputs((prev) => {
+                const existing = prev[code] || {};
+                // Preserve the previous input value — do not overwrite with incoming `value` or statutory_detail_value.
+                const keptInput = (typeof existing.input !== 'undefined' && existing.input !== null)
+                    ? existing.input
+                    : ((statutoryInputRefs.current || {})[code] || '');
+
+                return {
+                    ...prev,
+                    [code]: {
+                        ...existing,
+                        file: attachment, // Save attachment object instead of raw File
+                        input: keptInput,
+                        id: id,
+                    },
+                };
+            });
+
+            // Log the filename we just processed (setState is async so reading from state immediately
+            // may not reflect the update yet — use the attachment object for immediate logging)
+            console.log('Exact file processed for', code, ':', attachment.filename);
         };
 
-        if (file) {
-            reader.readAsDataURL(file);
-        }
-
-        console.log("Exact file:", statutoryInputs[code]?.file?.filename);
-
+        reader.readAsDataURL(file);
     };
 
 
-    console.log("sat input :", statutoryInputs)
+    // console.log("sat input :", statutoryInputs)
 
 
     const statutoryPayload = Object.entries(statutoryInputs).map(
@@ -9944,9 +9959,7 @@ const VendorRegistrationStepByStepForm = () => {
 
                                         {/* <div>{"*********************************************************"} </div> */}
 
-
-
-                                        {console.log("statutoryDetails:", statutoryDetails)}
+                                        {/* {console.log("statutoryDetails:", statutoryDetails)} */}
                                         {statutoryDetails?.map((field, index) => (
                                             <div className="row" key={`${field.id}-${index}`}>
                                                 {/* {console.log("stat field:",field.code)} */}
