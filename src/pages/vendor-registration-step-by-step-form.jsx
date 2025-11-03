@@ -3412,7 +3412,7 @@ const VendorRegistrationStepByStepForm = () => {
                     const filename = (fileObj && (fileObj.filename || fileObj.name || fileObj.document_name || '')).toString();
                     const contentType = (fileObj && (fileObj.content_type || fileObj.type || fileObj.attachment_url || '')).toString();
                     const isPdf = (contentType || '').toLowerCase() === 'application/pdf' || filename.toLowerCase().endsWith('.pdf');
-                    if (!isPdf) {
+                    if (false) {
                         err.attachment = 'File must be a PDF.';
                     } else {
                         const MAX_BYTES = 5 * 1024 * 1024; // 5 MB
