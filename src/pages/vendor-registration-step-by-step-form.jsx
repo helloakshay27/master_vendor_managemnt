@@ -980,7 +980,7 @@ const VendorRegistrationStepByStepForm = () => {
         }
     };
 
-    console.log("****************** statutory details:", statutoryDetails);
+    // console.log("****************** statutory details:", statutoryDetails);
 
     useEffect(() => {
         // initial load
@@ -2555,7 +2555,7 @@ const VendorRegistrationStepByStepForm = () => {
 
     const [branchOffices, setBranchOffices] = useState([]);
 
-   
+
     const addBranchOffice = () => {
         setBranchOffices(prev => ([
             ...prev,
@@ -2843,27 +2843,84 @@ const VendorRegistrationStepByStepForm = () => {
     ]);
 
     // Reconcile warehouses country/state with canonical option objects when option lists load
+    // useEffect(() => {
+    //      if (warehouses || warehouses.length !== 0) (
+    //     try {
+    //         if (!warehouses || warehouses.length === 0) return;
+    //         const updated = warehouses.map(w => {
+    //             let changed = false;
+    //             let country = w.country;
+    //             let state = w.state;
+
+    //             const currentCountryVal = (country && typeof country === 'object') ? country.value : country;
+    //             if (typeof currentCountryVal !== 'undefined' && currentCountryVal !== null) {
+    //                 const matchCountry = (countryOptions || []).find(opt => String(opt.value) === String(currentCountryVal));
+    //                 if (matchCountry && matchCountry !== country) {
+    //                     country = matchCountry;
+    //                     changed = true;
+    //                 }
+    //             }
+
+    //             const currentStateVal = (state && typeof state === 'object') ? state.value : state;
+    //             if (typeof currentStateVal !== 'undefined' && currentStateVal !== null) {
+    //                 const matchState = (stateOptions || []).find(opt => String(opt.value) === String(currentStateVal))
+    //                     || (commStateOptions || []).find(opt => String(opt.value) === String(currentStateVal));
+    //                 if (matchState && matchState !== state) {
+    //                     state = matchState;
+    //                     changed = true;
+    //                 }
+    //             }
+
+    //             return changed ? { ...w, country, state } : w;
+    //         });
+
+    //         const anyChange = updated.some((u, i) => u !== warehouses[i]);
+    //         if (anyChange) setWarehouses(updated);
+    //     } catch (e) {
+    //         // silent
+    //          console.error("Error occurred:", e);
+    // toast.error("Something went wrong. Please try again.");
+    //     }
+
+    // )
+    // }, [countryOptions, stateOptions, commStateOptions, warehouses]);
+
+
+
+
     useEffect(() => {
         try {
             if (!warehouses || warehouses.length === 0) return;
-            const updated = warehouses.map(w => {
+
+            const updated = warehouses.map((w) => {
                 let changed = false;
                 let country = w.country;
                 let state = w.state;
 
-                const currentCountryVal = (country && typeof country === 'object') ? country.value : country;
-                if (typeof currentCountryVal !== 'undefined' && currentCountryVal !== null) {
-                    const matchCountry = (countryOptions || []).find(opt => String(opt.value) === String(currentCountryVal));
+                // Match country
+                const currentCountryVal =
+                    country && typeof country === "object" ? country.value : country;
+                if (currentCountryVal !== undefined && currentCountryVal !== null) {
+                    const matchCountry = (countryOptions || []).find(
+                        (opt) => String(opt.value) === String(currentCountryVal)
+                    );
                     if (matchCountry && matchCountry !== country) {
                         country = matchCountry;
                         changed = true;
                     }
                 }
 
-                const currentStateVal = (state && typeof state === 'object') ? state.value : state;
-                if (typeof currentStateVal !== 'undefined' && currentStateVal !== null) {
-                    const matchState = (stateOptions || []).find(opt => String(opt.value) === String(currentStateVal))
-                        || (commStateOptions || []).find(opt => String(opt.value) === String(currentStateVal));
+                // Match state
+                const currentStateVal =
+                    state && typeof state === "object" ? state.value : state;
+                if (currentStateVal !== undefined && currentStateVal !== null) {
+                    const matchState =
+                        (stateOptions || []).find(
+                            (opt) => String(opt.value) === String(currentStateVal)
+                        ) ||
+                        (commStateOptions || []).find(
+                            (opt) => String(opt.value) === String(currentStateVal)
+                        );
                     if (matchState && matchState !== state) {
                         state = matchState;
                         changed = true;
@@ -2873,12 +2930,14 @@ const VendorRegistrationStepByStepForm = () => {
                 return changed ? { ...w, country, state } : w;
             });
 
-            const anyChange = updated.some((u, i) => u !== warehouses[i]);
+            const anyChange = updated?.some((u, i) => u !== warehouses[i]);
             if (anyChange) setWarehouses(updated);
         } catch (e) {
-            // silent
+            console.error("Error occurred in warehouses update:", e);
+            toast.error("Something went wrong while updating warehouses.");
         }
-    }, [countryOptions, stateOptions, commStateOptions, warehouses]);
+    }, [countryOptions, stateOptions, commStateOptions]);
+
 
     const addWarehouse = () => {
         setWarehouses(prev => ([
@@ -3412,7 +3471,8 @@ const VendorRegistrationStepByStepForm = () => {
                     const filename = (fileObj && (fileObj.filename || fileObj.name || fileObj.document_name || '')).toString();
                     const contentType = (fileObj && (fileObj.content_type || fileObj.type || fileObj.attachment_url || '')).toString();
                     const isPdf = (contentType || '').toLowerCase() === 'application/pdf' || filename.toLowerCase().endsWith('.pdf');
-                    if (false) {
+                    console.log("warehouse attachment fileObj***:", fileObj, filename, contentType, isPdf)
+                    if (!isPdf) {
                         err.attachment = 'File must be a PDF.';
                     } else {
                         const MAX_BYTES = 5 * 1024 * 1024; // 5 MB
@@ -3434,7 +3494,7 @@ const VendorRegistrationStepByStepForm = () => {
                 return err;
             });
             setWarehouseErrors(warehouseErrs);
-            console.log("warehouseErrs:", warehouseErrs);
+            // console.log("warehouseErrs:", warehouseErrs);
         }
 
         // ---------- contact person ----------
@@ -3497,7 +3557,7 @@ const VendorRegistrationStepByStepForm = () => {
                 return err;
             });
             setContactPersonErrors(contactErrs);
-            console.log("contactErrs:", contactErrs);
+            // console.log("contactErrs:", contactErrs);
         }
 
         // ---------- owners / directors information ----------
@@ -3549,7 +3609,7 @@ const VendorRegistrationStepByStepForm = () => {
                 return err;
             });
             setOwnerErrors(ownerErrs);
-            console.log("ownerErrs:", ownerErrs);
+            // console.log("ownerErrs:", ownerErrs);
         }
 
         // ---------- annual turnover ----------
@@ -3626,7 +3686,7 @@ const VendorRegistrationStepByStepForm = () => {
                 return err;
             });
             setMajorCustomerErrors(custErrs);
-            console.log("custErrs:", custErrs);
+            // console.log("custErrs:", custErrs);
         }
 
         // ---------- FINAL VALIDATION ----------
@@ -3745,8 +3805,8 @@ const VendorRegistrationStepByStepForm = () => {
 
     const [countries, setCountries] = useState([]);
     const [states, setStates] = useState([]);
-     const [states2, setStates2] = useState([]);
-     const [states3, setStates3] = useState([]);
+    const [states2, setStates2] = useState([]);
+    const [states3, setStates3] = useState([]);
     const [selectedCountry, setSelectedCountry] = useState(null);
     const [selectedState, setSelectedState] = useState(null);
 
@@ -3772,36 +3832,66 @@ const VendorRegistrationStepByStepForm = () => {
     }, []);
 
 
-     
+
     // When countries or states load (they're fetched async), reconcile any warehouses that
     // were prepopulated from the server with primitive ids or fallback objects so the
     // SingleSelector value references an option object from the options array and
     // react-select will display the proper label instead of the raw id.
+    // useEffect(() => {
+    //     if ((!countries || countries.length === 0) && (!states || states.length === 0)) return;
+    //     if (!Array.isArray(warehouses) || warehouses.length === 0) return;
+
+    //     // If any warehouse has a country but its state value cannot be found in the
+    //     // currently-loaded `states` array, fetch states for that country first so
+    //     // the reconciliation below can match to the correct option object.
+    //     for (const w of warehouses) {
+    //         try {
+    //             const countryVal = w?.country ? (w.country.value ?? w.country) : null;
+    //             const stateVal = w?.state ? (w.state.value ?? w.state) : null;
+    //             if (countryVal != null && stateVal != null) {
+    //                 const found = (states || []).find(opt => String(opt.value) === String(stateVal));
+    //                 if (!found) {
+    //                     // populate states for this country; effect will re-run after states are set
+    //                     try { fetchStates(countryVal); } catch (e) { /* ignore */ }
+    //                     return;
+    //                 }
+    //             }
+    //         } catch (e) {
+    //             // ignore
+    //         }
+    //     }
+
+    //     setWarehouses(prev => prev.map(w => {
+    //         try {
+    //             const countryVal = w?.country ? (w.country.value ?? w.country) : null;
+    //             const stateVal = w?.state ? (w.state.value ?? w.state) : null;
+
+    //             const resolvedCountry = countryVal != null
+    //                 ? ((countries || []).find(opt => String(opt.value) === String(countryVal)) || w.country)
+    //                 : w.country;
+
+    //             const resolvedState = stateVal != null
+    //                 ? ((states || []).find(opt => String(opt.value) === String(stateVal)) || w.state)
+    //                 : w.state;
+
+    //             // Only change object if a resolution was found to avoid unnecessary renders
+    //             if (resolvedCountry !== w.country || resolvedState !== w.state) {
+    //                 return { ...w, country: resolvedCountry, state: resolvedState };
+    //             }
+    //         } catch (e) {
+    //             // ignore and keep existing
+    //         }
+    //         return w;
+    //     }));
+    // }, [countries, states, warehouses]);
+
+
     useEffect(() => {
         if ((!countries || countries.length === 0) && (!states || states.length === 0)) return;
         if (!Array.isArray(warehouses) || warehouses.length === 0) return;
 
-        // If any warehouse has a country but its state value cannot be found in the
-        // currently-loaded `states` array, fetch states for that country first so
-        // the reconciliation below can match to the correct option object.
-        for (const w of warehouses) {
-            try {
-                const countryVal = w?.country ? (w.country.value ?? w.country) : null;
-                const stateVal = w?.state ? (w.state.value ?? w.state) : null;
-                if (countryVal != null && stateVal != null) {
-                    const found = (states || []).find(opt => String(opt.value) === String(stateVal));
-                    if (!found) {
-                        // populate states for this country; effect will re-run after states are set
-                        try { fetchStates(countryVal); } catch (e) { /* ignore */ }
-                        return;
-                    }
-                }
-            } catch (e) {
-                // ignore
-            }
-        }
-
-        setWarehouses(prev => prev.map(w => {
+        let updated = false;
+        const nextWarehouses = warehouses.map((w) => {
             try {
                 const countryVal = w?.country ? (w.country.value ?? w.country) : null;
                 const stateVal = w?.state ? (w.state.value ?? w.state) : null;
@@ -3814,19 +3904,24 @@ const VendorRegistrationStepByStepForm = () => {
                     ? ((states || []).find(opt => String(opt.value) === String(stateVal)) || w.state)
                     : w.state;
 
-                // Only change object if a resolution was found to avoid unnecessary renders
                 if (resolvedCountry !== w.country || resolvedState !== w.state) {
+                    updated = true;
                     return { ...w, country: resolvedCountry, state: resolvedState };
                 }
             } catch (e) {
-                // ignore and keep existing
+                console.error("Error resolving warehouse location:", e);
             }
             return w;
-        }));
-    }, [countries, states, warehouses]);
+        });
+
+        if (updated) {
+            setWarehouses(nextWarehouses);
+        }
+    }, [countries, states]); // ✅ removed warehouses
 
 
-      useEffect(() => {
+
+    useEffect(() => {
         if ((!countries || countries.length === 0) && (!states3 || states3.length === 0)) return;
         if (!Array.isArray(branchOffices) || branchOffices.length === 0) return;
 
@@ -3872,8 +3967,8 @@ const VendorRegistrationStepByStepForm = () => {
             }
             return w;
         }));
-    }, [countries, states3, branchOffices]);
-     // Reconcile branchOffices country/state with canonical option objects when option lists load
+    }, [countries, states3]);
+    // Reconcile branchOffices country/state with canonical option objects when option lists load
     // useEffect(() => {
     //     try {
     //         if (!branchOffices || branchOffices.length === 0) return;
@@ -3935,7 +4030,7 @@ const VendorRegistrationStepByStepForm = () => {
     // }, [countryOptions, stateOptions, countries, states3, branchOffices]);
 
 
-   const fetchStates = async (countryId) => {
+    const fetchStates = async (countryId) => {
         try {
             const response = await axios.get(
                 `${baseURL}/pms/dropdown_states?country_id=${countryId}&token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`
@@ -3969,7 +4064,7 @@ const VendorRegistrationStepByStepForm = () => {
         }
     };
 
-    const fetchStates3= async (countryId) => {
+    const fetchStates3 = async (countryId) => {
         try {
             const response = await axios.get(
                 `${baseURL}/pms/dropdown_states?country_id=${countryId}&token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`
@@ -5250,7 +5345,7 @@ const VendorRegistrationStepByStepForm = () => {
         }
     };
 
-    console.log("statutory details payload:", statutoryPayload)
+    // console.log("statutory details payload:", statutoryPayload)
     const saveDraftStep5 = async () => {
         setLoading2(true)
         console.log("sameAsRegistered value:", sameAsRegistered);
@@ -5848,7 +5943,7 @@ const VendorRegistrationStepByStepForm = () => {
             <div className="website-content overflowY-auto">
                 <div>
                     {/* Stepper UI */}
-                    <div className="stepper mb-5 d-flex align-items-center justify-content-between mx-5 mt-5" style={{ gap: 0 }}>
+                    {/* <div className="stepper mb-5 d-flex align-items-center justify-content-between mx-5 mt-5" style={{ gap: 0 }}>
                         {steps.map((step, idx) => (
                             <React.Fragment key={step.label}>
                                 <div className="d-flex align-items-center flex-column" style={{ minWidth: 70 }}>
@@ -5916,9 +6011,233 @@ const VendorRegistrationStepByStepForm = () => {
                                 )}
                             </React.Fragment>
                         ))}
+                    </div> */}
+
+
+                    {/* <div className="stepper mb-5 d-flex align-items-center justify-content-between mx-5 mt-5" style={{ gap: 0 }}>
+  {steps.map((step, idx) => {
+    const isCurrent = currentStep === idx;
+    const isCompleted = completed[idx];
+
+  
+    const circleSize = 40;
+    const labelMinWidth = 130;
+    const labelMaxWidth = 150;
+
+    return (
+      <React.Fragment key={step.label}>
+        <div className="d-flex align-items-center flex-column" style={{ minWidth: 70 }}>
+         
+          <button
+            type="button"
+            className={`step-circle btn btn-sm ${isCurrent ? "purple-btn2" : isCompleted ? "" : "purple-btn2"}`}
+            style={{
+              borderRadius: "50%",
+              width: circleSize,
+              height: circleSize,
+              fontWeight: "bold",
+              zIndex: 2,
+              background: isCurrent ? '#e95420' : isCompleted ? '#e95420' : '',
+              color: isCurrent ? '#fff' : isCompleted ? '#fff' : '',
+              borderColor: isCurrent ? '#e95420' : isCompleted ? '#e95420' : '',
+              borderWidth: isCurrent ? 3 : isCompleted ? 2 : '',
+              boxShadow: isCurrent ? '0 0 8px #e95420' : isCompleted ? '0 0 4px #e95420' : 'none',
+              transition: 'background 0.3s, color 0.3s, border-color 0.3s',
+            }}
+            onClick={() => setCurrentStep(idx)}
+          >
+            {idx + 1}
+          </button>
+
+         
+          <div
+            className="step-label mt-2 d-flex align-items-center justify-content-center"
+            title={step.label}
+            style={{
+              fontSize: 13,
+              minWidth: labelMinWidth,
+              maxWidth: labelMaxWidth,
+              textAlign: 'center',
+              position: 'relative',
+              border: '2px solid #e95420',
+              borderRadius: 8,
+              padding: '2px 8px',
+              background: isCurrent ? '#e95420' : '#fff',
+              color: isCurrent ? '#fff' : '',
+              boxShadow: isCurrent ? '0 0 8px #e95420' : isCompleted ? '0 0 4px #e95420' : 'none',
+              display: 'inline-flex',
+              alignItems: 'center',
+              overflow: 'hidden',
+              whiteSpace: 'nowrap',
+              textOverflow: 'ellipsis',
+              fontWeight: isCurrent ? 'bold' : '',
+              height: 34, // ✅ fixed same height for current & completed
+              transition: 'all 0.3s ease',
+            }}
+          >
+            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
+              {step.label}
+            </span>
+            {isCompleted && (
+              <span
+                style={{
+                  color: 'green',
+                  fontWeight: 'bold',
+                  fontSize: 18,
+                  marginLeft: 6,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                }}
+              >
+                ✔
+              </span>
+            )}
+          </div>
+        </div>
+
+    
+        {idx < steps.length - 1 && (
+          <div
+            className="flex-grow-1"
+            style={{
+              height: 2,
+              borderBottom: `2px dotted ${isCompleted ? '#e95420' : '#aaa'}`,
+              margin: '0 4px',
+              background: isCompleted ? '#e95420' : 'none',
+              transition: 'background 0.3s, border-color 0.3s',
+              zIndex: 1,
+            }}
+          />
+        )}
+      </React.Fragment>
+    );
+  })}
+</div> */}
+
+
+                    <div className="stepper mb-5 d-flex align-items-center justify-content-between mx-5 mt-5" style={{ gap: 0 }}>
+                        {steps.map((step, idx) => {
+                            const isCurrent = currentStep === idx;
+                            const isCompleted = completed[idx];
+
+                            // Unified sizes
+                            const circleSize = 40;
+                            const labelMinWidth = 130;
+                            const labelMaxWidth = 150;
+
+                            return (
+                                <React.Fragment key={step.label}>
+                                    <div
+                                        className="d-flex flex-column align-items-center"
+                                        style={{
+                                            minWidth: 70,
+                                            justifyContent: "center", // ✅ keep everything vertically centered
+                                        }}
+                                    >
+                                        {/* Step Circle */}
+                                        <button
+                                            type="button"
+                                            className="step-circle btn btn-sm"
+                                            style={{
+                                                borderRadius: "50%",
+                                                width: circleSize,
+                                                height: circleSize,
+                                                fontWeight: "bold",
+                                                zIndex: 2,
+                                                background: isCurrent ? "#e95420" : isCompleted ? "#e95420" : "#fff",
+                                                color: isCurrent || isCompleted ? "#fff" : "#000",
+                                                border: `2px solid ${isCurrent || isCompleted ? "#e95420" : "#ccc"}`,
+                                                boxShadow: isCurrent
+                                                    ? "0 0 8px #e95420"
+                                                    : isCompleted
+                                                        ? "0 0 4px #e95420"
+                                                        : "none",
+                                                transition: "all 0.3s ease",
+                                                display: "flex",
+                                                alignItems: "center",
+                                                justifyContent: "center",
+                                            }}
+                                        // onClick={() => setCurrentStep(idx)}
+                                        >
+                                            {idx + 1}
+                                        </button>
+
+                                        {/* Step Label */}
+                                        <div
+                                            className="step-label d-flex align-items-center justify-content-center"
+                                            title={step.label}
+                                            style={{
+                                                marginTop: 10, // ✅ consistent spacing between circle & label
+                                                fontSize: 13,
+                                                minWidth: labelMinWidth,
+                                                maxWidth: labelMaxWidth,
+                                                height: 36, // ✅ consistent label height
+                                                textAlign: "center",
+                                                border: "2px solid #e95420",
+                                                borderRadius: 8,
+                                                padding: "4px 8px",
+                                                background: isCurrent ? "#e95420" : "#fff",
+                                                color: isCurrent ? "#fff" : "#000",
+                                                boxShadow: isCurrent
+                                                    ? "0 0 8px #e95420"
+                                                    : isCompleted
+                                                        ? "0 0 4px #e95420"
+                                                        : "none",
+                                                fontWeight: isCurrent ? "bold" : "normal",
+                                                overflow: "hidden",
+                                                whiteSpace: "nowrap",
+                                                textOverflow: "ellipsis",
+                                                display: "inline-flex",
+                                                alignItems: "center",
+                                                justifyContent: "center",
+                                                transition: "all 0.3s ease",
+                                            }}
+                                        >
+                                            <span
+                                                style={{
+                                                    overflow: "hidden",
+                                                    textOverflow: "ellipsis",
+                                                    whiteSpace: "nowrap",
+                                                    flex: 1,
+                                                }}
+                                            >
+                                                {step.label}
+                                            </span>
+                                            {isCompleted && (
+                                                <span
+                                                    style={{
+                                                        color: "green",
+                                                        fontWeight: "bold",
+                                                        fontSize: 18,
+                                                        marginLeft: 6,
+                                                        display: "inline-flex",
+                                                        alignItems: "center",
+                                                    }}
+                                                >
+                                                    ✔
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Connector line */}
+                                    {idx < steps.length - 1 && (
+                                        <div
+                                            className="flex-grow-1"
+                                            style={{
+                                                height: 2,
+                                                borderBottom: `2px dotted ${isCompleted ? "#e95420" : "#aaa"}`,
+                                                margin: "0 4px",
+                                                background: isCompleted ? "#e95420" : "none",
+                                                transition: "all 0.3s ease",
+                                                zIndex: 1,
+                                            }}
+                                        />
+                                    )}
+                                </React.Fragment>
+                            );
+                        })}
                     </div>
-
-
 
 
 
@@ -6844,7 +7163,8 @@ const VendorRegistrationStepByStepForm = () => {
                                                                         // download // Forces file download
                                                                         // className="text-primary d-flex align-items-center"    
                                                                         className="text-primary d-flex align-items-center"
-                                                                        href={`${baseURL}/assets/Spciman%20GST%20Declaration.pdf`}
+                                                                        // href={`${baseURL}/assets/Spciman%20GST%20Declaration.pdf`}
+                                                                        href={`${baseURL}pms/suppliers/download_specimen?no_gstin=true`}
                                                                         // download
                                                                         download="SGSTIN_Declaration.pdf"
 
@@ -7238,7 +7558,8 @@ const VendorRegistrationStepByStepForm = () => {
                                                         <a
                                                             download="Specimen_E-Invoicing_Declaration.docx"
                                                             className="text-primary d-flex align-items-center"
-                                                            href={`${baseURL}/assets/Yes%20_%20msme.pdf`}
+                                                            // href={`${baseURL}/assets/Yes%20_%20msme.pdf`}
+                                                            href={`${baseURL}pms/suppliers/download_specimen?no_msme=true`}
                                                         >
                                                             <svg
                                                                 xmlns="http://www.w3.org/2000/svg"
@@ -7355,7 +7676,7 @@ const VendorRegistrationStepByStepForm = () => {
 
                                             <div className="row">
                                                 {additionalDetails.msmeUdyamApplicable?.value === "No" && (
-                                                    <div className="col-md-4 mt-2 ms-3">
+                                                    <div className="col-md-4 mt-2 ">
                                                         <div className="form-group">
                                                             <label
                                                             >
@@ -7363,14 +7684,15 @@ const VendorRegistrationStepByStepForm = () => {
                                                             </label>
                                                             <TooltipIcon message="If you choose 'No' for e-invoicing, a specimen format will be available for download. This is for businesses not subject to e-invoicing under GST regulations. Please upload a signed declaration stating that your organization is not registered.The document must be uploaded in PDF format" />
                                                             <a
-                                                                download="Specimen_E-Invoicing_Declaration.docx"
+                                                                download
                                                                 className="text-primary d-flex align-items-center"
-                                                                href={`${baseURL}/assets/NO_%20MSME.pdf`}
-                                                                onClick={(e) => {
-                                                                    // Force navigation in the same tab to avoid any target/_blank behavior
-                                                                    e.preventDefault();
-                                                                    window.location.href = `${baseURL}/assets/NO_%20MSME.pdf`;
-                                                                }}
+                                                                // href={`${baseURL}/assets/NO_%20MSME.pdf`}
+                                                                href={`${baseURL}pms/suppliers/download_specimen?no_msme=true`}
+                                                            // onClick={(e) => {
+                                                            //     // Force navigation in the same tab to avoid any target/_blank behavior
+                                                            //     e.preventDefault();
+                                                            //     window.location.href = `${baseURL}/assets/NO_%20MSME.pdf`;
+                                                            // }}
                                                             >
                                                                 <svg
                                                                     xmlns="http://www.w3.org/2000/svg"
@@ -9205,7 +9527,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                             <label>Country<span>*</span></label>
                                                             <SingleSelector
                                                                 options={countries}
-                                                                value={typeof branch.country === 'object' && branch.country ? branch.country : (countries || []).find(c => String(c.value) === String((branch.country && branch.country.value) || branch.country) ) || null}
+                                                                value={typeof branch.country === 'object' && branch.country ? branch.country : (countries || []).find(c => String(c.value) === String((branch.country && branch.country.value) || branch.country)) || null}
                                                                 onChange={selected => handleBranchChange(idx, 'country', selected)}
                                                                 placeholder="Select Country"
                                                             />
@@ -9219,7 +9541,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                             <label>State <span>*</span></label>
                                                             <SingleSelector
                                                                 options={states3}
-                                                                value={typeof branch.state === 'object' && branch.state ? branch.state : (states3 || []).find(s => String(s.value) === String((branch.state && branch.state.value) || branch.state) ) || null}
+                                                                value={typeof branch.state === 'object' && branch.state ? branch.state : (states3 || []).find(s => String(s.value) === String((branch.state && branch.state.value) || branch.state)) || null}
                                                                 onChange={selected => handleBranchChange(idx, 'state', selected)}
                                                                 placeholder="Select State"
                                                             />
@@ -9337,7 +9659,7 @@ const VendorRegistrationStepByStepForm = () => {
                                         // <div className="card mx-3 pb-4 mt-4" key={warehouse.id}>
                                         <CollapsedCardKYC
                                             key={warehouse.id}
-                                            title={`Factory Warehouse${warehouses.length > 1 ? ` ${idx + 1}` : ''}`}
+                                            title={`Factory Warehouse Details${warehouses.length > 1 ? ` ${idx + 1}` : ''}`}
                                             onDelete={() => deleteWarehouse(warehouse.id)}
                                             showDelete={warehouses.length > 1}
                                         >
@@ -9571,7 +9893,7 @@ const VendorRegistrationStepByStepForm = () => {
 
                                         <CollapsedCardKYC
                                             key={person.id}
-                                            title={`Contact Person${contactPersons.length > 1 ? ` ${idx + 1}` : ""}`}
+                                            title={`Contact Person Details${contactPersons.length > 1 ? ` ${idx + 1}` : ""}`}
                                             onDelete={() => deleteContactPerson(person.id)}
                                             showDelete={contactPersons.length > 1}
                                         >
@@ -9922,7 +10244,7 @@ const VendorRegistrationStepByStepForm = () => {
 
                                         <CollapsedCardKYC
                                             key={owner.id}
-                                            title={`Owner / Director${owners.length > 1 ? ` ${idx + 1}` : ''}`}
+                                            title={`Owner / Director Details${owners.length > 1 ? ` ${idx + 1}` : ''}`}
                                             onDelete={() => deleteOwner(owner.id)}
                                             showDelete={owners.length > 1}
                                         >
@@ -11549,7 +11871,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                             <a
                                                                 download="Specimen_E-Invoicing_Declaration.docx"
                                                                 className="text-primary d-flex align-items-center"
-                                                                href={`${baseURL}/assets/Yes%20_%20msme.pdf`}
+                                                            // href={`${baseURL}/assets/Yes%20_%20msme.pdf`}
                                                             >
                                                                 <svg
                                                                     xmlns="http://www.w3.org/2000/svg"
@@ -11677,12 +11999,12 @@ const VendorRegistrationStepByStepForm = () => {
                                                                 <a
                                                                     download="Specimen_E-Invoicing_Declaration.docx"
                                                                     className="text-primary d-flex align-items-center"
-                                                                    href={`${baseURL}/assets/NO_%20MSME.pdf`}
-                                                                    onClick={(e) => {
-                                                                        // Force navigation in the same tab to avoid any target/_blank behavior
-                                                                        e.preventDefault();
-                                                                        window.location.href = `${baseURL}/assets/NO_%20MSME.pdf`;
-                                                                    }}
+                                                                // href={`${baseURL}/assets/NO_%20MSME.pdf`}
+                                                                // onClick={(e) => {
+                                                                //     // Force navigation in the same tab to avoid any target/_blank behavior
+                                                                //     e.preventDefault();
+                                                                //     window.location.href = `${baseURL}/assets/NO_%20MSME.pdf`;
+                                                                // }}
                                                                 >
                                                                     <svg
                                                                         xmlns="http://www.w3.org/2000/svg"
@@ -11808,7 +12130,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                                 <a
                                                                     download="Specimen_E-Invoicing_Declaration.docx"
                                                                     className="text-primary d-flex align-items-center"
-                                                                    href={`${baseURL}/assets/NO_%20MSME.pdf`}
+                                                                    // href={`${baseURL}/assets/NO_%20MSME.pdf`}
                                                                     target="_self" // Ensure it doesn't open in a new tab
                                                                 >
                                                                     <svg
@@ -12887,7 +13209,7 @@ const VendorRegistrationStepByStepForm = () => {
                                         {warehouses.filter(mc => mc._destroy !== true && mc._destroy !== "true").map((warehouse, idx) => (
                                             <CollapsedCardKYC
                                                 key={warehouse.id}
-                                                title={`Factory Warehouse${warehouses.length > 1 ? ` ${idx + 1}` : ''}`}
+                                                title={`Factory Warehouse Details${warehouses.length > 1 ? ` ${idx + 1}` : ''}`}
                                             >
 
                                                 <div className="card-body mt-0">
@@ -13094,7 +13416,7 @@ const VendorRegistrationStepByStepForm = () => {
                                         {contactPersons.filter(mc => mc._destroy !== true && mc._destroy !== "true").map((person, idx) => (
                                             <CollapsedCardKYC
                                                 key={person.id}
-                                                title={`Contact Person${contactPersons.length > 1 ? ` ${idx + 1}` : ""}`}
+                                                title={`Contact Person Details${contactPersons.length > 1 ? ` ${idx + 1}` : ""}`}
                                             >
 
                                                 <div className="card-body mt-0">
@@ -13408,7 +13730,7 @@ const VendorRegistrationStepByStepForm = () => {
                                         {owners.filter(mc => mc._destroy !== true && mc._destroy !== "true").map((owner, idx) => (
                                             <CollapsedCardKYC
                                                 key={owner.id}
-                                                title={`Owner / Director${owners.length > 1 ? ` ${idx + 1}` : ''}`}
+                                                title={`Owner / Director Details${owners.length > 1 ? ` ${idx + 1}` : ''}`}
                                             >
                                                 <div className="card-body mt-0">
                                                     <div className="row">
