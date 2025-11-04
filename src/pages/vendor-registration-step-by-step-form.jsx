@@ -1159,6 +1159,7 @@ const VendorRegistrationStepByStepForm = () => {
             gstinClassification: gstinClassOption,
             // Attach existing GSTIN attachment for UI display
             gstinAttachmentObj: gstinAttachmentObj,
+            gstinDeclarationObj:gstinAttachmentObj,
             // Attach existing CIN and LLP attachments for UI display
             cinAttachmentObj: cinAttachmentObj,
             llpAttachmentObj: llpAttachmentObj,
@@ -4860,7 +4861,7 @@ const VendorRegistrationStepByStepForm = () => {
         }
     }
 
-    console.log("payloaddddddd*********:", ppayload2)
+    // console.log("payloaddddddd*********:", ppayload2)
 
 
     // console.log("basic info:", basicInfo)
@@ -5110,8 +5111,9 @@ const VendorRegistrationStepByStepForm = () => {
                             null,
                 gst_classification_id: basicInfo.gstinClassification?.value,
                 gstin: basicInfo.gstinNo,
-                gstin_attachment: [basicInfo.gstinAttachmentObj] || [basicInfo.gstinDeclarationObj],
+                gstin_attachment: [basicInfo.gstinAttachmentObj],
                 // gstin_declaration: basicInfo.gstinDeclarationObj,
+                gstin_declarationObj: [basicInfo.gstinDeclarationObj],
 
                 website: additionalDetails.website,
                 delivery_lead_period: additionalDetails.deliveryLeadPeriod,
@@ -5192,8 +5194,9 @@ const VendorRegistrationStepByStepForm = () => {
                             null,
                 gst_classification_id: basicInfo.gstinClassification?.value,
                 gstin: basicInfo.gstinNo,
-                gstin_attachment: [basicInfo.gstinAttachmentObj] || [basicInfo.gstinDeclarationObj],
+                gstin_attachment: [basicInfo.gstinAttachmentObj] ,
                 // gstin_declaration: basicInfo.gstinDeclarationObj,
+                gstin_declarationObj: [basicInfo.gstinDeclarationObj],
 
                 website: additionalDetails.website,
                 delivery_lead_period: additionalDetails.deliveryLeadPeriod,
@@ -5279,8 +5282,9 @@ const VendorRegistrationStepByStepForm = () => {
                             null,
                 gst_classification_id: basicInfo.gstinClassification?.value,
                 gstin: basicInfo.gstinNo,
-                gstin_attachment: [basicInfo.gstinAttachmentObj] || [basicInfo.gstinDeclarationObj],
+                gstin_attachment: [basicInfo.gstinAttachmentObj] ,
                 // gstin_declaration: basicInfo.gstinDeclarationObj,
+                gstin_declarationObj: [basicInfo.gstinDeclarationObj],
 
                 website: additionalDetails.website,
                 delivery_lead_period: additionalDetails.deliveryLeadPeriod,
@@ -5380,8 +5384,9 @@ const VendorRegistrationStepByStepForm = () => {
                             null,
                 gst_classification_id: basicInfo.gstinClassification?.value,
                 gstin: basicInfo.gstinNo,
-                gstin_attachment: [basicInfo.gstinAttachmentObj] || [basicInfo.gstinDeclarationObj],
+                gstin_attachment: [basicInfo.gstinAttachmentObj] ,
                 // gstin_declaration: basicInfo.gstinDeclarationObj,
+                gstin_declarationObj: [basicInfo.gstinDeclarationObj],
 
                 website: additionalDetails.website,
                 delivery_lead_period: additionalDetails.deliveryLeadPeriod,
@@ -5545,8 +5550,9 @@ const VendorRegistrationStepByStepForm = () => {
                             null,
                 gst_classification_id: basicInfo.gstinClassification?.value,
                 gstin: basicInfo.gstinNo,
-                gstin_attachment: [basicInfo.gstinAttachmentObj] || [basicInfo.gstinDeclarationObj],
+                gstin_attachment: [basicInfo.gstinAttachmentObj] ,
                 // gstin_declaration: basicInfo.gstinDeclarationObj,
+                gstin_declarationObj: [basicInfo.gstinDeclarationObj],
 
                 website: additionalDetails.website,
                 delivery_lead_period: additionalDetails.deliveryLeadPeriod,
