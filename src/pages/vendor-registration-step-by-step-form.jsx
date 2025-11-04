@@ -2054,8 +2054,33 @@ const VendorRegistrationStepByStepForm = () => {
             // console.log("additional errors:", additionalErrors)
             setErrors(additionalErrors);
         }
+
+
+        // if (
+        //     Object.keys(errors).length > 0 ||
+        //     Object.keys(additionalErrors).length > 0
+        // ) {
+        //     toast.error('Please fill all required fields.');
+        //     return false;
+        // }
+
+
+        if (Object.keys(errors).length > 0 && Object.keys(additionalErrors).length > 0) {
+            toast.error('Please fill all required fields in Basic Information and Additional Vendor Details.');
+            return false;
+        } else if (Object.keys(errors).length > 0) {
+            toast.error('Please fill all required fields in Basic Information.');
+            return false;
+        } else if (Object.keys(additionalErrors).length > 0) {
+            toast.error('Please fill all required fields in Additional Vendor Details.');
+            return false;
+        }
+
+        // return true;
+
         // Return false if either section has errors
         return Object.keys(errors).length === 0 && Object.keys(additionalErrors).length === 0;
+
     };
 
 
@@ -2407,6 +2432,17 @@ const VendorRegistrationStepByStepForm = () => {
         setAddressErrors({ registered: regErrs, communication: commErrs });
         // console.log("error1:",regErrs)
         //  console.log("error2:", commErrs)
+
+        if (Object.keys(regErrs).length > 0 && Object.keys(commErrs).length > 0) {
+            toast.error('Please fill all required fields in Billing / Registered Office Address and Communication Address.');
+            return false;
+        } else if (Object.keys(regErrs).length > 0) {
+            toast.error('Please fill all required fields in Billing / Registered Office Address.');
+            return false;
+        } else if (Object.keys(commErrs).length > 0) {
+            toast.error('Please fill all required fields in Communication Address.');
+            return false;
+        }
         return Object.keys(regErrs).length === 0 && Object.keys(commErrs).length === 0;
     };
 
@@ -2551,6 +2587,11 @@ const VendorRegistrationStepByStepForm = () => {
             }
             // }
             setBankErrors(validationErrors);
+
+            if (Object.keys(validationErrors).length > 0) {
+                toast.error("Please fill all required fields in Bank Details section.");
+                return false;
+            }
             return Object.keys(validationErrors).length === 0;
         }
     };
@@ -3700,6 +3741,27 @@ const VendorRegistrationStepByStepForm = () => {
         const allCustValid = custErrs.every(e => Object.keys(e).length === 0);
         const allTurnoverValid = Object.keys(turnoverErrs).length === 0;
 
+        // ---------- TOASTS (separate and clear) ----------
+        if (isSectionVisible("branch office") && !allBranchesValid) {
+            toast.error("Please fill all required fields in Branch Office.");
+        }
+        if (isSectionVisible("factory / warehouse details") && !allWarehousesValid) {
+            toast.error("Please fill all required fields in Factory / Warehouse Details.");
+        }
+        if (isSectionVisible("contact person") && !allContactsValid) {
+            toast.error("Please fill all required fields in Contact Person.");
+        }
+        if (isSectionVisible("owners / directors information") && !allOwnersValid) {
+            toast.error("Please fill all required fields in Owners / Directors Information.");
+        }
+        if (isSectionVisible("annual turnover") && !allTurnoverValid) {
+            toast.error("Please fill all required fields in Annual Turnover.");
+        }
+        if (isSectionVisible("major customers served by you") && !allCustValid) {
+            toast.error("Please fill all required fields in Client References.");
+        }
+
+
         return (
             (!isSectionVisible("branch office") || allBranchesValid) &&
             (!isSectionVisible("factory / warehouse details") || allWarehousesValid) &&
@@ -4725,6 +4787,11 @@ const VendorRegistrationStepByStepForm = () => {
             const errs = validateStatutoryInputs();
             // errs is keyed by statutory code when applicable
             setStatutoryErrors(errs || {});
+            const isValid = Object.keys(errs || {}).length === 0;
+
+            if (!isValid) {
+                toast.error("Please fill all required fields in Statutory Details.");
+            }
             return Object.keys(errs || {}).length === 0;
         }
     };
@@ -5949,7 +6016,7 @@ const VendorRegistrationStepByStepForm = () => {
         <>
 
             {vrfStatus === "request_for_resubmission" ||
-             vrfStatus === "invited" ||
+                vrfStatus === "invited" ||
                 vrfStatus === "draft"
                 ? (
 
@@ -6400,11 +6467,22 @@ const VendorRegistrationStepByStepForm = () => {
                                         <div className="card-body mt-0">
                                             <div className="row px-3">
                                                 <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
-                                                    <div className="col-6 ">
+                                                    <div className="col-4 ">
                                                         <label>Company</label>
                                                     </div>
-                                                    <div className="col-6">
-                                                        <label className="text">
+                                                    <div className="col-8">
+                                                        <label className="text"
+                                                            // title={supplierShowData?.company_name || "-"}
+                                                            // style={{
+                                                            //     display: "inline-block",
+                                                            //     maxWidth: "200px", // adjust as needed
+                                                            //     whiteSpace: "nowrap",
+                                                            //     overflow: "hidden",
+                                                            //     textOverflow: "ellipsis",
+                                                            //     verticalAlign: "middle",
+                                                            //     cursor: "default",
+                                                            // }}
+                                                        >
                                                             <span className="me-3">
                                                                 <span className="text-dark">:</span>
                                                             </span>
@@ -6426,10 +6504,10 @@ const VendorRegistrationStepByStepForm = () => {
                                                     </div>
                                                 </div>
                                                 <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
-                                                    <div className="col-6 ">
+                                                    <div className="col-4 ">
                                                         <label>Site</label>
                                                     </div>
-                                                    <div className="col-6">
+                                                    <div className="col-8">
                                                         <label className="text">
                                                             <span className="me-3">
                                                                 <span className="text-dark">:</span>
@@ -6439,7 +6517,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                     </div>
                                                 </div>
                                                 <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
-                                                    <div className="col-6 ">
+                                                    <div className="col-6">
                                                         <label>Department</label>
                                                     </div>
                                                     <div className="col-6">
@@ -6452,10 +6530,10 @@ const VendorRegistrationStepByStepForm = () => {
                                                     </div>
                                                 </div>
                                                 <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
-                                                    <div className="col-6 ">
+                                                    <div className="col-4 ">
                                                         <label>Invited By</label>
                                                     </div>
-                                                    <div className="col-6">
+                                                    <div className="col-8">
                                                         <label className="text">
                                                             <span className="me-3">
                                                                 <span className="text-dark">:</span>
