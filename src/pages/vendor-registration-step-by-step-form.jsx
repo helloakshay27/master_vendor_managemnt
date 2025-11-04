@@ -4779,8 +4779,8 @@ const VendorRegistrationStepByStepForm = () => {
                         null,
             gst_classification_id: basicInfo.gstinClassification?.value,
             gstin: basicInfo.gstinNo,
-            gstin_attachmentObj: [basicInfo.gstinAttachment] || [basicInfo.gstinDeclaration],
-            // gstin_declarationObj: basicInfo.gstinDeclaration,
+            gstin_attachmentObj: [basicInfo.gstinAttachmentObj] || [basicInfo.gstinDeclarationObj],
+            gstin_declarationObj: [basicInfo.gstinDeclarationObj],
 
 
 
@@ -4860,7 +4860,7 @@ const VendorRegistrationStepByStepForm = () => {
         }
     }
 
-    // console.log("payloaddddddd*********:", ppayload2)
+    console.log("payloaddddddd*********:", ppayload2)
 
 
     // console.log("basic info:", basicInfo)
@@ -5030,7 +5030,7 @@ const VendorRegistrationStepByStepForm = () => {
                 gst_classification_id: basicInfo.gstinClassification?.value,
                 gstin: basicInfo.gstinNo,
                 gstin_attachment: [basicInfo.gstinAttachmentObj] || [basicInfo.gstinDeclarationObj],
-                // gstin_declaration: basicInfo.gstinDeclarationObj,
+                gstin_declaration: [basicInfo.gstinDeclarationObj],
 
 
 
@@ -6295,7 +6295,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                 <div className="col-md-6">
                                                     <div className="form-group">
                                                         <label>Secondary Mobile No.</label>
-                                                        <input className="form-control" type="text" value={supplierShowData?.mobile || "-"} placeholder="Enter secondary mobile number" disabled />
+                                                        <input className="form-control" type="text" value={supplierShowData?.alternate_mobile || "-"} placeholder="Enter secondary mobile number" disabled />
                                                     </div>
                                                 </div>
                                             </div>
@@ -8870,7 +8870,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                             }}
                                                             disabled={!bankDetail.isNew}
                                                         />
-                                                        {bankDetail.isNew && bankErrors.confirm_account_number && !bankDetail.confirm_account_number && (
+                                                        {bankDetail.isNew && (bankDetail.confirm_account_number || !bankDetail.confirm_account_number) && bankErrors.confirm_account_number && (
                                                             <div className="ValidationColor">
                                                                 {bankErrors.confirm_account_number}
                                                             </div>
