@@ -12633,8 +12633,8 @@ const VendorRegistrationStepByStepForm = () => {
                                                                         <TooltipIcon message="Please choose your State from the list" />
                                                                     </label>
                                                                     <SingleSelector
-                                                                        options={states}
-                                                                        value={states.find((s) => s.value === bankDetail.state_id) || null}
+                                                                        options={states2}
+                                                                        value={states2.find((s) => s.value === bankDetail.state_id) || null}
                                                                         isDisabled={true}
                                                                     />
                                                                 </div>
