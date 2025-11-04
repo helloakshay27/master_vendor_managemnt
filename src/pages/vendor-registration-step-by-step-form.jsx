@@ -1269,7 +1269,7 @@ const VendorRegistrationStepByStepForm = () => {
                 majorActivity: majorOption || prev.majorActivity || null,
                 // Attach MSME files for UI (existing server file shown via file_url)
                 msmeAttachmentObj: msmeAttachmentObj || prev.msmeAttachmentObj,
-                msmeDeclarationObj: msmeDeclarationObj || prev.msmeDeclarationObj,
+                msmeDeclarationObj: msmeAttachmentObj || prev.msmeAttachmentObj,
                 // Preselect e-invoice declaration from supplier data (server file)
                 einvoiceDeclaration: einvoiceDeclarationObj || prev.einvoiceDeclaration,
                 // Einvoicing option
@@ -5119,8 +5119,8 @@ const VendorRegistrationStepByStepForm = () => {
                 valid_from: additionalDetails.validFrom,
                 valid_till: additionalDetails.validTill,
                 enterprise: additionalDetails.msmeEnterpriseType && additionalDetails.msmeEnterpriseType.value ? additionalDetails.msmeEnterpriseType.value : null,
-                msme_attachment: [additionalDetails.msmeAttachmentObj] || [additionalDetails.msmeDeclarationObj],
-                // msme_declaration: additionalDetails.msmeDeclarationOb,
+                msme_attachment: [additionalDetails.msmeAttachmentObj] ,
+                msme_declarationObj: [additionalDetails.msmeDeclarationObj],
             }
         };
         try {
@@ -5199,7 +5199,8 @@ const VendorRegistrationStepByStepForm = () => {
                 valid_from: additionalDetails.validFrom,
                 valid_till: additionalDetails.validTill,
                 enterprise: additionalDetails.msmeEnterpriseType && additionalDetails.msmeEnterpriseType.value ? additionalDetails.msmeEnterpriseType.value : null,
-                msme_attachment: [additionalDetails.msmeAttachmentObj] || [additionalDetails.msmeDeclarationObj],
+                msme_attachment: [additionalDetails.msmeAttachmentObj] ,
+                msme_declarationObj: [additionalDetails.msmeDeclarationObj],
                 // msme_declaration: additionalDetails.msmeDeclarationObj,
 
                 // office_address_attributes: mapRegisteredAddressToPayload(registeredAddress),
@@ -5283,7 +5284,8 @@ const VendorRegistrationStepByStepForm = () => {
                 valid_till: additionalDetails.validTill,
                 enterprise: additionalDetails.msmeEnterpriseType && additionalDetails.msmeEnterpriseType.value ? additionalDetails.msmeEnterpriseType.value : null,
 
-                msme_attachment: [additionalDetails.msmeAttachmentObj] || [additionalDetails.msmeDeclarationObj],
+                msme_attachment: [additionalDetails.msmeAttachmentObj] ,
+                msme_declarationObj: [additionalDetails.msmeDeclarationObj],
                 // msme_declaration: additionalDetails.msmeDeclarationObj,
 
                 // office_address_attributes: mapRegisteredAddressToPayload(registeredAddress),
@@ -5371,7 +5373,8 @@ const VendorRegistrationStepByStepForm = () => {
                 valid_till: additionalDetails.validTill,
                 enterprise: additionalDetails.msmeEnterpriseType && additionalDetails.msmeEnterpriseType.value ? additionalDetails.msmeEnterpriseType.value : null,
 
-                msme_attachment: [additionalDetails.msmeAttachmentObj] || [additionalDetails.msmeDeclarationObj],
+                msme_attachment: [additionalDetails.msmeAttachmentObj] ,
+                msme_declarationObj: [additionalDetails.msmeDeclarationObj],
                 // msme_declaration: additionalDetails.msmeDeclarationObj,
 
                 // office_address_attributes: mapRegisteredAddressToPayload(registeredAddress),
@@ -5473,7 +5476,8 @@ const VendorRegistrationStepByStepForm = () => {
                 valid_till: additionalDetails.validTill,
                 enterprise: additionalDetails.msmeEnterpriseType && additionalDetails.msmeEnterpriseType.value ? additionalDetails.msmeEnterpriseType.value : null,
 
-                msme_attachment: [additionalDetails.msmeAttachmentObj] || [additionalDetails.msmeDeclarationObj],
+                msme_attachment: [additionalDetails.msmeAttachmentObj] ,
+                msme_declarationObj: [additionalDetails.msmeDeclarationObj],
                 // msme_declaration: additionalDetails.msmeDeclarationObj,
 
                 que1: questions.expertise,
@@ -5639,7 +5643,8 @@ const VendorRegistrationStepByStepForm = () => {
                 valid_till: additionalDetails.validTill,
                 enterprise: additionalDetails.msmeEnterpriseType && additionalDetails.msmeEnterpriseType.value ? additionalDetails.msmeEnterpriseType.value : null,
 
-                msme_attachment: [additionalDetails.msmeAttachmentObj] || [additionalDetails.msmeDeclarationObj],
+                msme_attachment: [additionalDetails.msmeAttachmentObj] ,
+                msme_declarationObj: [additionalDetails.msmeDeclarationObj],
                 // msme_declaration: additionalDetails.msmeDeclarationObj,
 
                 // que1: questions.expertise,
