@@ -11105,7 +11105,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                                 <span className="me-3">
                                                                     <span className="text-dark">:</span>
                                                                 </span>
-                                                                {supplierShowData?.organization_name || "-"}
+                                                                {supplierShowData?.company_name || "-"}
                                                             </label>
                                                         </div>
                                                     </div>
@@ -11118,7 +11118,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                                 <span className="me-3">
                                                                     <span className="text-dark">:</span>
                                                                 </span>
-                                                                {supplierShowData?.gstin || "-"}
+                                                                {supplierShowData?.certifying_company_gstin || "-"}
                                                             </label>
                                                         </div>
                                                     </div>
@@ -11170,7 +11170,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                                 <span className="me-3">
                                                                     <span className="text-dark">:</span>
                                                                 </span>
-                                                                {supplierShowData?.mobile || "-"}
+                                                                {supplierShowData?.inviter_contact_number || "-"}
                                                             </label>
                                                         </div>
                                                     </div>
