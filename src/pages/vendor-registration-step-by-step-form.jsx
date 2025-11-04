@@ -8870,7 +8870,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                             }}
                                                             disabled={!bankDetail.isNew}
                                                         />
-                                                        {bankDetail.isNew && bankErrors.confirm_account_number && (
+                                                        {bankDetail.isNew && bankErrors.confirm_account_number && !bankDetail.confirm_account_number && (
                                                             <div className="ValidationColor">
                                                                 {bankErrors.confirm_account_number}
                                                             </div>
@@ -9154,7 +9154,7 @@ const VendorRegistrationStepByStepForm = () => {
 
                                                         {bankDetail.isNew &&
                                                             bankErrors.cancelled_cheque &&
-                                                            !bankDetail.attachment && (
+                                                            !bankDetail.attachment && !bankAttachments[bankDetail.id] &&(
                                                                 <div className="ValidationColor">
                                                                     {bankErrors.cancelled_cheque}
                                                                 </div>
