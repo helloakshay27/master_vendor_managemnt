@@ -4172,6 +4172,25 @@ const VendorRegistrationStepByStepForm = () => {
         }
     };
 
+    // Per-bank states map so each bank row can have its own state options
+    const [bankStatesMap, setBankStatesMap] = useState({});
+
+    const fetchStatesForBank = async (bankId, countryId) => {
+        if (!bankId || !countryId) return;
+        try {
+            const response = await axios.get(
+                `${baseURL}/pms/dropdown_states?country_id=${countryId}&token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`
+            );
+            const formattedStates = response.data.states.map((state) => ({
+                value: state.value,
+                label: state.name,
+            }));
+            setBankStatesMap((prev) => ({ ...prev, [bankId]: formattedStates }));
+        } catch (error) {
+            console.error("Error fetching states for bank:", error);
+        }
+    };
+
     const fetchStates3 = async (countryId) => {
         try {
             const response = await axios.get(
@@ -4191,12 +4210,13 @@ const VendorRegistrationStepByStepForm = () => {
 
 
     useEffect(() => {
-        if (bankDetailsList.length > 0) {
-            const firstBank = bankDetailsList[0];
-            setSelectedCountry(firstBank.country_id);
-            fetchStates2(firstBank.country_id); // Fetch states when country is set
-            setSelectedState(firstBank.state_id);
-        }
+        // Initialize per-bank state lists when bank entries exist
+        if (!Array.isArray(bankDetailsList) || bankDetailsList.length === 0) return;
+        bankDetailsList.forEach((b) => {
+            if (b && b.country_id) {
+                fetchStatesForBank(b.id, b.country_id);
+            }
+        });
     }, [bankDetailsList]);
 
 
@@ -4210,7 +4230,7 @@ const VendorRegistrationStepByStepForm = () => {
         );
 
         if (selectedOption) {
-            fetchStates2(selectedOption.value); // Fetch states for selected country
+            fetchStatesForBank(bankId, selectedOption.value); // Fetch states for this bank's selected country
         }
     };
 
@@ -9099,9 +9119,9 @@ const VendorRegistrationStepByStepForm = () => {
 
 
                                                                 <SingleSelector
-                                                                    options={states2}
+                                                                    options={bankStatesMap[bankDetail.id] || []}
                                                                     value={
-                                                                        states2?.find(
+                                                                        (bankStatesMap[bankDetail.id] || []).find(
                                                                             (s) => s.value === bankDetail.state_id
                                                                         ) || null
                                                                     }
@@ -13356,8 +13376,8 @@ const VendorRegistrationStepByStepForm = () => {
                                                                         <TooltipIcon message="Please choose your State from the list" />
                                                                     </label>
                                                                     <SingleSelector
-                                                                        options={states2}
-                                                                        value={states2.find((s) => s.value === bankDetail.state_id) || null}
+                                                                        options={bankStatesMap[bankDetail.id] || []}
+                                                                        value={(bankStatesMap[bankDetail.id] || []).find((s) => s.value === bankDetail.state_id) || null}
                                                                         isDisabled={true}
                                                                     />
                                                                 </div>
