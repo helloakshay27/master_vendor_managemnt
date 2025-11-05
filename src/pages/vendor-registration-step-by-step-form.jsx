@@ -188,6 +188,8 @@ const VendorRegistrationStepByStepForm = () => {
         fetchChecklistConfig();
     }, []);
 
+  
+
     // Qualification options for owners/contact persons
     const qualificationList = [
         'Bachelor of Science (B.Sc.)',
@@ -922,12 +924,23 @@ const VendorRegistrationStepByStepForm = () => {
                 if (response.data.supplier_id) {
                     setSupplierId(response.data.supplier_id);
                 }
-                setCompleted((arr) => {
-                    const copy = [...arr];
-                    copy[currentStep] = true;
-                    return copy;
-                });
-                setCurrentStep((s) => Math.min(s + 1, steps.length - 1));
+
+                // If the backend returned a vrf_step, use that as the authoritative
+                // resume position. We store it in pendingVrfStep and let the effect
+                // that watches `steps` apply it (mark completed and advance). This
+                // avoids race conditions and ensures the server-driven step wins.
+                if (supplierShowData?.vrf_step) {
+                    setPendingVrfStep(supplierShowData.vrf_step);
+                } else {
+                    // No server step provided; fall back to marking current step
+                    // completed and advancing to the next step locally.
+                    setCompleted((arr) => {
+                        const copy = [...arr];
+                        copy[currentStep] = true;
+                        return copy;
+                    });
+                    setCurrentStep((s) => Math.min(s + 1, steps.length - 1));
+                }
             } else {
                 toast.error('OTP verification failed.');
             }
@@ -977,6 +990,8 @@ const VendorRegistrationStepByStepForm = () => {
             setBankDetailsList(response?.data?.bank_details || []);
             // console.log("supplier show data:", response.data.bank_details)
             setStatutoryDetails(response?.data?.statutory_details);
+            // NOTE: vrf_step is now handled on OTP verification response instead
+            // of on supplier_show to avoid jumping steps on plain reload.
         } catch (error) {
             console.error('Error fetching supplier show data:', error);
         }
@@ -5093,10 +5108,11 @@ const VendorRegistrationStepByStepForm = () => {
     // console.log("llp attach", [basicInfo.llpAttachmentObj])
     // console.log("cin attach", [basicInfo.cinAttachmentObj])
 
-    const saveDraftStep1 = async () => {
+    const saveDraftStep1 = async (stepName) => {
         setLoading2(true)
         const payload = {
             pms_supplier: {
+                ...(stepName ? {vrf_step: stepName } : {}),
                 status: "draft",
                 company_id: supplierShowData?.company_id || null,
                 organization_name: basicInfo.vendorOrganizationName,
@@ -5151,6 +5167,8 @@ const VendorRegistrationStepByStepForm = () => {
                 msme_declarationObj: [additionalDetails.msmeDeclarationObj],
             }
         };
+
+        console.log("payload step one done :", payload)
         try {
             await axios.patch(`${baseURL}/pms/suppliers/${supplierId}/update_api.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`, payload);
             toast.success('Step 2 draft saved!');
@@ -5172,7 +5190,7 @@ const VendorRegistrationStepByStepForm = () => {
     //  const regAddrPayload = mapRegisteredAddressToPayload(registeredAddress)[0]|| {};
     // console.log("reg_address_attributes:", regAddrPayload.email2);
     // console.log("base info:", basicInfo)
-    const saveDraftStep2 = async () => {
+    const saveDraftStep2 = async (stepName) => {
         setLoading2(true)
         // console.log("sameAsRegistered value:", sameAsRegistered);
         const commAddrPayload = mapCommunicationAddressToPayload(communicationAddress, sameAsRegistered)[0] || {};
@@ -5181,6 +5199,7 @@ const VendorRegistrationStepByStepForm = () => {
         // console.log("reg_address_attributes:", regAddrPayload);
         const payload = {
             pms_supplier: {
+                ...(stepName ? { vrf_step: stepName } : {}),
                 status: "draft",
                 company_id: supplierShowData?.company_id || null,
                 organization_name: basicInfo.vendorOrganizationName,
@@ -5239,7 +5258,7 @@ const VendorRegistrationStepByStepForm = () => {
                 billing_account_email: regAddrPayload?.email2,
             }
         };
-        console.log(" payload for address step:", payload)
+        console.log(" payload for address step2:", payload)
         try {
             await axios.patch(`${baseURL}/pms/suppliers/${supplierId}/update_api.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`, payload);
             toast.success('Step 3 draft saved!');
@@ -5258,13 +5277,14 @@ const VendorRegistrationStepByStepForm = () => {
     };
 
 
-    const saveDraftStep3 = async () => {
+    const saveDraftStep3 = async (stepName) => {
         setLoading2(true)
         console.log("sameAsRegistered value:", sameAsRegistered);
         const commAddrPayload = mapCommunicationAddressToPayload(communicationAddress, sameAsRegistered)[0] || {};
         console.log("communication_address_attributes:", commAddrPayload);
         const payload = {
             pms_supplier: {
+                ...(stepName ? { vrf_step: stepName } : {}),
                 status: "draft",
                 company_id: supplierShowData?.company_id || null,
                 organization_name: basicInfo.vendorOrganizationName,
@@ -5347,13 +5367,14 @@ const VendorRegistrationStepByStepForm = () => {
         }
     };
 
-    const saveDraftStep4 = async () => {
+    const saveDraftStep4 = async (stepName) => {
         setLoading2(true)
         console.log("sameAsRegistered value:", sameAsRegistered);
         const commAddrPayload = mapCommunicationAddressToPayload(communicationAddress, sameAsRegistered)[0] || {};
         console.log("communication_address_attributes:", commAddrPayload);
         const payload = {
             pms_supplier: {
+                ...(stepName ? { vrf_step: stepName } : {}),
                 status: "draft",
                 company_id: supplierShowData?.company_id || null,
                 organization_name: basicInfo.vendorOrganizationName,
@@ -5450,13 +5471,14 @@ const VendorRegistrationStepByStepForm = () => {
     };
 
     // console.log("statutory details payload:", statutoryPayload)
-    const saveDraftStep5 = async () => {
+    const saveDraftStep5 = async (stepName) => {
         setLoading2(true)
         console.log("sameAsRegistered value:", sameAsRegistered);
         const commAddrPayload = mapCommunicationAddressToPayload(communicationAddress, sameAsRegistered)[0] || {};
         console.log("communication_address_attributes:", commAddrPayload);
         const payload = {
             pms_supplier: {
+                ...(stepName ? { vrf_step: stepName } : {}),
                 status: "draft",
                 company_id: supplierShowData?.company_id || null,
                 organization_name: basicInfo.vendorOrganizationName,
@@ -5563,7 +5585,7 @@ const VendorRegistrationStepByStepForm = () => {
     };
 
     // console.log("checklist :", checklistPayload)
-    const saveDraftStep6 = async () => {
+    const saveDraftStep6 = async (stepName) => {
         setLoading2(true)
         // console.log("sameAsRegistered value:", sameAsRegistered);
         const commAddrPayload = mapCommunicationAddressToPayload(communicationAddress, sameAsRegistered)[0] || {};
@@ -5624,6 +5646,7 @@ const VendorRegistrationStepByStepForm = () => {
 
         const payload = {
             pms_supplier: {
+                ...(stepName ? { vrf_step: stepName } : {}),
                 status: "draft",
                 company_id: supplierShowData?.company_id || null,
                 organization_name: basicInfo.vendorOrganizationName,
@@ -5958,8 +5981,37 @@ const VendorRegistrationStepByStepForm = () => {
     // completed is kept in sync with steps.length
     const [completed, setCompleted] = useState(Array(defaultSteps.length).fill(false));
 
+    // when server reports the last handled step (vrf_step) we store it
+    // and apply it once the `steps` array is available
+    const [pendingVrfStep, setPendingVrfStep] = useState(null);
+
     const [enabledSections, setEnabledSections] = useState(new Set());
     const [apiSectionsLoaded, setApiSectionsLoaded] = useState(false);
+
+  // If backend reported a vrf_step earlier, apply it once `steps` are available
+    useEffect(() => {
+        if (!pendingVrfStep) return;
+        if (!steps || steps.length === 0) return;
+        try {
+            const target = normalize(pendingVrfStep);
+            const idx = steps.findIndex(s => {
+                const label = normalize(s.label || '');
+                return label === target || label.includes(target) || target.includes(label);
+            });
+            if (idx >= 0) {
+                setCompleted(() => {
+                    const next = Array(steps.length).fill(false);
+                    for (let i = 0; i <= idx; i++) next[i] = true;
+                    return next;
+                });
+                setCurrentStep(Math.min(idx + 1, steps.length - 1));
+            }
+        } finally {
+            // clear pending value so we don't re-run unnecessarily
+            setPendingVrfStep(null);
+        }
+    }, [pendingVrfStep, steps]);
+
 
     const normalize = (s) => {
         if (!s && s !== 0) return "";
@@ -8617,7 +8669,7 @@ const VendorRegistrationStepByStepForm = () => {
                                         </div>
                                     )}
 
-                                    {console.log("regb add", registeredAddress)}
+                                    {/* {console.log("regb add", registeredAddress)} */}
 
                                     {isSectionVisible('communication address') && (
                                         <div className="card mx-3 pb-4 mt-4">
@@ -15346,45 +15398,46 @@ const VendorRegistrationStepByStepForm = () => {
                                         <button
                                             className="purple-btn2"
                                             onClick={async () => {
-                                                // Step-wise validation logic
-                                                let isValid = true;
-                                                if ((normalize(steps[currentStep]?.label || '') === normalize('Organization Detail'))) {
-                                                    isValid = validateBasicInfo();
-                                                    if (!isValid) return;
-                                                    await saveDraftStep1();
+                                                    // Step-wise validation logic
+                                                    let isValid = true;
+                                                    const stepName = steps[currentStep]?.label || '';
+                                                    if ((normalize(steps[currentStep]?.label || '') === normalize('Organization Detail'))) {
+                                                        isValid = validateBasicInfo();
+                                                        if (!isValid) return;
+                                                        await saveDraftStep1(stepName);
 
-                                                }
+                                                    }
                                                 // Add more step validations as needed
                                                 else
-                                                    if ((normalize(steps[currentStep]?.label || '') === normalize('Communication & Register Address'))) {
+                                                        if ((normalize(steps[currentStep]?.label || '') === normalize('Communication & Register Address'))) {
                                                         isValid = validateStep2();
                                                         if (!isValid) return;
-                                                        await saveDraftStep2();
+                                                        await saveDraftStep2(stepName);
                                                     }
                                                     else
                                                         if ((normalize(steps[currentStep]?.label || '') === normalize('Bank Details'))) {
                                                             isValid = validateStep3();
                                                             if (!isValid) return;
-                                                            await saveDraftStep3();
+                                                            await saveDraftStep3(stepName);
                                                         }
                                                         else
                                                             if ((normalize(steps[currentStep]?.label || '') === normalize('Additional Details'))) {
                                                                 isValid = validateStep4();
                                                                 if (!isValid) return;
-                                                                await saveDraftStep4()
+                                                                await saveDraftStep4(stepName)
                                                             }
 
                                                             else
                                                                 if ((normalize(steps[currentStep]?.label || '') === normalize('Statutory Details'))) {
                                                                     isValid = validateStep5();
                                                                     if (!isValid) return;
-                                                                    await saveDraftStep5()
+                                                                    await saveDraftStep5(stepName)
                                                                 }
                                                                 else
                                                                     if ((normalize(steps[currentStep]?.label || '') === normalize('Prequalification'))) {
                                                                         // isValid = validateStep4();
                                                                         if (!isValid) return;
-                                                                        await saveDraftStep6()
+                                                                        await saveDraftStep6(stepName)
                                                                     }
 
                                                 setCompleted((arr) => {
