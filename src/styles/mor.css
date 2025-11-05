@@ -5895,3 +5895,21 @@ select {
   transform: translateY(-50%);
   pointer-events: none;
 }
+.file-name-ellipsis {
+  display: inline-block;
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+}
+
+.file-name-ellipsis-small {
+  display: inline-block;
+  max-width: 100px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+}
+
