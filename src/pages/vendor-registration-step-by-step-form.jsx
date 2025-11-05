@@ -3089,6 +3089,34 @@ const VendorRegistrationStepByStepForm = () => {
 
     ]);
 
+    useEffect(() => {
+        if (
+
+            majorCustomers.length === 0 ||
+            (majorCustomers.length === 1 && majorCustomers[0]?._destroy === true)
+        ) {
+            setMajorCustomers([
+                {
+                    id: Date.now() + Math.random(),
+                    companyName: '',
+                    workDone: '',
+                    contactPerson: '',
+                    designation: null,
+                    country: null,
+                    phone: '',
+                    mobile: '',
+                    yearOfAssociation: '',
+                    businessLast12Months: '',
+                    serviceFrom: '',
+                    serviceTo: '',
+                    stageOfProject: '',
+                    majorCompetitors: '',
+                    attachment: null
+                },
+            ]);
+        }
+    }, [majorCustomers]);
+
     const addMajorCustomer = () => {
         setMajorCustomers(prev => ([
             ...prev,
@@ -9557,7 +9585,7 @@ const VendorRegistrationStepByStepForm = () => {
                                         /* Show a note when fewer than 3 customers are present */
                                     }
 
-                                    {/* {console.log("major customer:", majorCustomers)} */}
+                                    {console.log("major customer:", majorCustomers)}
                                     {isSectionVisible('major customers served by you') && (
                                         <>
                                             {majorCustomers.filter(mc => mc._destroy !== true && mc._destroy !== "true").map((customer, idx) => (
@@ -9566,7 +9594,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                     key={customer.id}
                                                     title={`Client References${majorCustomers.length > 1 ? ` ${idx + 1}` : ''}`}
                                                     onDelete={() => deleteMajorCustomer(customer.id)}
-                                                    showDelete={majorCustomers.length > 1}
+                                                    // showDelete={majorCustomers.length }
                                                     headerExtra={majorCustomers.length < 3 ? (<div className="ValidationColor">Please add a minimum of 3 client references.</div>) : null}
                                                 >
                                                     <div className="card-body mt-0">
@@ -10898,65 +10926,65 @@ const VendorRegistrationStepByStepForm = () => {
                                                             </div> */}
 
                                                             <div className="col-md-4 mt-2">
-  <div className="form-group">
-    <div className="d-flex align-items-center flex-wrap">
-      <label className="me-2 mb-0">Attachment</label>
+                                                                <div className="form-group">
+                                                                    <div className="d-flex align-items-center flex-wrap">
+                                                                        <label className="me-2 mb-0">Attachment</label>
 
-      {owner?.attachment ? (
-        owner?.attachment?.attachment_url || owner?.attachment?.file_url ? (
-          <span className="d-flex align-items-center">
-            <span className="me-2 ">Existing File:</span>
-            <a
-              href={`${baseURL}${owner.attachment.attachment_url || owner.attachment.file_url}`}
-              download
-              className="text-primary d-flex align-items-center"
-              title={owner?.attachment.filename || owner?.attachment.document_name}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width={18}
-                height={18}
-                fill="#DE7008"
-                className="bi bi-download me-1"
-                viewBox="0 0 16 16"
-              >
-                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
-                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
-              </svg>
-              <span
-                className="file-name-ellipsis-small"
-               
-              >
-                {owner?.attachment.filename || owner?.attachment.document_name}
-              </span>
-            </a>
-          </span>
-        ) : owner.attachment.filename ? (
-          <span className="d-flex align-items-center">
-            <span className="me-2">Selected File:</span>
-            <span
-              className="file-name-ellipsis text-muted"
-              title={owner.attachment.filename}
-            
-            >
-              {owner.attachment.filename}
-            </span>
-          </span>
-        ) : null
-      ) : null}
-    </div>
+                                                                        {owner?.attachment ? (
+                                                                            owner?.attachment?.attachment_url || owner?.attachment?.file_url ? (
+                                                                                <span className="d-flex align-items-center">
+                                                                                    <span className="me-2 ">Existing File:</span>
+                                                                                    <a
+                                                                                        href={`${baseURL}${owner.attachment.attachment_url || owner.attachment.file_url}`}
+                                                                                        download
+                                                                                        className="text-primary d-flex align-items-center"
+                                                                                        title={owner?.attachment.filename || owner?.attachment.document_name}
+                                                                                    >
+                                                                                        <svg
+                                                                                            xmlns="http://www.w3.org/2000/svg"
+                                                                                            width={18}
+                                                                                            height={18}
+                                                                                            fill="#DE7008"
+                                                                                            className="bi bi-download me-1"
+                                                                                            viewBox="0 0 16 16"
+                                                                                        >
+                                                                                            <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                                                                                            <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                                                                                        </svg>
+                                                                                        <span
+                                                                                            className="file-name-ellipsis-small"
 
-    <input
-      className="form-control mt-2"
-      type="file"
-      onChange={(e) => handleOwnerChange(idx, "attachment", e.target.files[0])}
-    />
+                                                                                        >
+                                                                                            {owner?.attachment.filename || owner?.attachment.document_name}
+                                                                                        </span>
+                                                                                    </a>
+                                                                                </span>
+                                                                            ) : owner.attachment.filename ? (
+                                                                                <span className="d-flex align-items-center">
+                                                                                    <span className="me-2">Selected File:</span>
+                                                                                    <span
+                                                                                        className="file-name-ellipsis text-muted"
+                                                                                        title={owner.attachment.filename}
 
-    {ownerErrors[idx]?.attachment && (
-      <div className="ValidationColor">{ownerErrors[idx].attachment}</div>
-    )}
-  </div>
-</div>
+                                                                                    >
+                                                                                        {owner.attachment.filename}
+                                                                                    </span>
+                                                                                </span>
+                                                                            ) : null
+                                                                        ) : null}
+                                                                    </div>
+
+                                                                    <input
+                                                                        className="form-control mt-2"
+                                                                        type="file"
+                                                                        onChange={(e) => handleOwnerChange(idx, "attachment", e.target.files[0])}
+                                                                    />
+
+                                                                    {ownerErrors[idx]?.attachment && (
+                                                                        <div className="ValidationColor">{ownerErrors[idx].attachment}</div>
+                                                                    )}
+                                                                </div>
+                                                            </div>
 
                                                         </div>
                                                     </div>
@@ -11788,79 +11816,79 @@ const VendorRegistrationStepByStepForm = () => {
                                                                 />
                                                             </div>
                                                         </div>
-                                                       
-                                                         <div className="col-md-4 mt-2">
-                                                        <div className="form-group">
-                                                            <div className="d-flex align-items-center flex-wrap">
-                                                                <label className="me-2 mb-0">
-                                                                    PAN Attachment <span>*</span>
-                                                                    <TooltipIcon message="Please attach a clear PDF of your organization's PAN certificate. This is required for identity and tax verification." />
-                                                                </label>
 
-                                                                {basicInfo?.panAttachmentObj?.file_url ? (
-                                                                    <span className="d-flex align-items-center">
-                                                                        <span className="me-2 ">Existing File:</span>
-                                                                        <a
-                                                                            href={`${baseURL}${basicInfo.panAttachmentObj.file_url}`}
-                                                                            download
-                                                                            className="text-primary d-flex align-items-center"
-                                                                            title={basicInfo.panAttachmentObj.filename}
-                                                                        >
-                                                                            <svg
-                                                                                xmlns="http://www.w3.org/2000/svg"
-                                                                                width={18}
-                                                                                height={18}
-                                                                                fill="#DE7008"
-                                                                                className="bi bi-download me-1"
-                                                                                viewBox="0 0 16 16"
+                                                        <div className="col-md-4 mt-2">
+                                                            <div className="form-group">
+                                                                <div className="d-flex align-items-center flex-wrap">
+                                                                    <label className="me-2 mb-0">
+                                                                        PAN Attachment <span>*</span>
+                                                                        <TooltipIcon message="Please attach a clear PDF of your organization's PAN certificate. This is required for identity and tax verification." />
+                                                                    </label>
+
+                                                                    {basicInfo?.panAttachmentObj?.file_url ? (
+                                                                        <span className="d-flex align-items-center">
+                                                                            <span className="me-2 ">Existing File:</span>
+                                                                            <a
+                                                                                href={`${baseURL}${basicInfo.panAttachmentObj.file_url}`}
+                                                                                download
+                                                                                className="text-primary d-flex align-items-center"
+                                                                                title={basicInfo.panAttachmentObj.filename}
                                                                             >
-                                                                                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
-                                                                                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
-                                                                            </svg>
-                                                                            <span className="file-name-ellipsis-small">
+                                                                                <svg
+                                                                                    xmlns="http://www.w3.org/2000/svg"
+                                                                                    width={18}
+                                                                                    height={18}
+                                                                                    fill="#DE7008"
+                                                                                    className="bi bi-download me-1"
+                                                                                    viewBox="0 0 16 16"
+                                                                                >
+                                                                                    <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                                                                                    <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                                                                                </svg>
+                                                                                <span className="file-name-ellipsis-small">
+                                                                                    {basicInfo.panAttachmentObj.filename}
+                                                                                </span>
+                                                                            </a>
+                                                                        </span>
+                                                                    ) : basicInfo?.panAttachmentObj?.filename ? (
+                                                                        <span className="d-flex align-items-center">
+                                                                            <span className="me-2 ">Selected File:</span>
+                                                                            <span
+                                                                                className="file-name-ellipsis text-muted"
+                                                                                title={basicInfo.panAttachmentObj.filename}
+                                                                            >
                                                                                 {basicInfo.panAttachmentObj.filename}
                                                                             </span>
-                                                                        </a>
-                                                                    </span>
-                                                                ) : basicInfo?.panAttachmentObj?.filename ? (
-                                                                    <span className="d-flex align-items-center">
-                                                                        <span className="me-2 ">Selected File:</span>
-                                                                        <span
-                                                                            className="file-name-ellipsis text-muted"
-                                                                            title={basicInfo.panAttachmentObj.filename}
-                                                                        >
-                                                                            {basicInfo.panAttachmentObj.filename}
                                                                         </span>
-                                                                    </span>
-                                                                ) : null}
+                                                                    ) : null}
+                                                                </div>
+
+                                                                <input
+                                                                    className="form-control mt-2"
+                                                                    type="file"
+                                                                    accept=".pdf"
+                                                                    disabled
+                                                                    onChange={e => {
+                                                                        const file = e.target.files[0];
+                                                                        if (file) {
+                                                                            const reader = new FileReader();
+                                                                            reader.onload = function (ev) {
+                                                                                updateBasicInfo("panAttachmentObj", {
+                                                                                    filename: file.name,
+                                                                                    content: ev.target.result.split(",")[1],
+                                                                                    content_type: file.type,
+                                                                                });
+                                                                            };
+                                                                            reader.readAsDataURL(file);
+                                                                        }
+                                                                    }}
+                                                                />
+
+                                                                {basicInfoErrors.panAttachment && (
+                                                                    <div className="ValidationColor">{basicInfoErrors.panAttachment}</div>
+                                                                )}
                                                             </div>
-
-                                                            <input
-                                                                className="form-control mt-2"
-                                                                type="file"
-                                                                accept=".pdf"
-                                                                disabled
-                                                                onChange={e => {
-                                                                    const file = e.target.files[0];
-                                                                    if (file) {
-                                                                        const reader = new FileReader();
-                                                                        reader.onload = function (ev) {
-                                                                            updateBasicInfo("panAttachmentObj", {
-                                                                                filename: file.name,
-                                                                                content: ev.target.result.split(",")[1],
-                                                                                content_type: file.type,
-                                                                            });
-                                                                        };
-                                                                        reader.readAsDataURL(file);
-                                                                    }
-                                                                }}
-                                                            />
-
-                                                            {basicInfoErrors.panAttachment && (
-                                                                <div className="ValidationColor">{basicInfoErrors.panAttachment}</div>
-                                                            )}
                                                         </div>
-                                                    </div>
                                                         <div className="col-md-4 mt-2">
                                                             <div className="form-group">
                                                                 <label>
@@ -11907,81 +11935,81 @@ const VendorRegistrationStepByStepForm = () => {
                                                                         />
                                                                     </div>
                                                                 </div>
-                                                                
+
 
                                                                 <div className="col-md-4 mt-2">
-                                                                            <div className="form-group">
-                                                                                <div className="d-flex align-items-center flex-wrap">
-                                                                                    <label className="me-2 mb-0">
-                                                                                        CIN Attachment <span>*</span>
-                                                                                        <TooltipIcon message="Upload the official document or certificate to verify the details you have submitted. The document must be uploaded in PDF format. Corporate Identification Number Attachment." />
-                                                                                    </label>
+                                                                    <div className="form-group">
+                                                                        <div className="d-flex align-items-center flex-wrap">
+                                                                            <label className="me-2 mb-0">
+                                                                                CIN Attachment <span>*</span>
+                                                                                <TooltipIcon message="Upload the official document or certificate to verify the details you have submitted. The document must be uploaded in PDF format. Corporate Identification Number Attachment." />
+                                                                            </label>
 
-                                                                                    {/* Show existing CIN attachment (from API) */}
-                                                                                    {basicInfo?.cinAttachmentObj?.file_url ? (
-                                                                                        <span className="d-flex align-items-center">
-                                                                                            <span className="me-2 ">Existing File:</span>
-                                                                                            <a
-                                                                                                href={`${baseURL}${basicInfo.cinAttachmentObj.file_url}`}
-                                                                                                download
-                                                                                                className="text-primary d-flex align-items-center"
-                                                                                                title={basicInfo.cinAttachmentObj.filename}
-                                                                                            >
-                                                                                                <svg
-                                                                                                    xmlns="http://www.w3.org/2000/svg"
-                                                                                                    width={18}
-                                                                                                    height={18}
-                                                                                                    fill="#DE7008"
-                                                                                                    className="bi bi-download me-1"
-                                                                                                    viewBox="0 0 16 16"
-                                                                                                >
-                                                                                                    <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
-                                                                                                    <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
-                                                                                                </svg>
-                                                                                                <span className="file-name-ellipsis-small">
-                                                                                                    {basicInfo.cinAttachmentObj.filename}
-                                                                                                </span>
-                                                                                            </a>
+                                                                            {/* Show existing CIN attachment (from API) */}
+                                                                            {basicInfo?.cinAttachmentObj?.file_url ? (
+                                                                                <span className="d-flex align-items-center">
+                                                                                    <span className="me-2 ">Existing File:</span>
+                                                                                    <a
+                                                                                        href={`${baseURL}${basicInfo.cinAttachmentObj.file_url}`}
+                                                                                        download
+                                                                                        className="text-primary d-flex align-items-center"
+                                                                                        title={basicInfo.cinAttachmentObj.filename}
+                                                                                    >
+                                                                                        <svg
+                                                                                            xmlns="http://www.w3.org/2000/svg"
+                                                                                            width={18}
+                                                                                            height={18}
+                                                                                            fill="#DE7008"
+                                                                                            className="bi bi-download me-1"
+                                                                                            viewBox="0 0 16 16"
+                                                                                        >
+                                                                                            <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                                                                                            <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                                                                                        </svg>
+                                                                                        <span className="file-name-ellipsis-small">
+                                                                                            {basicInfo.cinAttachmentObj.filename}
                                                                                         </span>
-                                                                                    ) : basicInfo?.cinAttachmentObj?.filename ? (
-                                                                                        <span className="d-flex align-items-center">
-                                                                                            <span className="me-2 ">Selected File:</span>
-                                                                                            <span
-                                                                                                className="file-name-ellipsis text-muted"
-                                                                                                title={basicInfo.cinAttachmentObj.filename}
-                                                                                            >
-                                                                                                {basicInfo.cinAttachmentObj.filename}
-                                                                                            </span>
-                                                                                        </span>
-                                                                                    ) : null}
-                                                                                </div>
-
-                                                                                <input
-                                                                                    className="form-control mt-2"
-                                                                                    type="file"
-                                                                                    accept=".pdf"
-                                                                                    disabled
-                                                                                    onChange={e => {
-                                                                                        const file = e.target.files[0];
-                                                                                        if (file) {
-                                                                                            const reader = new FileReader();
-                                                                                            reader.onload = function (ev) {
-                                                                                                updateBasicInfo("cinAttachmentObj", {
-                                                                                                    filename: file.name,
-                                                                                                    content: ev.target.result.split(",")[1],
-                                                                                                    content_type: file.type,
-                                                                                                });
-                                                                                            };
-                                                                                            reader.readAsDataURL(file);
-                                                                                        }
-                                                                                    }}
-                                                                                />
-
-                                                                                {basicInfoErrors.cinAttachment && (
-                                                                                    <div className="ValidationColor">{basicInfoErrors.cinAttachment}</div>
-                                                                                )}
-                                                                            </div>
+                                                                                    </a>
+                                                                                </span>
+                                                                            ) : basicInfo?.cinAttachmentObj?.filename ? (
+                                                                                <span className="d-flex align-items-center">
+                                                                                    <span className="me-2 ">Selected File:</span>
+                                                                                    <span
+                                                                                        className="file-name-ellipsis text-muted"
+                                                                                        title={basicInfo.cinAttachmentObj.filename}
+                                                                                    >
+                                                                                        {basicInfo.cinAttachmentObj.filename}
+                                                                                    </span>
+                                                                                </span>
+                                                                            ) : null}
                                                                         </div>
+
+                                                                        <input
+                                                                            className="form-control mt-2"
+                                                                            type="file"
+                                                                            accept=".pdf"
+                                                                            disabled
+                                                                            onChange={e => {
+                                                                                const file = e.target.files[0];
+                                                                                if (file) {
+                                                                                    const reader = new FileReader();
+                                                                                    reader.onload = function (ev) {
+                                                                                        updateBasicInfo("cinAttachmentObj", {
+                                                                                            filename: file.name,
+                                                                                            content: ev.target.result.split(",")[1],
+                                                                                            content_type: file.type,
+                                                                                        });
+                                                                                    };
+                                                                                    reader.readAsDataURL(file);
+                                                                                }
+                                                                            }}
+                                                                        />
+
+                                                                        {basicInfoErrors.cinAttachment && (
+                                                                            <div className="ValidationColor">{basicInfoErrors.cinAttachment}</div>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
                                                             </>
                                                         )}
                                                         {(basicInfo?.organizationType?.label === 'Limited Liability Partnership (LLP)') && (
@@ -12001,80 +12029,80 @@ const VendorRegistrationStepByStepForm = () => {
                                                                         />
                                                                     </div>
                                                                 </div>
-                                                                
 
-                                                                 <div className="col-md-4 mt-2">
-                                                                        <div className="form-group">
-                                                                            <div className="d-flex align-items-center flex-wrap">
-                                                                                <label className="me-2 mb-0">
-                                                                                    LLP No. Attachment <span>*</span>
-                                                                                    <TooltipIcon message="Upload the official document or certificate to verify the details you have submitted. The document must be uploaded in PDF format. LLP No. Attachment." />
-                                                                                </label>
 
-                                                                                {basicInfo?.llpAttachmentObj?.file_url ? (
-                                                                                    <span className="d-flex align-items-center">
-                                                                                        <span className="me-2 ">Existing File:</span>
-                                                                                        <a
-                                                                                            href={`${baseURL}${basicInfo.llpAttachmentObj.file_url}`}
-                                                                                            download
-                                                                                            className="text-primary d-flex align-items-center"
-                                                                                            title={basicInfo.llpAttachmentObj.filename} // full name on hover
+                                                                <div className="col-md-4 mt-2">
+                                                                    <div className="form-group">
+                                                                        <div className="d-flex align-items-center flex-wrap">
+                                                                            <label className="me-2 mb-0">
+                                                                                LLP No. Attachment <span>*</span>
+                                                                                <TooltipIcon message="Upload the official document or certificate to verify the details you have submitted. The document must be uploaded in PDF format. LLP No. Attachment." />
+                                                                            </label>
+
+                                                                            {basicInfo?.llpAttachmentObj?.file_url ? (
+                                                                                <span className="d-flex align-items-center">
+                                                                                    <span className="me-2 ">Existing File:</span>
+                                                                                    <a
+                                                                                        href={`${baseURL}${basicInfo.llpAttachmentObj.file_url}`}
+                                                                                        download
+                                                                                        className="text-primary d-flex align-items-center"
+                                                                                        title={basicInfo.llpAttachmentObj.filename} // full name on hover
+                                                                                    >
+                                                                                        <svg
+                                                                                            xmlns="http://www.w3.org/2000/svg"
+                                                                                            width={18}
+                                                                                            height={18}
+                                                                                            fill="#DE7008"
+                                                                                            className="bi bi-download me-1"
+                                                                                            viewBox="0 0 16 16"
                                                                                         >
-                                                                                            <svg
-                                                                                                xmlns="http://www.w3.org/2000/svg"
-                                                                                                width={18}
-                                                                                                height={18}
-                                                                                                fill="#DE7008"
-                                                                                                className="bi bi-download me-1"
-                                                                                                viewBox="0 0 16 16"
-                                                                                            >
-                                                                                                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
-                                                                                                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
-                                                                                            </svg>
-                                                                                            <span className="file-name-ellipsis-small">
-                                                                                                {basicInfo.llpAttachmentObj.filename}
-                                                                                            </span>
-                                                                                        </a>
-                                                                                    </span>
-                                                                                ) : basicInfo?.llpAttachmentObj?.filename ? (
-                                                                                    <span className="d-flex align-items-center">
-                                                                                        <span className="me-2 ">Selected File:</span>
-                                                                                        <span
-                                                                                            className="file-name-ellipsis text-muted"
-                                                                                            title={basicInfo.llpAttachmentObj.filename}
-                                                                                        >
+                                                                                            <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                                                                                            <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                                                                                        </svg>
+                                                                                        <span className="file-name-ellipsis-small">
                                                                                             {basicInfo.llpAttachmentObj.filename}
                                                                                         </span>
+                                                                                    </a>
+                                                                                </span>
+                                                                            ) : basicInfo?.llpAttachmentObj?.filename ? (
+                                                                                <span className="d-flex align-items-center">
+                                                                                    <span className="me-2 ">Selected File:</span>
+                                                                                    <span
+                                                                                        className="file-name-ellipsis text-muted"
+                                                                                        title={basicInfo.llpAttachmentObj.filename}
+                                                                                    >
+                                                                                        {basicInfo.llpAttachmentObj.filename}
                                                                                     </span>
-                                                                                ) : null}
-                                                                            </div>
-
-                                                                            <input
-                                                                                className="form-control mt-2 "
-                                                                                type="file"
-                                                                                accept=".pdf"
-                                                                                disabled
-                                                                                onChange={e => {
-                                                                                    const file = e.target.files[0];
-                                                                                    if (file) {
-                                                                                        const reader = new FileReader();
-                                                                                        reader.onload = function (ev) {
-                                                                                            updateBasicInfo("llpAttachmentObj", {
-                                                                                                filename: file.name,
-                                                                                                content: ev.target.result.split(",")[1],
-                                                                                                content_type: file.type,
-                                                                                            });
-                                                                                        };
-                                                                                        reader.readAsDataURL(file);
-                                                                                    }
-                                                                                }}
-                                                                            />
-
-                                                                            {basicInfoErrors.llpAttachment && (
-                                                                                <div className="ValidationColor">{basicInfoErrors.llpAttachment}</div>
-                                                                            )}
+                                                                                </span>
+                                                                            ) : null}
                                                                         </div>
+
+                                                                        <input
+                                                                            className="form-control mt-2 "
+                                                                            type="file"
+                                                                            accept=".pdf"
+                                                                            disabled
+                                                                            onChange={e => {
+                                                                                const file = e.target.files[0];
+                                                                                if (file) {
+                                                                                    const reader = new FileReader();
+                                                                                    reader.onload = function (ev) {
+                                                                                        updateBasicInfo("llpAttachmentObj", {
+                                                                                            filename: file.name,
+                                                                                            content: ev.target.result.split(",")[1],
+                                                                                            content_type: file.type,
+                                                                                        });
+                                                                                    };
+                                                                                    reader.readAsDataURL(file);
+                                                                                }
+                                                                            }}
+                                                                        />
+
+                                                                        {basicInfoErrors.llpAttachment && (
+                                                                            <div className="ValidationColor">{basicInfoErrors.llpAttachment}</div>
+                                                                        )}
                                                                     </div>
+                                                                </div>
                                                             </>
                                                         )}
                                                         <div className="col-md-4 mt-2">
@@ -12122,7 +12150,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                                             />
                                                                         </div>
                                                                     </div>
-                                                                   
+
 
                                                                     <div className="col-md-4 mt-2">
                                                                         <div className="form-group">
@@ -12214,66 +12242,66 @@ const VendorRegistrationStepByStepForm = () => {
                                                                             </span>
                                                                         </div>
                                                                     </div>
-                                                                   
 
-                                                                     <div className="col-md-4 mt-2">
-                                                                    <div className="form-group">
-                                                                        <div className="d-flex align-items-center flex-wrap">
-                                                                            <label className="me-2 mb-0">
-                                                                                Upload GSTIN Declaration  <span>*</span>
-                                                                            </label>
-                                                                            {/* Show existing GSTIN Declaration when provided by API; display selected filename when present. Keep input disabled in preview. */}
 
-                                                                            {basicInfo?.gstinDeclarationObj?.file_url ? (
-                                                                                <span className="ms-2">
-                                                                                    <a
-                                                                                        href={`${baseURL}${basicInfo.gstinDeclarationObj.file_url}`}
-                                                                                        download
-                                                                                        className="text-primary d-flex align-items-center"
-                                                                                        title={basicInfo?.gstinDeclarationObj?.filename || basicInfo?.gstinAttachmentObj?.filename}
-                                                                                    >
-                                                                                        <span className="me-2">Existing File:</span>
-                                                                                        <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} fill="#DE7008" className="bi bi-download" viewBox="0 0 16 16">
-                                                                                            <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
-                                                                                            <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
-                                                                                        </svg>
-                                                                                        <span className="file-name-ellipsis-small">
-                                                                                            {basicInfo?.gstinDeclarationObj?.filename || basicInfo?.gstinAttachmentObj?.filename}
-                                                                                        </span>
-                                                                                    </a>
-                                                                                </span>
-                                                                            ) : basicInfo?.gstinDeclarationObj?.filename ? (
-                                                                                <span className="ms-2 d-flex align-items-center">
-                                                                                    <span className="me-2">Selected File:</span>
-                                                                                    <span className="text-muted file-name-ellipsis"
-                                                                                        title={basicInfo.gstinDeclarationObj.filename}
-                                                                                    >{basicInfo.gstinDeclarationObj.filename}</span>
-                                                                                </span>
-                                                                            ) : null}
+                                                                    <div className="col-md-4 mt-2">
+                                                                        <div className="form-group">
+                                                                            <div className="d-flex align-items-center flex-wrap">
+                                                                                <label className="me-2 mb-0">
+                                                                                    Upload GSTIN Declaration  <span>*</span>
+                                                                                </label>
+                                                                                {/* Show existing GSTIN Declaration when provided by API; display selected filename when present. Keep input disabled in preview. */}
+
+                                                                                {basicInfo?.gstinDeclarationObj?.file_url ? (
+                                                                                    <span className="ms-2">
+                                                                                        <a
+                                                                                            href={`${baseURL}${basicInfo.gstinDeclarationObj.file_url}`}
+                                                                                            download
+                                                                                            className="text-primary d-flex align-items-center"
+                                                                                            title={basicInfo?.gstinDeclarationObj?.filename || basicInfo?.gstinAttachmentObj?.filename}
+                                                                                        >
+                                                                                            <span className="me-2">Existing File:</span>
+                                                                                            <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} fill="#DE7008" className="bi bi-download" viewBox="0 0 16 16">
+                                                                                                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                                                                                                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                                                                                            </svg>
+                                                                                            <span className="file-name-ellipsis-small">
+                                                                                                {basicInfo?.gstinDeclarationObj?.filename || basicInfo?.gstinAttachmentObj?.filename}
+                                                                                            </span>
+                                                                                        </a>
+                                                                                    </span>
+                                                                                ) : basicInfo?.gstinDeclarationObj?.filename ? (
+                                                                                    <span className="ms-2 d-flex align-items-center">
+                                                                                        <span className="me-2">Selected File:</span>
+                                                                                        <span className="text-muted file-name-ellipsis"
+                                                                                            title={basicInfo.gstinDeclarationObj.filename}
+                                                                                        >{basicInfo.gstinDeclarationObj.filename}</span>
+                                                                                    </span>
+                                                                                ) : null}
+                                                                            </div>
+                                                                            <input
+                                                                                className="form-control mt-2"
+                                                                                type="file"
+                                                                                onChange={e => {
+                                                                                    const file = e.target.files[0];
+                                                                                    if (file) {
+                                                                                        const reader = new FileReader();
+                                                                                        reader.onload = function (ev) {
+                                                                                            updateBasicInfo('gstinDeclarationObj', {
+                                                                                                filename: file.name,
+                                                                                                content: ev.target.result.split(',')[1],
+                                                                                                content_type: file.type,
+                                                                                            });
+                                                                                        };
+                                                                                        reader.readAsDataURL(file);
+                                                                                    }
+                                                                                }}
+                                                                            />
+                                                                            {basicInfoErrors.gstinDeclaration && (
+                                                                                <div className="ValidationColor">{basicInfoErrors.gstinDeclaration}</div>
+                                                                            )}
                                                                         </div>
-                                                                        <input
-                                                                            className="form-control mt-2"
-                                                                            type="file"
-                                                                            onChange={e => {
-                                                                                const file = e.target.files[0];
-                                                                                if (file) {
-                                                                                    const reader = new FileReader();
-                                                                                    reader.onload = function (ev) {
-                                                                                        updateBasicInfo('gstinDeclarationObj', {
-                                                                                            filename: file.name,
-                                                                                            content: ev.target.result.split(',')[1],
-                                                                                            content_type: file.type,
-                                                                                        });
-                                                                                    };
-                                                                                    reader.readAsDataURL(file);
-                                                                                }
-                                                                            }}
-                                                                        />
-                                                                        {basicInfoErrors.gstinDeclaration && (
-                                                                            <div className="ValidationColor">{basicInfoErrors.gstinDeclaration}</div>
-                                                                        )}
                                                                     </div>
-                                                                </div>
                                                                 </>
                                                             )}
                                                         </div>
@@ -12630,76 +12658,76 @@ const VendorRegistrationStepByStepForm = () => {
 
 
                                                             // MSME/Udyam Attachment field (show only from additionalDetails.msmeAttachmentObj)
-                                                            
 
-                                                                                                                    <div className="col-md-4 mt-2">
-                                                            <div className="form-group">
-                                                                <div className="d-flex align-items-center flex-wrap">
-                                                                    <label className="me-2 mb-0">
-                                                                        MSME/Udyam Attachment <span>*</span>
-                                                                        <TooltipIcon message="Attach a clear, scanned copy or digital image of your MSME/Udyam registration certificate to verify your organization's classification under the MSME scheme. The document must be uploaded in PDF format." />
-                                                                    </label>
-                                                                    {/* Show MSME/Udyam attachment only when it comes from the API (has a file_url).
+
+                                                            <div className="col-md-4 mt-2">
+                                                                <div className="form-group">
+                                                                    <div className="d-flex align-items-center flex-wrap">
+                                                                        <label className="me-2 mb-0">
+                                                                            MSME/Udyam Attachment <span>*</span>
+                                                                            <TooltipIcon message="Attach a clear, scanned copy or digital image of your MSME/Udyam registration certificate to verify your organization's classification under the MSME scheme. The document must be uploaded in PDF format." />
+                                                                        </label>
+                                                                        {/* Show MSME/Udyam attachment only when it comes from the API (has a file_url).
                                                         If the user picks a new file via input we store filename/content and should NOT show download link —
                                                         instead render the selected filename as plain text. */}
-                                                                    {additionalDetails?.msmeAttachmentObj?.file_url ? (
-                                                                        <span className="ms-2">
-                                                                            <a
-                                                                                href={`${baseURL}${additionalDetails.msmeAttachmentObj.file_url}`}
-                                                                                download
-                                                                                className="text-primary d-flex align-items-center"
-                                                                                title={additionalDetails.msmeAttachmentObj.filename}
-                                                                            >
-                                                                                <span className="me-2">Existing File:</span>
-                                                                                <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} fill="#DE7008" className="bi bi-download" viewBox="0 0 16 16">
-                                                                                    <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
-                                                                                    <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
-                                                                                </svg>
-                                                                                <span className="file-name-ellipsis-small">
-                                                                                    {additionalDetails.msmeAttachmentObj.filename}
-                                                                                </span>
-                                                                            </a>
-                                                                        </span>
-                                                                    ) : additionalDetails?.msmeAttachmentObj?.filename ? (
-                                                                        <span className="ms-2 d-flex align-items-center">
-                                                                            <span className="me-2">Selected File:</span>
-                                                                            <span
-                                                                                // className="text-muted"
-                                                                                className="text-muted file-name-ellipsis"
-                                                                                title={additionalDetails.msmeAttachmentObj.filename}
-                                                                            >{additionalDetails.msmeAttachmentObj.filename}</span>
-                                                                        </span>
-                                                                    ) : null}
-                                                                </div>
-                                                                <input
-                                                                    className="form-control mt-2"
-                                                                    type="file"
-                                                                    disabled
-                                                                    onChange={e => {
-                                                                        const file = e.target.files[0];
-                                                                        if (file) {
-                                                                            const reader = new FileReader();
-                                                                            reader.onload = function (ev) {
-                                                                                updateAdditionalDetails('msmeAttachmentObj', {
-                                                                                    filename: file.name,
-                                                                                    content: ev.target.result.split(',')[1],
-                                                                                    content_type: file.type,
-                                                                                });
-                                                                            };
-                                                                            reader.readAsDataURL(file);
-                                                                        }
-                                                                    }}
-                                                                    ref={fileInputRef}
-                                                                    multiple
-                                                                    accept=".pdf"
-                                                                />
-                                                                {errors.msmeAttachments && (
-                                                                    <div className="ValidationColor">
-                                                                        {errors.msmeAttachments}
+                                                                        {additionalDetails?.msmeAttachmentObj?.file_url ? (
+                                                                            <span className="ms-2">
+                                                                                <a
+                                                                                    href={`${baseURL}${additionalDetails.msmeAttachmentObj.file_url}`}
+                                                                                    download
+                                                                                    className="text-primary d-flex align-items-center"
+                                                                                    title={additionalDetails.msmeAttachmentObj.filename}
+                                                                                >
+                                                                                    <span className="me-2">Existing File:</span>
+                                                                                    <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} fill="#DE7008" className="bi bi-download" viewBox="0 0 16 16">
+                                                                                        <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                                                                                        <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                                                                                    </svg>
+                                                                                    <span className="file-name-ellipsis-small">
+                                                                                        {additionalDetails.msmeAttachmentObj.filename}
+                                                                                    </span>
+                                                                                </a>
+                                                                            </span>
+                                                                        ) : additionalDetails?.msmeAttachmentObj?.filename ? (
+                                                                            <span className="ms-2 d-flex align-items-center">
+                                                                                <span className="me-2">Selected File:</span>
+                                                                                <span
+                                                                                    // className="text-muted"
+                                                                                    className="text-muted file-name-ellipsis"
+                                                                                    title={additionalDetails.msmeAttachmentObj.filename}
+                                                                                >{additionalDetails.msmeAttachmentObj.filename}</span>
+                                                                            </span>
+                                                                        ) : null}
                                                                     </div>
-                                                                )}
+                                                                    <input
+                                                                        className="form-control mt-2"
+                                                                        type="file"
+                                                                        disabled
+                                                                        onChange={e => {
+                                                                            const file = e.target.files[0];
+                                                                            if (file) {
+                                                                                const reader = new FileReader();
+                                                                                reader.onload = function (ev) {
+                                                                                    updateAdditionalDetails('msmeAttachmentObj', {
+                                                                                        filename: file.name,
+                                                                                        content: ev.target.result.split(',')[1],
+                                                                                        content_type: file.type,
+                                                                                    });
+                                                                                };
+                                                                                reader.readAsDataURL(file);
+                                                                            }
+                                                                        }}
+                                                                        ref={fileInputRef}
+                                                                        multiple
+                                                                        accept=".pdf"
+                                                                    />
+                                                                    {errors.msmeAttachments && (
+                                                                        <div className="ValidationColor">
+                                                                            {errors.msmeAttachments}
+                                                                        </div>
+                                                                    )}
+                                                                </div>
                                                             </div>
-                                                        </div>
                                                         )}
 
 
@@ -12754,68 +12782,68 @@ const VendorRegistrationStepByStepForm = () => {
                                                                 // MSME Declaration Upload Section
 
 
-                                                                 <div className="col-md-4 mt-2">
-                                                                <div className="form-group">
-                                                                    <div className="d-flex align-items-center flex-wrap">
-                                                                        <label className="me-2 mb-0">
+                                                                <div className="col-md-4 mt-2">
+                                                                    <div className="form-group">
+                                                                        <div className="d-flex align-items-center flex-wrap">
+                                                                            <label className="me-2 mb-0">
 
-                                                                            Upload Declaration <span>*</span>
-                                                                        </label>
-                                                                        <TooltipIcon message="If you choose E-Invoice applicable 'No', please upload a signed declaration document to verify the details you have submitted. The document must be uploaded in PDF format. Ensure that the document is clear, legible, and properly signed." />
-                                                                        {/* Show MSME Declaration only when it comes from the API (has a file_url).
+                                                                                Upload Declaration <span>*</span>
+                                                                            </label>
+                                                                            <TooltipIcon message="If you choose E-Invoice applicable 'No', please upload a signed declaration document to verify the details you have submitted. The document must be uploaded in PDF format. Ensure that the document is clear, legible, and properly signed." />
+                                                                            {/* Show MSME Declaration only when it comes from the API (has a file_url).
                                                             If the user picks a new file via input we store filename/content and should NOT show download link —
                                                             instead render the selected filename as plain text. */}
-                                                                        {additionalDetails?.msmeDeclarationObj?.file_url ? (
-                                                                            <span className="ms-2">
-                                                                                <a
-                                                                                    href={`${baseURL}${additionalDetails.msmeDeclarationObj.file_url}`}
-                                                                                    download
-                                                                                    className="text-primary d-flex align-items-center"
-                                                                                    title={additionalDetails?.msmeDeclarationObj?.filename || additionalDetails?.msmeAttachmentObj?.filename}
-                                                                                >
-                                                                                    <span className="me-2">Existing File:</span>
-                                                                                    <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} fill="#DE7008" className="bi bi-download" viewBox="0 0 16 16">
-                                                                                        <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
-                                                                                        <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
-                                                                                    </svg>
-                                                                                    <span className="file-name-ellipsis-small">
-                                                                                        {additionalDetails?.msmeDeclarationObj?.filename || additionalDetails?.msmeAttachmentObj?.filename}
-                                                                                    </span>
-                                                                                </a>
-                                                                            </span>
-                                                                        ) : additionalDetails?.msmeDeclarationObj?.filename ? (
-                                                                            <span className="ms-2 d-flex align-items-center">
-                                                                                <span className="me-2">Selected File:</span>
-                                                                                <span className="text-muted file-name-ellipsis" title={additionalDetails.msmeDeclarationObj.filename}>{additionalDetails.msmeDeclarationObj.filename}</span>
-                                                                            </span>
-                                                                        ) : null}
+                                                                            {additionalDetails?.msmeDeclarationObj?.file_url ? (
+                                                                                <span className="ms-2">
+                                                                                    <a
+                                                                                        href={`${baseURL}${additionalDetails.msmeDeclarationObj.file_url}`}
+                                                                                        download
+                                                                                        className="text-primary d-flex align-items-center"
+                                                                                        title={additionalDetails?.msmeDeclarationObj?.filename || additionalDetails?.msmeAttachmentObj?.filename}
+                                                                                    >
+                                                                                        <span className="me-2">Existing File:</span>
+                                                                                        <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} fill="#DE7008" className="bi bi-download" viewBox="0 0 16 16">
+                                                                                            <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                                                                                            <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                                                                                        </svg>
+                                                                                        <span className="file-name-ellipsis-small">
+                                                                                            {additionalDetails?.msmeDeclarationObj?.filename || additionalDetails?.msmeAttachmentObj?.filename}
+                                                                                        </span>
+                                                                                    </a>
+                                                                                </span>
+                                                                            ) : additionalDetails?.msmeDeclarationObj?.filename ? (
+                                                                                <span className="ms-2 d-flex align-items-center">
+                                                                                    <span className="me-2">Selected File:</span>
+                                                                                    <span className="text-muted file-name-ellipsis" title={additionalDetails.msmeDeclarationObj.filename}>{additionalDetails.msmeDeclarationObj.filename}</span>
+                                                                                </span>
+                                                                            ) : null}
+                                                                        </div>
+                                                                        <input
+                                                                            className="form-control mt-2"
+                                                                            type="file"
+                                                                            accept=".pdf"
+                                                                            name=""
+                                                                            disabled
+                                                                            onChange={e => {
+                                                                                const file = e.target.files[0];
+                                                                                if (file) {
+                                                                                    const reader = new FileReader();
+                                                                                    reader.onload = function (ev) {
+                                                                                        updateAdditionalDetails('msmeDeclarationObj', {
+                                                                                            filename: file.name,
+                                                                                            content: ev.target.result.split(',')[1],
+                                                                                            content_type: file.type,
+                                                                                        });
+                                                                                    };
+                                                                                    reader.readAsDataURL(file);
+                                                                                }
+                                                                            }}
+                                                                        />
+                                                                        {errors.msmeDeclaration && (
+                                                                            <div className="ValidationColor">{errors.msmeDeclaration}</div>
+                                                                        )}
                                                                     </div>
-                                                                    <input
-                                                                        className="form-control mt-2"
-                                                                        type="file"
-                                                                        accept=".pdf"
-                                                                        name=""
-                                                                        disabled
-                                                                        onChange={e => {
-                                                                            const file = e.target.files[0];
-                                                                            if (file) {
-                                                                                const reader = new FileReader();
-                                                                                reader.onload = function (ev) {
-                                                                                    updateAdditionalDetails('msmeDeclarationObj', {
-                                                                                        filename: file.name,
-                                                                                        content: ev.target.result.split(',')[1],
-                                                                                        content_type: file.type,
-                                                                                    });
-                                                                                };
-                                                                                reader.readAsDataURL(file);
-                                                                            }
-                                                                        }}
-                                                                    />
-                                                                    {errors.msmeDeclaration && (
-                                                                        <div className="ValidationColor">{errors.msmeDeclaration}</div>
-                                                                    )}
                                                                 </div>
-                                                            </div>
                                                             )}
                                                         </div>
 
@@ -12885,22 +12913,22 @@ const VendorRegistrationStepByStepForm = () => {
                                                             )}
 
                                                             {additionalDetails.einvoice?.value === "No" && (
-                                                               
-
-                                                                 <div className="col-md-4 mt-2">
-                                                                <div className="form-group">
-                                                                    <div className="d-flex align-items-center flex-wrap">
-                                                                        <label className="me-2 mb-0">
 
 
-                                                                            Upload Declaration <span>*</span>
-                                                                        </label>
+                                                                <div className="col-md-4 mt-2">
+                                                                    <div className="form-group">
+                                                                        <div className="d-flex align-items-center flex-wrap">
+                                                                            <label className="me-2 mb-0">
 
 
-                                                                        <TooltipIcon message="If you choose E-Invoice applicable 'No', please upload a signed declaration document to verify the details you have submitted. The document must be uploaded in PDF format.Ensure that the document is clear, legible, and properly signed." />
+                                                                                Upload Declaration <span>*</span>
+                                                                            </label>
 
-                                                                        {/* Show existing server file or uploaded file preview */}
-                                                                        {/* {additionalDetails.einvoiceDeclaration && (
+
+                                                                            <TooltipIcon message="If you choose E-Invoice applicable 'No', please upload a signed declaration document to verify the details you have submitted. The document must be uploaded in PDF format.Ensure that the document is clear, legible, and properly signed." />
+
+                                                                            {/* Show existing server file or uploaded file preview */}
+                                                                            {/* {additionalDetails.einvoiceDeclaration && (
                                                             <div style={{ marginTop: 6 }}>
                                                                 {additionalDetails.einvoiceDeclaration.file_url ? (
                                                                     <a
@@ -12927,49 +12955,49 @@ const VendorRegistrationStepByStepForm = () => {
                                                                 )}
                                                             </div>
                                                         )} */}
-                                                                        {additionalDetails.einvoiceDeclaration && (
-                                                                            additionalDetails.einvoiceDeclaration.file_url ? (
-                                                                                <span className="ms-2">
-                                                                                    <a
-                                                                                        href={String(additionalDetails.einvoiceDeclaration.file_url).startsWith('http') ? additionalDetails.einvoiceDeclaration.file_url : `${baseURL}${additionalDetails.einvoiceDeclaration.file_url}`}
-                                                                                        download
-                                                                                        className="text-primary d-flex align-items-center"
-                                                                                        title={additionalDetails.einvoiceDeclaration.filename}
-                                                                                    >
-                                                                                        <span className="me-2">Existing File:</span>
-                                                                                        <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} fill="#DE7008" className="bi bi-download" viewBox="0 0 16 16">
-                                                                                            <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
-                                                                                            <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
-                                                                                        </svg>
-                                                                                        <span className="file-name-ellipsis-small">
-                                                                                            {additionalDetails.einvoiceDeclaration.filename}
-                                                                                        </span>
-                                                                                    </a>
-                                                                                </span>
-                                                                            ) : additionalDetails.einvoiceDeclaration.filename ? (
-                                                                                <span className="ms-2 d-flex align-items-center">
-                                                                                    <span className="me-2">Selected File:</span>
-                                                                                    <span className="text-muted file-name-ellipsis "
-                                                                                        title={additionalDetails.einvoiceDeclaration.filename}   >{additionalDetails.einvoiceDeclaration.filename}</span>
-                                                                                </span>
-                                                                            ) : null
+                                                                            {additionalDetails.einvoiceDeclaration && (
+                                                                                additionalDetails.einvoiceDeclaration.file_url ? (
+                                                                                    <span className="ms-2">
+                                                                                        <a
+                                                                                            href={String(additionalDetails.einvoiceDeclaration.file_url).startsWith('http') ? additionalDetails.einvoiceDeclaration.file_url : `${baseURL}${additionalDetails.einvoiceDeclaration.file_url}`}
+                                                                                            download
+                                                                                            className="text-primary d-flex align-items-center"
+                                                                                            title={additionalDetails.einvoiceDeclaration.filename}
+                                                                                        >
+                                                                                            <span className="me-2">Existing File:</span>
+                                                                                            <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} fill="#DE7008" className="bi bi-download" viewBox="0 0 16 16">
+                                                                                                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                                                                                                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                                                                                            </svg>
+                                                                                            <span className="file-name-ellipsis-small">
+                                                                                                {additionalDetails.einvoiceDeclaration.filename}
+                                                                                            </span>
+                                                                                        </a>
+                                                                                    </span>
+                                                                                ) : additionalDetails.einvoiceDeclaration.filename ? (
+                                                                                    <span className="ms-2 d-flex align-items-center">
+                                                                                        <span className="me-2">Selected File:</span>
+                                                                                        <span className="text-muted file-name-ellipsis "
+                                                                                            title={additionalDetails.einvoiceDeclaration.filename}   >{additionalDetails.einvoiceDeclaration.filename}</span>
+                                                                                    </span>
+                                                                                ) : null
+                                                                            )}
+                                                                        </div>
+
+                                                                        <input
+                                                                            className="form-control mt-2"
+                                                                            type="file"
+                                                                            accept=".pdf"
+                                                                            name=""
+                                                                            disabled
+                                                                            onChange={e => handleEinvoiceDeclarationFileChange(e.target.files[0])}
+                                                                        />
+                                                                        {errors.einvoiceDeclaration && (
+                                                                            <div className="ValidationColor">{errors.einvoiceDeclaration}</div>
                                                                         )}
+
                                                                     </div>
-
-                                                                    <input
-                                                                        className="form-control mt-2"
-                                                                        type="file"
-                                                                        accept=".pdf"
-                                                                        name=""
-                                                                        disabled
-                                                                        onChange={e => handleEinvoiceDeclarationFileChange(e.target.files[0])}
-                                                                    />
-                                                                    {errors.einvoiceDeclaration && (
-                                                                        <div className="ValidationColor">{errors.einvoiceDeclaration}</div>
-                                                                    )}
-
                                                                 </div>
-                                                            </div>
                                                             )}
                                                         </div>
 
@@ -14088,69 +14116,69 @@ const VendorRegistrationStepByStepForm = () => {
                                                                     </div>
                                                                 </div>
 
-                                                                
+
 
                                                                 <div className="col-md-4 mt-2">
-  <div className="form-group">
-    <div className="d-flex align-items-center flex-wrap">
-      <label className="me-2 mb-0">Attachment</label>
+                                                                    <div className="form-group">
+                                                                        <div className="d-flex align-items-center flex-wrap">
+                                                                            <label className="me-2 mb-0">Attachment</label>
 
-      {warehouse?.attachment ? (
-        warehouse?.attachment?.attachment_url || warehouse?.attachment?.file_url ? (
-          <span className="d-flex align-items-center">
-            <span className="me-2 ">Existing File:</span>
-            <a
-              href={`${baseURL}${warehouse.attachment.attachment_url || warehouse.attachment.file_url}`}
-              download
-              className="text-primary d-flex align-items-center"
-              title={warehouse?.attachment.filename || warehouse?.attachment.document_name}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width={18}
-                height={18}
-                fill="#DE7008"
-                className="bi bi-download me-1"
-                viewBox="0 0 16 16"
-              >
-                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
-                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
-              </svg>
-              <span
-                className="file-name-ellipsis-small"
-                
-              >
-                {warehouse?.attachment.filename || warehouse?.attachment.document_name}
-              </span>
-            </a>
-          </span>
-        ) : warehouse.attachment.filename ? (
-          <span className="d-flex align-items-center">
-            <span className="me-2 ">Selected File:</span>
-            <span
-              className="file-name-ellipsis test-muted"
-              title={warehouse.attachment.filename}
-             
-            >
-              {warehouse.attachment.filename}
-            </span>
-          </span>
-        ) : null
-      ) : null}
-    </div>
+                                                                            {warehouse?.attachment ? (
+                                                                                warehouse?.attachment?.attachment_url || warehouse?.attachment?.file_url ? (
+                                                                                    <span className="d-flex align-items-center">
+                                                                                        <span className="me-2 ">Existing File:</span>
+                                                                                        <a
+                                                                                            href={`${baseURL}${warehouse.attachment.attachment_url || warehouse.attachment.file_url}`}
+                                                                                            download
+                                                                                            className="text-primary d-flex align-items-center"
+                                                                                            title={warehouse?.attachment.filename || warehouse?.attachment.document_name}
+                                                                                        >
+                                                                                            <svg
+                                                                                                xmlns="http://www.w3.org/2000/svg"
+                                                                                                width={18}
+                                                                                                height={18}
+                                                                                                fill="#DE7008"
+                                                                                                className="bi bi-download me-1"
+                                                                                                viewBox="0 0 16 16"
+                                                                                            >
+                                                                                                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                                                                                                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                                                                                            </svg>
+                                                                                            <span
+                                                                                                className="file-name-ellipsis-small"
 
-    <input
-      className="form-control mt-2"
-      type="file"
-      disabled
-      onChange={e => handleWarehouseChange(idx, "attachment", e.target.files[0])}
-    />
+                                                                                            >
+                                                                                                {warehouse?.attachment.filename || warehouse?.attachment.document_name}
+                                                                                            </span>
+                                                                                        </a>
+                                                                                    </span>
+                                                                                ) : warehouse.attachment.filename ? (
+                                                                                    <span className="d-flex align-items-center">
+                                                                                        <span className="me-2 ">Selected File:</span>
+                                                                                        <span
+                                                                                            className="file-name-ellipsis test-muted"
+                                                                                            title={warehouse.attachment.filename}
 
-    {warehouseErrors[idx]?.attachment && (
-      <div className="ValidationColor">{warehouseErrors[idx].attachment}</div>
-    )}
-  </div>
-</div>
+                                                                                        >
+                                                                                            {warehouse.attachment.filename}
+                                                                                        </span>
+                                                                                    </span>
+                                                                                ) : null
+                                                                            ) : null}
+                                                                        </div>
+
+                                                                        <input
+                                                                            className="form-control mt-2"
+                                                                            type="file"
+                                                                            disabled
+                                                                            onChange={e => handleWarehouseChange(idx, "attachment", e.target.files[0])}
+                                                                        />
+
+                                                                        {warehouseErrors[idx]?.attachment && (
+                                                                            <div className="ValidationColor">{warehouseErrors[idx].attachment}</div>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
 
                                                             </div>
                                                         </div>
@@ -14416,68 +14444,68 @@ const VendorRegistrationStepByStepForm = () => {
                                                                     </div>
                                                                 </div>
                                                                 {/* Attachment */}
-                                                                
+
                                                                 <div className="col-md-4 mt-2">
-  <div className="form-group">
-    <div className="d-flex align-items-center flex-wrap">
-      <label className="me-2 mb-0">Attachment</label>
+                                                                    <div className="form-group">
+                                                                        <div className="d-flex align-items-center flex-wrap">
+                                                                            <label className="me-2 mb-0">Attachment</label>
 
-      {person?.attachment ? (
-        person?.attachment?.attachment_url || person?.attachment?.file_url ? (
-          <span className="d-flex align-items-center">
-            <span className="me-2 ">Existing File:</span>
-            <a
-              href={`${baseURL}${person.attachment.attachment_url || person.attachment.file_url}`}
-              download
-              className="text-primary d-flex align-items-center"
-              title={person?.attachment.filename || person?.attachment.document_name}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width={18}
-                height={18}
-                fill="#DE7008"
-                className="bi bi-download me-1"
-                viewBox="0 0 16 16"
-              >
-                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
-                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
-              </svg>
-              <span
-                className="file-name-ellipsis-small"
-               
-              >
-                {person?.attachment.filename || person?.attachment.document_name}
-              </span>
-            </a>
-          </span>
-        ) : person.attachment.filename ? (
-          <span className="d-flex align-items-center">
-            <span className="me-2 ">Selected File:</span>
-            <span
-              className="file-name-ellipsis text-muted"
-              title={person.attachment.filename}
-             
-            >
-              {person.attachment.filename}
-            </span>
-          </span>
-        ) : null
-      ) : null}
-    </div>
+                                                                            {person?.attachment ? (
+                                                                                person?.attachment?.attachment_url || person?.attachment?.file_url ? (
+                                                                                    <span className="d-flex align-items-center">
+                                                                                        <span className="me-2 ">Existing File:</span>
+                                                                                        <a
+                                                                                            href={`${baseURL}${person.attachment.attachment_url || person.attachment.file_url}`}
+                                                                                            download
+                                                                                            className="text-primary d-flex align-items-center"
+                                                                                            title={person?.attachment.filename || person?.attachment.document_name}
+                                                                                        >
+                                                                                            <svg
+                                                                                                xmlns="http://www.w3.org/2000/svg"
+                                                                                                width={18}
+                                                                                                height={18}
+                                                                                                fill="#DE7008"
+                                                                                                className="bi bi-download me-1"
+                                                                                                viewBox="0 0 16 16"
+                                                                                            >
+                                                                                                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                                                                                                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                                                                                            </svg>
+                                                                                            <span
+                                                                                                className="file-name-ellipsis-small"
 
-    <input
-      className="form-control mt-2"
-      type="file"
-      disabled
-      onChange={(e) => handleContactPersonChange(idx, "attachment", e.target.files[0])}
-    />
+                                                                                            >
+                                                                                                {person?.attachment.filename || person?.attachment.document_name}
+                                                                                            </span>
+                                                                                        </a>
+                                                                                    </span>
+                                                                                ) : person.attachment.filename ? (
+                                                                                    <span className="d-flex align-items-center">
+                                                                                        <span className="me-2 ">Selected File:</span>
+                                                                                        <span
+                                                                                            className="file-name-ellipsis text-muted"
+                                                                                            title={person.attachment.filename}
 
-    {contactPersonErrors[idx]?.attachment && (
-      <div className="ValidationColor">{contactPersonErrors[idx].attachment}</div>
-    )}
-  </div>
-</div>
+                                                                                        >
+                                                                                            {person.attachment.filename}
+                                                                                        </span>
+                                                                                    </span>
+                                                                                ) : null
+                                                                            ) : null}
+                                                                        </div>
+
+                                                                        <input
+                                                                            className="form-control mt-2"
+                                                                            type="file"
+                                                                            disabled
+                                                                            onChange={(e) => handleContactPersonChange(idx, "attachment", e.target.files[0])}
+                                                                        />
+
+                                                                        {contactPersonErrors[idx]?.attachment && (
+                                                                            <div className="ValidationColor">{contactPersonErrors[idx].attachment}</div>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
 
                                                             </div>
                                                         </div>
@@ -14542,68 +14570,68 @@ const VendorRegistrationStepByStepForm = () => {
                                                                 </div>
 
 
-                                                               
+
                                                                 <div className="col-md-4 mt-2">
-  <div className="form-group">
-    <div className="d-flex align-items-center flex-wrap">
-      <label className="me-2 mb-0">Attachment</label>
+                                                                    <div className="form-group">
+                                                                        <div className="d-flex align-items-center flex-wrap">
+                                                                            <label className="me-2 mb-0">Attachment</label>
 
-      {owner?.attachment ? (
-        owner?.attachment?.attachment_url || owner?.attachment?.file_url ? (
-          <span className="d-flex align-items-center">
-            <span className="me-2 ">Existing File:</span>
-            <a
-              href={`${baseURL}${owner.attachment.attachment_url || owner.attachment.file_url}`}
-              download
-              className="text-primary d-flex align-items-center"
-              title={owner?.attachment.filename || owner?.attachment.document_name}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width={18}
-                height={18}
-                fill="#DE7008"
-                className="bi bi-download me-1"
-                viewBox="0 0 16 16"
-              >
-                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
-                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
-              </svg>
-              <span
-                className="file-name-ellipsis-small"
-                
-              >
-                {owner?.attachment.filename || owner?.attachment.document_name}
-              </span>
-            </a>
-          </span>
-        ) : owner.attachment.filename ? (
-          <span className="d-flex align-items-center">
-            <span className="me-2 ">Selected File:</span>
-            <span
-              className="file-name-ellipsis text-muted"
-              title={owner.attachment.filename}
-              
-            >
-              {owner.attachment.filename}
-            </span>
-          </span>
-        ) : null
-      ) : null}
-    </div>
+                                                                            {owner?.attachment ? (
+                                                                                owner?.attachment?.attachment_url || owner?.attachment?.file_url ? (
+                                                                                    <span className="d-flex align-items-center">
+                                                                                        <span className="me-2 ">Existing File:</span>
+                                                                                        <a
+                                                                                            href={`${baseURL}${owner.attachment.attachment_url || owner.attachment.file_url}`}
+                                                                                            download
+                                                                                            className="text-primary d-flex align-items-center"
+                                                                                            title={owner?.attachment.filename || owner?.attachment.document_name}
+                                                                                        >
+                                                                                            <svg
+                                                                                                xmlns="http://www.w3.org/2000/svg"
+                                                                                                width={18}
+                                                                                                height={18}
+                                                                                                fill="#DE7008"
+                                                                                                className="bi bi-download me-1"
+                                                                                                viewBox="0 0 16 16"
+                                                                                            >
+                                                                                                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                                                                                                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                                                                                            </svg>
+                                                                                            <span
+                                                                                                className="file-name-ellipsis-small"
 
-    <input
-      className="form-control mt-2"
-      type="file"
-      disabled
-      onChange={(e) => handleOwnerChange(idx, "attachment", e.target.files[0])}
-    />
+                                                                                            >
+                                                                                                {owner?.attachment.filename || owner?.attachment.document_name}
+                                                                                            </span>
+                                                                                        </a>
+                                                                                    </span>
+                                                                                ) : owner.attachment.filename ? (
+                                                                                    <span className="d-flex align-items-center">
+                                                                                        <span className="me-2 ">Selected File:</span>
+                                                                                        <span
+                                                                                            className="file-name-ellipsis text-muted"
+                                                                                            title={owner.attachment.filename}
 
-    {ownerErrors[idx]?.attachment && (
-      <div className="ValidationColor">{ownerErrors[idx].attachment}</div>
-    )}
-  </div>
-</div>
+                                                                                        >
+                                                                                            {owner.attachment.filename}
+                                                                                        </span>
+                                                                                    </span>
+                                                                                ) : null
+                                                                            ) : null}
+                                                                        </div>
+
+                                                                        <input
+                                                                            className="form-control mt-2"
+                                                                            type="file"
+                                                                            disabled
+                                                                            onChange={(e) => handleOwnerChange(idx, "attachment", e.target.files[0])}
+                                                                        />
+
+                                                                        {ownerErrors[idx]?.attachment && (
+                                                                            <div className="ValidationColor">{ownerErrors[idx].attachment}</div>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
 
                                                             </div>
                                                         </div>
