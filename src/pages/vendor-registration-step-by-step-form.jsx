@@ -1432,7 +1432,7 @@ const VendorRegistrationStepByStepForm = () => {
         // Map major_customers from API to local majorCustomers state
         if (Array.isArray(supplierShowData.major_customers) && supplierShowData.major_customers.length > 0) {
             const mappedCustomers = supplierShowData.major_customers.map(c => {
-                const countryOption = countryOptions.find(opt => Number(opt.value) === Number(c.country_id)) || countryOptions.find(opt => opt.value === c.country_id) || (c.country_id ? { value: c.country_id, label: '' } : null);
+                const countryOption = countryOptions.find(opt => Number(opt.value) === Number(c.country_id)) || countryOptions.find(opt => opt.value === c.country_id) || (c.country_id ? { value: c.country_id, label: c.country_name  || '' } : null);
                 return ({
                     idPre: c.id,
                     id: c.id || null,
@@ -1517,11 +1517,11 @@ const VendorRegistrationStepByStepForm = () => {
 
                 // Name title: try to match by id or label; fallback to provided id/string
                 const nameTitle = (nameTitleOptions || []).find(opt => String(opt.value) === String(cp.name_title_id) || String(opt.label) === String(cp.name_title))
-                    || (typeof cp.name_title_id !== 'undefined' && cp.name_title_id !== null ? { value: cp.name_title_id, label: cp.name_title || String(cp.name_title_id) } : (cp.name_title ? { value: cp.name_title, label: cp.name_title } : null));
+                    || (typeof cp.name_title_id !== 'undefined' && cp.name_title_id !== null ? { value: cp.name_title_id, label: cp.name_title  } : (cp.name_title ? { value: cp.name_title, label: cp.name_title } : null));
 
                 // Designation: match against fetched designationOptions if available
                 const designation = (designationOptions || []).find(opt => String(opt.value) === String(cp.designation_id))
-                    || (cp.designation_id ? { value: cp.designation_id, label: cp.designation_name || String(cp.designation_id) } : null);
+                    || (cp.designation_id ? { value: cp.designation_id, label: cp.desiganation_name } : null);
 
                 const nationality = cp.nationality_string ? { label: cp.nationality_string, value: cp.nationality_string } : null;
                 // Normalize attachment value (backend may provide a string path or an object)
@@ -2634,24 +2634,29 @@ const VendorRegistrationStepByStepForm = () => {
     const handleBranchChange = (idx, field, value) => {
         // If country changes or is cleared, reset the associated state field
         if (field === 'country') {
-            setBranchOffices(prev => prev.map((b, i) => i === idx ? { ...b, country: value, state: null } : b));
-            // fetch states for this country so the state selector options update
-            try {
-                const countryId = value ? (value.value ?? value) : null;
-                if (countryId) {
-                    fetchStates3(countryId);
-                } else {
-                    // clear states when no country selected
-                    setStates3([]);
+            setBranchOffices(prev => {
+                const next = prev.map((b, i) => i === idx ? { ...b, country: value, state: null } : b);
+                // fetch states for this branch-specific country so the state selector options update only for this row
+                try {
+                    const countryId = value ? (value.value ?? value) : null;
+                    const branchId = prev[idx]?.id;
+                    if (countryId && branchId) {
+                        fetchStatesForBranch(branchId, countryId);
+                    } else if (branchId) {
+                        // clear states for this branch when no country selected
+                        setBranchStatesMap(prevMap => ({ ...prevMap, [branchId]: [] }));
+                    }
+                } catch (e) {
+                    // ignore
                 }
-            } catch (e) {
-                // ignore
-            }
+                return next;
+            });
             return;
         }
 
         setBranchOffices(prev => prev.map((b, i) => i === idx ? { ...b, [field]: value } : b));
     };
+    
 
     // const deleteBranchOffice = (id) => {
     //     // setBranchOffices(prev => prev.length === 1 ? prev : prev.filter(branch => branch.id !== id));
@@ -4191,6 +4196,9 @@ const VendorRegistrationStepByStepForm = () => {
     // Per-bank states map so each bank row can have its own state options
     const [bankStatesMap, setBankStatesMap] = useState({});
 
+    // Per-branch states map so each branch row can have its own state options
+    const [branchStatesMap, setBranchStatesMap] = useState({});
+
     const fetchStatesForBank = async (bankId, countryId) => {
         if (!bankId || !countryId) return;
         try {
@@ -4204,6 +4212,22 @@ const VendorRegistrationStepByStepForm = () => {
             setBankStatesMap((prev) => ({ ...prev, [bankId]: formattedStates }));
         } catch (error) {
             console.error("Error fetching states for bank:", error);
+        }
+    };
+
+    const fetchStatesForBranch = async (branchId, countryId) => {
+        if (!branchId || !countryId) return;
+        try {
+            const response = await axios.get(
+                `${baseURL}/pms/dropdown_states?country_id=${countryId}&token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`
+            );
+            const formattedStates = response.data.states.map((state) => ({
+                value: state.value,
+                label: state.name,
+            }));
+            setBranchStatesMap((prev) => ({ ...prev, [branchId]: formattedStates }));
+        } catch (error) {
+            console.error("Error fetching states for branch:", error);
         }
     };
 
@@ -9680,7 +9704,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                 // <div className="card mx-3 pb-4 mt-4" key={customer.id}>
                                                 <CollapsedCardKYC
                                                     key={customer.id}
-                                                    title={`Client References${majorCustomers.length > 1 ? ` ${idx + 1}` : ''}`}
+                                                    title={`Client References${majorCustomers.length > 1 ? ` (${idx + 1})` : ''}`}
                                                     onDelete={() => deleteMajorCustomer(customer.id)}
                                                     // showDelete={majorCustomers.length }
                                                     headerExtra={majorCustomers.length < 3 ? (<div className="ValidationColor">Please add a minimum of 3 client references.</div>) : null}
@@ -10004,8 +10028,8 @@ const VendorRegistrationStepByStepForm = () => {
                                                                 <div className="form-group">
                                                                     <label>State <span>*</span></label>
                                                                     <SingleSelector
-                                                                        options={states3}
-                                                                        value={typeof branch.state === 'object' && branch.state ? branch.state : (states3 || []).find(s => String(s.value) === String((branch.state && branch.state.value) || branch.state)) || null}
+                                                                        options={branchStatesMap[branch.id] || []}
+                                                                        value={typeof branch.state === 'object' && branch.state ? branch.state : (branchStatesMap[branch.id] || []).find(s => String(s.value) === String((branch.state && branch.state.value) || branch.state)) || null}
                                                                         onChange={selected => handleBranchChange(idx, 'state', selected)}
                                                                         placeholder="Select State"
                                                                     />
@@ -13343,11 +13367,11 @@ const VendorRegistrationStepByStepForm = () => {
                                         {/* <div className="card mx-4 pb-4 mt-4"> */}
                                         {isSectionVisible('bank detail') && (
                                             <>
-                                                {bankDetailsList?.map((bankDetail) => (
+                                                {bankDetailsList?.filter(b => b._destroy !== "true").map((bankDetail, idx) => (
 
                                                      <div className="card mx-3 pb-4 mt-4"  key={bankDetail.id}>
                                                 <div className="card-header3">
-                                                    <h3 className="card-title">{`Bank Details${bankDetail.length > 1 ? ` ${idx + 1}` : ''}`}</h3>
+                                                    <h3 className="card-title">{`Bank Details${bankDetailsList.length > 1 ? ` (${idx + 1})` : ''}`}</h3>
                                                 </div>
                                                     {/* <CollapsedCardKYC
                                                         key={bankDetail.id}
@@ -13645,7 +13669,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                 {majorCustomers.filter(mc => mc._destroy !== true && mc._destroy !== "true").map((customer, idx) => (
                                                      <div className="card mx-3 pb-4 mt-4"  key={customer.id}>
                                                 <div className="card-header3">
-                                                    <h3 className="card-title"> {`Client References${majorCustomers.length > 1 ? ` ${idx + 1}` : ''}`}</h3>
+                                                    <h3 className="card-title"> {`Client References${majorCustomers.length > 1 ? ` (${idx + 1})` : ''}`}</h3>
                                                 </div>
                                                     {/* <CollapsedCardKYC
                                                         key={customer.id}
@@ -13980,12 +14004,12 @@ const VendorRegistrationStepByStepForm = () => {
                                                                     <div className="form-group">
                                                                         <label>State <span>*</span></label>
                                                                         <SingleSelector
-                                                                            options={states}
-                                                                            value={branch.state || null}
-                                                                            onChange={selected => handleBranchChange(idx, 'state', selected)}
-                                                                            placeholder="Select State"
+                                                                            options={branchStatesMap[branch.id] || []}
+                                                                            value={typeof branch.state === 'object' && branch.state ? branch.state : (branchStatesMap[branch.id] || []).find(s => String(s.value) === String((branch.state && branch.state.value) || branch.state)) || null}
                                                                             isDisabled={true}
                                                                         />
+                                                                            {/* isDisabled={true}
+                                                                        /> */}
                                                                         {branchErrors[idx]?.state && (
                                                                             <div className="ValidationColor">{branchErrors[idx].state}</div>
                                                                         )}
