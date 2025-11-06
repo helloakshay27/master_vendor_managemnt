@@ -2901,6 +2901,8 @@ const VendorRegistrationStepByStepForm = () => {
 
     ]);
 
+    // console.log("warehouse,",warehouses)
+
     // Reconcile warehouses country/state with canonical option objects when option lists load
     // useEffect(() => {
     //      if (warehouses || warehouses.length !== 0) (
@@ -3550,11 +3552,16 @@ const VendorRegistrationStepByStepForm = () => {
                 if (!warehouse.state) err.state = 'State is required.';
                 if (!warehouse.city) err.city = 'City is required.';
 
-                // If an attachment is present, validate it's a PDF and <= 5 MB
-                // console.log("warehouse attachment:", warehouse.attachment || warehouse.attachmentObj);
+                // If an attachment is present (and non-empty), validate it's a PDF and <= 5 MB
+                // Defensive check: treat empty objects/strings as "no attachment" so rows
+                // without a real file won't trigger validation errors.
+                const fileObj = warehouse.attachmentObj || warehouse.attachment;
                 console.log("warehouse attachmentObj:", warehouse.attachment, warehouse.attachmentObj);
-                if (warehouse.attachment || warehouse.attachmentObj) {
-                    const fileObj = warehouse.attachmentObj || warehouse.attachment;
+                const hasAttachment = !!fileObj && (
+                    (typeof fileObj === 'string' && String(fileObj).trim() !== '') ||
+                    (fileObj && (fileObj.filename || fileObj.name || fileObj.document_name || fileObj.content || typeof fileObj.size === 'number'))
+                );
+                if (hasAttachment) {
                     const filename = (fileObj && (fileObj.filename || fileObj.name || fileObj.document_name || '')).toString();
                     const contentType = (fileObj && (fileObj.content_type || fileObj.type || fileObj.attachment_url || '')).toString();
                     const isPdf = (contentType || '').toLowerCase() === 'application/pdf' || filename.toLowerCase().endsWith('.pdf');
@@ -3581,7 +3588,7 @@ const VendorRegistrationStepByStepForm = () => {
                 return err;
             });
             setWarehouseErrors(warehouseErrs);
-            // console.log("warehouseErrs:", warehouseErrs);
+            console.log("warehouseErrs:", warehouseErrs);
         }
 
         // ---------- contact person ----------
@@ -3616,20 +3623,25 @@ const VendorRegistrationStepByStepForm = () => {
                 }
 
 
-                if (person.attachment || person.attachmentObj) {
-                    const fileObj = person.attachmentObj || person.attachment;
-                    const filename = (fileObj && (fileObj.filename || fileObj.name || fileObj.document_name || '')).toString();
-                    const contentType = (fileObj && (fileObj.content_type || fileObj.type || fileObj.attachment_url || '')).toString();
+                // Validate attachment only if a real file/object exists
+                const fileObj_person = person.attachmentObj || person.attachment;
+                const hasAttachment_person = !!fileObj_person && (
+                    (typeof fileObj_person === 'string' && String(fileObj_person).trim() !== '') ||
+                    (fileObj_person && (fileObj_person.filename || fileObj_person.name || fileObj_person.document_name || fileObj_person.content || typeof fileObj_person.size === 'number'))
+                );
+                if (hasAttachment_person) {
+                    const filename = (fileObj_person && (fileObj_person.filename || fileObj_person.name || fileObj_person.document_name || '')).toString();
+                    const contentType = (fileObj_person && (fileObj_person.content_type || fileObj_person.type || fileObj_person.attachment_url || '')).toString();
                     const isPdf = (contentType || '').toLowerCase() === 'application/pdf' || filename.toLowerCase().endsWith('.pdf');
                     if (!isPdf) {
                         err.attachment = 'File must be a PDF.';
                     } else {
                         const MAX_BYTES = 5 * 1024 * 1024; // 5 MB
                         let size = 0;
-                        if (fileObj && typeof fileObj.size === 'number') {
-                            size = fileObj.size;
-                        } else if (fileObj && fileObj.content) {
-                            const b64 = fileObj.content.split(',').pop();
+                        if (fileObj_person && typeof fileObj_person.size === 'number') {
+                            size = fileObj_person.size;
+                        } else if (fileObj_person && fileObj_person.content) {
+                            const b64 = fileObj_person.content.split(',').pop();
                             if (b64) {
                                 size = Math.floor((b64.length * 3) / 4);
                             }
@@ -3668,20 +3680,24 @@ const VendorRegistrationStepByStepForm = () => {
                     err.mobile = 'Mobile Number must be a 10-digit number.';
                 }
 
-                if (owner.attachment || owner.attachmentObj) {
-                    const fileObj = owner.attachmentObj || owner.attachment;
-                    const filename = (fileObj && (fileObj.filename || fileObj.name || fileObj.document_name || '')).toString();
-                    const contentType = (fileObj && (fileObj.content_type || fileObj.type || fileObj.attachment_url || '')).toString();
+                const fileObj_owner = owner.attachmentObj || owner.attachment;
+                const hasAttachment_owner = !!fileObj_owner && (
+                    (typeof fileObj_owner === 'string' && String(fileObj_owner).trim() !== '') ||
+                    (fileObj_owner && (fileObj_owner.filename || fileObj_owner.name || fileObj_owner.document_name || fileObj_owner.content || typeof fileObj_owner.size === 'number'))
+                );
+                if (hasAttachment_owner) {
+                    const filename = (fileObj_owner && (fileObj_owner.filename || fileObj_owner.name || fileObj_owner.document_name || '')).toString();
+                    const contentType = (fileObj_owner && (fileObj_owner.content_type || fileObj_owner.type || fileObj_owner.attachment_url || '')).toString();
                     const isPdf = (contentType || '').toLowerCase() === 'application/pdf' || filename.toLowerCase().endsWith('.pdf');
                     if (!isPdf) {
                         err.attachment = 'File must be a PDF.';
                     } else {
                         const MAX_BYTES = 5 * 1024 * 1024; // 5 MB
                         let size = 0;
-                        if (fileObj && typeof fileObj.size === 'number') {
-                            size = fileObj.size;
-                        } else if (fileObj && fileObj.content) {
-                            const b64 = fileObj.content.split(',').pop();
+                        if (fileObj_owner && typeof fileObj_owner.size === 'number') {
+                            size = fileObj_owner.size;
+                        } else if (fileObj_owner && fileObj_owner.content) {
+                            const b64 = fileObj_owner.content.split(',').pop();
                             if (b64) {
                                 size = Math.floor((b64.length * 3) / 4);
                             }
@@ -9657,7 +9673,7 @@ const VendorRegistrationStepByStepForm = () => {
                                         /* Show a note when fewer than 3 customers are present */
                                     }
 
-                                    {console.log("major customer:", majorCustomers)}
+                                    {/* {console.log("major customer:", majorCustomers)} */}
                                     {isSectionVisible('major customers served by you') && (
                                         <>
                                             {majorCustomers.filter(mc => mc._destroy !== true && mc._destroy !== "true").map((customer, idx) => (
@@ -13376,8 +13392,8 @@ const VendorRegistrationStepByStepForm = () => {
                                                                         <TooltipIcon message="Please choose your State from the list" />
                                                                     </label>
                                                                     <SingleSelector
-                                                                        options={bankStatesMap[bankDetail.id] || []}
-                                                                        value={(bankStatesMap[bankDetail.id] || []).find((s) => s.value === bankDetail.state_id) || null}
+                                                                        options={states2}
+                                                                        value={states2.find((s) => s.value === bankDetail.state_id) || null}
                                                                         isDisabled={true}
                                                                     />
                                                                 </div>
