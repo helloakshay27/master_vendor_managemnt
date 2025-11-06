@@ -373,7 +373,7 @@ const VendorRegistrationStepByStepForm = () => {
         };
     });
 
-    // console.log("checklist payload :", checklistPayload)
+    console.log("checklist payload :", checklistPayload)
     // State for Questions section
     const [questions, setQuestions] = useState({
         expertise: '',
@@ -13344,11 +13344,17 @@ const VendorRegistrationStepByStepForm = () => {
                                         {isSectionVisible('bank detail') && (
                                             <>
                                                 {bankDetailsList?.map((bankDetail) => (
-                                                    <CollapsedCardKYC
+
+                                                     <div className="card mx-3 pb-4 mt-4"  key={bankDetail.id}>
+                                                <div className="card-header3">
+                                                    <h3 className="card-title">{`Bank Details${bankDetail.length > 1 ? ` ${idx + 1}` : ''}`}</h3>
+                                                </div>
+                                                    {/* <CollapsedCardKYC
                                                         key={bankDetail.id}
                                                         title="Bank Details"
                                                     // No delete in preview
-                                                    >
+                                                    > */}
+                                                    <div className="card-body mt-0">
                                                         <div className="row">
                                                             {/* Bank Name */}
                                                             <div className="col-md-4">
@@ -13391,11 +13397,25 @@ const VendorRegistrationStepByStepForm = () => {
                                                                         State <span>*</span>
                                                                         <TooltipIcon message="Please choose your State from the list" />
                                                                     </label>
-                                                                    <SingleSelector
+                                                                    {/* <SingleSelector
                                                                         options={states2}
                                                                         value={states2.find((s) => s.value === bankDetail.state_id) || null}
                                                                         isDisabled={true}
-                                                                    />
+                                                                    /> */}
+                                                                    <SingleSelector
+                                                                    options={bankStatesMap[bankDetail.id] || []}
+                                                                    value={
+                                                                        (bankStatesMap[bankDetail.id] || []).find(
+                                                                            (s) => s.value === bankDetail.state_id
+                                                                        ) || null
+                                                                    }
+                                                                    onChange={(selectedOption) =>
+                                                                        handleStateChange(selectedOption, bankDetail.id)
+                                                                    }
+                                                                    placeholder="Select State"
+                                                                    // isDisabled={!bankDetail.country_id},
+                                                                    isDisabled={!bankDetail.isNew}
+                                                                />
                                                                 </div>
                                                             </div>
                                                             {/* City */}
@@ -13610,7 +13630,9 @@ const VendorRegistrationStepByStepForm = () => {
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                    </CollapsedCardKYC>
+                                                    {/* </CollapsedCardKYC> */}
+                                                    </div>
+                                                    </div>
                                                 ))}
 
                                             </>
@@ -13621,10 +13643,14 @@ const VendorRegistrationStepByStepForm = () => {
                                         {isSectionVisible('major customers served by you') && (
                                             <>
                                                 {majorCustomers.filter(mc => mc._destroy !== true && mc._destroy !== "true").map((customer, idx) => (
-                                                    <CollapsedCardKYC
+                                                     <div className="card mx-3 pb-4 mt-4"  key={customer.id}>
+                                                <div className="card-header3">
+                                                    <h3 className="card-title"> {`Client References${majorCustomers.length > 1 ? ` ${idx + 1}` : ''}`}</h3>
+                                                </div>
+                                                    {/* <CollapsedCardKYC
                                                         key={customer.id}
                                                         title={`Client References${majorCustomers.length > 1 ? ` ${idx + 1}` : ''}`}
-                                                    >
+                                                    > */}
 
                                                         <div className="card-body mt-0">
                                                             <div className="row">
@@ -13903,8 +13929,10 @@ const VendorRegistrationStepByStepForm = () => {
                                                             </div>
 
                                                         </div>
-                                                    </CollapsedCardKYC>
+                                                    {/* </CollapsedCardKYC> */}
+                                                     </div>
                                                 ))}
+
                                             </>
                                         )}
 
@@ -13912,11 +13940,15 @@ const VendorRegistrationStepByStepForm = () => {
                                         {isSectionVisible('branch office') && (
                                             <>
                                                 {branchOffices.filter(mc => mc._destroy !== true && mc._destroy !== "true").map((branch, idx) => (
-                                                    <CollapsedCardKYC
+                                                    <div className="card mx-3 pb-4 mt-4"  key={branch.id}>
+                                                <div className="card-header3">
+                                                    <h3 className="card-title">{`Branch Office${branchOffices.length > 1 ? ` (${idx + 1})` : ''}`}</h3>
+                                                </div>
+                                                    {/* <CollapsedCardKYC
                                                         showDelete={false}
                                                         key={branch.id}
                                                         title={`Branch Office${branchOffices.length > 1 ? ` (${idx + 1})` : ''}`}
-                                                    >
+                                                    > */}
 
                                                         <div className="card-body mt-0">
                                                             <div className="row">
@@ -14051,17 +14083,23 @@ const VendorRegistrationStepByStepForm = () => {
                                                         </div>
 
 
-                                                    </CollapsedCardKYC>
+                                                    {/* </CollapsedCardKYC> */}
+                                                    </div>
                                                 ))}
+                                                
                                             </>)}
 
                                         {isSectionVisible('factory / warehouse details') && (
                                             <>
                                                 {warehouses.filter(mc => mc._destroy !== true && mc._destroy !== "true").map((warehouse, idx) => (
-                                                    <CollapsedCardKYC
+                                                     <div className="card mx-3 pb-4 mt-4"  key={warehouse.id}>
+                                                <div className="card-header3">
+                                                    <h3 className="card-title">{`Factory Warehouse Details${warehouses.length > 1 ? ` (${idx + 1})` : ''}`}</h3>
+                                                </div>
+                                                    {/* <CollapsedCardKYC
                                                         key={warehouse.id}
                                                         title={`Factory Warehouse Details${warehouses.length > 1 ? ` ${idx + 1}` : ''}`}
-                                                    >
+                                                    > */}
 
                                                         <div className="card-body mt-0">
                                                             <div className="row">
@@ -14270,7 +14308,8 @@ const VendorRegistrationStepByStepForm = () => {
 
                                                             </div>
                                                         </div>
-                                                    </CollapsedCardKYC>
+                                                    {/* </CollapsedCardKYC> */}
+                                                     </div>
                                                 ))}
                                             </>)}
 
@@ -14279,10 +14318,14 @@ const VendorRegistrationStepByStepForm = () => {
                                             <>
 
                                                 {contactPersons.filter(mc => mc._destroy !== true && mc._destroy !== "true").map((person, idx) => (
-                                                    <CollapsedCardKYC
+                                                    <div className="card mx-3 pb-4 mt-4"  key={person.id}>
+                                                <div className="card-header3">
+                                                    <h3 className="card-title">{`Contact Person Details${contactPersons.length > 1 ? ` (${idx + 1})` : ''}`}</h3>
+                                                </div>
+                                                    {/* <CollapsedCardKYC
                                                         key={person.id}
                                                         title={`Contact Person Details${contactPersons.length > 1 ? ` ${idx + 1}` : ""}`}
-                                                    >
+                                                    > */}
 
                                                         <div className="card-body mt-0">
                                                             <div className="row">
@@ -14597,7 +14640,8 @@ const VendorRegistrationStepByStepForm = () => {
 
                                                             </div>
                                                         </div>
-                                                    </CollapsedCardKYC>
+                                                    {/* </CollapsedCardKYC> */}
+                                                     </div>
                                                 ))}
 
                                             </>)}
@@ -14608,10 +14652,14 @@ const VendorRegistrationStepByStepForm = () => {
                                         {isSectionVisible('owners / directors information') && (
                                             <>
                                                 {owners.filter(mc => mc._destroy !== true && mc._destroy !== "true").map((owner, idx) => (
-                                                    <CollapsedCardKYC
+                                                     <div className="card mx-3 pb-4 mt-4"  key={owner.id}>
+                                                <div className="card-header3">
+                                                    <h3 className="card-title">{`Owner / Director Details${owners.length > 1 ? ` (${idx + 1})` : ''}`}</h3>
+                                                </div>
+                                                    {/* <CollapsedCardKYC
                                                         key={owner.id}
                                                         title={`Owner / Director Details${owners.length > 1 ? ` ${idx + 1}` : ''}`}
-                                                    >
+                                                    > */}
                                                         <div className="card-body mt-0">
                                                             <div className="row">
                                                                 <div className="col-md-4">
@@ -14724,7 +14772,8 @@ const VendorRegistrationStepByStepForm = () => {
                                                             </div>
                                                         </div>
 
-                                                    </CollapsedCardKYC>
+                                                    {/* </CollapsedCardKYC> */}
+                                                     </div>
                                                 ))}
                                             </>)}
 
@@ -15312,7 +15361,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                                 onChange={handleCheckboxChange}
                                                             />
                                                         </span>
-                                                        6. I, undersigned, on behalf of M/S Test 20/9/2025/ new hereby certify that the information provided in this documents are the best of my knowledge & particulars given in this submission are true and correct. I authorize M/S A2Z Online Services Private Limited to make direct inquiries and references to any person, firm, public official or organization named in this Form to verify information submitted herein or regarding the competence of the Organization.
+                                                        6. I, undersigned, on behalf of  <strong>M/S {supplierShowData?.organization_name}</strong>  hereby certify that the information provided in this documents are the best of my knowledge & particulars given in this submission are true and correct. I authorize <strong>M/S {supplierShowData?.company_name}</strong> to make direct inquiries and references to any person, firm, public official or organization named in this Form to verify information submitted herein or regarding the competence of the Organization.
                                                     </p>
                                                     {errors.declaration && (
                                                         <div className="ValidationColor">{errors.declaration}</div>
