@@ -1322,8 +1322,8 @@ const VendorRegistrationStepByStepForm = () => {
                     pincode: office.pin_code || office.pin_code || office.pinCode || prev.pincode || '',
                     telephone: office.telephone_number || office.tel_number || prev.telephone || '',
                     mobile: office.mobile || prev.mobile || '',
-                    orderingEmail: office.email || prev.orderingEmail || office.ordering_email || '',
-                    billingEmail: office.email || prev.billingEmail || office.billing_account_email || '',
+                    orderingEmail:  prev.orderingEmail || supplierShowData.ordering_email || office.email ||'',
+                    billingEmail:  prev.billingEmail || supplierShowData.billing_account_email || office.email ||'',
                 }));
             }
 
@@ -2656,6 +2656,35 @@ const VendorRegistrationStepByStepForm = () => {
 
         setBranchOffices(prev => prev.map((b, i) => i === idx ? { ...b, [field]: value } : b));
     };
+
+    // Ensure preselected branches have their per-branch state options populated
+    // and reconcile stored state values to the canonical option objects when options arrive.
+     // Per-branch states map so each branch row can have its own state options
+    const [branchStatesMap, setBranchStatesMap] = useState({});
+    useEffect(() => {
+        if (!branchOffices || branchOffices.length === 0) return;
+
+        branchOffices.forEach((b) => {
+            const branchId = b?.id;
+            const countryId = b?.country ? (b.country.value ?? b.country) : null;
+            if (!branchId) return;
+
+            // If country exists and we don't yet have per-branch states, fetch them
+            if (countryId && (!branchStatesMap[branchId] || branchStatesMap[branchId].length === 0)) {
+                fetchStatesForBranch(branchId, countryId);
+                return;
+            }
+
+            // If we have per-branch state options, reconcile the stored state to the canonical option
+            const currentStateVal = b?.state && typeof b.state === 'object' ? b.state.value : b?.state;
+            if ((currentStateVal !== undefined && currentStateVal !== null) && branchStatesMap[branchId]?.length) {
+                const match = (branchStatesMap[branchId] || []).find(opt => String(opt.value) === String(currentStateVal));
+                if (match && match !== b.state) {
+                    setBranchOffices(prev => prev.map(u => u.id === branchId ? { ...u, state: match } : u));
+                }
+            }
+        });
+    }, [branchOffices, branchStatesMap]);
     
 
     // const deleteBranchOffice = (id) => {
@@ -3028,13 +3057,15 @@ const VendorRegistrationStepByStepForm = () => {
             // also clear any existing state-level validation error for this warehouse if present
             setWarehouseErrors(prev => prev.map((err, i) => i === idx ? ({ ...err, state: undefined }) : err))
 
-            // fetch states for the selected country so warehouse state selector populates
+            // fetch states for the selected country so warehouse state selector populates (per-warehouse)
             try {
                 const countryId = value ? (value.value ?? value) : null;
-                if (countryId) {
-                    fetchStates(countryId);
-                } else {
-                    setStates([]);
+                const warehouseId = warehouses?.[idx]?.id;
+                if (countryId && warehouseId) {
+                    fetchStatesForWarehouse(warehouseId, countryId);
+                } else if (warehouseId) {
+                    // clear per-warehouse states when no country selected
+                    setWarehouseStatesMap(prevMap => ({ ...prevMap, [warehouseId]: [] }));
                 }
             } catch (e) {
                 // ignore
@@ -3079,6 +3110,37 @@ const VendorRegistrationStepByStepForm = () => {
 
         setWarehouses(prev => prev.map((w, i) => i === idx ? { ...w, [field]: value } : w))
     }
+
+    // Ensure preselected warehouses have their per-warehouse state options populated
+    // and reconcile stored state values to the canonical option objects when options arrive.
+    // Per-warehouse states map so each warehouse row can have its own state options
+    const [warehouseStatesMap, setWarehouseStatesMap] = useState({});
+
+    useEffect(() => {
+        if (!warehouses || warehouses.length === 0) return;
+
+        warehouses.forEach((w) => {
+            const warehouseId = w?.id;
+            const countryId = w?.country ? (w.country.value ?? w.country) : null;
+            if (!warehouseId) return;
+
+            // If country exists and we don't yet have per-warehouse states, fetch them
+            if (countryId && (!warehouseStatesMap[warehouseId] || warehouseStatesMap[warehouseId].length === 0)) {
+                fetchStatesForWarehouse(warehouseId, countryId);
+                return;
+            }
+
+            // If we have per-warehouse state options, reconcile the stored state to the canonical option
+            const currentStateVal = w?.state && typeof w.state === 'object' ? w.state.value : w?.state;
+            if ((currentStateVal !== undefined && currentStateVal !== null) && warehouseStatesMap[warehouseId]?.length) {
+                const match = (warehouseStatesMap[warehouseId] || []).find(opt => String(opt.value) === String(currentStateVal));
+                if (match && match !== w.state) {
+                    setWarehouses(prev => prev.map(u => u.id === warehouseId ? { ...u, state: match } : u));
+                }
+            }
+        });
+        // We only need to react when warehouses or the per-warehouse state lists change
+    }, [warehouses, warehouseStatesMap]);
 
     // const deleteWarehouse = (id) => {
     //     setWarehouses(prev => prev.length === 0 ? prev : prev.filter(w => w.id !== id));
@@ -4196,9 +4258,9 @@ const VendorRegistrationStepByStepForm = () => {
     // Per-bank states map so each bank row can have its own state options
     const [bankStatesMap, setBankStatesMap] = useState({});
 
-    // Per-branch states map so each branch row can have its own state options
-    const [branchStatesMap, setBranchStatesMap] = useState({});
+   
 
+    
     const fetchStatesForBank = async (bankId, countryId) => {
         if (!bankId || !countryId) return;
         try {
@@ -4228,6 +4290,22 @@ const VendorRegistrationStepByStepForm = () => {
             setBranchStatesMap((prev) => ({ ...prev, [branchId]: formattedStates }));
         } catch (error) {
             console.error("Error fetching states for branch:", error);
+        }
+    };
+
+    const fetchStatesForWarehouse = async (warehouseId, countryId) => {
+        if (!warehouseId || !countryId) return;
+        try {
+            const response = await axios.get(
+                `${baseURL}/pms/dropdown_states?country_id=${countryId}&token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`
+            );
+            const formattedStates = response.data.states.map((state) => ({
+                value: state.value,
+                label: state.name,
+            }));
+            setWarehouseStatesMap((prev) => ({ ...prev, [warehouseId]: formattedStates }));
+        } catch (error) {
+            console.error("Error fetching states for warehouse:", error);
         }
     };
 
@@ -10172,7 +10250,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                                     <label>Country<span>*</span></label>
                                                                     <SingleSelector
                                                                         options={countries || []}
-                                                                        value={warehouse.country}
+                                                                        value={typeof warehouse.country === 'object' && warehouse.country ? warehouse.country : (countries || []).find(c => String(c.value) === String((warehouse.country && warehouse.country.value) || warehouse.country)) || null}
                                                                         onChange={selected => handleWarehouseChange(idx, 'country', selected)}
                                                                     />
                                                                     {warehouseErrors[idx]?.country && (
@@ -10184,8 +10262,8 @@ const VendorRegistrationStepByStepForm = () => {
                                                                 <div className="form-group">
                                                                     <label>State <span>*</span></label>
                                                                     <SingleSelector
-                                                                        options={states || []}
-                                                                        value={warehouse.state}
+                                                                        options={warehouseStatesMap[warehouse.id] || []}
+                                                                        value={typeof warehouse.state === 'object' && warehouse.state ? warehouse.state : (warehouseStatesMap[warehouse.id] || []).find(s => String(s.value) === String((warehouse.state && warehouse.state.value) || warehouse.state)) || null}
                                                                         onChange={selected => handleWarehouseChange(idx, 'state', selected)}
                                                                     />
                                                                     {warehouseErrors[idx]?.state && (
@@ -14160,9 +14238,8 @@ const VendorRegistrationStepByStepForm = () => {
                                                                     <div className="form-group">
                                                                         <label>State <span>*</span></label>
                                                                         <SingleSelector
-                                                                            options={states || []}
-                                                                            value={warehouse.state}
-                                                                            onChange={selected => handleWarehouseChange(idx, 'state', selected)}
+                                                                            options={warehouseStatesMap[warehouse.id] || []}
+                                                                            value={typeof warehouse.state === 'object' && warehouse.state ? warehouse.state : (warehouseStatesMap[warehouse.id] || []).find(s => String(s.value) === String((warehouse.state && warehouse.state.value) || warehouse.state)) || null}
                                                                             isDisabled={true}
                                                                         />
                                                                         {warehouseErrors[idx]?.state && (
