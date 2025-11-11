@@ -1667,6 +1667,13 @@ const VendorRegistrationStepByStepForm = () => {
         if (field === 'classificationYear') {
             // value may be an object { label, value } or a string like '2021-22'
             const yearValue = value && typeof value === 'object' ? value.value : value;
+            
+            // If classification year is cleared/empty, also clear validFrom and validTill
+            if (!yearValue || yearValue === '') {
+                setAdditionalDetails(prev => ({ ...prev, classificationYear: value, validFrom: '', validTill: '' }));
+                return;
+            }
+            
             if (yearValue && typeof yearValue === 'string') {
                 // Expect format like '2021-22' or '2023-24'
                 const parts = yearValue.split('-');
@@ -1694,7 +1701,7 @@ const VendorRegistrationStepByStepForm = () => {
         setAdditionalDetails(prev => ({ ...prev, [field]: value }));
     };
 
-    // console.log("additional details:", additionalDetails)
+    console.log("additional details:", additionalDetails)
 
 
     const [organizationTypeOptions, setOrganizationTypeOptions] = useState([]);
@@ -1951,18 +1958,24 @@ const VendorRegistrationStepByStepForm = () => {
             if (!additionalDetails.msmeUdyamApplicable || (typeof additionalDetails.msmeUdyamApplicable === 'object' && !additionalDetails.msmeUdyamApplicable.value && !additionalDetails.msmeUdyamApplicable.label)) {
                 additionalErrors.msmeUdyamApplicable = 'This field is required.';
             }
+            if (!additionalDetails.classificationYear || (typeof additionalDetails.classificationYear === 'object' && !additionalDetails.classificationYear.value && !additionalDetails.classificationYear.label)) {
+                    additionalErrors.classificationYear = 'This field is required.';
+                }
+
+                  if (!additionalDetails.validFrom) additionalErrors.validFrom = 'This field is required.';
+                if (!additionalDetails.validTill) additionalErrors.validTill = 'This field is required.';
 
             // If MSME/Udyam is Yes, validate all required fields
             if (additionalDetails.msmeUdyamApplicable?.value === 'Yes') {
                 if (!additionalDetails.msmeNo) additionalErrors.msmeNo = 'This field is required.';
-                if (!additionalDetails.classificationYear || (typeof additionalDetails.classificationYear === 'object' && !additionalDetails.classificationYear.value && !additionalDetails.classificationYear.label)) {
-                    additionalErrors.classificationYear = 'This field is required.';
-                }
+                // if (!additionalDetails.classificationYear || (typeof additionalDetails.classificationYear === 'object' && !additionalDetails.classificationYear.value && !additionalDetails.classificationYear.label)) {
+                //     additionalErrors.classificationYear = 'This field is required.';
+                // }
                 if (!additionalDetails.majorActivity || (typeof additionalDetails.majorActivity === 'object' && !additionalDetails.majorActivity.value && !additionalDetails.majorActivity.label)) {
                     additionalErrors.majorActivity = 'This field is required.';
                 }
-                if (!additionalDetails.validFrom) additionalErrors.validFrom = 'This field is required.';
-                if (!additionalDetails.validTill) additionalErrors.validTill = 'This field is required.';
+                // if (!additionalDetails.validFrom) additionalErrors.validFrom = 'This field is required.';
+                // if (!additionalDetails.validTill) additionalErrors.validTill = 'This field is required.';
                 if (!additionalDetails.msmeEnterpriseType || (typeof additionalDetails.msmeEnterpriseType === 'object' && !additionalDetails.msmeEnterpriseType.value && !additionalDetails.msmeEnterpriseType.label)) {
                     additionalErrors.msmeEnterpriseType = 'This field is required.';
                 }
@@ -5111,7 +5124,7 @@ const VendorRegistrationStepByStepForm = () => {
         }
     }
 
-    // console.log("payloaddddddd*********:", ppayload2)
+    console.log("payloaddddddd*********:", ppayload2)
 
 
     // console.log("basic info:", basicInfo)
@@ -6091,13 +6104,26 @@ const VendorRegistrationStepByStepForm = () => {
         { value: "others", label: "Others" },
     ];
 
-    const optionsClassificationYear = [
-        { value: "", label: "Select Option" },
-        { value: "2021-22", label: "2021-22" },
-        { value: "2022-23", label: "2022-23" },
-        { value: "2023-24", label: "2023-24" },
-        { value: "2024-25", label: "2024-25" },
-    ];
+    // const optionsClassificationYear = [
+    //     { value: "", label: "Select Option" },
+    //     { value: "2021-22", label: "2021-22" },
+    //     { value: "2022-23", label: "2022-23" },
+    //     { value: "2023-24", label: "2023-24" },
+    //     { value: "2024-25", label: "2024-25" },
+    // ];
+
+
+    // Generate last 5 years from current year
+  const currentYear = new Date().getFullYear();
+  const optionsClassificationYear = [
+    { value: "", label: "Select Option" },
+    ...Array.from({ length: 5 }, (_, i) => {
+      const startYear = currentYear - i;
+      const endYear = startYear + 1;
+      const yearLabel = `${startYear}-${String(endYear).slice(-2)}`;
+      return { value: yearLabel, label: yearLabel };
+    })
+  ];
 
 
     // Server-driven steps: keep a default fallback but allow the API to provide
@@ -7978,7 +8004,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                         </div>
                                                     )}
 
-                                                    {additionalDetails.msmeUdyamApplicable?.value === "Yes" && (
+                                                    {(additionalDetails.msmeUdyamApplicable?.value === "Yes" || additionalDetails.msmeUdyamApplicable?.value === "No") && (
                                                         <div className="col-md-4 mt-2">
                                                             <div className="form-group">
                                                                 <label >
@@ -8031,7 +8057,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                     )}
 
                                                     {/* MSME/Udyam Valid From */}
-                                                    {additionalDetails.msmeUdyamApplicable?.value === "Yes" && (
+                                                    {(additionalDetails.msmeUdyamApplicable?.value === "Yes" || additionalDetails.msmeUdyamApplicable?.value === "No") && (
                                                         <div className="col-md-4 mt-2">
                                                             <div className="form-group">
                                                                 <label >
@@ -8059,7 +8085,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                     )}
 
                                                     {/* MSME/Udyam Valid Till */}
-                                                    {additionalDetails.msmeUdyamApplicable?.value === "Yes" && (
+                                                    {(additionalDetails.msmeUdyamApplicable?.value === "Yes" || additionalDetails.msmeUdyamApplicable?.value === "No") && (
                                                         <div className="col-md-4 mt-2">
                                                             <div className="form-group">
                                                                 <label >
@@ -12644,7 +12670,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                             </div>
                                                         )}
 
-                                                        {additionalDetails.msmeUdyamApplicable?.value === "Yes" && (
+                                                        {(additionalDetails.msmeUdyamApplicable?.value === "Yes" || additionalDetails.msmeUdyamApplicable?.value === "No") && (
                                                             <div className="col-md-4 mt-2">
                                                                 <div className="form-group">
                                                                     <label >
@@ -12699,7 +12725,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                         )}
 
                                                         {/* MSME/Udyam Valid From */}
-                                                        {additionalDetails.msmeUdyamApplicable?.value === "Yes" && (
+                                                        {(additionalDetails.msmeUdyamApplicable?.value === "Yes" || additionalDetails.msmeUdyamApplicable?.value === "No") && (
                                                             <div className="col-md-4 mt-2">
                                                                 <div className="form-group">
                                                                     <label >
@@ -12728,7 +12754,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                         )}
 
                                                         {/* MSME/Udyam Valid Till */}
-                                                        {additionalDetails.msmeUdyamApplicable?.value === "Yes" && (
+                                                        {(additionalDetails.msmeUdyamApplicable?.value === "Yes" || additionalDetails.msmeUdyamApplicable?.value === "No") && (
                                                             <div className="col-md-4 mt-2">
                                                                 <div className="form-group">
                                                                     <label >
@@ -12923,7 +12949,7 @@ const VendorRegistrationStepByStepForm = () => {
 
                                                         <div className="row">
                                                             {additionalDetails.msmeUdyamApplicable?.value === "No" && (
-                                                                <div className="col-md-4 mt-2 ms-3">
+                                                                <div className="col-md-4 mt-2 ">
                                                                     <div className="form-group">
                                                                         <label
                                                                         >
