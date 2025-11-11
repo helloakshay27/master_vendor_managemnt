@@ -1703,6 +1703,21 @@ const VendorRegistrationStepByStepForm = () => {
 
     console.log("additional details:", additionalDetails)
 
+    // Set default classification year to current year when msmeUdyamApplicable is Yes or No and no value exists
+    useEffect(() => {
+        if ((additionalDetails.msmeUdyamApplicable?.value === "Yes" || additionalDetails.msmeUdyamApplicable?.value === "No") && 
+            !additionalDetails.classificationYear) {
+            const currentYear = new Date().getFullYear();
+            const nextYear = currentYear + 1;
+            const yearLabel = `${currentYear}-${String(nextYear).slice(-2)}`;
+            const yearOption = { value: yearLabel, label: yearLabel };
+            // Set the current year as default
+            setAdditionalDetails(prev => ({ ...prev, classificationYear: yearOption }));
+            // Trigger the auto-fill of validFrom and validTill
+            updateAdditionalDetails('classificationYear', yearOption);
+        }
+    }, [additionalDetails.msmeUdyamApplicable]);
+
 
     const [organizationTypeOptions, setOrganizationTypeOptions] = useState([]);
     useEffect(() => {
@@ -5322,7 +5337,7 @@ const VendorRegistrationStepByStepForm = () => {
         console.log("payload step one done :", payload)
         try {
             await axios.patch(`${baseURL}/pms/suppliers/${supplierId}/update_api.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`, payload);
-            toast.success('Step 2 draft saved!');
+            toast.success('Saved successfully!');
             // mark this step completed and move to next
             setCompleted((arr) => {
                 const copy = [...arr];
@@ -5331,7 +5346,7 @@ const VendorRegistrationStepByStepForm = () => {
             });
             setCurrentStep((s) => Math.min(s + 1, steps.length - 1));
         } catch (error) {
-            toast.error('Failed to save Step 1 draft.');
+            toast.error('Failed to save....');
         } finally {
             setLoading2(false);
         }
@@ -5412,7 +5427,7 @@ const VendorRegistrationStepByStepForm = () => {
         console.log(" payload for address step2:", payload)
         try {
             await axios.patch(`${baseURL}/pms/suppliers/${supplierId}/update_api.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`, payload);
-            toast.success('Step 3 draft saved!');
+            toast.success('Saved successfully!');
             // mark this step completed and move to next
             setCompleted((arr) => {
                 const copy = [...arr];
@@ -5421,7 +5436,7 @@ const VendorRegistrationStepByStepForm = () => {
             });
             setCurrentStep((s) => Math.min(s + 1, steps.length - 1));
         } catch (error) {
-            toast.error('Failed to save Step 3  draft.');
+            toast.error('Failed to save....');
         } finally {
             setLoading2(false);
         }
@@ -5503,7 +5518,7 @@ const VendorRegistrationStepByStepForm = () => {
         };
         try {
             await axios.patch(`${baseURL}/pms/suppliers/${supplierId}/update_api.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`, payload);
-            toast.success('Step 4 draft saved!');
+            toast.success('Saved successfully!');
             // mark this step completed and move to next
             setCompleted((arr) => {
                 const copy = [...arr];
@@ -5512,7 +5527,7 @@ const VendorRegistrationStepByStepForm = () => {
             });
             setCurrentStep((s) => Math.min(s + 1, steps.length - 1));
         } catch (error) {
-            toast.error('Failed to save Step 4 draft.');
+            toast.error('Failed to save....');
         } finally {
             setLoading2(false);
         }
@@ -5607,7 +5622,7 @@ const VendorRegistrationStepByStepForm = () => {
         };
         try {
             await axios.patch(`${baseURL}/pms/suppliers/${supplierId}/update_api.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`, payload);
-            toast.success('Step 5 draft saved!');
+            toast.success('Saved successfully!');
             setCompleted((arr) => {
                 const copy = [...arr];
                 copy[currentStep] = true;
@@ -5615,7 +5630,7 @@ const VendorRegistrationStepByStepForm = () => {
             });
             setCurrentStep((s) => Math.min(s + 1, steps.length - 1));
         } catch (error) {
-            toast.error('Failed to save Step 5 draft.');
+            toast.error('Failed to save....');
         } finally {
             setLoading2(false);
         }
@@ -5721,7 +5736,7 @@ const VendorRegistrationStepByStepForm = () => {
         };
         try {
             await axios.patch(`${baseURL}/pms/suppliers/${supplierId}/update_api.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`, payload);
-            toast.success('Step 6 draft saved!');
+            toast.success('Saved successfully!');
             setCompleted((arr) => {
                 const copy = [...arr];
                 copy[currentStep] = true;
@@ -5729,7 +5744,7 @@ const VendorRegistrationStepByStepForm = () => {
             });
             setCurrentStep((s) => Math.min(s + 1, steps.length - 1));
         } catch (error) {
-            toast.error('Failed to save Step 6 draft.');
+            toast.error('Failed to save....');
         } finally {
             setLoading2(false);
         }
@@ -5890,7 +5905,7 @@ const VendorRegistrationStepByStepForm = () => {
         };
         try {
             await axios.patch(`${baseURL}/pms/suppliers/${supplierId}/update_api.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`, payload);
-            toast.success('Step 7 draft saved!');
+            toast.success('Saved successfully!');
             setCompleted((arr) => {
                 const copy = [...arr];
                 copy[currentStep] = true;
@@ -5898,7 +5913,7 @@ const VendorRegistrationStepByStepForm = () => {
             });
             setCurrentStep((s) => Math.min(s + 1, steps.length - 1));
         } catch (error) {
-            toast.error('Failed to save Step 7 draft.');
+            toast.error('Failed to save....');
         } finally {
             setLoading2(false);
         }
