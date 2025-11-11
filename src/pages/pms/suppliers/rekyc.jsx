@@ -1863,10 +1863,10 @@ if (Object.keys(validationErrors).length > 0) {
 
   const optionsMajorActivity = [
     { value: "", label: "Select option" },
-    { value: "services", label: "Services" },
-    { value: "trader", label: "Trader" },
-    { value: "manufacture", label: "Manufacture" },
-    { value: "others", label: "Others" },
+    { value: "Services", label: "Services" },
+    { value: "Trader", label: "Trader" },
+    { value: "Manufacture", label: "Manufacture" },
+    { value: "Others", label: "Others" },
   ];
 
   const optionsClassificationYear = [
@@ -2183,7 +2183,7 @@ if (Object.keys(validationErrors).length > 0) {
                           <span className="me-3">
                             <span className="text-dark">:</span>
                           </span>
-                          {supplierData?.gst_classification || ""}
+                          {supplierData?.gst_classification_name || ""}
                         </label>
                       </div>
                     </div>
@@ -4790,14 +4790,13 @@ if (Object.keys(validationErrors).length > 0) {
                         onChange={handleCheckboxChange}
                       />
                     </span>{" "}
-                    I, undersigned, on behalf of M/S Dell Organization Test hereby
+                    I, undersigned, on behalf of <strong>M/S {supplierData?.organization_name}</strong> hereby
                     certify that the information provided in this documents are the
                     best of my knowledge &amp; particulars given in this submission
-                    are true and correct. I authorize M/S A2Z Online Services
-                    Private Limited to make direct inquiries and references to any
+                    are true and correct. I authorize <strong>M/S {supplierData?.organization_details?.company}</strong> to make direct inquiries and references to any
                     person, firm, public official or organization named in this Form
                     to verify information submitted herein or regarding the
-                    competence of the&nbsp;Organization
+                    competence of the&nbsp;Organization.
                   </p>
 
                   {errors.declaration && (
