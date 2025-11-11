@@ -1117,16 +1117,19 @@ const SectionReKYCDetails = () => {
       ...payloadCondition.pms_supplier, // Keep existing keys
       msme: msmeUdyamApplicable || "",
       msme_no: msmeUdyamApplicable === "No" ? "" : msmeNo || null,
-      valid_from: msmeUdyamApplicable === "No" ? "" : validFrom || null,
-      valid_till: msmeUdyamApplicable === "No" ? "" : validTill || null,
+      // valid_from: msmeUdyamApplicable === "No" ? "" : validFrom || null,
+      // valid_till: msmeUdyamApplicable === "No" ? "" : validTill || null,
       enterprise:
         msmeUdyamApplicable === "No" ? "" : msmeEnterpriseType || null,
       major_activity: msmeUdyamApplicable === "No" ? "" : majorActivity || null,
-      classification_year:
-        msmeUdyamApplicable === "No" ? "" : classificationYear || null,
+      // classification_year:
+      //   msmeUdyamApplicable === "No" ? "" : classificationYear || null,
       classification_date:
         msmeUdyamApplicable === "No" ? "" : classificationDate || null,
       msme_attachments: msmeUdyamApplicable === "No" ? msmeAttachments : msmeAttachments,
+      valid_from: validFrom || null,
+      valid_till: validTill || null,
+      classification_year: classificationYear || null,
     };
   }
 
@@ -1171,7 +1174,7 @@ const SectionReKYCDetails = () => {
     };
   }
   // console.log("payload********************:", payload);
-  // console.log("payload condition for new rekyc edit:", payloadCondition);
+  console.log("payload condition for new rekyc edit:", payloadCondition);
 
   // update api
 
@@ -1406,12 +1409,12 @@ const SectionReKYCDetails = () => {
       }
 
       // Validate MSME/Udyam Valid From if MSME/Udyam is applicable
-      if (msmeUdyamApplicable === "Yes" && !validFrom) {
+      if ((msmeUdyamApplicable === "Yes" || msmeUdyamApplicable === "No")  && !validFrom) {
         validationErrors.validFrom = "MSME/Udyam Valid From date is required.";
       }
 
       // Validate MSME/Udyam Valid Till if MSME/Udyam is applicable
-      if (msmeUdyamApplicable === "Yes" && !validTill) {
+      if ((msmeUdyamApplicable === "Yes" || msmeUdyamApplicable === "No") && !validTill) {
         validationErrors.validTill = "MSME/Udyam Valid Till date is required.";
       }
 
@@ -1426,7 +1429,7 @@ const SectionReKYCDetails = () => {
         validationErrors.majorActivity = "Major Activity is required.";
       }
 
-      if (msmeUdyamApplicable === "Yes" && !classificationYear) {
+      if ((msmeUdyamApplicable === "Yes" || msmeUdyamApplicable === "No") && !classificationYear) {
         validationErrors.classificationYear =
           "Classification Year is required.";
       }
@@ -1585,7 +1588,7 @@ const SectionReKYCDetails = () => {
 
 
 
-    
+
 
 
 
@@ -1677,13 +1680,13 @@ const SectionReKYCDetails = () => {
 
 
       const statutoryErrors = validateStatutoryInputs() || {};
-Object.assign(validationErrors, statutoryErrors);
+      Object.assign(validationErrors, statutoryErrors);
 
-if (Object.keys(validationErrors).length > 0) {
-  setStatutoryErrors(statutoryErrors); // if you want to show statutory errors inline
-  setErrors(validationErrors);
-  return;
-}
+      if (Object.keys(validationErrors).length > 0) {
+        setStatutoryErrors(statutoryErrors); // if you want to show statutory errors inline
+        setErrors(validationErrors);
+        return;
+      }
 
     }
 
@@ -1756,18 +1759,22 @@ if (Object.keys(validationErrors).length > 0) {
           ...payload.pms_supplier, // Keep existing keys
           msme: msmeUdyamApplicable || "",
           msme_no: msmeUdyamApplicable === "No" ? "" : msmeNo || null,
-          valid_from: msmeUdyamApplicable === "No" ? "" : validFrom || null,
-          valid_till: msmeUdyamApplicable === "No" ? "" : validTill || null,
+          // valid_from: msmeUdyamApplicable === "No" ? "" : validFrom || null,
+          // valid_till: msmeUdyamApplicable === "No" ? "" : validTill || null,
           enterprise:
             msmeUdyamApplicable === "No" ? "" : msmeEnterpriseType || null,
           major_activity:
             msmeUdyamApplicable === "No" ? "" : majorActivity || null,
-          classification_year:
-            msmeUdyamApplicable === "No" ? "" : classificationYear || null,
+          // classification_year:
+          //   msmeUdyamApplicable === "No" ? "" : classificationYear || null,
           classification_date:
             msmeUdyamApplicable === "No" ? "" : classificationDate || null,
           msme_attachments: msmeUdyamApplicable === "No" ? msmeAttachments
             : msmeAttachments,
+
+          valid_from: validFrom || null,
+          valid_till: validTill || null,
+          classification_year: classificationYear || null,
         };
       }
 
@@ -1869,12 +1876,16 @@ if (Object.keys(validationErrors).length > 0) {
     { value: "Others", label: "Others" },
   ];
 
+  // Generate last 5 years from current year
+  const currentYear = new Date().getFullYear();
   const optionsClassificationYear = [
     { value: "", label: "Select Option" },
-    { value: "2021-22", label: "2021-22" },
-    { value: "2022-23", label: "2022-23" },
-    { value: "2023-24", label: "2023-24" },
-    { value: "2024-25", label: "2024-25" },
+    ...Array.from({ length: 5 }, (_, i) => {
+      const startYear = currentYear - i;
+      const endYear = startYear + 1;
+      const yearLabel = `${startYear}-${String(endYear).slice(-2)}`;
+      return { value: yearLabel, label: yearLabel };
+    })
   ];
 
 
@@ -2753,7 +2764,7 @@ if (Object.keys(validationErrors).length > 0) {
                         </div>
                       )}
 
-                      {msmeUdyamApplicable === "Yes" && (
+                      {(msmeUdyamApplicable === "Yes" || msmeUdyamApplicable === "No") && (
                         <div className="col-md-4 mt-2">
                           <div className="form-group">
                             <label
@@ -2803,7 +2814,7 @@ if (Object.keys(validationErrors).length > 0) {
                       )}
 
                       {/* MSME/Udyam Valid From */}
-                      {msmeUdyamApplicable === "Yes" && (
+                      {(msmeUdyamApplicable === "Yes" || msmeUdyamApplicable === "No") && (
                         <div className="col-md-4 mt-2">
                           <div className="form-group">
                             <label
@@ -2835,7 +2846,7 @@ if (Object.keys(validationErrors).length > 0) {
                       )}
 
                       {/* MSME/Udyam Valid Till */}
-                      {msmeUdyamApplicable === "Yes" && (
+                      {(msmeUdyamApplicable === "Yes" || msmeUdyamApplicable === "No") && (
                         <div className="col-md-4 mt-2">
                           <div className="form-group">
                             <label
