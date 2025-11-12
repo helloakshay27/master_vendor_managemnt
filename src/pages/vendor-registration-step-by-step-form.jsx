@@ -373,7 +373,7 @@ const VendorRegistrationStepByStepForm = () => {
         };
     });
 
-    console.log("checklist payload :", checklistPayload)
+    // console.log("checklist payload :", checklistPayload)
     // State for Questions section
     const [questions, setQuestions] = useState({
         expertise: '',
@@ -952,33 +952,9 @@ const VendorRegistrationStepByStepForm = () => {
 
     const [supplierShowData, setSupplierShowData] = useState(null);
     const [bankDetailsList, setBankDetailsList] = useState([]);
-    // Show one empty bank detail card open initially
-    useEffect(() => {
-        if (bankDetailsList.length === 0) {
-            setBankDetailsList([
-                {
-                    id: Date.now(),
-                    bank_name: null,
-                    address: null,
-                    country_id: null,
-                    state_id: null,
-                    city_name: null,
-                    pincode: null,
-                    account_type: "",
-                    account_number: null,
-                    confirm_account_number: null,
-                    branch_name: null,
-                    micr_number: null,
-                    ifsc_code: null,
-                    benficary_name: null,
-                    remark: null,
-                    _destroy: "false",
-                    isNew: true,
-                    open: true,
-                },
-            ]);
-        }
-    }, [bankDetailsList.length]);
+    
+    const [bankDeclaration, setBankDeclaration] = useState(false);
+    
     // Exposed helper to (re)load supplier show data so other UI actions
     // (like Back navigation) can refresh the step-specific state.
     const reloadSupplierShowData = async () => {
@@ -987,7 +963,41 @@ const VendorRegistrationStepByStepForm = () => {
             setSupplierShowData(response?.data);
             setVrfStatus(response?.data?.status || "draft");
             // setVrfStatus("pending")
-            setBankDetailsList(response?.data?.bank_details || []);
+            
+            const bankDeclarationFromApi = response?.data?.bank_declaration || false;
+            setBankDeclaration(bankDeclarationFromApi);
+            
+            // Load bank details from API
+            const bankDetails = response?.data?.bank_details || [];
+            
+            // Only add one empty bank if no banks exist AND declaration is not checked
+            if (bankDetails.length === 0 && !bankDeclarationFromApi) {
+                setBankDetailsList([
+                    {
+                        id: Date.now(),
+                        bank_name: null,
+                        address: null,
+                        country_id: null,
+                        state_id: null,
+                        city_name: null,
+                        pincode: null,
+                        account_type: "",
+                        account_number: null,
+                        confirm_account_number: null,
+                        branch_name: null,
+                        micr_number: null,
+                        ifsc_code: null,
+                        benficary_name: null,
+                        remark: null,
+                        _destroy: "false",
+                        isNew: true,
+                        open: true,
+                    }
+                ]);
+            } else {
+                setBankDetailsList(bankDetails);
+            }
+            
             // console.log("supplier show data:", response.data.bank_details)
             setStatutoryDetails(response?.data?.statutory_details);
             // NOTE: vrf_step is now handled on OTP verification response instead
@@ -1701,7 +1711,7 @@ const VendorRegistrationStepByStepForm = () => {
         setAdditionalDetails(prev => ({ ...prev, [field]: value }));
     };
 
-    console.log("additional details:", additionalDetails)
+    // console.log("additional details:", additionalDetails)
 
     // Set default classification year to current year when msmeUdyamApplicable is Yes or No and no value exists
     useEffect(() => {
@@ -2524,6 +2534,21 @@ const VendorRegistrationStepByStepForm = () => {
 
     const validateStep3 = () => {
         if (isSectionVisible("bank detail")) {
+            // Get active bank details (not marked for deletion)
+            const activeBanks = bankDetailsList.filter(b => b._destroy !== true && b._destroy !== "true");
+            
+            // If bank declaration is checked and no active banks, validation passes
+            if (bankDeclaration && activeBanks.length === 0) {
+                setBankErrors({});
+                return true;
+            }
+            
+            // If no declaration and no banks provided, require either banks or declaration
+            if (!bankDeclaration && activeBanks.length === 0) {
+                toast.error("Please add bank details or check the bank declaration.");
+                return false;
+            }
+            
             let validationErrors = {};
             // if (isRekycTypeEmpty || isBankRekyc) {
             let hasNewBankDetails = false;
@@ -5139,7 +5164,7 @@ const VendorRegistrationStepByStepForm = () => {
         }
     }
 
-    console.log("payloaddddddd*********:", ppayload2)
+    // console.log("payloaddddddd*********:", ppayload2)
 
 
     // console.log("basic info:", basicInfo)
@@ -5507,6 +5532,7 @@ const VendorRegistrationStepByStepForm = () => {
                 // office_address_attributes: mapRegisteredAddressToPayload(registeredAddress)[0] || {},
                 // communication_address_attributes: commAddrPayload,
 
+                bank_declaration: bankDeclaration,
                 bank_details_attributes: bankDetailsList.map((item) => ({
                     ...item,
                     id: item.isNew ? null : item.id,
@@ -5516,6 +5542,8 @@ const VendorRegistrationStepByStepForm = () => {
                 })),
             }
         };
+
+        console.log(" payload for bank step3:", payload)
         try {
             await axios.patch(`${baseURL}/pms/suppliers/${supplierId}/update_api.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`, payload);
             toast.success('Saved successfully!');
@@ -9791,11 +9819,46 @@ const VendorRegistrationStepByStepForm = () => {
                                                 </CollapsedCardKYC>
                                             ))}
 
-
+                                            {/* Show bank declaration when no banks exist */}
+                                            {bankDetailsList.filter(b => b._destroy !== true && b._destroy !== "true").length === 0 && (
+                                                <div className="mx-3 mt-3" style={{ border: '1px solid #ddd', borderRadius: '4px', overflow: 'hidden' }}>
+                                                    {/* Blue header like acknowledgement section */}
+                                                    <div style={{ backgroundColor: '#007bff', color: 'white', padding: '12px 20px' }}>
+                                                        <h5 style={{ margin: 0, fontSize: '16px', fontWeight: '600' }}>Bank Details Declaration</h5>
+                                                    </div>
+                                                    {/* Content area with light blue/gray background like in the image */}
+                                                    <div style={{ backgroundColor: '#e8f4fd', padding: '20px' }}>
+                                                        <div className="d-flex align-items-start">
+                                                            <input
+                                                                type="checkbox"
+                                                                id="bankDeclarationCheckbox"
+                                                                checked={bankDeclaration}
+                                                                onChange={(e) => setBankDeclaration(e.target.checked)}
+                                                                className="form-check-input mt-1 me-3"
+                                                                style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                                                            />
+                                                            <label 
+                                                                htmlFor="bankDeclarationCheckbox" 
+                                                                style={{ cursor: 'pointer', fontSize: '15px', lineHeight: '1.6', color: '#333' }}
+                                                            >
+                                                                <strong> We hereby declare that all financial transactions will be processed via cheque as we are not providing our bank details for this registration.</strong>
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
 
                                             <div className="row mt-2 ms-2 justify-content-start">
                                                 <div className="col-md-4">
-                                                    <button className="purple-btn1" onClick={addBankDetails}>
+                                                    <button 
+                                                        className="purple-btn1" 
+                                                        onClick={addBankDetails}
+                                                        disabled={bankDeclaration}
+                                                        style={{ 
+                                                            opacity: bankDeclaration ? 0.5 : 1,
+                                                            cursor: bankDeclaration ? 'not-allowed' : 'pointer'
+                                                        }}
+                                                    >
                                                         Add Additional Bank Details
                                                     </button>
                                                 </div>
