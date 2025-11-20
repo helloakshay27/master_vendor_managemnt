@@ -2500,8 +2500,6 @@ const VendorRegistrationStepByStepForm = () => {
     };
 
 
-    const [virtualAccount, setVirtualAccount] = useState("");
-    const [selectedCompany, setSelectedCompany] = useState(null);
     // Company options fetched from API
     const [companyOptions, setCompanyOptions] = useState([]);
     useEffect(() => {
@@ -4577,6 +4575,8 @@ const VendorRegistrationStepByStepForm = () => {
                 ifsc_code: null,
                 benficary_name: null,
                 remark: null,
+                virtual_account: "",
+                selected_company: null,
                 _destroy: "false",
                 isNew: true,
             },
@@ -9649,8 +9649,8 @@ const VendorRegistrationStepByStepForm = () => {
 
                                                                 <SingleSelector
                                                                     options={[{ label: 'Yes', value: 'Yes' }, { label: 'No', value: 'No' }]}
-                                                                    value={[{ label: 'Yes', value: 'Yes' }, { label: 'No', value: 'No' }].find(opt => opt.value === virtualAccount) || null}
-                                                                    onChange={selected => setVirtualAccount(selected.value)}
+                                                                    value={[{ label: 'Yes', value: 'Yes' }, { label: 'No', value: 'No' }].find(opt => opt.value === bankDetail.virtual_account) || null}
+                                                                    onChange={selected => handleInputChange({ target: { value: selected?.value || "" } }, bankDetail.id, "virtual_account")}
                                                                     placeholder="Select Virtual Account"
                                                                     isDisabled={!bankDetail.isNew}
                                                                 />
@@ -9668,7 +9668,7 @@ const VendorRegistrationStepByStepForm = () => {
 
 
 
-                                                        {virtualAccount === 'Yes' && (
+                                                        {bankDetail.virtual_account === 'Yes' && (
                                                             <div className="col-md-4 mt-2">
                                                                 <div className="form-group">
                                                                     <label>
@@ -9676,9 +9676,10 @@ const VendorRegistrationStepByStepForm = () => {
                                                                     </label>
                                                                     <SingleSelector
                                                                         options={companyOptions}
-                                                                        value={selectedCompany}
-                                                                        onChange={selected => setSelectedCompany(selected)}
+                                                                        value={bankDetail.selected_company}
+                                                                        onChange={selected => handleInputChange({ target: { value: selected } }, bankDetail.id, "selected_company")}
                                                                         placeholder="Select Company"
+                                                                        isDisabled={!bankDetail.isNew}
                                                                     />
                                                                 </div>
                                                             </div>
