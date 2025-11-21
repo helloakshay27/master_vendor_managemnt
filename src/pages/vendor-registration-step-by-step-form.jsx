@@ -13727,13 +13727,13 @@ const VendorRegistrationStepByStepForm = () => {
                                                                     </label>
                                                                     <SingleSelector
                                                                         options={[{ label: 'Yes', value: 'Yes' }, { label: 'No', value: 'No' }]}
-                                                                        value={[{ label: 'Yes', value: 'Yes' }, { label: 'No', value: 'No' }].find(opt => opt.value === virtualAccount) || null}
+                                                                        value={[{ label: 'Yes', value: 'Yes' }, { label: 'No', value: 'No' }].find(opt => opt.value === bankDetail.virtual_account) || null}
                                                                         isDisabled={true}
                                                                     />
                                                                 </div>
                                                             </div>
                                                             {/* Select Company (if Virtual Account is Yes) */}
-                                                            {virtualAccount === 'Yes' && (
+                                                            {bankDetail.virtual_account === 'Yes' && (
                                                                 <div className="col-md-4 mt-2">
                                                                     <div className="form-group">
                                                                         <label>
@@ -13741,7 +13741,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                                         </label>
                                                                         <SingleSelector
                                                                             options={companyOptions}
-                                                                            value={selectedCompany}
+                                                                            value={bankDetail.selected_company}
                                                                             isDisabled={true}
                                                                         />
                                                                     </div>
