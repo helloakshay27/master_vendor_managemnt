@@ -1360,6 +1360,7 @@ const VendorRegistrationStepByStepForm = () => {
                 // MSME fields
                 msmeUdyamApplicable: msmeOption !== null ? msmeOption : prev.msmeUdyamApplicable,
                 msmeNo: supplierShowData.msme_no || prev.msmeNo || "",
+                udyamRegistrationDate: supplierShowData.udyam_registration_date || prev.udyamRegistrationDate || "",
                 validFrom: supplierShowData.valid_from || prev.validFrom || "",
                 validTill: supplierShowData.valid_till || prev.validTill || "",
                 msmeEnterpriseType: enterpriseOption || prev.msmeEnterpriseType,
@@ -1736,6 +1737,7 @@ const VendorRegistrationStepByStepForm = () => {
         einvoice: null,
         einvoiceDeclaration: null,
         msmeNo: "",
+        udyamRegistrationDate: "",
         classificationYear: null,
         majorActivity: null,
         validFrom: "",
@@ -2067,6 +2069,7 @@ const VendorRegistrationStepByStepForm = () => {
             // If MSME/Udyam is Yes, validate all required fields
             if (additionalDetails.msmeUdyamApplicable?.value === 'Yes') {
                 if (!additionalDetails.msmeNo) additionalErrors.msmeNo = 'This field is required.';
+                if (!additionalDetails.udyamRegistrationDate) additionalErrors.udyamRegistrationDate = 'This field is required.';
                 // if (!additionalDetails.classificationYear || (typeof additionalDetails.classificationYear === 'object' && !additionalDetails.classificationYear.value && !additionalDetails.classificationYear.label)) {
                 //     additionalErrors.classificationYear = 'This field is required.';
                 // }
@@ -5147,6 +5150,7 @@ const VendorRegistrationStepByStepForm = () => {
             // einvoicing_declaration: additionalDetails.einvoiceDeclaration,
             einvoicing_attachments: [additionalDetails.einvoiceDeclaration],
             msme_no: additionalDetails.msmeNo,
+            udyam_registration_date: additionalDetails.udyamRegistrationDate,
             classification_year: additionalDetails.classificationYear && additionalDetails.classificationYear.value ? additionalDetails.classificationYear.value : null,
             major_activity: additionalDetails.majorActivity && additionalDetails.majorActivity.value ? additionalDetails.majorActivity.value : null,
             valid_from: additionalDetails.validFrom,
@@ -5262,6 +5266,7 @@ const VendorRegistrationStepByStepForm = () => {
                 einvoicing: additionalDetails.einvoice && additionalDetails.einvoice.value ? additionalDetails.einvoice.value : null,
                 einvoicing_declaration: additionalDetails.einvoiceDeclaration,
                 msme_no: additionalDetails.msmeNo,
+                udyam_registration_date: additionalDetails.udyamRegistrationDate,
                 classification_year: additionalDetails.classificationYear && additionalDetails.classificationYear.value ? additionalDetails.classificationYear.value : null,
                 major_activity: additionalDetails.majorActivity && additionalDetails.majorActivity.value ? additionalDetails.majorActivity.value : null,
                 valid_from: additionalDetails.validFrom,
@@ -5389,6 +5394,7 @@ const VendorRegistrationStepByStepForm = () => {
                 einvoicing: additionalDetails.einvoice && additionalDetails.einvoice.value ? additionalDetails.einvoice.value : null,
                 einvoicing_attachments: [additionalDetails.einvoiceDeclaration],
                 msme_no: additionalDetails.msmeNo,
+                udyam_registration_date: additionalDetails.udyamRegistrationDate,
                 classification_year: additionalDetails.classificationYear && additionalDetails.classificationYear.value ? additionalDetails.classificationYear.value : null,
                 major_activity: additionalDetails.majorActivity && additionalDetails.majorActivity.value ? additionalDetails.majorActivity.value : null,
                 valid_from: additionalDetails.validFrom,
@@ -5472,6 +5478,7 @@ const VendorRegistrationStepByStepForm = () => {
                 // einvoicing_declaration: additionalDetails.einvoiceDeclaration,
                 einvoicing_attachments: [additionalDetails.einvoiceDeclaration],
                 msme_no: additionalDetails.msmeNo,
+                udyam_registration_date: additionalDetails.udyamRegistrationDate,
                 classification_year: additionalDetails.classificationYear && additionalDetails.classificationYear.value ? additionalDetails.classificationYear.value : null,
                 major_activity: additionalDetails.majorActivity && additionalDetails.majorActivity.value ? additionalDetails.majorActivity.value : null,
                 valid_from: additionalDetails.validFrom,
@@ -8085,6 +8092,27 @@ const VendorRegistrationStepByStepForm = () => {
                                                                     <div className="ValidationColor">{errors.msmeNo}</div>
                                                                 )}
                                                                 {/* Show error */}
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {additionalDetails.msmeUdyamApplicable?.value === "Yes" && (
+                                                        <div className="col-md-4 mt-2">
+                                                            <div className="form-group">
+                                                                <label>
+                                                                    Date of Udyam Registration <span>*</span>
+                                                                    <TooltipIcon message="Enter the date when your organization received Udyam registration" />
+                                                                </label>
+                                                                <input
+                                                                    className="form-control"
+                                                                    type="date"
+                                                                    value={additionalDetails.udyamRegistrationDate}
+                                                                    onChange={e => updateAdditionalDetails('udyamRegistrationDate', e.target.value)}
+                                                                    max={new Date().toISOString().split('T')[0]}
+                                                                />
+                                                                {errors.udyamRegistrationDate && (
+                                                                    <div className="ValidationColor">{errors.udyamRegistrationDate}</div>
+                                                                )}
                                                             </div>
                                                         </div>
                                                     )}
@@ -12792,6 +12820,24 @@ const VendorRegistrationStepByStepForm = () => {
                                                             </div>
                                                         )}
 
+                                                        {additionalDetails.msmeUdyamApplicable?.value === "Yes" && (
+                                                            <div className="col-md-4 mt-2">
+                                                                <div className="form-group">
+                                                                    <label>
+                                                                        Date of Udyam Registration <span>*</span>
+                                                                        <TooltipIcon message="Date when your organization received Udyam registration" />
+                                                                    </label>
+                                                                    <input
+                                                                        className="form-control"
+                                                                        type="date"
+                                                                        value={additionalDetails.udyamRegistrationDate}
+                                                                        onChange={e => updateAdditionalDetails('udyamRegistrationDate', e.target.value)}
+                                                                        disabled
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                        )}
+
                                                         {(additionalDetails.msmeUdyamApplicable?.value === "Yes" || additionalDetails.msmeUdyamApplicable?.value === "No") && (
                                                             <div className="col-md-4 mt-2">
                                                                 <div className="form-group">
@@ -12966,7 +13012,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                                         </span>
                                                                     </a>
                                                                     {/* Show MSME attachment (server) or selected filename in preview */}
-                                                                    {additionalDetails?.msmeAttachmentObj?.file_url ? (
+                                                                    {/* {additionalDetails?.msmeAttachmentObj?.file_url ? (
                                                                         <div className="mt-2">
                                                                             <a
                                                                                 href={`${additionalDetails.msmeAttachmentObj.file_url.startsWith('http') ? additionalDetails.msmeAttachmentObj.file_url : `${baseURL}${additionalDetails.msmeAttachmentObj.file_url}`}`}
@@ -12987,7 +13033,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                                             <span className="text-muted">{additionalDetails.msmeAttachmentObj.filename}</span>
                                                                         </div>
                                                                     ) : null}
-                                                                    <input className="form-control mt-2" type="file" disabled />
+                                                                    <input className="form-control mt-2" type="file" disabled /> */}
                                                                 </div>
                                                             </div>
                                                         )}
@@ -13790,15 +13836,17 @@ const VendorRegistrationStepByStepForm = () => {
                                                                     </div>
                                                                 </div>
                                                             )}
-                                                            {/* Generated Virtual Account Code */}
-                                                            <div className="col-md-4 mt-2">
-                                                                <div className="form-group">
-                                                                    <label>
-                                                                        Generated Virtual Account Code
-                                                                    </label>
-                                                                    <input className="form-control" type="text" value={bankDetail.virtual_account_code || ''} disabled readOnly />
+                                                            {/* Generated Virtual Account Code - only show for existing banks with virtual account = Yes */}
+                                                            {!bankDetail.isNew && bankDetail.virtual_account === 'Yes' && (
+                                                                <div className="col-md-4 mt-2">
+                                                                    <div className="form-group">
+                                                                        <label>
+                                                                            Generated Virtual Account Code
+                                                                        </label>
+                                                                        <input className="form-control" type="text" value={bankDetail.virtual_account_code || ''} disabled readOnly />
+                                                                    </div>
                                                                 </div>
-                                                            </div>
+                                                            )}
 
 
                                                             {/* Cancelled Cheque / Bank Copy */}
