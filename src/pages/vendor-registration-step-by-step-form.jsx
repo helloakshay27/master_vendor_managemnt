@@ -992,10 +992,22 @@ const VendorRegistrationStepByStepForm = () => {
                         _destroy: "false",
                         isNew: true,
                         open: true,
+                        virtual_account: "",
+                        selected_company: null,
                     }
                 ]);
             } else {
-                setBankDetailsList(bankDetails);
+                // Map API response to internal state structure
+                const mappedBankDetails = bankDetails.map(bank => ({
+                    ...bank,
+                    // Convert is_vertual boolean to virtual_account string
+                    virtual_account: bank.is_vertual === true ? "Yes" : (bank.is_vertual === false ? "No" : ""),
+                    // Convert company_codes array to selected_company object (will be reconciled with options later)
+                    selected_company: bank.company_codes && bank.company_codes.length > 0 
+                        ? { value: bank.company_codes[0], label: "" } 
+                        : null,
+                }));
+                setBankDetailsList(mappedBankDetails);
             }
             
             // console.log("supplier show data:", response.data.bank_details)
@@ -1024,6 +1036,33 @@ const VendorRegistrationStepByStepForm = () => {
         }
     }, [supplierShowData]);
 
+    // Company options fetched from API - declared early for use in reconciliation effects
+    const [companyOptions, setCompanyOptions] = useState([]);
+    useEffect(() => {
+        const fetchCompanyOptions = async () => {
+            try {
+                const response = await axios.get(`${baseURL}/pms/suppliers/pms_company_list`);
+                if (Array.isArray(response.data)) {
+                    setCompanyOptions(response.data.pms_company.map(company => ({
+                        label: company.company_name || company.name || company.label || "",
+                        value: company.id || company.value || company.company_id || ""
+                    })));
+                } else if (Array.isArray(response.data?.pms_company)) {
+                    setCompanyOptions(response.data.pms_company.map(company => ({
+                        label: company.company_name || company.name || company.label || "",
+                        value: company.id || company.value || company.company_id || ""
+                    })));
+                } else {
+                    setCompanyOptions([]);
+                }
+            } catch (error) {
+                setCompanyOptions([]);
+                // Optionally log error
+            }
+        };
+        fetchCompanyOptions();
+    }, []);
+
     // Reconcile address country/state values with canonical option objects
     // This runs when option lists change so selects display labels even if options load after supplierShowData mapping
 
@@ -1047,6 +1086,41 @@ const VendorRegistrationStepByStepForm = () => {
 
     // General reconciliation: replace primitive ids in basicInfo with canonical option objects
     // once the corresponding options arrays load. This prevents selectors from rendering raw ids.
+
+    // Reconcile bank details selected_company with canonical company options
+    useEffect(() => {
+        if (!companyOptions || companyOptions.length === 0) return;
+        if (!bankDetailsList || bankDetailsList.length === 0) return;
+        
+        setBankDetailsList(prevBanks => {
+            let updated = false;
+            const newBanks = prevBanks.map(bank => {
+                if (!bank.selected_company) return bank;
+                
+                const currentVal = typeof bank.selected_company === 'object' 
+                    ? bank.selected_company.value 
+                    : bank.selected_company;
+                
+                // Skip if already has proper label
+                if (typeof bank.selected_company === 'object' && bank.selected_company.label && bank.selected_company.label !== "") {
+                    return bank;
+                }
+                
+                const match = companyOptions.find(opt => 
+                    String(opt.value) === String(currentVal) || 
+                    Number(opt.value) === Number(currentVal)
+                );
+                
+                if (match && match !== bank.selected_company) {
+                    updated = true;
+                    return { ...bank, selected_company: match };
+                }
+                return bank;
+            });
+            
+            return updated ? newBanks : prevBanks;
+        });
+    }, [companyOptions, bankDetailsList]);
 
 
     const handleDeclarationOptionChange = (questionId, option) => {
@@ -2499,33 +2573,6 @@ const VendorRegistrationStepByStepForm = () => {
         return Object.keys(regErrs).length === 0 && Object.keys(commErrs).length === 0;
     };
 
-
-    // Company options fetched from API
-    const [companyOptions, setCompanyOptions] = useState([]);
-    useEffect(() => {
-        const fetchCompanyOptions = async () => {
-            try {
-                const response = await axios.get(`${baseURL}/pms/suppliers/pms_company_list`);
-                if (Array.isArray(response.data)) {
-                    setCompanyOptions(response.data.pms_company.map(company => ({
-                        label: company.company_name || company.name || company.label || "",
-                        value: company.id || company.value || company.company_id || ""
-                    })));
-                } else if (Array.isArray(response.data?.pms_company)) {
-                    setCompanyOptions(response.data.pms_company.map(company => ({
-                        label: company.company_name || company.name || company.label || "",
-                        value: company.id || company.value || company.company_id || ""
-                    })));
-                } else {
-                    setCompanyOptions([]);
-                }
-            } catch (error) {
-                setCompanyOptions([]);
-                // Optionally log error
-            }
-        };
-        fetchCompanyOptions();
-    }, []);
 
     // --- Step 3 Validation: Bank Details ---
     const [bankErrors, setBankErrors] = useState({});
@@ -4577,6 +4624,7 @@ const VendorRegistrationStepByStepForm = () => {
                 remark: null,
                 virtual_account: "",
                 selected_company: null,
+                virtual_account_code: "",
                 _destroy: "false",
                 isNew: true,
             },
@@ -5115,16 +5163,8 @@ const VendorRegistrationStepByStepForm = () => {
                 attachment: item.isNew
                     ? bankAttachments[item.id] || null
                     : bankAttachments[item.id] || (item.attachment ? null : null),
-            })),
-
-
-            bank_details_attributes: bankDetailsList.map((item) => ({
-                ...item,
-                id: item.isNew ? null : item.id,
-
-                attachment: item.isNew
-                    ? bankAttachments[item.id] || null // If new attachment exists, pass it; otherwise, null
-                    : bankAttachments[item.id] || (item.attachment ? null : null), // If existing, only pass null if no new file is uploaded
+                company_codes: item.selected_company?.value ? [item.selected_company.value] : [],
+                is_vertual: item.virtual_account === "Yes" ? true : (item.virtual_account === "No" ? false : null),
             })),
 
             branch_offices_attributes: mapBranchOfficesToPayload(branchOffices),
@@ -5539,6 +5579,8 @@ const VendorRegistrationStepByStepForm = () => {
                     attachment: item.isNew
                         ? bankAttachments[item.id] || null
                         : bankAttachments[item.id] || (item.attachment ? null : null),
+                    company_codes: item.selected_company?.value ? [item.selected_company.value] : [],
+                    is_vertual: item.virtual_account === "Yes" ? true : (item.virtual_account === "No" ? false : null),
                 })),
             }
         };
@@ -9686,39 +9728,40 @@ const VendorRegistrationStepByStepForm = () => {
                                                         )}
 
 
-
-                                                        <div className="col-md-4 mt-2">
-                                                            <div className="form-group">
-                                                                <label
-                                                                >
-                                                                    Generated Virtual Account Code
-                                                                    {/* <TooltipIcon message="Enter the full legel name of the beneficiary." /> */}
-                                                                </label>
-                                                                <input
-                                                                    className="form-control"
-                                                                    type="text"
-                                                                    placeholder="Enter Generated Virtual Account Code"
-                                                                    // value={bankDetail.benficary_name}
-                                                                    // value={bankDetail.benficary_name} // Correct key
-                                                                    // onChange={(e) =>
-                                                                    //     handleInputChange(
-                                                                    //         e,
-                                                                    //         bankDetail.id,
-                                                                    //         "benficary_name"
-                                                                    //     )
-                                                                    // }
-                                                                    // disabled={!bankDetail.isNew}
-                                                                    disabled
-                                                                />
-                                                                {/* {bankDetail.isNew &&
-                                                    errors.benficary_name &&
-                                                    !bankDetail.benficary_name && (
-                                                        <div className="ValidationColor">
-                                                            {errors.benficary_name}
-                                                        </div>
-                                                    )} */}
+                                                        {/* Generated Virtual Account Code - only show for existing banks with virtual account = Yes */}
+                                                        {!bankDetail.isNew && bankDetail.virtual_account === "Yes" && (
+                                                            <div className="col-md-4 mt-2">
+                                                                <div className="form-group">
+                                                                    <label
+                                                                    >
+                                                                        Generated Virtual Account Code
+                                                                        {/* <TooltipIcon message="Enter the full legel name of the beneficiary." /> */}
+                                                                    </label>
+                                                                    <input
+                                                                        className="form-control"
+                                                                        type="text"
+                                                                        placeholder="Enter Generated Virtual Account Code"
+                                                                        value={bankDetail.virtual_account_code || ''}
+                                                                        onChange={(e) =>
+                                                                            handleInputChange(
+                                                                                e,
+                                                                                bankDetail.id,
+                                                                                "virtual_account_code"
+                                                                            )
+                                                                        }
+                                                                        // disabled={!bankDetail.isNew}
+                                                                        disabled
+                                                                    />
+                                                                    {/* {bankDetail.isNew &&
+                                                        errors.benficary_name &&
+                                                        !bankDetail.benficary_name && (
+                                                            <div className="ValidationColor">
+                                                                {errors.benficary_name}
                                                             </div>
-                                                        </div>
+                                                        )} */}
+                                                                </div>
+                                                            </div>
+                                                        )}
 
 
                                                         {/* Cancelled Cheque / Bank Copy */}
@@ -13753,7 +13796,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                                     <label>
                                                                         Generated Virtual Account Code
                                                                     </label>
-                                                                    <input className="form-control" type="text" value={bankDetail.generated_virtual_account_code || ''} disabled readOnly />
+                                                                    <input className="form-control" type="text" value={bankDetail.virtual_account_code || ''} disabled readOnly />
                                                                 </div>
                                                             </div>
 
