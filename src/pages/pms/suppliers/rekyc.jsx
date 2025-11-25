@@ -1880,10 +1880,10 @@ const SectionReKYCDetails = () => {
 
   const optionsMajorActivity = [
     { value: "", label: "Select option" },
-    { value: "Services", label: "Services" },
-    { value: "Trader", label: "Trader" },
-    { value: "Manufacture", label: "Manufacture" },
-    { value: "Others", label: "Others" },
+    { value: "services", label: "Services" },
+    { value: "trader", label: "Trader" },
+    { value: "manufacture", label: "Manufacture" },
+    { value: "others", label: "Others" },
   ];
 
   // Generate last 5 years from current year
