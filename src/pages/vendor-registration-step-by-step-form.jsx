@@ -1063,6 +1063,8 @@ const VendorRegistrationStepByStepForm = () => {
         fetchCompanyOptions();
     }, []);
 
+    console.log("company options****:", companyOptions)
+
     // Reconcile address country/state values with canonical option objects
     // This runs when option lists change so selects display labels even if options load after supplierShowData mapping
 
@@ -4468,7 +4470,7 @@ const VendorRegistrationStepByStepForm = () => {
 
     // Add near the top of your component with other constants
     const accountTypeOptions = [
-        { value: "", label: "Select Account Type" },
+        // { value: "", label: "Select Account Type" },
         { value: "Saving Account", label: "Saving Account" },
         { value: "Current Account", label: "Current Account" },
         { value: "Overdraft Account", label: "Overdraft Account" },
@@ -9754,7 +9756,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                                 </div>
                                                             </div>
                                                         )}
-
+{console.log("company options:", companyOptions)}
 
                                                         {/* Generated Virtual Account Code - only show for existing banks with virtual account = Yes */}
                                                         {!bankDetail.isNew && bankDetail.virtual_account === "Yes" && (

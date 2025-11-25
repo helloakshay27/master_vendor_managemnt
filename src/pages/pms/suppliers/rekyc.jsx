@@ -220,6 +220,7 @@ const SectionReKYCDetails = () => {
       setMsmeEnterpriseType(response.data?.msme_details?.enterprise);
       setBankDetailsList(response.data?.bank_details);
       setMsmeNo(response.data?.msme_details?.msme_no);
+      setUdyamRegistrationDate(response.data?.msme_details?.udyam_registration_date || "");
       setValidFrom(response.data?.msme_details?.valid_from);
       setValidTill(response.data?.msme_details?.valid_till);
       setMajorActivity(response.data?.msme_details?.major_activity);
@@ -766,6 +767,7 @@ const SectionReKYCDetails = () => {
   //  const [msmeUdyamApplicable, setMsmeUdyamApplicable] = useState("No");
   //  const [msmeEnterpriseType, setMsmeEnterpriseType] = useState("Micro");
   const [msmeNo, setMsmeNo] = useState("");
+  const [udyamRegistrationDate, setUdyamRegistrationDate] = useState("");
   const [validFrom, setValidFrom] = useState("");
   const [validTill, setValidTill] = useState("");
   //  const [attachment, setAttachment] = useState(null);
@@ -1007,6 +1009,7 @@ const SectionReKYCDetails = () => {
       email: emailAddress,
       msme: msmeUdyamApplicable || "",
       msme_no: msmeUdyamApplicable === "No" ? "" : msmeNo || null,
+      udyam_registration_date: msmeUdyamApplicable === "Yes" ? udyamRegistrationDate || null : null,
       valid_from: msmeUdyamApplicable === "No" ? "" : validFrom || null,
       valid_till: msmeUdyamApplicable === "No" ? "" : validTill || null,
       enterprise:
@@ -1117,6 +1120,7 @@ const SectionReKYCDetails = () => {
       ...payloadCondition.pms_supplier, // Keep existing keys
       msme: msmeUdyamApplicable || "",
       msme_no: msmeUdyamApplicable === "No" ? "" : msmeNo || null,
+      udyam_registration_date: msmeUdyamApplicable === "Yes" ? udyamRegistrationDate || null : null,
       // valid_from: msmeUdyamApplicable === "No" ? "" : validFrom || null,
       // valid_till: msmeUdyamApplicable === "No" ? "" : validTill || null,
       enterprise:
@@ -1406,6 +1410,11 @@ const SectionReKYCDetails = () => {
       // Validate MSME/Udyam Number if MSME/Udyam is applicable
       if (msmeUdyamApplicable === "Yes" && !msmeNo) {
         validationErrors.msmeNo = "MSME/Udyam Number is required.";
+      }
+
+      // Validate Date of Udyam Registration if MSME/Udyam is applicable
+      if (msmeUdyamApplicable === "Yes" && !udyamRegistrationDate) {
+        validationErrors.udyamRegistrationDate = "Date of Udyam Registration is required.";
       }
 
       // Validate MSME/Udyam Valid From if MSME/Udyam is applicable
@@ -1759,6 +1768,7 @@ const SectionReKYCDetails = () => {
           ...payload.pms_supplier, // Keep existing keys
           msme: msmeUdyamApplicable || "",
           msme_no: msmeUdyamApplicable === "No" ? "" : msmeNo || null,
+          udyam_registration_date: msmeUdyamApplicable === "Yes" ? udyamRegistrationDate || null : null,
           // valid_from: msmeUdyamApplicable === "No" ? "" : validFrom || null,
           // valid_till: msmeUdyamApplicable === "No" ? "" : validTill || null,
           enterprise:
@@ -2760,6 +2770,28 @@ const SectionReKYCDetails = () => {
                               <div className="ValidationColor">{errors.msmeNo}</div>
                             )}{" "}
                             {/* Show error */}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Date of Udyam Registration */}
+                      {msmeUdyamApplicable === "Yes" && (
+                        <div className="col-md-4 mt-2">
+                          <div className="form-group">
+                            <label>
+                              Date of Udyam Registration <span>*</span>
+                              <TooltipIcon message="Date when your organization received Udyam registration" />
+                            </label>
+                            <input
+                              className="form-control"
+                              type="date"
+                              value={udyamRegistrationDate}
+                              onChange={(e) => setUdyamRegistrationDate(e.target.value)}
+                              max={new Date().toISOString().split('T')[0]}
+                            />
+                            {errors.udyamRegistrationDate && (
+                              <div className="ValidationColor">{errors.udyamRegistrationDate}</div>
+                            )}
                           </div>
                         </div>
                       )}
