@@ -201,6 +201,7 @@ const SectionReKYCDetails = () => {
   const [gstinAttachments, setGstinAttachments] = useState([]);
   const [gstOptions, setGstOptions] = useState([]);
   const [bankDetailsList, setBankDetailsList] = useState([]);
+  const [companyOptions, setCompanyOptions] = useState([]);
   const [majorActivity, setMajorActivity] = useState("");
   const [classificationYear, setClassificationYear] = useState("");
   const [classificationDate, setClassificationDate] = useState("");
@@ -273,6 +274,65 @@ const SectionReKYCDetails = () => {
 
     fetchSupplierData(id);
   }, [id]);
+
+  // Fetch company options for virtual account
+  useEffect(() => {
+    const fetchCompanyOptions = async () => {
+      try {
+        const response = await axios.get(`${baseURL}/pms/suppliers/pms_company_list`);
+        if (Array.isArray(response.data)) {
+          setCompanyOptions(response.data.pms_company.map(company => ({
+            label: company.company_name || company.name || company.label || "",
+            value: company.id || company.value || company.company_id || ""
+          })));
+        } else if (Array.isArray(response.data?.pms_company)) {
+          setCompanyOptions(response.data.pms_company.map(company => ({
+            label: company.company_name || company.name || company.label || "",
+            value: company.id || company.value || company.company_id || ""
+          })));
+        } else {
+          setCompanyOptions([]);
+        }
+      } catch (error) {
+        setCompanyOptions([]);
+      }
+    };
+    fetchCompanyOptions();
+  }, []);
+
+  // Reconcile bank details selected_company with canonical company options
+  useEffect(() => {
+    if (!companyOptions || companyOptions.length === 0) return;
+    if (!bankDetailsList || bankDetailsList.length === 0) return;
+    
+    setBankDetailsList(prevBanks => {
+      let updated = false;
+      const newBanks = prevBanks.map(bank => {
+        if (!bank.selected_company) return bank;
+        
+        const currentVal = typeof bank.selected_company === 'object' 
+          ? bank.selected_company.value 
+          : bank.selected_company;
+        
+        if (typeof bank.selected_company === 'object' && bank.selected_company.label && bank.selected_company.label !== "") {
+          return bank;
+        }
+        
+        const match = companyOptions.find(opt => 
+          String(opt.value) === String(currentVal) || 
+          Number(opt.value) === Number(currentVal)
+        );
+        
+        if (match && match !== bank.selected_company) {
+          updated = true;
+          return { ...bank, selected_company: match };
+        }
+        return bank;
+      });
+      
+      return updated ? newBanks : prevBanks;
+    });
+  }, [companyOptions, bankDetailsList]);
 
 
   useEffect(() => {
@@ -761,7 +821,7 @@ const SectionReKYCDetails = () => {
     reader.readAsDataURL(file);
   };
 
-  // console.log("banck details :", bankDetailsList);
+  console.log("banck details :", bankDetailsList);
 
   // Define state for form fields
   //  const [msmeUdyamApplicable, setMsmeUdyamApplicable] = useState("No");
@@ -1108,6 +1168,9 @@ const SectionReKYCDetails = () => {
         attachment: item.isNew
           ? bankAttachments[item.id] || null // If new attachment exists, pass it; otherwise, null
           : bankAttachments[item.id] || (item.attachment ? null : null), // If existing, only pass null if no new file is uploaded
+
+          company_codes: item.selected_company?.value ? [item.selected_company.value] : [],
+                    is_vertual: item.virtual_account === "Yes" ? true : (item.virtual_account === "No" ? false : null),
       })),
 
       deletedBankDetails: deletedBankDetails || [], // Deleted bank details, if any
@@ -1756,6 +1819,8 @@ const SectionReKYCDetails = () => {
             attachment: item.isNew
               ? bankAttachments[item.id] || null // If new attachment exists, pass it; otherwise, null
               : bankAttachments[item.id] || (item.attachment ? null : null), // If existing, only pass null if no new file is uploaded
+              company_codes: item.selected_company?.value ? [item.selected_company.value] : [],
+                    is_vertual: item.virtual_account === "Yes" ? true : (item.virtual_account === "No" ? false : null),
           })),
 
           deletedBankDetails: deletedBankDetails || [], // Deleted bank details, if any
@@ -1919,7 +1984,7 @@ const SectionReKYCDetails = () => {
           <p>Loading...</p>
         </div>
       ) :
-        rekycStatus === "pending" ? (
+        rekycStatus === "approved" ? (
           <div className="website-content overflowY-auto">
             <div className="card mx-4 pb-4 mt-4">
               <div className="card-header3">
@@ -4703,6 +4768,66 @@ const SectionReKYCDetails = () => {
                               )}
                           </div>
                         </div>
+
+                        {/* Virtual Account */}
+                        <div className="col-md-4 mt-2">
+                          <div className="form-group">
+                            <label>
+                              Virtual Account
+                            </label>
+                            <SingleSelector
+                              options={[{ label: 'Yes', value: 'Yes' }, { label: 'No', value: 'No' }]}
+                              value={[{ label: 'Yes', value: 'Yes' }, { label: 'No', value: 'No' }].find(opt => opt.value === bankDetail.virtual_account) || null}
+                              onChange={selected => handleInputChange({ target: { value: selected?.value || "" } }, bankDetail.id, "virtual_account")}
+                              placeholder="Select Virtual Account"
+                              isDisabled={!bankDetail.isNew}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Select Company (if Virtual Account is Yes) */}
+                        {bankDetail.virtual_account === 'Yes' && (
+                          <div className="col-md-4 mt-2">
+                            <div className="form-group">
+                              <label>
+                                Select Company <span>*</span>
+                              </label>
+                              <SingleSelector
+                                options={companyOptions}
+                                value={bankDetail.selected_company}
+                                onChange={selected => handleInputChange({ target: { value: selected } }, bankDetail.id, "selected_company")}
+                                placeholder="Select Company"
+                                isDisabled={!bankDetail.isNew}
+                              />
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Generated Virtual Account Code - only show for existing banks with virtual account = Yes */}
+                        {!bankDetail.isNew && bankDetail.virtual_account === "Yes" && (
+                          <div className="col-md-4 mt-2">
+                            <div className="form-group">
+                              <label>
+                                Generated Virtual Account Code
+                              </label>
+                              <input
+                                className="form-control"
+                                type="text"
+                                placeholder="Enter Generated Virtual Account Code"
+                                value={bankDetail.virtual_account_code || ''}
+                                onChange={(e) =>
+                                  handleInputChange(
+                                    e,
+                                    bankDetail.id,
+                                    "virtual_account_code"
+                                  )
+                                }
+                                disabled
+                              />
+                            </div>
+                          </div>
+                        )}
+
                         {/* Cancelled Cheque / Bank Copy */}
                         <div className="col-md-4 mt-2">
                           <div className="form-group">

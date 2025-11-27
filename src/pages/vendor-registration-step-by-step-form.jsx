@@ -7012,7 +7012,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                             <input
                                                                 className="form-control"
                                                                 type="text"
-                                                                placeholder="Enter Address"
+                                                                placeholder="Enter Type of Work"
                                                                 value={basicInfo.typeOfWork}
                                                                 onChange={e => updateBasicInfo('typeOfWork', e.target.value)}
                                                             />
