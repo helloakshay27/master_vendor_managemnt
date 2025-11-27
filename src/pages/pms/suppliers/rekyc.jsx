@@ -1984,7 +1984,7 @@ const SectionReKYCDetails = () => {
           <p>Loading...</p>
         </div>
       ) :
-        rekycStatus === "approved" ? (
+        rekycStatus === "pending" ? (
           <div className="website-content overflowY-auto">
             <div className="card mx-4 pb-4 mt-4">
               <div className="card-header3">
