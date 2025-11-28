@@ -219,7 +219,17 @@ const SectionReKYCDetails = () => {
       setEInvoicingApplicable(response.data?.einvoicing);
       setMsmeUdyamApplicable(response.data?.msme_details?.msme);
       setMsmeEnterpriseType(response.data?.msme_details?.enterprise);
-      setBankDetailsList(response.data?.bank_details);
+      // setBankDetailsList(response.data?.bank_details);
+
+const normalizedBankDetails = response.data?.bank_details?.map(detail => ({
+  ...detail,
+  virtual_account: detail.is_vertual ? "Yes" : "No",
+  selected_company: detail.company_codes?.[0] || null, // preselect first company if needed
+}));
+
+setBankDetailsList(normalizedBankDetails);
+
+
       setMsmeNo(response.data?.msme_details?.msme_no);
       setUdyamRegistrationDate(response.data?.msme_details?.udyam_registration_date || "");
       setValidFrom(response.data?.msme_details?.valid_from);
