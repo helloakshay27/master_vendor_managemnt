@@ -71,6 +71,15 @@ function Members() {
               <li>
                 <Link to="/vendor-registration-step-by-step-form">Vendor Registration Form step by step</Link>
               </li>
+              {/* <li>a
+                <Link to="/vendor-details-form">Vendor Details Form</Link>
+              </li> */}
+              <li>
+                <Link to="/vendor-detail-form-stepper">Vendor Detail Form Stepper</Link>
+              </li>
+
+
+
               {/* <li>
                 <Link to="/user-list">user_list</Link>
               </li>

@@ -39,6 +39,8 @@ import ConfirmationPage from "./pages/confirmation.jsx";
 import VendorRegistrationForm from "./pages/vendor-registration-form.jsx";
 import VendorRegistrationStepByStepForm from "./pages/vendor-registration-step-by-step-form.jsx";
 
+import VendorDetailFormStepper from "./pages/vendor-detail-form-stepper.jsx";
+
 function App() {
   return (
     <BrowserRouter>
@@ -100,6 +102,8 @@ function App() {
           <Route path="/approval-edit/:id" element={<ApprovalEdit />} />
           <Route path="/vendor-registration-form/:id" element={<VendorRegistrationForm />} />
            <Route path="/vendor-registration-step-by-step-form/:id" element={<VendorRegistrationStepByStepForm />} />
+                     {/* <Route path="/vendor-details-form/:id" element={<VendorDetailsForm />} /> */}
+                     <Route path="/vendor-detail-form-stepper/:id" element={<VendorDetailFormStepper />} />
         </Routes>
       </div>
     </BrowserRouter>
