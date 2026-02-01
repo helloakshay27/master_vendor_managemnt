@@ -78,7 +78,9 @@ function Members() {
                 <Link to="/vendor-detail-form-stepper">Vendor Detail Form Stepper</Link>
               </li>
 
-
+               <li>
+                <Link to="/rekyc-detail">Rekyc Detail</Link>
+              </li>
 
               {/* <li>
                 <Link to="/user-list">user_list</Link>

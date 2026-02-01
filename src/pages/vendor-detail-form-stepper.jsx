@@ -4,6 +4,7 @@ import axios from "axios";
 import { baseURL } from "../confi/apiDomain";
 import "../styles/mor.css";
 import DynamicModalBox from "../components/base/Modal/DynamicModalBox";
+import Select from "react-select";
 
 // Add custom scrollbar styles
 const scrollbarStyles = `
@@ -37,6 +38,24 @@ const scrollbarStyles = `
     .vendor-detail-stepper-content::-webkit-scrollbar-thumb:hover {
         background: #c9441a;
     }
+    .tbl-container {
+        width: 100%;
+        overflow-x: auto;
+    }
+    .tbl-container table thead th {
+        white-space: nowrap;
+        background-color: #f8f9fa;
+        color: #333;
+        font-weight: 600;
+        padding: 12px 8px;
+        border: 1px solid #dee2e6;
+    }
+    .tbl-container table tbody td {
+        white-space: nowrap;
+        padding: 10px 8px;
+        border: 1px solid #dee2e6;
+        vertical-align: middle;
+    }
 `;
 
 // Helper function to normalize strings for comparison
@@ -53,11 +72,14 @@ const VendorDetailFormStepper = () => {
     // Get token from URL query parameters (like approval-matrix page)
     const urlParams = new URLSearchParams(location.search);
     const token = urlParams.get("token");
+    const historyIdsFromUrl = urlParams.get("history_ids");
     
     // Loading and data states
     const [loading, setLoading] = useState(true);
     const [vendorData, setVendorData] = useState(null);
     const [checklistConfig, setChecklistConfig] = useState([]);
+    const [approvalLogs, setApprovalLogs] = useState([]);
+    const [departments, setDepartments] = useState([]);
     
     // Define all steps
     const steps = [
@@ -78,7 +100,7 @@ const VendorDetailFormStepper = () => {
     const [showReturnFiling, setShowReturnFiling] = useState(false);
     const [showDelegateApproval, setShowDelegateApproval] = useState(false);
     const [delegateRemark, setDelegateRemark] = useState("");
-    const [delegateDepartment, setDelegateDepartment] = useState("Billing");
+    const [delegateDepartment, setDelegateDepartment] = useState("");
 
     // Prequalification (dummy, UI-focused)
     const [qualificationStatus, setQualificationStatus] = useState("Approved");
@@ -87,6 +109,8 @@ const VendorDetailFormStepper = () => {
     const [markAllNaFinancial, setMarkAllNaFinancial] = useState(false);
     const [markAllNaTechnical, setMarkAllNaTechnical] = useState(false);
     const [organizationStatus, setOrganizationStatus] = useState("Approved");
+    const [higherRateApplicable, setHigherRateApplicable] = useState(false);
+    const [panAadharNotLinked, setPanAadharNotLinked] = useState(false);
 
     // Fetch vendor data and checklist configuration from API
     useEffect(() => {
@@ -102,6 +126,9 @@ const VendorDetailFormStepper = () => {
                 // Construct API URL with dynamic supplier ID
                 const vendorUrl = `${baseURL}/pms/suppliers/${supplierId}/supplier_show.json`;
                 const checklistUrl = `${baseURL}/pms/suppliers/${supplierId}/checklist_configuration`;
+                const approvalLogsUrl = `${baseURL}/pms/suppliers/${supplierId}/approval_logs.json`;
+                
+                const dropdownsUrl = `${baseURL}/pms/suppliers/dropdowns`;
                 
                 // Add token to request if available
                 const config = {};
@@ -109,17 +136,46 @@ const VendorDetailFormStepper = () => {
                     config.params = { token };
                 }
                 
-                console.log("Fetching vendor data from:", vendorUrl);
-                const [vendorResponse, checklistResponse] = await Promise.all([
+                console.log("Fetching data from:", vendorUrl);
+                const [vendorResponse, checklistResponse, logsResponse, dropdownsResponse] = await Promise.all([
                     axios.get(vendorUrl, config),
-                    axios.get(checklistUrl, config).catch(() => ({ data: [] }))
+                    axios.get(checklistUrl, config).catch(() => ({ data: [] })),
+                    axios.get(approvalLogsUrl, config).catch(() => ({ data: [] })),
+                    axios.get(dropdownsUrl, config).catch(() => ({ data: { departments: [] } }))
                 ]);
 
                 console.log("Vendor data received:", vendorResponse.data);
                 console.log("Checklist configuration received:", checklistResponse.data);
+                console.log("Approval logs received:", logsResponse.data);
+                console.log("Dropdowns received:", dropdownsResponse.data);
                 
                 setVendorData(vendorResponse.data);
                 setChecklistConfig(checklistResponse.data || []);
+                setDepartments(dropdownsResponse.data?.departments || []);
+
+                // Process logs to include srNo if not present and match UI expected fields
+                const processedLogs = (logsResponse.data || []).map((log, index) => ({
+                    id: log.id,
+                    srNo: index + 1,
+                    category: log.category || "Registration Form",
+                    subCategory: log.sub_category || "",
+                    approvalSection: log.approval_section || log.approval_matrix_name || "PM/CM/HOD",
+                    approvedBy: log.approved_by_name || log.approved_by || "",
+                    date: log.updated_at || log.created_at || "30-01-2026 13:29:44",
+                    status: log.status || "Pending",
+                    remark: log.remark || "",
+                    delegateTo: log.delegate_to_name || log.delegate_to || "",
+                    delegateRemark: log.delegate_remark || "",
+                    users: log.users_list || log.users || "Satyam Madrewar,Dinesh Shinde,Ajay Ghenand"
+                }));
+                setApprovalLogs(processedLogs);
+
+                // Set initial compliance values if available
+                if (vendorResponse.data?.supplier) {
+                    setHigherRateApplicable(vendorResponse.data.supplier.higher_rate_app || false);
+                    setPanAadharNotLinked(!(vendorResponse.data.supplier.pan_aadhar_linked ?? true));
+                }
+
                 setLoading(false);
             } catch (error) {
                 console.error("Error fetching data:", error);
@@ -217,48 +273,6 @@ const VendorDetailFormStepper = () => {
         return vals.reduce((a, b) => a + b, 0);
     }, [scoreByApprover]);
 
-    const approvalLogs = useMemo(() => ([
-        {
-            srNo: 1,
-            category: "Technical Pre-Qualification",
-            subCategory: "Technical Capability (To be Check by PM/CM/HOD)",
-            approvalSection: "Level 1",
-            approvedBy: "-",
-            date: "27-06-2025 18:09:01",
-            status: "Pending",
-            remark: "-"
-        },
-        {
-            srNo: 2,
-            category: "Technical Pre-Qualification",
-            subCategory: "Contractual Parameters",
-            approvalSection: "Level 1",
-            approvedBy: "Nabarun Pal",
-            date: "30-06-2025 10:14:44",
-            status: "Approved",
-            remark: "Approved for Interior designing works"
-        },
-        {
-            srNo: 3,
-            category: "Technical Pre-Qualification",
-            subCategory: "QAQC Parameter",
-            approvalSection: "Level 1",
-            approvedBy: "Amol Yadav",
-            date: "30-06-2025 16:57:22",
-            status: "Approved",
-            remark: "QAQC approval not required for design work"
-        },
-        {
-            srNo: 4,
-            category: "Technical Pre-Qualification",
-            subCategory: "HSE parameter",
-            approvalSection: "Level 1",
-            approvedBy: "Anil Thorat",
-            date: "30-06-2025 09:42:17",
-            status: "Approved",
-            remark: "Whenever vendor visits the site must ensure HSE compliance"
-        }
-    ]), []);
 
     // Map API data for Client References
     const clientReferencesData = useMemo(() => {
@@ -575,6 +589,106 @@ const VendorDetailFormStepper = () => {
         }));
     }, [vendorData]);
 
+    const handleSave = async () => {
+        try {
+            const snagAnswers = {};
+            const allQuestionIds = new Set([
+                ...Object.keys(scoreByApprover),
+                ...Object.keys(remarkByApprover)
+            ]);
+
+            allQuestionIds.forEach(id => {
+                let qChecklistId = null;
+                checklistConfig.forEach(cat => {
+                    cat.subcats.forEach(sub => {
+                        const question = sub.questions.find(q => String(q.id) === String(id));
+                        if (question) {
+                            qChecklistId = question.checklist_id; 
+                        }
+                    });
+                });
+
+                snagAnswers[id] = {
+                    checklist_id: qChecklistId,
+                    passing_score: Number(scoreByApprover[id]) || 0,
+                    remarks: remarkByApprover[id] || (markAllNaTechnical ? "NA" : "")
+                };
+            });
+
+            const historyIds = historyIdsFromUrl || approvalLogs.map(log => log.id).filter(id => id).join(",");
+            const userId = sessionStorage.getItem("user_id") || 45;
+
+            const payload = {
+                status: qualificationStatus.toLowerCase(),
+                remarks: approverRemark,
+                user_id: userId,
+                history_ids: historyIds,
+                snag_answers: snagAnswers,
+                pms_supplier: {
+                    higher_rate_app: higherRateApplicable,
+                    pan_aadhar_linked: !panAadharNotLinked,
+                    withholding_type_id: 2,
+                    withholding_section_id: 5,
+                    type_of_recipient_id: 1
+                }
+            };
+
+            const url = `${baseURL}/pms/suppliers/${supplierId}/update_status.json`;
+            const config = {
+                params: token ? { token } : {}
+            };
+            
+            console.log("Saving qualification status...", payload);
+            const response = await axios.put(url, payload, config);
+            
+            if (response.status === 200 || response.status === 204) {
+                alert("Status updated successfully!");
+            }
+        } catch (error) {
+            console.error("Error updating status:", error);
+            alert("Failed to update status. Please try again.");
+        }
+    };
+
+    const handleDelegate = async () => {
+        try {
+            // Get the first history_id from URL or logs
+            const historyIdStr = historyIdsFromUrl ? historyIdsFromUrl.split(',')[0] : (approvalLogs[0]?.id || "");
+            
+            console.log("Selected Department State:", delegateDepartment);
+            const deptId = delegateDepartment ? parseInt(delegateDepartment, 10) : null;
+            
+            const payload = {
+                history_id: (historyIdStr && !isNaN(historyIdStr)) ? Number(historyIdStr) : historyIdStr,
+                department_id: isNaN(deptId) ? null : deptId,
+                delegate_remark: delegateRemark
+            };
+
+            const url = `${baseURL}/pms/admin/invoice_approvals/${supplierId}/delegate_approvals.json`;
+            const config = {
+                params: token ? { token } : {}
+            };
+
+            console.log("Delegating approval with payload:", payload);
+            const response = await axios.post(url, payload, config);
+
+            if (response.status === 200 || response.status === 201 || response.status === 204) {
+                if (response.data && response.data.success === false) {
+                    alert(response.data.error || "Failed to delegate approval.");
+                    return;
+                }
+                alert("Approval delegated successfully!");
+                setShowDelegateApproval(false);
+                setDelegateRemark("");
+                setDelegateDepartment("");
+            }
+        } catch (error) {
+            console.error("Error delegating approval:", error);
+            const apiError = error.response?.data?.error || error.response?.data?.message || "Failed to delegate approval. Please try again.";
+            alert(apiError);
+        }
+    };
+
     const handleStepClick = (index) => {
         setCurrentStep(index);
     };
@@ -595,12 +709,12 @@ const VendorDetailFormStepper = () => {
         <>
             <style>{scrollbarStyles}</style>
             {loading ? (
-                <div className="website-content d-flex justify-content-center align-items-center" style={{ height: "80vh" }}>
+                <div className="website-content d-flex justify-content-center align-items-center" style={{ minHeight: '80vh' }}>
                     <div className="text-center">
-                        <div className="spinner-border text-primary" role="status" style={{ width: "3rem", height: "3rem" }}>
-                            <span className="sr-only">Loading...</span>
+                        <div className="spinner-border text-primary" role="status">
+                            <span className="visually-hidden">Loading...</span>
                         </div>
-                        <p className="mt-3">Loading vendor details...</p>
+                        <p className="mt-2">Loading Vendor Details...</p>
                     </div>
                 </div>
             ) : (
@@ -1396,7 +1510,7 @@ const VendorDetailFormStepper = () => {
                                             </div>
                                         </div>
                             </div>
-                             <div className="col-lg-2 col-md-2 col-sm-12 mt-2 ms-auto">
+                             {/* <div className="col-lg-2 col-md-2 col-sm-12 mt-2 ms-auto">
                                                     <label htmlFor="status-select" className="form-label">Status</label>
                                                     <select
                                                         className="form-select"
@@ -1408,7 +1522,7 @@ const VendorDetailFormStepper = () => {
                                                         <option value="Pending">Pending</option>
                                                         <option value="Completed">Completed</option>
                                                     </select>
-                                                </div>
+                                                </div> */}
                         </div>
                     )}
 
@@ -1738,19 +1852,7 @@ const VendorDetailFormStepper = () => {
                                             </div>
                                         </div>
                                     </div>
-                                     <div className="col-lg-2 col-md-2 col-sm-12 mt-2 ms-auto">
-                                                    <label htmlFor="status-select" className="form-label">Status</label>
-                                                    <select
-                                                        className="form-select"
-                                                        value={organizationStatus}
-                                                        onChange={(e) => setOrganizationStatus(e.target.value)}
-                                                        id="status-select"
-                                                    >
-                                                        <option value="Approved">Approved</option>
-                                                        <option value="Pending">Pending</option>
-                                                        <option value="Completed">Completed</option>
-                                                    </select>
-                                                </div>
+                                   
                                 </div>
                             )}
 
@@ -2023,19 +2125,7 @@ const VendorDetailFormStepper = () => {
                                         </div>
                                     ))}
 
-                                     <div className="col-lg-2 col-md-2 col-sm-12 mt-2 ms-auto">
-                                                    <label htmlFor="status-select" className="form-label">Status</label>
-                                                    <select
-                                                        className="form-select"
-                                                        value={organizationStatus}
-                                                        onChange={(e) => setOrganizationStatus(e.target.value)}
-                                                        id="status-select"
-                                                    >
-                                                        <option value="Approved">Approved</option>
-                                                        <option value="Pending">Pending</option>
-                                                        <option value="Completed">Completed</option>
-                                                    </select>
-                                                </div>
+                                    
                                 </div>
                             )}
 
@@ -2593,19 +2683,7 @@ const VendorDetailFormStepper = () => {
                                             </table>
                                         </div>
                                     </div>
-                                     <div className="col-lg-2 col-md-2 col-sm-12 mt-2 ms-auto">
-                                                    <label htmlFor="status-select" className="form-label">Status</label>
-                                                    <select
-                                                        className="form-select"
-                                                        value={organizationStatus}
-                                                        onChange={(e) => setOrganizationStatus(e.target.value)}
-                                                        id="status-select"
-                                                    >
-                                                        <option value="Approved">Approved</option>
-                                                        <option value="Pending">Pending</option>
-                                                        <option value="Completed">Completed</option>
-                                                    </select>
-                                                </div>
+                                   
                                 </div>
                             )}
 
@@ -2702,22 +2780,10 @@ const VendorDetailFormStepper = () => {
                                 ) : null}
                             </div>
                         </div>
-                         <div className="col-lg-2 col-md-2 col-sm-12 mt-2 ms-auto">
-                                                    <label htmlFor="status-select" className="form-label">Status</label>
-                                                    <select
-                                                        className="form-select"
-                                                        value={organizationStatus}
-                                                        onChange={(e) => setOrganizationStatus(e.target.value)}
-                                                        id="status-select"
-                                                    >
-                                                        <option value="Approved">Approved</option>
-                                                        <option value="Pending">Pending</option>
-                                                        <option value="Completed">Completed</option>
-                                                    </select>
-                                                </div>
+                       
 
 
-                                                 <div className="card mx-4 pb-4 mt-4">
+                                                 {/* <div className="card mx-4 pb-4 mt-4">
                         <div
                         
                          >
@@ -2752,36 +2818,10 @@ const VendorDetailFormStepper = () => {
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </div> */}
 
                     {/* 206AB Compliance */}
-                    <div className="card mx-4  mt-4">
-                        <div 
-                        // style={{ background: '#e95420', width: 'fit-content', borderRadius: '4px', padding: '5px 15px', marginTop: '-15px', marginLeft: '15px' }}
-                        
-                        >
-                            <h3 className="card-title" 
-                            // style={{ color: 'white', margin: 0, fontSize: '14px' }}
-                            >206AB Compliance</h3>
-                        </div>
-                        <div className="card-body mt-6">
-                            <div className="row px-2 mt-4">
-                                <div className="col-lg-6 col-md-6 col-sm-12 d-flex align-items-center">
-                                    <input type="checkbox" className="form-check-input me-2" 
-                                    // checked={higherRateApplicable} onChange={(e) => setHigherRateApplicable(e.target.checked)} 
-                                    />
-                                    <label className="form-check-label">Higher Rate Applicable</label>
-                                </div>
-                                <div className="col-lg-6 col-md-6 col-sm-12 d-flex align-items-center mt-4">
-                                    
-                                    <input type="checkbox" className="form-check-input me-2"
-                                    //  checked={panAadharNotLinked} onChange={(e) => setPanAadharNotLinked(e.target.checked)}
-                                      />
-                                    <label className="form-check-label">Pan & Aadhar Not Linked</label>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                   
 
                    
                     </div>
@@ -3095,6 +3135,38 @@ const VendorDetailFormStepper = () => {
                                                 onChange={(e) => setInvitationRemark(e.target.value)}
                                             />
                                         </div>
+                                         <div className="card mx-4  mt-4">
+                        <div 
+                        // style={{ background: '#e95420', width: 'fit-content', borderRadius: '4px', padding: '5px 15px', marginTop: '-15px', marginLeft: '15px' }}
+                        
+                        >
+                            <h3 className="card-title" 
+                            // style={{ color: 'white', margin: 0, fontSize: '14px' }}
+                            >206AB Compliance</h3>
+                        </div>
+                        <div className="card-body mt-6">
+                            <div className="row px-2 mt-4">
+                                 <div className="col-lg-6 col-md-6 col-sm-12 d-flex align-items-center">
+                                    <input 
+                                        type="checkbox" 
+                                        className="form-check-input me-2" 
+                                        checked={higherRateApplicable} 
+                                        onChange={(e) => setHigherRateApplicable(e.target.checked)} 
+                                    />
+                                    <label className="form-check-label">Higher Rate Applicable</label>
+                                </div>
+                                <div className="col-lg-6 col-md-6 col-sm-12 d-flex align-items-center mt-4">
+                                    <input 
+                                        type="checkbox" 
+                                        className="form-check-input me-2"
+                                        checked={panAadharNotLinked} 
+                                        onChange={(e) => setPanAadharNotLinked(e.target.checked)}
+                                    />
+                                    <label className="form-check-label">Pan & Aadhar Not Linked</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
                                         <div className="mx-1 mt-3">
                                             <div className="mb-2">
@@ -3113,15 +3185,23 @@ const VendorDetailFormStepper = () => {
                                         <div className="d-flex justify-content-end mt-3">
                                             <div style={{ minWidth: 260 }}>
                                                 <label className="mb-1">Status</label>
-                                                <select
-                                                    className="form-select"
-                                                    value={qualificationStatus}
-                                                    onChange={(e) => setQualificationStatus(e.target.value)}
-                                                >
-                                                    <option value="Approved">Approved</option>
-                                                    <option value="Pending">Pending</option>
-                                                    <option value="Rejected">Rejected</option>
-                                                </select>
+                                                <Select
+                                                    options={[
+                                                        { value: "Approved", label: "Approved" },
+                                                        { value: "Rejected", label: "Rejected" },
+                                                        { value: "Request For Resubmission", label: "Request For Resubmission" }
+                                                    ]}
+                                                    value={[
+                                                        { value: "Approved", label: "Approved" },
+                                                        { value: "Rejected", label: "Rejected" },
+                                                        { value: "Request For Resubmission", label: "Request For Resubmission" }
+                                                    ].find(opt => opt.value === qualificationStatus) || null}
+                                                    onChange={(selected) => setQualificationStatus(selected?.value || "")}
+                                                    className="basic-single"
+                                                    classNamePrefix="select"
+                                                    menuPortalTarget={document.body}
+                                                    styles={{ menuPortal: base => ({ ...base, zIndex: 9999 }) }}
+                                                />
                                             </div>
                                         </div>
 
@@ -3129,9 +3209,7 @@ const VendorDetailFormStepper = () => {
                                             <button
                                                 type="button"
                                                 className="purple-btn2"
-                                                onClick={() => {
-                                                    // detail-view dummy save
-                                                }}
+                                                onClick={handleSave}
                                             >
                                                 Save
                                             </button>
@@ -3146,6 +3224,8 @@ const VendorDetailFormStepper = () => {
                                             </button>
                                         </div>
                                     </div>
+
+                                    
                                     
                                 </>
                             )}
@@ -3159,56 +3239,61 @@ const VendorDetailFormStepper = () => {
             <DynamicModalBox
                 show={showApprovalLog}
                 onHide={() => setShowApprovalLog(false)}
-                size="xl"
-                title={<span style={{ color: "#de7008" }}>Approval Log</span>}
+                size="lg"
+                title="Approval Log"
             >
-                <div className="d-flex justify-content-start mb-3">
-                    <button type="button" className="btn btn-success">
-                        Export to Excel
-                    </button>
-                </div>
-                <div className="table-responsive">
-                    <table className="table table-bordered">
-                        <thead>
-                            <tr style={{ background: "#de7008", color: "#fff" }}>
-                                <th>Sr.No.</th>
-                                <th>Category</th>
-                                <th>Sub Category</th>
-                                <th>Approval Section</th>
-                                <th>Approved By</th>
-                                <th>Date</th>
-                                <th>Status</th>
-                                <th>Remark</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {approvalLogs.map((row) => (
-                                <tr key={row.srNo}>
-                                    <td>{row.srNo}</td>
-                                    <td>{row.category}</td>
-                                    <td>{row.subCategory}</td>
-                                    <td>{row.approvalSection}</td>
-                                    <td>{row.approvedBy}</td>
-                                    <td>{row.date}</td>
-                                    <td>
-                                        <span
-                                            style={{
-                                                display: "inline-block",
-                                                padding: "4px 10px",
-                                                borderRadius: 4,
-                                                fontWeight: 600,
-                                                background: row.status === "Approved" ? "#0b7a0b" : "#fff59d",
-                                                color: row.status === "Approved" ? "#fff" : "#000"
-                                            }}
-                                        >
-                                            {row.status}
-                                        </span>
-                                    </td>
-                                    <td>{row.remark}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                <div className="row mt-1 px-2">
+                    <div className="col-12">
+
+                        <div className="tbl-container me-2 mt-3 overflow-auto">
+                            <table className="w-100 table table-bordered" style={{ width: "100% !important" }}>
+                                <thead>
+                                    <tr>
+                                        <th style={{ width: "66px" }}>Sr.No.</th>
+                                        <th>Category</th>
+                                        <th>Sub Category</th>
+                                        <th>Approval Section</th>
+                                        <th>Approved By</th>
+                                        <th>Date</th>
+                                        <th>Status</th>
+                                        <th>Remark</th>
+                                        <th>Delegate To</th>
+                                        <th>Delegate Remark</th>
+                                        <th>Users</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {approvalLogs.map((row) => (
+                                        <tr key={row.srNo}>
+                                            <td>{row.srNo}</td>
+                                            <td>{row.category}</td>
+                                            <td>{row.subCategory}</td>
+                                            <td>{row.approvalSection}</td>
+                                            <td>{row.approvedBy}</td>
+                                            <td>{row.date}</td>
+                                            <td>
+                                                <span 
+                                                    className="px-2 py-1 rounded" 
+                                                    style={{ 
+                                                        backgroundColor: row.status === "Approved" ? "#198754" : row.status === "Pending" ? "yellow" : "#dc3545", 
+                                                        color: row.status === "Pending" ? "black" : "white" 
+                                                    }}
+                                                >
+                                                    {row.status}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <p>{row.remark}</p>
+                                            </td>
+                                            <td>{row.delegateTo}</td>
+                                            <td>{row.delegateRemark}</td>
+                                            <td>{row.users}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </DynamicModalBox>
 
@@ -3285,7 +3370,7 @@ const VendorDetailFormStepper = () => {
                 footerButtons={[
                     {
                         label: "Delegate",
-                        onClick: () => setShowDelegateApproval(false),
+                        onClick: handleDelegate,
                         props: { type: "button" }
                     }
                 ]}
@@ -3310,10 +3395,12 @@ const VendorDetailFormStepper = () => {
                             value={delegateDepartment}
                             onChange={(e) => setDelegateDepartment(e.target.value)}
                         >
-                            <option value="Billing">Billing</option>
-                            <option value="Purchase">Purchase</option>
-                            <option value="Accounts">Accounts</option>
-                            <option value="Projects">Projects</option>
+                            <option value="">Select Department</option>
+                            {departments.map((dept) => (
+                                <option key={dept.value || dept.id} value={dept.value || dept.id}>
+                                    {dept.name}
+                                </option>
+                            ))}
                         </select>
                     </div>
                 </div>
