@@ -44,8 +44,8 @@ const scrollbarStyles = `
     }
     .tbl-container table thead th {
         white-space: nowrap;
-        background-color: #f8f9fa;
-        color: #333;
+        background-color: #de7008;
+        color: #fff;
         font-weight: 600;
         padding: 12px 8px;
         border: 1px solid #dee2e6;
@@ -111,6 +111,15 @@ const VendorDetailFormStepper = () => {
     const [organizationStatus, setOrganizationStatus] = useState("Approved");
     const [higherRateApplicable, setHigherRateApplicable] = useState(false);
     const [panAadharNotLinked, setPanAadharNotLinked] = useState(false);
+    const [withholdingSections, setWithholdingSections] = useState([]);
+    const [typeOfRecipients, setTypeOfRecipients] = useState([]);
+    const [withholdingSection, setWithholdingSection] = useState("");
+    const [typeOfRecipient, setTypeOfRecipient] = useState("");
+    
+    // Return filing states
+    const [gstr1Details, setGstr1Details] = useState([]);
+    const [gstr3bDetails, setGstr3bDetails] = useState([]);
+    const [refreshingFiling, setRefreshingFiling] = useState(false);
 
     // Fetch vendor data and checklist configuration from API
     useEffect(() => {
@@ -152,6 +161,8 @@ const VendorDetailFormStepper = () => {
                 setVendorData(vendorResponse.data);
                 setChecklistConfig(checklistResponse.data || []);
                 setDepartments(dropdownsResponse.data?.departments || []);
+                setWithholdingSections(dropdownsResponse.data?.withholding_sections || []);
+                setTypeOfRecipients(dropdownsResponse.data?.type_of_recipients || []);
 
                 // Process logs to include srNo if not present and match UI expected fields
                 const processedLogs = (logsResponse.data || []).map((log, index) => ({
@@ -174,6 +185,8 @@ const VendorDetailFormStepper = () => {
                 if (vendorResponse.data?.supplier) {
                     setHigherRateApplicable(vendorResponse.data.supplier.higher_rate_app || false);
                     setPanAadharNotLinked(!(vendorResponse.data.supplier.pan_aadhar_linked ?? true));
+                    setWithholdingSection(vendorResponse.data.supplier.withholding_section_id || "");
+                    setTypeOfRecipient(vendorResponse.data.supplier.type_of_recipient_id || "");
                 }
 
                 setLoading(false);
@@ -628,8 +641,8 @@ const VendorDetailFormStepper = () => {
                     higher_rate_app: higherRateApplicable,
                     pan_aadhar_linked: !panAadharNotLinked,
                     withholding_type_id: 2,
-                    withholding_section_id: 5,
-                    type_of_recipient_id: 1
+                    withholding_section_id: Number(withholdingSection) || null,
+                    type_of_recipient_id: Number(typeOfRecipient) || null
                 }
             };
 
@@ -647,6 +660,66 @@ const VendorDetailFormStepper = () => {
         } catch (error) {
             console.error("Error updating status:", error);
             alert("Failed to update status. Please try again.");
+        }
+    };
+
+    const handleRefreshFilingDetails = async () => {
+        const gstin = vendorData?.gstin;
+        if (!gstin || gstin.length !== 15) {
+            alert('Invalid GSTIN. Please check and try again.');
+            return;
+        }
+
+        try {
+            setRefreshingFiling(true);
+            // 1. Get token proxy and GSTIN details
+            const tokenProxyUrl = `${baseURL}/pms/suppliers/get_token_proxy`;
+            const proxyResponse = await axios.post(tokenProxyUrl, { gstin });
+            const data = proxyResponse.data;
+
+            if (data.gstin_details?.status_cd === '1') {
+                // Save GST details
+                try {
+                    await axios.post(`${baseURL}/pms/suppliers/create_gst_detail`, {
+                        supplier_id: supplierId,
+                        gst_details: data.gstin_details.data
+                    });
+                    console.log("GST details saved successfully!");
+                } catch (saveError) {
+                    console.error("Error saving GST details:", saveError);
+                }
+            } else {
+                alert('GSTIN not found or error retrieving details.');
+            }
+
+            if (data.return_filing_status_details?.data?.EFiledlist) {
+                const filingList = data.return_filing_status_details.data.EFiledlist;
+                
+                // Save return filing status
+                try {
+                    await axios.post(`${baseURL}/pms/suppliers/save_return_filing_status`, {
+                        gstin: gstin,
+                        data: { EFiledlist: filingList }
+                    });
+                    console.log("Return filing status saved successfully!");
+                } catch (saveFilingError) {
+                    console.error("Error saving filing status:", saveFilingError);
+                }
+
+                // Update UI
+                const g1 = filingList.filter(f => f.rtntyp === 'GSTR1' || f.rtntyp === 'GSTR-1');
+                const g3b = filingList.filter(f => f.rtntyp === 'GSTR3B' || f.rtntyp === 'GSTR-3B');
+                setGstr1Details(g1);
+                setGstr3bDetails(g3b);
+                alert("Return filing data refreshed successfully!");
+            } else {
+                alert('Return filing status not found or error retrieving details.');
+            }
+        } catch (error) {
+            console.error('Error fetching details:', error);
+            alert('An error occurred while fetching return filing details.');
+        } finally {
+            setRefreshingFiling(false);
         }
     };
 
@@ -2781,46 +2854,6 @@ const VendorDetailFormStepper = () => {
                             </div>
                         </div>
                        
-
-
-                                                 {/* <div className="card mx-4 pb-4 mt-4">
-                        <div
-                        
-                         >
-                            <h3 className="card-title" style={{ color: 'white', margin: 0, fontSize: '14px' }}>Withholding Tax Data</h3>
-                        </div>
-                        <div className="card-body mt-4">
-                            <div className="row px-3">
-                                <div className="col-lg-6 col-md-6 col-sm-12 mt-4">
-                                    <label className="form-label">Withholding Section <span className="text-danger">*</span></label>
-                                    <select className="form-select"
-                                    //  value={withholdingSection} onChange={(e) => setWithholdingSection(e.target.value)}
-                                     >
-                                        <option value="">Select Withholding Section</option>
-                                        <option value="194C">194C - Contractor</option>
-                                        <option value="194J">194J - Professional</option>
-                                        <option value="194I">194I - Rent</option>
-                                        <option value="194A">194A - Interest</option>
-                                        <option value="194Q">194Q - Purchase of Goods</option>
-                                    </select>
-                                </div>
-                                <div className="col-lg-6 col-md-6 col-sm-12 mt-4">
-                                    <label className="form-label">Type Of Recipient <span className="text-danger">*</span></label>
-                                    <select className="form-select"
-                                    //  value={typeOfRecipient} onChange={(e) => setTypeOfRecipient(e.target.value)}
-                                     >
-                                        <option value="">Select Type Of Recipient</option>
-                                        <option value="Company">Company</option>
-                                        <option value="Individual">Individual</option>
-                                        <option value="HUF">HUF</option>
-                                        <option value="Firm">Firm</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                    </div> */}
-
-                    {/* 206AB Compliance */}
                    
 
                    
@@ -2886,9 +2919,9 @@ const VendorDetailFormStepper = () => {
                                                                     <td className="text-start">{row.srNo}</td>
                                                                     <td className="text-start">
                                                                         {row.particulars}{" "}
-                                                                        <i style={{ fontSize: 16, color: "black", marginLeft: 6 }} className="fa">
+                                                                        {/* <i style={{ fontSize: 16, color: "black", marginLeft: 6 }} className="fa">
                                                                             {"\uF129"}
-                                                                        </i>
+                                                                        </i> */}
                                                                     </td>
                                                                     <td className="text-start">{markAllNaFinancial ? "NA" : row.vendorReply}</td>
                                                                     <td className="text-start">
@@ -3032,9 +3065,9 @@ const VendorDetailFormStepper = () => {
                                                                     <td className="text-start">{row.srNo}</td>
                                                                     <td className="text-start">
                                                                         {row.particulars}{" "}
-                                                                        <i style={{ fontSize: 16, color: "black", marginLeft: 6 }} className="fa">
+                                                                        {/* <i style={{ fontSize: 16, color: "black", marginLeft: 6 }} className="fa">
                                                                             {"\uF129"}
-                                                                        </i>
+                                                                        </i> */}
                                                                     </td>
                                                                     <td className="text-start">{markAllNaTechnical ? "NA" : row.vendorReply}</td>
                                                                     <td className="text-start">
@@ -3135,11 +3168,63 @@ const VendorDetailFormStepper = () => {
                                                 onChange={(e) => setInvitationRemark(e.target.value)}
                                             />
                                         </div>
-                                         <div className="card mx-4  mt-4">
+
+
+    <div className="card mx-2 pb-4 mt-4">
+                        <div
+                        
+                         >
+                            <h3 className="card-title" style={{ color: 'white', margin: 0, fontSize: '14px' }}>Withholding Tax Data</h3>
+                        </div>
+                        <div className="card-body mt-4">
+                            <div className="row px-3">
+                                <div className="col-lg-6 col-md-6 col-sm-12 mt-4">
+                                    <label className="form-label">Withholding Section <span className="text-danger">*</span></label>
+                                    <select 
+                                        className="form-select"
+                                        value={withholdingSection} 
+                                        onChange={(e) => setWithholdingSection(e.target.value)}
+                                     >
+                                        <option value="">Select Withholding Section</option>
+                                        {withholdingSections.map((ws) => (
+                                            <option key={ws.value} value={ws.value}>
+                                                {ws.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="col-lg-6 col-md-6 col-sm-12 mt-4">
+                                    <label className="form-label">Type Of Recipient <span className="text-danger">*</span></label>
+                                    <select 
+                                        className="form-select"
+                                        value={typeOfRecipient} 
+                                        onChange={(e) => setTypeOfRecipient(e.target.value)}
+                                     >
+                                        <option value="">Select Type Of Recipient</option>
+                                        {typeOfRecipients.map((tr) => (
+                                            <option key={tr.value} value={tr.value}>
+                                                {tr.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div> 
+
+
+
+
+
+
+
+                                         <div className="card mx-2  mt-4">
                         <div 
                         // style={{ background: '#e95420', width: 'fit-content', borderRadius: '4px', padding: '5px 15px', marginTop: '-15px', marginLeft: '15px' }}
                         
                         >
+
+    
                             <h3 className="card-title" 
                             // style={{ color: 'white', margin: 0, fontSize: '14px' }}
                             >206AB Compliance</h3>
@@ -3301,63 +3386,109 @@ const VendorDetailFormStepper = () => {
             <DynamicModalBox
                 show={showReturnFiling}
                 onHide={() => setShowReturnFiling(false)}
-                size="xl"
+                size="lg"
                 title={<span style={{ color: "#de7008" }}>Return Filing Details</span>}
             >
-                <div className="d-flex justify-content-start mb-3">
-                    <button type="button" className="btn btn-primary">
-                        Refresh
-                    </button>
-                </div>
+                <div className="row mt-2 px-2">
+                    <div className="col-12">
+                        <button 
+                            type="button" 
+                            className="btn btn-primary refresh-button" 
+                            onClick={handleRefreshFilingDetails}
+                            disabled={refreshingFiling}
+                        >
+                            {refreshingFiling ? (
+                                <>
+                                    <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" />
+                                    Refreshing...
+                                </>
+                            ) : "Refresh"}
+                        </button>
 
-                <h5 className="mb-3">GSTR1 Details</h5>
-                <div className="table-responsive mb-4">
-                    <table className="table table-bordered">
-                        <thead>
-                            <tr style={{ background: "#de7008", color: "#fff" }}>
-                                <th>GSTIN</th>
-                                <th>ARN</th>
-                                <th>Return Period</th>
-                                <th>Return Type</th>
-                                <th>Status</th>
-                                <th>Valid</th>
-                                <th>Method Of Filing</th>
-                                <th>Date Of Filing</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td colSpan={8} className="text-center">
-                                    No records found for GSTR1
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+                        <div className="mt-4">
+                            <div className="mt-4 d-flex justify-content-between align-items-center">
+                                <h5 className="fw-bold">GSTR1 Details</h5>
+                            </div>
+                            <div className="tbl-container me-2 mt-2">
+                                <table className="w-100 table table-bordered table-hover" style={{ width: "100% !important" }}>
+                                    <thead className="table-light">
+                                        <tr>
+                                            <th>GSTIN</th>
+                                            <th>ARN</th>
+                                            <th>Return Period</th>
+                                            <th>Return Type</th>
+                                            <th>Status</th>
+                                            <th>Valid</th>
+                                            <th>Method Of Filing</th>
+                                            <th>Date Of Filing</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {gstr1Details.length > 0 ? (
+                                            gstr1Details.map((item, idx) => (
+                                                <tr key={idx}>
+                                                    <td>{item.gstin || vendorData?.gstin}</td>
+                                                    <td>{item.arn || "-"}</td>
+                                                    <td>{item.ret_period || "-"}</td>
+                                                    <td>{item.rtntyp || "-"}</td>
+                                                    <td>{item.status || "-"}</td>
+                                                    <td>{item.valid || "-"}</td>
+                                                    <td>{item.mof || "-"}</td>
+                                                    <td>{item.dof || "-"}</td>
+                                                </tr>
+                                            ))
+                                        ) : (
+                                            <tr>
+                                                <td colSpan={8} className="text-center">No records found for GSTR1</td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
 
-                <h5 className="mb-3">GSTR3B Details</h5>
-                <div className="table-responsive">
-                    <table className="table table-bordered">
-                        <thead>
-                            <tr style={{ background: "#de7008", color: "#fff" }}>
-                                <th>GSTIN</th>
-                                <th>ARN</th>
-                                <th>Return Period</th>
-                                <th>Return Type</th>
-                                <th>Status</th>
-                                <th>Valid</th>
-                                <th>Method Of Filing</th>
-                                <th>Date Of Filing</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td colSpan={8} className="text-center">
-                                    No records found for GSTR3B
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                        <div className="mt-4">
+                            <div className="mt-4 d-flex justify-content-between align-items-center">
+                                <h5 className="fw-bold">GSTR3B Details</h5>
+                            </div>
+                            <div className="tbl-container me-2 mt-2">
+                                <table className="w-100 table table-bordered table-hover" style={{ width: "100% !important" }}>
+                                    <thead className="table-light">
+                                        <tr>
+                                            <th>GSTIN</th>
+                                            <th>ARN</th>
+                                            <th>Return Period</th>
+                                            <th>Return Type</th>
+                                            <th>Status</th>
+                                            <th>Valid</th>
+                                            <th>Method Of Filing</th>
+                                            <th>Date Of Filing</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {gstr3bDetails.length > 0 ? (
+                                            gstr3bDetails.map((item, idx) => (
+                                                <tr key={idx}>
+                                                    <td>{item.gstin || vendorData?.gstin}</td>
+                                                    <td>{item.arn || "-"}</td>
+                                                    <td>{item.ret_period || "-"}</td>
+                                                    <td>{item.rtntyp || "-"}</td>
+                                                    <td>{item.status || "-"}</td>
+                                                    <td>{item.valid || "-"}</td>
+                                                    <td>{item.mof || "-"}</td>
+                                                    <td>{item.dof || "-"}</td>
+                                                </tr>
+                                            ))
+                                        ) : (
+                                            <tr>
+                                                <td colSpan={8} className="text-center">No records found for GSTR3B</td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </DynamicModalBox>
 
