@@ -3331,7 +3331,7 @@ const VendorDetailFormStepper = () => {
             <DynamicModalBox
                 show={showApprovalLog}
                 onHide={() => setShowApprovalLog(false)}
-                size="lg"
+                size="xl"
                 title="Approval Log"
             >
                 <div className="row mt-1 px-2">
