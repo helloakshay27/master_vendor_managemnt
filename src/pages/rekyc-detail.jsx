@@ -9,6 +9,10 @@ const RekycDetail = () => {
     const [searchParams] = useSearchParams();
     const supplierId = searchParams.get('supplier_id') || 9071;
     const rekycId = searchParams.get('rekyc_id')|| 6436;
+    
+    // Get token from URL query parameters (like approval-list page)
+    const token = searchParams.get('token');
+    console.log('Token from URL:', token);
    
 
     const [comments, setComments] = useState('');
@@ -32,8 +36,14 @@ const RekycDetail = () => {
 
             try {
                 setLoading(true);
+                // Construct API URL with token if available
+                const config = {};
+                if (token) {
+                    config.params = { token };
+                }
                 const response = await axios.get(
-                    `${baseURL}/supplier_field_approvals.json?supplier_id=${supplierId}&rekyc_id=${rekycId}`
+                    `${baseURL}/supplier_field_approvals.json?supplier_id=${supplierId}&rekyc_id=${rekycId}`,
+                    config
                 );
                 console.log('REKYC Data:', response.data);
                 setRekycData(response.data);
@@ -45,13 +55,19 @@ const RekycDetail = () => {
         };
 
         fetchRekycData();
-    }, [supplierId, rekycId]);
+    }, [supplierId, rekycId, token]);
 
     // Fetch SAP Logs
     const fetchSapLogs = async () => {
         try {
+            // Add token to request if available
+            const config = {};
+            if (token) {
+                config.params = { token };
+            }
             const response = await axios.get(
-                `${baseURL}/supplier_field_approvals/sap_logs.json?supplier_id=${supplierId}&rekyc_id=${rekycId}`
+                `${baseURL}/supplier_field_approvals/sap_logs.json?supplier_id=${supplierId}&rekyc_id=${rekycId}`,
+                config
             );
             console.log('SAP Logs:', response.data);
             setSapLogs(response.data);
@@ -81,8 +97,15 @@ const RekycDetail = () => {
         setApprovals({ approved: allIds, rejected: [] });
 
         try {
+            // Add token to request if available
+            const config = {};
+            if (token) {
+                config.params = { token };
+            }
             const response = await axios.patch(
-                `${baseURL}/supplier_field_approvals/approve_all.json?supplier_id=${supplierId}&rekyc_id=${rekycId}`
+                `${baseURL}/supplier_field_approvals/approve_all.json?supplier_id=${supplierId}&rekyc_id=${rekycId}`,
+                {},
+                config
             );
             if (response.status === 200 || response.status === 204) {
                 alert('All fields approved successfully');
@@ -101,8 +124,15 @@ const RekycDetail = () => {
         setApprovals({ approved: [], rejected: allIds });
 
         try {
+            // Add token to request if available
+            const config = {};
+            if (token) {
+                config.params = { token };
+            }
             const response = await axios.patch(
-                `${baseURL}/supplier_field_approvals/reject_all.json?supplier_id=${supplierId}&rekyc_id=${rekycId}`
+                `${baseURL}/supplier_field_approvals/reject_all.json?supplier_id=${supplierId}&rekyc_id=${rekycId}`,
+                {},
+                config
             );
             if (response.status === 200 || response.status === 204) {
                 alert('All fields rejected successfully');

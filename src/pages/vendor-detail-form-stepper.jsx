@@ -72,6 +72,7 @@ const VendorDetailFormStepper = () => {
     // Get token from URL query parameters (like approval-matrix page)
     const urlParams = new URLSearchParams(location.search);
     const token = urlParams.get("token");
+    console.log("Token from URL:", token);
     const historyIdsFromUrl = urlParams.get("history_ids");
     
     // Loading and data states
@@ -164,20 +165,23 @@ const VendorDetailFormStepper = () => {
                 setWithholdingSections(dropdownsResponse.data?.withholding_sections || []);
                 setTypeOfRecipients(dropdownsResponse.data?.type_of_recipients || []);
 
-                // Process logs to include srNo if not present and match UI expected fields
-                const processedLogs = (logsResponse.data || []).map((log, index) => ({
-                    id: log.id,
-                    srNo: index + 1,
+
+                // Process logs to match UI expected fields
+                // New API returns { success: true, data: [...] }
+                const logsData = logsResponse.data?.data || logsResponse.data || [];
+                const processedLogs = logsData.map((log) => ({
+                    id: log.id || log.sr_no,
+                    srNo: log.sr_no || log.srNo,
                     category: log.category || "Registration Form",
-                    subCategory: log.sub_category || "",
-                    approvalSection: log.approval_section || log.approval_matrix_name || "PM/CM/HOD",
-                    approvedBy: log.approved_by_name || log.approved_by || "",
-                    date: log.updated_at || log.created_at || "30-01-2026 13:29:44",
+                    subCategory: log.sub_category || log.subCategory || "",
+                    approvalSection: log.section || log.approval_section || log.approval_matrix_name || "",
+                    approvedBy: log.action_by || log.approved_by_name || log.approved_by || "",
+                    date: log.date || log.updated_at || log.created_at || "",
                     status: log.status || "Pending",
-                    remark: log.remark || "",
-                    delegateTo: log.delegate_to_name || log.delegate_to || "",
+                    remark: log.remarks || log.remark || "",
+                    delegateTo: log.delegate_to || log.delegate_to_name || "",
                     delegateRemark: log.delegate_remark || "",
-                    users: log.users_list || log.users || "Satyam Madrewar,Dinesh Shinde,Ajay Ghenand"
+                    users: log.users || log.users_list || ""
                 }));
                 setApprovalLogs(processedLogs);
 
@@ -674,7 +678,10 @@ const VendorDetailFormStepper = () => {
             setRefreshingFiling(true);
             // 1. Get token proxy and GSTIN details
             const tokenProxyUrl = `${baseURL}/pms/suppliers/get_token_proxy`;
-            const proxyResponse = await axios.post(tokenProxyUrl, { gstin });
+            const config = {
+                params: token ? { token } : {}
+            };
+            const proxyResponse = await axios.post(tokenProxyUrl, { gstin }, config);
             const data = proxyResponse.data;
 
             if (data.gstin_details?.status_cd === '1') {
@@ -683,7 +690,7 @@ const VendorDetailFormStepper = () => {
                     await axios.post(`${baseURL}/pms/suppliers/create_gst_detail`, {
                         supplier_id: supplierId,
                         gst_details: data.gstin_details.data
-                    });
+                    }, config);
                     console.log("GST details saved successfully!");
                 } catch (saveError) {
                     console.error("Error saving GST details:", saveError);
@@ -700,7 +707,7 @@ const VendorDetailFormStepper = () => {
                     await axios.post(`${baseURL}/pms/suppliers/save_return_filing_status`, {
                         gstin: gstin,
                         data: { EFiledlist: filingList }
-                    });
+                    }, config);
                     console.log("Return filing status saved successfully!");
                 } catch (saveFilingError) {
                     console.error("Error saving filing status:", saveFilingError);
