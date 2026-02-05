@@ -200,8 +200,37 @@ const VendorDetailFormStepper = () => {
             }
         };
 
-        fetchData();
+    fetchData();
     }, [supplierId, token]);
+
+    // Fetch return filing status when modal opens if not already loaded
+    useEffect(() => {
+        if (showReturnFiling && vendorData?.gstin && gstr1Details.length === 0 && gstr3bDetails.length === 0) {
+            const fetchInitialFiling = async () => {
+                try {
+                    setRefreshingFiling(true);
+                    const url = `${baseURL}/pms/suppliers/fetch_and_save_return_filing_status?gstin=${vendorData.gstin}`;
+                    const config = { params: token ? { token } : {} };
+                    const response = await axios.get(url, config);
+                    if (response.data && response.data.data) {
+                        const processedList = response.data.data.map(item => ({
+                            ...item,
+                            ret_period: item.ret_prd,
+                            rtntyp: item.rtntype,
+                            valid: item.is_valid
+                        }));
+                        setGstr1Details(processedList.filter(f => f.rtntyp === 'GSTR1' || f.rtntyp === 'GSTR-1'));
+                        setGstr3bDetails(processedList.filter(f => f.rtntyp === 'GSTR3B' || f.rtntyp === 'GSTR-3B'));
+                    }
+                } catch (error) {
+                    console.error('Error fetching initial filing:', error);
+                } finally {
+                    setRefreshingFiling(false);
+                }
+            };
+            fetchInitialFiling();
+        }
+    }, [showReturnFiling, vendorData, token, gstr1Details.length, gstr3bDetails.length]);
 
 
     const financialPreQualSections = useMemo(() => {
@@ -669,62 +698,48 @@ const VendorDetailFormStepper = () => {
 
     const handleRefreshFilingDetails = async () => {
         const gstin = vendorData?.gstin;
-        if (!gstin || gstin.length !== 15) {
-            alert('Invalid GSTIN. Please check and try again.');
+        if (!gstin) {
+            alert('GSTIN not found in vendor details.');
             return;
         }
 
         try {
             setRefreshingFiling(true);
-            // 1. Get token proxy and GSTIN details
-            const tokenProxyUrl = `${baseURL}/pms/suppliers/get_token_proxy`;
+            // Use the new API endpoint requested by the user
+            const url = `${baseURL}/pms/suppliers/fetch_and_save_return_filing_status?gstin=${gstin}`;
             const config = {
                 params: token ? { token } : {}
             };
-            const proxyResponse = await axios.post(tokenProxyUrl, { gstin }, config);
-            const data = proxyResponse.data;
+            
+            console.log("Fetching return filing status from new API for GSTIN:", gstin);
+            const response = await axios.get(url, config);
+            const data = response.data;
 
-            if (data.gstin_details?.status_cd === '1') {
-                // Save GST details
-                try {
-                    await axios.post(`${baseURL}/pms/suppliers/create_gst_detail`, {
-                        supplier_id: supplierId,
-                        gst_details: data.gstin_details.data
-                    }, config);
-                    console.log("GST details saved successfully!");
-                } catch (saveError) {
-                    console.error("Error saving GST details:", saveError);
-                }
-            } else {
-                alert('GSTIN not found or error retrieving details.');
-            }
-
-            if (data.return_filing_status_details?.data?.EFiledlist) {
-                const filingList = data.return_filing_status_details.data.EFiledlist;
+            if (data && data.data) {
+                const filingList = data.data;
                 
-                // Save return filing status
-                try {
-                    await axios.post(`${baseURL}/pms/suppliers/save_return_filing_status`, {
-                        gstin: gstin,
-                        data: { EFiledlist: filingList }
-                    }, config);
-                    console.log("Return filing status saved successfully!");
-                } catch (saveFilingError) {
-                    console.error("Error saving filing status:", saveFilingError);
-                }
+                // Map the new API fields to what the UI Expects
+                // rtytype -> rtntyp, is_valid -> valid, ret_prd -> ret_period
+                const processedList = filingList.map(item => ({
+                    ...item,
+                    ret_period: item.ret_prd,
+                    rtntyp: item.rtntype,
+                    valid: item.is_valid
+                }));
 
-                // Update UI
-                const g1 = filingList.filter(f => f.rtntyp === 'GSTR1' || f.rtntyp === 'GSTR-1');
-                const g3b = filingList.filter(f => f.rtntyp === 'GSTR3B' || f.rtntyp === 'GSTR-3B');
+                const g1 = processedList.filter(f => f.rtntyp === 'GSTR1' || f.rtntyp === 'GSTR-1');
+                const g3b = processedList.filter(f => f.rtntyp === 'GSTR3B' || f.rtntyp === 'GSTR-3B');
+                
                 setGstr1Details(g1);
                 setGstr3bDetails(g3b);
-                alert("Return filing data refreshed successfully!");
+                alert(data.message || "Return filing data refreshed successfully!");
             } else {
-                alert('Return filing status not found or error retrieving details.');
+                alert('No return filing records found or error retrieving details.');
             }
         } catch (error) {
-            console.error('Error fetching details:', error);
-            alert('An error occurred while fetching return filing details.');
+            console.error('Error fetching return filing details:', error);
+            const errorMessage = error.response?.data?.message || 'An error occurred while fetching return filing details.';
+            alert(errorMessage);
         } finally {
             setRefreshingFiling(false);
         }
