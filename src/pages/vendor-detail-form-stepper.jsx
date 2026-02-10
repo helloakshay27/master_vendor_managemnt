@@ -5,6 +5,8 @@ import { baseURL } from "../confi/apiDomain";
 import "../styles/mor.css";
 import DynamicModalBox from "../components/base/Modal/DynamicModalBox";
 import Select from "react-select";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 // Add custom scrollbar styles
 const scrollbarStyles = `
@@ -134,17 +136,17 @@ const VendorDetailFormStepper = () => {
             try {
                 setLoading(true);
                 // Construct API URL with dynamic supplier ID
-                const vendorUrl = `${baseURL}/pms/suppliers/${supplierId}/supplier_show.json`;
-                const checklistUrl = `${baseURL}/pms/suppliers/${supplierId}/checklist_configuration`;
-                const approvalLogsUrl = `${baseURL}/pms/suppliers/${supplierId}/approval_logs.json`;
+                const base = baseURL.endsWith('/') ? baseURL.slice(0, -1) : baseURL;
+                const vendorUrl = `${base}/pms/suppliers/${supplierId}/supplier_show.json`;
+                const checklistUrl = `${base}/pms/suppliers/${supplierId}/checklist_configuration_approval.json`;
+                const approvalLogsUrl = `${base}/pms/suppliers/${supplierId}/approval_logs.json`;
                 
-                const dropdownsUrl = `${baseURL}/pms/suppliers/dropdowns`;
+                const dropdownsUrl = `${base}/pms/suppliers/dropdowns.json`;
                 
-                // Add token to request if available
-                const config = {};
-                if (token) {
-                    config.params = { token };
-                }
+                // Add token and history_ids to request if available
+                const config = { params: {} };
+                if (token) config.params.token = token;
+                if (historyIdsFromUrl) config.params.history_ids = historyIdsFromUrl;
                 
                 console.log("Fetching data from:", vendorUrl);
                 const [vendorResponse, checklistResponse, logsResponse, dropdownsResponse] = await Promise.all([
@@ -160,7 +162,8 @@ const VendorDetailFormStepper = () => {
                 console.log("Dropdowns received:", dropdownsResponse.data);
                 
                 setVendorData(vendorResponse.data);
-                setChecklistConfig(checklistResponse.data || []);
+                const checklistData = checklistResponse.data?.data || checklistResponse.data || [];
+                setChecklistConfig(Array.isArray(checklistData) ? checklistData : []);
                 setDepartments(dropdownsResponse.data?.departments || []);
                 setWithholdingSections(dropdownsResponse.data?.withholding_sections || []);
                 setTypeOfRecipients(dropdownsResponse.data?.type_of_recipients || []);
@@ -266,7 +269,7 @@ const VendorDetailFormStepper = () => {
                 srNo: (idx + 1).toString(),
                 title: sub.name,
                 totalScore: items.reduce((sum, item) => sum + (Number(item.totalScore) || 0), 0),
-                passingScore: items.reduce((sum, item) => sum + (Number(item.passingScore) || 0), 0),
+                passingScore: items.length > 0 ? items[0].passingScore : 0,
                 items: items
             };
         });
@@ -305,7 +308,7 @@ const VendorDetailFormStepper = () => {
                 srNo: (idx + 1).toString(),
                 title: sub.name,
                 totalScore: items.reduce((sum, item) => sum + (Number(item.totalScore) || 0), 0),
-                passingScore: items.reduce((sum, item) => sum + (Number(item.passingScore) || 0), 0),
+                passingScore: items.length > 0 ? items[0].passingScore : 0,
                 items: items
             };
         });
@@ -313,6 +316,16 @@ const VendorDetailFormStepper = () => {
 
     const [scoreByApprover, setScoreByApprover] = useState({});
     const [remarkByApprover, setRemarkByApprover] = useState({});
+
+    const isFinancialEditable = useMemo(() => {
+        const finCat = checklistConfig.find(cat => normalize(cat.snag_cat_name).includes("financial"));
+        return finCat?.editable ?? true;
+    }, [checklistConfig]);
+
+    const isTechnicalEditable = useMemo(() => {
+        const techCat = checklistConfig.find(cat => normalize(cat.snag_cat_name).includes("technical"));
+        return techCat?.editable ?? true;
+    }, [checklistConfig]);
 
     const totalObtainedMarks = useMemo(() => {
         const vals = Object.values(scoreByApprover).map(v => Number(v) || 0);
@@ -362,21 +375,25 @@ const VendorDetailFormStepper = () => {
             invitedBy: vendorData.invited_by_name || "-",
             contactNumber: vendorData.inviter_contact_number || "-",
             vendorOrganizationName: vendorData.organization_name || "-",
-            organizationType: vendorData.type_of_organization_id || "-",
-            natureOfBusiness: vendorData.nature_of_business_id || "-",
-            vendorType: vendorData.supplier_type_id || "-",
-            typeOfIndustry: vendorData.type_business_id || "-",
+            organizationType: vendorData.type_of_organization_name || "-",
+            natureOfBusiness: vendorData.nature_of_business_name || "-",
+            vendorType: vendorData.supplier_type_name || "-",
+            typeOfIndustry: vendorData.type_business_name || "-",
             typeOfWork: vendorData.type_of_work || "-",
             fullName: vendorData.full_name || "-",
             email: vendorData.email || "-",
             mobile: vendorData.mobile || "-",
             keyMarket: vendorData.key_market || "-",
-            schemaGroup: vendorData.schema_group_id || "-",
+            schemaGroup: vendorData.schema_group_name|| "-",
             panNo: vendorData.pan_number || "-",
+            cinNo: vendorData.cin_number || "-",
             dateOfIncorporation: vendorData.date_of_incorporation || "-",
             gstinApplicable: vendorData.gstin_applicable === "1" ? "Yes" : "No",
             gstinClassification: vendorData.gst_classification_name || "-",
-            gstin: vendorData.gstin || "-"
+            gstin: vendorData.gstin || "-",
+            gstinAttachments: vendorData.gstin_attachments || [],
+            panAttachments: vendorData.pan_attachments || [],
+            cinAttachments: vendorData.cin_number_attachments || []
         };
     }, [vendorData]);
 
@@ -415,8 +432,8 @@ const VendorDetailFormStepper = () => {
             address3: addr.address_line_three || "",
             address4: addr.address_line_four || "",
             address5: addr.address_line_five || "",
-            country: addr.pms_country_id || "-",
-            state: addr.pms_state_id || "-",
+            country: addr.pms_country_name || "-",
+            state: addr.pms_state_name || "-",
             city: addr.city_name || "-",
             pincode: addr.pin_code || "-",
             mobile: addr.mobile || "-",
@@ -435,8 +452,8 @@ const VendorDetailFormStepper = () => {
             address3: addr.address_line_three || "",
             address4: addr.address_line_four || "",
             address5: addr.address_line_five || "",
-            country: addr.pms_country_id || "-",
-            state: addr.pms_state_id || "-",
+            country: addr.pms_country_name || "-",
+            state: addr.pms_state_name || "-",
             city: addr.city_name || "-",
             pincode: addr.pin_code || "-",
             mobile: addr.mobile || "-",
@@ -496,26 +513,28 @@ const VendorDetailFormStepper = () => {
             virtualAccount: bank.virtual_account || "No",
             selectCompany: bank.company_name || "-",
             virtualAccountCode: bank.virtual_account_code || "-",
-            cancelledCheque: bank.cancelled_cheque_attachment || null
+            cancelledCheque: bank.attachment || bank.cancelled_cheque_attachment || null
         }));
     }, [vendorData]);
 
     // Map API data for Contact Person Details
     const contactPersonDetailsData = useMemo(() => {
-        if (!vendorData) return {};
-        return {
-            escalationLevel: vendorData.escalation_level || "-",
-            nameTitle: vendorData.contact_name_title || "-",
-            firstName: vendorData.contact_first_name || "-",
-            level2: vendorData.escalation_level_2 || "-",
-            designation: vendorData.contact_designation || "-",
-            primaryEmailId: vendorData.contact_primary_email_id || "-",
-            secondaryEmailId: vendorData.contact_secondary_email_id || "-",
-            primaryContactNo: vendorData.contact_primary_contact_no || "-",
-            nationality: vendorData.contact_nationality || "-",
-            dateOfBirth: vendorData.contact_date_of_birth || "-",
-            attachmentExistingFile: vendorData.contact_attachment_existing_file || "-"
-        };
+        if (!vendorData || !vendorData.contact_people) return [];
+        return vendorData.contact_people.map(contact => ({
+            escalationLevel: contact.escalation_level || "-",
+            nameTitle: contact.name_title || "-",
+            firstName: contact.first_name || "-",
+            middleName: contact.middle_name || "",
+            lastName: contact.last_name || "-",
+            designation: contact.desiganation_name || "-",
+            primaryEmailId: contact.primary_email || "-",
+            secondaryEmailId: contact.secondary_email || "-",
+            primaryContactNo: contact.primary_mobile || "-",
+            secondaryContactNo: contact.secondary_mobile || "-",
+            nationality: contact.nationality_string || "-",
+            dateOfBirth: contact.birth_date || "-",
+            attachment: contact.attachment || null
+        }));
     }, [vendorData]);
 
     // Map API data for Additional Details
@@ -544,7 +563,8 @@ const VendorDetailFormStepper = () => {
             termOfPayment: vendorData.term_of_payment_name || "-",
             contractorAndService: vendorData.major_activity || "-",
             organization: vendorData.organization_name || "-",
-            msmeAttachments: vendorData.msme_attachments || []
+            msmeAttachments: vendorData.msme_attachments || [],
+            einvoicingAttachments: vendorData.einvoicing_attachments || []
         };
     }, [vendorData]);
 
@@ -567,7 +587,7 @@ const VendorDetailFormStepper = () => {
         return {
             ownerFirstName: director.first_name || "-",
             ownerLastName: director.last_name || "-",
-            ownerDesignation: director.designation_id || "-",
+            ownerDesignation: director.designation_name|| "-",
             ownerQualification: director.qualification || "-",
             ownerExperience: director.experience || "-",
             ownerEmail: director.email || "-",
@@ -598,13 +618,19 @@ const VendorDetailFormStepper = () => {
         if (!vendorData) return { annualTurnover: [], majorCustomers: [] };
         
         return {
-            annualTurnover: (vendorData.annual_turnovers || []).map(at => ({
-                year: at.financial_year?.toString() || "-",
-                turnover: at.turnover?.toString() || "-",
-                keyMarkets: at.key_markets || "-",
-                attachmentUrl: at.attachment?.attachment_url || null,
-                attachmentName: at.attachment?.document_name || "No file attached"
-            })),
+            annualTurnover: (vendorData.annual_turnovers || []).map(at => {
+                const fy = at.financial_year?.toString();
+                const formattedYear = (fy && fy.length === 4 && !isNaN(fy)) 
+                    ? `${fy}-${Number(fy) + 1}` 
+                    : (fy || "-");
+                return {
+                    year: formattedYear,
+                    turnover: at.turnover?.toString() || "-",
+                    keyMarkets: at.key_markets || "-",
+                    attachmentUrl: at.attachment?.attachment_url || null,
+                    attachmentName: at.attachment?.document_name || "No file attached"
+                };
+            }),
             majorCustomers: (vendorData.major_customers || []).map(mc => ({
                 companyName: mc.name || "-",
                 siteType: mc.site_type || "-",
@@ -637,6 +663,57 @@ const VendorDetailFormStepper = () => {
 
     const handleSave = async () => {
         try {
+            // Validate all scores
+            const financialQuestions = [];
+            financialPreQualSections.forEach(sec => financialQuestions.push(...sec.items));
+            
+            const technicalQuestions = [];
+            technicalPreQualSections.forEach(sec => technicalQuestions.push(...sec.items));
+
+            // Validate Financial Mandatory
+            if (isFinancialEditable) {
+                for (const q of financialQuestions) {
+                    const score = scoreByApprover[q.id];
+                    if (score === undefined || score === "" || score === null) {
+                        toast.error(`Score By Approver is mandatory for question: ${q.particulars}`);
+                        return;
+                    }
+                }
+            }
+
+            // Validate Technical Mandatory
+            if (isTechnicalEditable) {
+                for (const q of technicalQuestions) {
+                    const score = scoreByApprover[q.id];
+                    if (score === undefined || score === "" || score === null) {
+                        toast.error(`Score By Approver is mandatory for question: ${q.particulars}`);
+                        return;
+                    }
+                }
+            }
+
+            // Range validation for any provided scores
+            const allPendingQuestions = [...financialQuestions, ...technicalQuestions];
+            for (const q of allPendingQuestions) {
+                const score = scoreByApprover[q.id];
+                if (score !== undefined && score !== "" && score !== null) {
+                    const numScore = Number(score);
+                    if (numScore > q.totalScore) {
+                        toast.error(`Score By Approver (${numScore}) cannot be greater than Total Score (${q.totalScore}) for: ${q.particulars}`);
+                        return;
+                    }
+                    if (numScore < 0) {
+                        toast.error(`Score By Approver cannot be negative for: ${q.particulars}`);
+                        return;
+                    }
+                }
+            }
+
+            if (!approverRemark || approverRemark.trim() === "") {
+                toast.error("Approver Remark is mandatory");
+                return;
+            }
+
             const snagAnswers = {};
             const allQuestionIds = new Set([
                 ...Object.keys(scoreByApprover),
@@ -688,11 +765,13 @@ const VendorDetailFormStepper = () => {
             const response = await axios.put(url, payload, config);
             
             if (response.status === 200 || response.status === 204) {
-                alert("Status updated successfully!");
+                toast.success("Status updated successfully!");
+                // alert("Status updated successfully!");
             }
         } catch (error) {
             console.error("Error updating status:", error);
-            alert("Failed to update status. Please try again.");
+            const errorMsg = error.response?.data?.message || "Failed to update status. Please try again.";
+            toast.error(errorMsg);
         }
     };
 
@@ -746,6 +825,17 @@ const VendorDetailFormStepper = () => {
     };
 
     const handleDelegate = async () => {
+        // Validate required fields
+        if (!delegateRemark.trim()) {
+            toast.error("Please enter delegate remark.");
+            return;
+        }
+        
+        if (!delegateDepartment) {
+            toast.error("Please select a department.");
+            return;
+        }
+        
         try {
             // Get the first history_id from URL or logs
             const historyIdStr = historyIdsFromUrl ? historyIdsFromUrl.split(',')[0] : (approvalLogs[0]?.id || "");
@@ -769,10 +859,10 @@ const VendorDetailFormStepper = () => {
 
             if (response.status === 200 || response.status === 201 || response.status === 204) {
                 if (response.data && response.data.success === false) {
-                    alert(response.data.error || "Failed to delegate approval.");
+                    toast.error(response.data.error || "Failed to delegate approval.");
                     return;
                 }
-                alert("Approval delegated successfully!");
+                toast.success("Approval delegated successfully!");
                 setShowDelegateApproval(false);
                 setDelegateRemark("");
                 setDelegateDepartment("");
@@ -780,7 +870,7 @@ const VendorDetailFormStepper = () => {
         } catch (error) {
             console.error("Error delegating approval:", error);
             const apiError = error.response?.data?.error || error.response?.data?.message || "Failed to delegate approval. Please try again.";
-            alert(apiError);
+            toast.error(apiError);
         }
     };
 
@@ -1225,6 +1315,81 @@ const VendorDetailFormStepper = () => {
                                         </div>
                                         <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
                                             <div className="col-4">
+                                                <label>PAN Attachment</label>
+                                            </div>
+                                            <div className="col-8">
+                                                <label className="text">
+                                                    <span className="me-3">
+                                                        <span className="text-dark">:</span>
+                                                    </span>
+                                                    {organizationData.panAttachments && organizationData.panAttachments.length > 0 ? (
+                                                        organizationData.panAttachments.map((file, index) => (
+                                                            <a
+                                                                key={index}
+                                                                href={`${baseURL}${file.file_url}`}
+                                                                download
+                                                                className="text-primary d-flex align-items-center mb-1"
+                                                                style={{ textDecoration: "none" }}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                            >
+                                                                <svg xmlns="http://www.w3.org/2000/svg" width={18} height={18} fill="#DE7008" className="bi bi-download me-2" viewBox="0 0 16 16">
+                                                                    <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                                                                    <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                                                                </svg>
+                                                                {file.document_name || "PAN Document"}
+                                                            </a>
+                                                        ))
+                                                    ) : "-"}
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
+                                            <div className="col-4">
+                                                <label>CIN/LLP No.</label>
+                                            </div>
+                                            <div className="col-8">
+                                                <label className="text">
+                                                    <span className="me-3">
+                                                        <span className="text-dark">:</span>
+                                                    </span>
+                                                    {organizationData.cinNo || "-"}
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
+                                            <div className="col-4">
+                                                <label>CIN/LLP Attachment</label>
+                                            </div>
+                                            <div className="col-8">
+                                                <label className="text">
+                                                    <span className="me-3">
+                                                        <span className="text-dark">:</span>
+                                                    </span>
+                                                    {organizationData.cinAttachments && organizationData.cinAttachments.length > 0 ? (
+                                                        organizationData.cinAttachments.map((file, index) => (
+                                                            <a
+                                                                key={index}
+                                                                href={`${baseURL}${file.file_url}`}
+                                                                download
+                                                                className="text-primary d-flex align-items-center mb-1"
+                                                                style={{ textDecoration: "none" }}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                            >
+                                                                <svg xmlns="http://www.w3.org/2000/svg" width={18} height={18} fill="#DE7008" className="bi bi-download me-2" viewBox="0 0 16 16">
+                                                                    <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                                                                    <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                                                                </svg>
+                                                                {file.document_name || "CIN Document"}
+                                                            </a>
+                                                        ))
+                                                    ) : "-"}
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
+                                            <div className="col-4">
                                                 <label>Date of Incorporation</label>
                                             </div>
                                             <div className="col-8">
@@ -1272,6 +1437,37 @@ const VendorDetailFormStepper = () => {
                                                         <span className="text-dark">:</span>
                                                     </span>
                                                     {organizationData.gstin || "-"}
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
+                                            <div className="col-4">
+                                                <label>GSTIN Attachment</label>
+                                            </div>
+                                            <div className="col-8">
+                                                <label className="text">
+                                                    <span className="me-3">
+                                                        <span className="text-dark">:</span>
+                                                    </span>
+                                                    {organizationData.gstinAttachments && organizationData.gstinAttachments.length > 0 ? (
+                                                        organizationData.gstinAttachments.map((file, index) => (
+                                                            <a
+                                                                key={index}
+                                                                href={`${baseURL}${file.file_url}`}
+                                                                download
+                                                                className="text-primary d-flex align-items-center mb-1"
+                                                                style={{ textDecoration: "none" }}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                            >
+                                                                <svg xmlns="http://www.w3.org/2000/svg" width={18} height={18} fill="#DE7008" className="bi bi-download me-2" viewBox="0 0 16 16">
+                                                                    <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                                                                    <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                                                                </svg>
+                                                                {file.document_name || "GSTIN Document"}
+                                                            </a>
+                                                        ))
+                                                    ) : "-"}
                                                 </label>
                                             </div>
                                         </div>
@@ -1548,9 +1744,40 @@ const VendorDetailFormStepper = () => {
                                                         </label>
                                                     </div>
                                                 </div>
+                                                <div className="col-lg-4 col-md-6 col-sm-12 row px-3 mt-2">
+                                                    <div className="col-4">
+                                                        <label>E-invoicing Attachment</label>
+                                                    </div>
+                                                    <div className="col-8">
+                                                        <label className="text">
+                                                            <span className="me-3">
+                                                                <span className="text-dark">:</span>
+                                                            </span>
+                                                            {additionalDetailsData.einvoicingAttachments && additionalDetailsData.einvoicingAttachments.length > 0 ? (
+                                                                additionalDetailsData.einvoicingAttachments.map((file, index) => (
+                                                                    <a
+                                                                        key={index}
+                                                                        href={`${baseURL}${file.file_url}`}
+                                                                        download
+                                                                        className="text-primary d-flex align-items-center mb-1"
+                                                                        style={{ textDecoration: "none" }}
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                    >
+                                                                        <svg xmlns="http://www.w3.org/2000/svg" width={18} height={18} fill="#DE7008" className="bi bi-download me-2" viewBox="0 0 16 16">
+                                                                            <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                                                                            <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                                                                        </svg>
+                                                                        {file.document_name || "E-invoicing Document"}
+                                                                    </a>
+                                                                ))
+                                                            ) : "-"}
+                                                        </label>
+                                                    </div>
+                                                </div>
 
                                                 {/* Extra Rows for previously added fields */}
-                                                <div className="col-lg-4 col-md-6 col-sm-12 row px-3 mt-2">
+                                                {/* <div className="col-lg-4 col-md-6 col-sm-12 row px-3 mt-2">
                                                     <div className="col-4">
                                                         <label>Purchasing Organization</label>
                                                     </div>
@@ -1562,7 +1789,7 @@ const VendorDetailFormStepper = () => {
                                                             {additionalDetailsData.purchasingOrganization || "-"}
                                                         </label>
                                                     </div>
-                                                </div>
+                                                </div> */}
                                                 <div className="col-lg-4 col-md-6 col-sm-12 row px-3 mt-2">
                                                     <div className="col-4">
                                                         <label>Business Personality Type</label>
@@ -2191,11 +2418,14 @@ const VendorDetailFormStepper = () => {
                                                                 </span>
                                                                 {bank.cancelledCheque ? (
                                                                     <a
-                                                                        href={bank.cancelledCheque.file_url}
+                                                                        href={bank.cancelledCheque.attachment_url ? `${baseURL}${bank.cancelledCheque.attachment_url}` : bank.cancelledCheque.file_url}
                                                                         target="_blank"
                                                                         rel="noopener noreferrer"
-                                                                        style={{ color: "#e95420", textDecoration: "underline" }}
+                                                                        style={{ color: "#e95420", textDecoration: "none" }}
+                                                                        className="d-flex align-items-center"
+                                                                        download
                                                                     >
+                                                                        <span className="material-symbols-outlined align-middle me-1">download</span>
                                                                         {bank.cancelledCheque.document_name}
                                                                     </a>
                                                                 ) : "-"}
@@ -2451,10 +2681,10 @@ const VendorDetailFormStepper = () => {
                                                     </div>
                                                 </div>
                                                 <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
-                                                    <div className="col-6 ">
+                                                    <div className="col-4 ">
                                                         <label>Contact Person Email</label>
                                                     </div>
-                                                    <div className="col-6">
+                                                    <div className="col-8">
                                                         <label className="text">
                                                             <span className="me-3">
                                                                 <span className="text-dark">:</span>
@@ -2464,10 +2694,10 @@ const VendorDetailFormStepper = () => {
                                                     </div>
                                                 </div>
                                                 <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
-                                                    <div className="col-4 ">
+                                                    <div className="col-6 ">
                                                         <label>Attachment Existing File</label>
                                                     </div>
-                                                    <div className="col-8">
+                                                    <div className="col-6">
                                                         <label className="text">
                                                             <span className="me-3">
                                                                 <span className="text-dark">:</span>
@@ -2738,6 +2968,211 @@ const VendorDetailFormStepper = () => {
                                         </div>
                                     </div>
 
+                                    {/* Contact Person Details Section */}
+                                    {contactPersonDetailsData.length > 0 && contactPersonDetailsData.map((contact, index) => (
+                                        <div key={index} className="card mx-4 pb-4 mt-4">
+                                            <div className="card-header3">
+                                                <h3 className="card-title">Contact Person Details {contactPersonDetailsData.length > 1 ? `(${index + 1})` : ''}</h3>
+                                                <div className="d-flex align-items-center">
+                                                    <img src="/assets/images/Trash.svg" alt="Trash" className="img-fluid ms-3" />
+                                                </div>
+                                            </div>
+                                            <div className="card-body mt-0">
+                                                <div className="row px-3">
+                                                    {/* Row 1 */}
+                                                    <div className="col-lg-4 col-md-4 col-sm-12 row px-3">
+                                                        <div className="col-4">
+                                                            <label>Escalation Level</label>
+                                                        </div>
+                                                        <div className="col-8">
+                                                            <label className="text">
+                                                                <span className="me-3">
+                                                                    <span className="text-dark">:</span>
+                                                                </span>
+                                                                {contact.escalationLevel}
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                    <div className="col-lg-4 col-md-4 col-sm-12 row px-3">
+                                                        <div className="col-4">
+                                                            <label>Name Title</label>
+                                                        </div>
+                                                        <div className="col-8">
+                                                            <label className="text">
+                                                                <span className="me-3">
+                                                                    <span className="text-dark">:</span>
+                                                                </span>
+                                                                {contact.nameTitle}
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                    <div className="col-lg-4 col-md-4 col-sm-12 row px-3">
+                                                        <div className="col-4">
+                                                            <label>First Name</label>
+                                                        </div>
+                                                        <div className="col-8">
+                                                            <label className="text">
+                                                                <span className="me-3">
+                                                                    <span className="text-dark">:</span>
+                                                                </span>
+                                                                {contact.firstName}
+                                                            </label>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Row 2 */}
+                                                    <div className="col-lg-4 col-md-4 col-sm-12 row px-3 mt-2">
+                                                        <div className="col-4">
+                                                            <label>Last Name</label>
+                                                        </div>
+                                                        <div className="col-8">
+                                                            <label className="text">
+                                                                <span className="me-3">
+                                                                    <span className="text-dark">:</span>
+                                                                </span>
+                                                                {contact.lastName}
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                    <div className="col-lg-4 col-md-4 col-sm-12 row px-3 mt-2">
+                                                        <div className="col-4">
+                                                            <label>Designation</label>
+                                                        </div>
+                                                        <div className="col-8">
+                                                            <label className="text">
+                                                                <span className="me-3">
+                                                                    <span className="text-dark">:</span>
+                                                                </span>
+                                                                {contact.designation}
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                    <div className="col-lg-4 col-md-4 col-sm-12 row px-3 mt-2">
+                                                        <div className="col-4">
+                                                            <label>Primary Email ID</label>
+                                                        </div>
+                                                        <div className="col-8">
+                                                            <label className="text">
+                                                                <span className="me-3">
+                                                                    <span className="text-dark">:</span>
+                                                                </span>
+                                                                {contact.primaryEmailId}
+                                                            </label>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Row 3 */}
+                                                    <div className="col-lg-4 col-md-4 col-sm-12 row px-3 mt-2">
+                                                        <div className="col-4">
+                                                            <label>Secondary Email ID</label>
+                                                        </div>
+                                                        <div className="col-8">
+                                                            <label className="text">
+                                                                <span className="me-3">
+                                                                    <span className="text-dark">:</span>
+                                                                </span>
+                                                                {contact.secondaryEmailId}
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                    <div className="col-lg-4 col-md-4 col-sm-12 row px-3 mt-2">
+                                                        <div className="col-4">
+                                                            <label>Primary Contact No.</label>
+                                                        </div>
+                                                        <div className="col-8">
+                                                            <label className="text">
+                                                                <span className="me-3">
+                                                                    <span className="text-dark">:</span>
+                                                                </span>
+                                                                {contact.primaryContactNo}
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                    <div className="col-lg-4 col-md-4 col-sm-12 row px-3 mt-2">
+                                                        <div className="col-4">
+                                                            <label>Secondary Contact No.</label>
+                                                        </div>
+                                                        <div className="col-8">
+                                                            <label className="text">
+                                                                <span className="me-3">
+                                                                    <span className="text-dark">:</span>
+                                                                </span>
+                                                                {contact.secondaryContactNo}
+                                                            </label>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Row 4 */}
+                                                    <div className="col-lg-4 col-md-4 col-sm-12 row px-3 mt-2">
+                                                        <div className="col-4">
+                                                            <label>Nationality</label>
+                                                        </div>
+                                                        <div className="col-8">
+                                                            <label className="text">
+                                                                <span className="me-3">
+                                                                    <span className="text-dark">:</span>
+                                                                </span>
+                                                                {contact.nationality}
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                    <div className="col-lg-4 col-md-4 col-sm-12 row px-3 mt-2">
+                                                        <div className="col-4">
+                                                            <label>Date of Birth</label>
+                                                        </div>
+                                                        <div className="col-8">
+                                                            <label className="text">
+                                                                <span className="me-3">
+                                                                    <span className="text-dark">:</span>
+                                                                </span>
+                                                                {contact.dateOfBirth}
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                    <div className="col-lg-4 col-md-4 col-sm-12 row px-3 mt-2">
+                                                        <div className="col-4">
+                                                            <label>Attachment Existing File</label>
+                                                        </div>
+                                                        <div className="col-8">
+                                                            <label className="text">
+                                                                <span className="me-3">
+                                                                    <span className="text-dark">:</span>
+                                                                </span>
+                                                                {contact.attachment ? (
+                                                                    <a
+                                                                        href={`${baseURL}${contact.attachment.attachment_url}`}
+                                                                        download
+                                                                        className="d-flex align-items-center"
+                                                                        style={{ color: "#e95420", textDecoration: "none" }}
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                    >
+                                                                        <svg
+                                                                            xmlns="http://www.w3.org/2000/svg"
+                                                                            width={18}
+                                                                            height={18}
+                                                                            fill="#DE7008"
+                                                                            className="bi bi-download"
+                                                                            viewBox="0 0 16 16"
+                                                                        >
+                                                                            <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                                                                            <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                                                                        </svg>
+                                                                        <span className="ms-2">
+                                                                            {contact.attachment.document_name}
+                                                                        </span>
+                                                                    </a>
+                                                                ) : (
+                                                                    "-"
+                                                                )}
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+
                                     {/* Annual Turnover Table */}
                                     <div className="card mx-3 pb-4 mt-4">
                                         <div className="card-header3 mb-3">
@@ -2791,7 +3226,7 @@ const VendorDetailFormStepper = () => {
                         </div>
                         <div className="card-body mt-0">
                             <div className="row px-3">
-                                <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
+                                {/* <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
                                     <div className="col-4">
                                         <label>PAN Number</label>
                                     </div>
@@ -2816,7 +3251,7 @@ const VendorDetailFormStepper = () => {
                                             {statutoryDetailsData.gstNo}
                                         </label>
                                     </div>
-                                </div>
+                                </div> */}
                                 
                                 {/* Dynamically render all statutory details */}
                                 {statutoryDetailsData.statutoryDetails && statutoryDetailsData.statutoryDetails.length > 0 ? (
@@ -2827,7 +3262,7 @@ const VendorDetailFormStepper = () => {
                                                     <label>{detail.name}</label>
                                                 </div>
                                                 <div className="col-8">
-                                                    <label className="text">
+                                                    <label className="text d-flex align-items-center">
                                                         <span className="me-3">
                                                             <span className="text-dark">:</span>
                                                         </span>
@@ -2842,30 +3277,32 @@ const VendorDetailFormStepper = () => {
                                                     </div>
                                                     <div className="col-8">
                                                         <label className="text">
-                                                            <span className="me-3">
-                                                                <span className="text-dark">:</span>
-                                                            </span>
-                                                            <a
-                                                                href={detail.attachment.url}
+                                                            <div className="d-flex align-items-center">
+                                                                <span className="me-3">
+                                                                    <span className="text-dark">:</span>
+                                                                </span>
+                                                                <a
+                                                                    href={detail.attachment.attachment_url ? `${baseURL}${detail.attachment.attachment_url}` : (detail.attachment.file_url ? `${baseURL}${detail.attachment.file_url}` : detail.attachment.url)}
                                                                 download
-                                                                className="d-flex align-items-center"
-                                                                style={{ color: "#e95420", textDecoration: "none" }}
-                                                            >
-                                                                <svg
-                                                                    xmlns="http://www.w3.org/2000/svg"
-                                                                    width={20}
-                                                                    height={20}
-                                                                    fill="#DE7008"
-                                                                    className="bi bi-download"
+                                                                    className="text-primary d-flex align-items-center"
+                                                                    style={{ textDecoration: "none" }}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                >
+                                                                    <svg
+                                                                        xmlns="http://www.w3.org/2000/svg"
+                                                                        width={18}
+                                                                        height={18}
+                                                                        fill="#DE7008"
+                                                                        className="bi bi-download me-2"
                                                                     viewBox="0 0 16 16"
                                                                 >
                                                                     <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
                                                                     <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
                                                                 </svg>
-                                                                <span className="me-2 ms-2">
-                                                                    {detail.attachment.filename}
-                                                                </span>
-                                                            </a>
+                                                                    {detail.attachment.document_name || detail.attachment.filename || "View Document"}
+                                                                </a>
+                                                            </div>
                                                         </label>
                                                     </div>
                                                 </div>
@@ -2903,20 +3340,24 @@ const VendorDetailFormStepper = () => {
                                                         <th className="text-start">Passing Score</th>
                                                         <th className="text-start" style={{ width: 200 }}>Score By Approver</th>
                                                         <th className="text-start" style={{ width: 200 }}>Remark by Approver</th>
-                                                        <th className="text-center" style={{ width: 120 }}>
-                                                            Mark All NA{" "}
-                                                            <div className="form-check form-switch d-inline-block">
-                                                                <input
-                                                                    className="form-check-input mark-all-na-toggle"
-                                                                    type="checkbox"
-                                                                    role="switch"
-                                                                    id="markAllNaToggle_fin"
-                                                                    checked={markAllNaFinancial}
-                                                                    onChange={(e) => setMarkAllNaFinancial(e.target.checked)}
-                                                                />
-                                                                <label className="form-check-label visually-hidden" htmlFor="markAllNaToggle_fin">
-                                                                    Toggle to mark all remarks as NA
-                                                                </label>
+                                                        <th className="text-center" style={{ width: 180, minWidth: 180 }}>
+                                                            <div className="d-flex align-items-center justify-content-center" style={{ gap: '6px' }}>
+                                                                <span style={{ fontSize: '12px', whiteSpace: 'nowrap', fontWeight: '700' }}>Mark All NA</span>
+                                                                <div className="form-check form-switch mb-0 p-0" style={{ minHeight: 'unset' }}>
+                                                                    <input
+                                                                        className="form-check-input mark-all-na-toggle"
+                                                                        type="checkbox"
+                                                                        role="switch"
+                                                                        style={{ cursor: 'pointer', margin: 0, float: 'none', marginLeft: 0 }}
+                                                                        id="markAllNaToggle_fin"
+                                                                        checked={markAllNaFinancial}
+                                                                        onChange={(e) => setMarkAllNaFinancial(e.target.checked)}
+                                                                        disabled={!isFinancialEditable}
+                                                                    />
+                                                                    <label className="form-check-label visually-hidden" htmlFor="markAllNaToggle_fin">
+                                                                        Toggle to mark all remarks as NA
+                                                                    </label>
+                                                                </div>
                                                             </div>
                                                         </th>
                                                     </tr>
@@ -2975,20 +3416,31 @@ const VendorDetailFormStepper = () => {
                                                                     </td>
                                                                     <td>{row.remarkByVendor}</td>
                                                                     <td>{row.totalScore}</td>
-                                                                    <td>{row.passingScore}</td>
+                                                                    <td></td>
                                                                     <td>
                                                                         <input
                                                                             type="number"
                                                                             className="form-control passing_score"
                                                                             max={row.totalScore}
+                                                                            min={0}
                                                                             value={scoreByApprover[row.id] ?? ""}
-                                                                            onChange={(e) => setScoreByApprover((p) => ({ ...p, [row.id]: e.target.value }))}
+                                                                            disabled={!isFinancialEditable}
+                                                                            onChange={(e) => {
+                                                                                const val = e.target.value;
+                                                                                if (val === "" || (Number(val) <= row.totalScore && Number(val) >= 0)) {
+                                                                                    setScoreByApprover((p) => ({ ...p, [row.id]: val }));
+                                                                                } else if (Number(val) > row.totalScore) {
+                                                                                    toast.warn(`Score cannot exceed total score (${row.totalScore})`);
+                                                                                    setScoreByApprover((p) => ({ ...p, [row.id]: row.totalScore }));
+                                                                                }
+                                                                            }}
                                                                         />
                                                                     </td>
                                                                     <td>
                                                                         <textarea
                                                                             className="form-control approver-remark-textarea"
                                                                             value={remarkByApprover[row.id] ?? (markAllNaFinancial ? "NA" : "")}
+                                                                            disabled={!isFinancialEditable}
                                                                             onChange={(e) => setRemarkByApprover((p) => ({ ...p, [row.id]: e.target.value }))}
                                                                         />
                                                                     </td>
@@ -3049,20 +3501,24 @@ const VendorDetailFormStepper = () => {
                                                         <th className="text-start">Passing Score</th>
                                                         <th className="text-start" style={{ width: 200 }}>Score By Approver</th>
                                                         <th className="text-start" style={{ width: 200 }}>Remark by Approver</th>
-                                                        <th className="text-center" style={{ width: 120 }}>
-                                                            Mark All NA{" "}
-                                                            <div className="form-check form-switch d-inline-block">
-                                                                <input
-                                                                    className="form-check-input mark-all-na-toggle"
-                                                                    type="checkbox"
-                                                                    role="switch"
-                                                                    id="markAllNaToggle_tech"
-                                                                    checked={markAllNaTechnical}
-                                                                    onChange={(e) => setMarkAllNaTechnical(e.target.checked)}
-                                                                />
-                                                                <label className="form-check-label visually-hidden" htmlFor="markAllNaToggle_tech">
-                                                                    Toggle to mark all remarks as NA
-                                                                </label>
+                                                        <th className="text-center" style={{ width: 180, minWidth: 180 }}>
+                                                            <div className="d-flex align-items-center justify-content-center" style={{ gap: '6px' }}>
+                                                                <span style={{ fontSize: '12px', whiteSpace: 'nowrap', fontWeight: '700' }}>Mark All NA</span>
+                                                                <div className="form-check form-switch mb-0 p-0" style={{ minHeight: 'unset' }}>
+                                                                    <input
+                                                                        className="form-check-input mark-all-na-toggle"
+                                                                        type="checkbox"
+                                                                        role="switch"
+                                                                        style={{ cursor: 'pointer', margin: 0, float: 'none', marginLeft: 0 }}
+                                                                        id="markAllNaToggle_tech"
+                                                                        checked={markAllNaTechnical}
+                                                                        onChange={(e) => setMarkAllNaTechnical(e.target.checked)}
+                                                                        disabled={!isTechnicalEditable}
+                                                                    />
+                                                                    <label className="form-check-label visually-hidden" htmlFor="markAllNaToggle_tech">
+                                                                        Toggle to mark all remarks as NA
+                                                                    </label>
+                                                                </div>
                                                             </div>
                                                         </th>
                                                     </tr>
@@ -3121,20 +3577,31 @@ const VendorDetailFormStepper = () => {
                                                                     </td>
                                                                     <td>{row.remarkByVendor}</td>
                                                                     <td>{row.totalScore}</td>
-                                                                    <td>{row.passingScore}</td>
+                                                                    <td></td>
                                                                     <td>
                                                                         <input
                                                                             type="number"
                                                                             className="form-control passing_score"
                                                                             max={row.totalScore}
+                                                                            min={0}
                                                                             value={scoreByApprover[row.id] ?? ""}
-                                                                            onChange={(e) => setScoreByApprover((p) => ({ ...p, [row.id]: e.target.value }))}
+                                                                            disabled={!isTechnicalEditable}
+                                                                            onChange={(e) => {
+                                                                                const val = e.target.value;
+                                                                                if (val === "" || (Number(val) <= row.totalScore && Number(val) >= 0)) {
+                                                                                    setScoreByApprover((p) => ({ ...p, [row.id]: val }));
+                                                                                } else if (Number(val) > row.totalScore) {
+                                                                                    toast.warn(`Score cannot exceed total score (${row.totalScore})`);
+                                                                                    setScoreByApprover((p) => ({ ...p, [row.id]: row.totalScore }));
+                                                                                }
+                                                                            }}
                                                                         />
                                                                     </td>
                                                                     <td>
                                                                         <textarea
                                                                             className="form-control approver-remark-textarea"
                                                                             value={remarkByApprover[row.id] ?? (markAllNaTechnical ? "NA" : "")}
+                                                                            disabled={!isTechnicalEditable}
                                                                             onChange={(e) => setRemarkByApprover((p) => ({ ...p, [row.id]: e.target.value }))}
                                                                         />
                                                                     </td>
@@ -3278,7 +3745,7 @@ const VendorDetailFormStepper = () => {
                                         <div className="mx-1 mt-3">
                                             <div className="mb-2">
                                                 <label>
-                                                    Approver Remark
+                                                    Approver Remark <span style={{ color: 'red' }}>*</span>
                                                 </label>
                                             </div>
                                             <textarea
@@ -3292,44 +3759,20 @@ const VendorDetailFormStepper = () => {
                                         <div className="d-flex justify-content-end mt-3">
                                             <div style={{ minWidth: 260 }}>
                                                 <label className="mb-1">Status</label>
-                                                <Select
-                                                    options={[
-                                                        { value: "Approved", label: "Approved" },
-                                                        { value: "Rejected", label: "Rejected" },
-                                                        { value: "Request For Resubmission", label: "Request For Resubmission" }
-                                                    ]}
-                                                    value={[
-                                                        { value: "Approved", label: "Approved" },
-                                                        { value: "Rejected", label: "Rejected" },
-                                                        { value: "Request For Resubmission", label: "Request For Resubmission" }
-                                                    ].find(opt => opt.value === qualificationStatus) || null}
-                                                    onChange={(selected) => setQualificationStatus(selected?.value || "")}
-                                                    className="basic-single"
-                                                    classNamePrefix="select"
-                                                    menuPortalTarget={document.body}
-                                                    styles={{ menuPortal: base => ({ ...base, zIndex: 9999 }) }}
-                                                />
+                                                <select
+                                                    className="form-select"
+                                                    value={qualificationStatus}
+                                                    onChange={(e) => setQualificationStatus(e.target.value)}
+                                                >
+                                                    <option value="">Select Status</option>
+                                                    <option value="Approved">Approved</option>
+                                                    <option value="Rejected">Rejected</option>
+                                                    <option value="Request For Resubmission">Request For Resubmission</option>
+                                                </select>
                                             </div>
                                         </div>
 
-                                        <div className="d-flex justify-content-center gap-3 mt-4">
-                                            <button
-                                                type="button"
-                                                className="purple-btn2"
-                                                onClick={handleSave}
-                                            >
-                                                Save
-                                            </button>
-                                            <button
-                                                type="button"
-                                                className="purple-btn2"
-                                                onClick={() => {
-                                                    setApproverRemark("");
-                                                }}
-                                            >
-                                                Cancel
-                                            </button>
-                                        </div>
+                                        {/* Save and Cancel buttons moved to bottom navigation bar */}
                                     </div>
 
                                     
@@ -3338,6 +3781,61 @@ const VendorDetailFormStepper = () => {
                             )}
 
                            
+                </div>
+
+                {/* Navigation Buttons - Back, Save, Cancel, Next */}
+                <div className="d-flex justify-content-center align-items-center gap-3 mb-4 mt-4 mx-5 flex-wrap">
+                    {currentStep > 0 && (
+                        <button
+                            type="button"
+                            className="purple-btn1 px-4 py-2"
+                            onClick={handlePrevious}
+                            style={{ minWidth: '100px', margin: 0 }}
+                        >
+                            Back
+                        </button>
+                    )}
+
+                    {normalize(steps[currentStep]?.label) === "prequalification" && (
+                        <>
+                            <button
+                                type="button"
+                                className="purple-btn2 px-4 py-2"
+                                onClick={handleSave}
+                                style={{ minWidth: '100px', margin: 0 }}
+                            >
+                                Save
+                            </button>
+                            {/* <button
+                                type="button"
+                                className="purple-btn2 px-4 py-2"
+                                onClick={() => {
+                                    setApproverRemark("");
+                                }}
+                                style={{ minWidth: '100px', margin: 0 }}
+                            >
+                                Cancel
+                            </button> */}
+                        </>
+                    )}
+
+                    {currentStep < steps.length - 1 && (
+                        <button
+                            type="button"
+                            className="purple-btn1 px-4 py-2"
+                            onClick={handleNext}
+                            style={{
+                                backgroundColor: '#f57c00',
+                                color: '#fff',
+                                border: 'none',
+                                fontWeight: '500',
+                                minWidth: '100px',
+                                margin: 0
+                            }}
+                        >
+                             Next
+                        </button>
+                    )}
                 </div>
             </div>
             )}
@@ -3394,7 +3892,11 @@ const VendorDetailFormStepper = () => {
                                             </td>
                                             <td>{row.delegateTo}</td>
                                             <td>{row.delegateRemark}</td>
-                                            <td>{row.users}</td>
+                                            <td>
+                                                {Array.isArray(row.users) 
+                                                    ? row.users.map(u => typeof u === 'object' ? (u.full_name || u.name || '') : u).filter(u => u).join(", ") 
+                                                    : (typeof row.users === 'string' ? row.users.split(/\s+/).filter(u => u).join(", ") : row.users)}
+                                            </td>
                                         </tr>
                                     ))}
                                 </tbody>
@@ -3531,7 +4033,7 @@ const VendorDetailFormStepper = () => {
                 <div className="row">
                     <div className="col-12 mb-3">
                         <label className="form-label">
-                            Remark
+                            Remark <span style={{ color: 'red' }}>*</span>
                         </label>
                         <textarea
                             className="form-control"
@@ -3542,7 +4044,7 @@ const VendorDetailFormStepper = () => {
                         />
                     </div>
                     <div className="col-12">
-                        <label className="form-label">Department</label>
+                        <label className="form-label">Department <span style={{ color: 'red' }}>*</span></label>
                         <select
                             className="form-select"
                             value={delegateDepartment}
@@ -3558,6 +4060,19 @@ const VendorDetailFormStepper = () => {
                     </div>
                 </div>
             </DynamicModalBox>
+            
+            <ToastContainer
+                position="top-right"
+                autoClose={3000}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+                theme="light"
+            />
         </>
     );
 };
