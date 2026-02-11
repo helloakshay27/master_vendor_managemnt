@@ -96,9 +96,13 @@ const RekycDetail = () => {
     const fetchDropdowns = async () => {
         try {
             const response = await axios.get(
-                'https://vendors.lockated.com/pms/suppliers/dropdowns');
+                'https://vendors.lockated.com/supplier_field_approvals/dropdowns.json');
             console.log('Dropdowns:', response.data);
-            setDropdowns(response.data);
+            if (response.data && response.data.data) {
+                setDropdowns(response.data.data);
+            } else {
+                setDropdowns(response.data);
+            }
         } catch (error) {
             console.error('Error fetching dropdowns:', error);
         }
@@ -109,24 +113,22 @@ const RekycDetail = () => {
         if (!fieldName) return null;
         const name = fieldName.toLowerCase().trim();
         
-        // Map field names to API dropdown keys
+        // Map field names to API dropdown keys from the provided JSON
         const fieldMapping = {
-            'nature of business': 'nature_of_businesses',
-            'type of business': 'nature_of_businesses',
-            'type business': 'nature_of_businesses',
-            'vendor type': 'vendor_types',
-            'type of vendor': 'vendor_types',
-            'schema group': 'schema_groups',
-            'gst classification': 'gst_classifications',
-            'name title': 'name_titles',
-            'salutation': 'name_titles',
-            'designation': 'designation',
-            'withholding section': 'withholding_sections',
-            'tds section': 'withholding_sections',
-            'type of recipient': 'type_of_recipients',
-            'recipient type': 'type_of_recipients',
-            'department': 'departments',
-            'vendor department': 'departments'
+            'type of organization': 'type_of_organization',
+            'nature of business': 'nature_business',
+            'type of business': 'nature_business',
+            'type business': 'type_business',
+            'vendor type': 'supplier_type',
+            'type of vendor': 'supplier_type',
+            'supplier type': 'supplier_type',
+            'country': 'country',
+            'term of payment': 'term_of_payment',
+            'reconciliation account': 'reconciliation_account',
+            'schema group': 'schema_group',
+            'purchasing organization': 'purchasing_organization',
+            'gst classification': 'gst_classification',
+            'msme': 'msme_hardcoded'
         };
         
         return fieldMapping[name] || null;
@@ -294,10 +296,23 @@ const RekycDetail = () => {
 
     const handleEditClick = (request) => {
         const dropdownKey = getDropdownKey(request.field_name);
+        let val = request.new_value || '';
+
+        // If it's a dropdown field, try to find the ID that corresponds to the current string value
+        if (dropdownKey && dropdowns?.[dropdownKey]) {
+            const match = dropdowns[dropdownKey].find(opt => {
+                const label = (opt.name || opt.code || opt.purchase_org_name || '').toString();
+                return label === val.toString();
+            });
+            if (match) {
+                val = match.id.toString();
+            }
+        }
+
         setEditModal({
             show: true,
             request: request,
-            newValue: request.new_value || '',
+            newValue: val,
             dropdownKey: dropdownKey
         });
     };
@@ -1523,18 +1538,46 @@ const RekycDetail = () => {
                     <label className="form-label" style={{ fontWeight: '500', marginBottom: '8px' }}>
                         {editModal.dropdownKey ? 'Select' : 'Enter'} {editModal.request?.field_name}
                     </label>
-                    {editModal.dropdownKey && dropdowns?.[editModal.dropdownKey] ? (
+                    {editModal.dropdownKey === 'msme_hardcoded' ? (
+                        <select 
+                            className="form-control"
+                            value={editModal.newValue}
+                            onChange={(e) => setEditModal(prev => ({ ...prev, newValue: e.target.value }))}
+                        >
+                            <option value="">Select MSME</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </select>
+                    ) : editModal.dropdownKey && dropdowns?.[editModal.dropdownKey] ? (
                         <select 
                             className="form-control"
                             value={editModal.newValue}
                             onChange={(e) => setEditModal(prev => ({ ...prev, newValue: e.target.value }))}
                         >
                             <option value="">Select {editModal.request?.field_name}</option>
-                            {dropdowns[editModal.dropdownKey].map((option, index) => (
-                                <option key={index} value={option.name}>
-                                    {option.name}
-                                </option>
-                            ))}
+                            {dropdowns[editModal.dropdownKey]
+                                .filter(option => {
+                                    if (editModal.dropdownKey === 'schema_group' || editModal.dropdownKey === 'gst_classification') {
+                                        return option.code !== null && option.code !== undefined;
+                                    } else if (editModal.dropdownKey === 'purchasing_organization') {
+                                        return option.purchase_org_name !== null && option.purchase_org_name !== undefined;
+                                    }
+                                    return option.name !== null && option.name !== undefined;
+                                })
+                                .map((option, index) => {
+                                    let optionLabel = option.name;
+                                    if (editModal.dropdownKey === 'schema_group' || editModal.dropdownKey === 'gst_classification') {
+                                        optionLabel = option.code;
+                                    } else if (editModal.dropdownKey === 'purchasing_organization') {
+                                        optionLabel = option.purchase_org_name;
+                                    }
+                                    
+                                    return (
+                                        <option key={index} value={option.id}>
+                                            {optionLabel}
+                                        </option>
+                                    );
+                                })}
                         </select>
                     ) : (
                         <input 
