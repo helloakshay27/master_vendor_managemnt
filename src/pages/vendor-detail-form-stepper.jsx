@@ -68,14 +68,35 @@ const normalize = (str) => {
 
 const VendorDetailFormStepper = () => {
   // Get supplier ID from URL params
-  const { id: supplierId } = useParams();
+  const { id: rawId } = useParams();
   const location = useLocation();
+
+  // Defensive parsing: extract supplier ID and query params even if URL is malformed
+  // Handle cases like: /9723&history_ids=5511&token=xxx
+  let supplierId = rawId;
+  let extraParams = {};
+  
+  if (rawId && rawId.includes('&')) {
+    // URL is malformed, extract ID and params
+    const parts = rawId.split('&');
+    supplierId = parts[0];
+    
+    // Extract history_ids and token from path if present
+    parts.slice(1).forEach(part => {
+      const [key, value] = part.split('=');
+      if (key && value) {
+        extraParams[key] = value;
+      }
+    });
+  }
 
   // Get token from URL query parameters (like approval-matrix page)
   const urlParams = new URLSearchParams(location.search);
-  const token = urlParams.get("token");
+  const token = urlParams.get("token") || extraParams.token;
   console.log("Token from URL:", token);
-  const historyIdsFromUrl = urlParams.get("history_ids");
+  const historyIdsFromUrl = urlParams.get("history_ids") || extraParams.history_ids;
+  console.log("Supplier ID:", supplierId);
+  console.log("History IDs:", historyIdsFromUrl);
 
   // Loading and data states
   const [loading, setLoading] = useState(true);
@@ -145,10 +166,10 @@ const VendorDetailFormStepper = () => {
 
         const dropdownsUrl = `${base}/pms/suppliers/dropdowns.json`;
 
-        // Add token and history_ids to request if available
+        // Add token and history_ids to request if available (order matters for query string)
         const config = { params: {} };
-        if (token) config.params.token = token;
         if (historyIdsFromUrl) config.params.history_ids = historyIdsFromUrl;
+        if (token) config.params.token = token;
 
         console.log("Fetching data from:", vendorUrl);
         console.log("Checklist URL:", checklistUrl);
@@ -291,10 +312,15 @@ const VendorDetailFormStepper = () => {
     if (finCats.length === 0) return [];
 
     let sectionCounter = 0;
-    return finCats.flatMap((cat) =>
-      cat.subcats.map((sub) => {
+    return finCats.flatMap((cat) => {
+      // Use category-level editable flag
+      const catEditable = cat.editable ?? cat.approval_info?.can_edit ?? true;
+      
+      return cat.subcats.map((sub) => {
         sectionCounter++;
         const currentSecIdx = sectionCounter;
+        const subEditable = sub.editable ?? catEditable;
+        
         const items = sub.questions.map((q, qIdx) => {
           let vendorReply = q.answer || "NA";
           if (q.answer_option_id && q.options) {
@@ -314,6 +340,7 @@ const VendorDetailFormStepper = () => {
             remarkByVendor: q.answer_comments || "",
             totalScore: q.weightage || 5,
             passingScore: q.passing_score || 0,
+            editable: q.editable ?? subEditable,
           };
         });
 
@@ -321,6 +348,7 @@ const VendorDetailFormStepper = () => {
           id: sub.id.toString(),
           srNo: currentSecIdx.toString(),
           title: sub.name,
+          editable: subEditable,
           totalScore: items.reduce(
             (sum, item) => sum + (Number(item.totalScore) || 0),
             0
@@ -328,8 +356,8 @@ const VendorDetailFormStepper = () => {
           passingScore: items.length > 0 ? items[0].passingScore : 0,
           items: items,
         };
-      })
-    );
+      });
+    });
   }, [checklistConfig]);
 
   const technicalPreQualSections = useMemo(() => {
@@ -340,10 +368,15 @@ const VendorDetailFormStepper = () => {
     if (techCats.length === 0) return [];
 
     let sectionCounter = 0;
-    return techCats.flatMap((cat) =>
-      cat.subcats.map((sub) => {
+    return techCats.flatMap((cat) => {
+      // Use category-level editable flag
+      const catEditable = cat.editable ?? cat.approval_info?.can_edit ?? true;
+
+      return cat.subcats.map((sub) => {
         sectionCounter++;
         const currentSecIdx = sectionCounter;
+        const subEditable = sub.editable ?? catEditable;
+
         const items = sub.questions.map((q, qIdx) => {
           let vendorReply = q.answer || "NA";
           if (q.answer_option_id && q.options) {
@@ -363,6 +396,7 @@ const VendorDetailFormStepper = () => {
             remarkByVendor: q.answer_comments || "",
             totalScore: q.weightage || 5,
             passingScore: q.passing_score || 0,
+            editable: q.editable ?? subEditable,
           };
         });
 
@@ -370,6 +404,7 @@ const VendorDetailFormStepper = () => {
           id: sub.id.toString(),
           srNo: currentSecIdx.toString(),
           title: sub.name,
+          editable: subEditable,
           totalScore: items.reduce(
             (sum, item) => sum + (Number(item.totalScore) || 0),
             0
@@ -377,8 +412,8 @@ const VendorDetailFormStepper = () => {
           passingScore: items.length > 0 ? items[0].passingScore : 0,
           items: items,
         };
-      })
-    );
+      });
+    });
   }, [checklistConfig]);
 
   const [scoreByApprover, setScoreByApprover] = useState({});
@@ -388,14 +423,14 @@ const VendorDetailFormStepper = () => {
     const finCat = checklistConfig.find((cat) =>
       normalize(cat.snag_cat_name).includes("financial")
     );
-    return finCat?.editable ?? true;
+    return finCat?.editable ?? finCat?.approval_info?.can_edit ?? true;
   }, [checklistConfig]);
 
   const isTechnicalEditable = useMemo(() => {
     const techCat = checklistConfig.find((cat) =>
       normalize(cat.snag_cat_name).includes("technical")
     );
-    return techCat?.editable ?? true;
+    return techCat?.editable ?? techCat?.approval_info?.can_edit ?? true;
   }, [checklistConfig]);
 
   const totalObtainedMarks = useMemo(() => {
@@ -3817,7 +3852,7 @@ const VendorDetailFormStepper = () => {
                                     max={row.totalScore}
                                     min={0}
                                     value={scoreByApprover[row.id] ?? ""}
-                                    disabled={!isFinancialEditable}
+                                    disabled={!row.editable}
                                     onChange={(e) => {
                                       const val = e.target.value;
                                       if (
@@ -3848,7 +3883,7 @@ const VendorDetailFormStepper = () => {
                                       remarkByApprover[row.id] ??
                                       (markAllNaFinancial ? "NA" : "")
                                     }
-                                    disabled={!isFinancialEditable}
+                                    disabled={!row.editable}
                                     onChange={(e) =>
                                       setRemarkByApprover((p) => ({
                                         ...p,
@@ -4091,7 +4126,7 @@ const VendorDetailFormStepper = () => {
                                     max={row.totalScore}
                                     min={0}
                                     value={scoreByApprover[row.id] ?? ""}
-                                    disabled={!isTechnicalEditable}
+                                    disabled={!row.editable}
                                     onChange={(e) => {
                                       const val = e.target.value;
                                       if (
@@ -4122,7 +4157,7 @@ const VendorDetailFormStepper = () => {
                                       remarkByApprover[row.id] ??
                                       (markAllNaTechnical ? "NA" : "")
                                     }
-                                    disabled={!isTechnicalEditable}
+                                    disabled={!row.editable}
                                     onChange={(e) =>
                                       setRemarkByApprover((p) => ({
                                         ...p,
