@@ -90,73 +90,82 @@ const VendorDetailFormStepper = () => {
     });
   }
 
-  // --- ADVANCED PARAMETER EXTRACTION ---
-  const getSearchString = () => {
+  // --- ULTRA-ROBUST PARAMETER EXTRACTION ---
+  const getAllUrlSources = () => {
+    const sources = [];
     try {
-      let search = location.search || "";
-      if (!search && window.location.search) search = window.location.search;
-      if (!search && window.location.href.includes('?')) {
-        search = "?" + window.location.href.split('?')[1].split('#')[0];
+      sources.push(new URLSearchParams(location.search));
+      sources.push(new URLSearchParams(window.location.search));
+      if (window.location.hash.includes('?')) {
+        sources.push(new URLSearchParams(window.location.hash.split('?')[1]));
       }
-      return search;
-    } catch (e) { return ""; }
-  };
-
-  const getHashString = () => {
-    try {
-      const hash = window.location.hash || "";
-      return hash.includes('?') ? "?" + hash.split('?')[1] : "";
-    } catch (e) { return ""; }
-  };
-
-  const searchParamsInstance = new URLSearchParams(getSearchString());
-  const hashParamsInstance = new URLSearchParams(getHashString());
-
-  const getRobustParam = (name) => {
-    const possibleNames = [name, `${name}[]`, name.toLowerCase(), `${name.toLowerCase()}[]`];
-    const values = [];
-
-    possibleNames.forEach(n => {
-      values.push(...searchParamsInstance.getAll(n));
-      values.push(...hashParamsInstance.getAll(n));
-      if (extraParams[n]) values.push(extraParams[n]);
-    });
-
-    // Cross-check variations
-    if (name === "history_ids") {
-      values.push(...searchParamsInstance.getAll("history_id"), ...hashParamsInstance.getAll("history_id"));
+      // Referrer Fallback: If we were redirected, the IDs might still be in the referrer's URL
+      if (document.referrer) {
+        const refUrl = new URL(document.referrer);
+        sources.push(refUrl.searchParams);
+      }
+    } catch (e) {
+      console.warn("URL source parsing error:", e);
     }
-
-    const found = values.find(v => v && v !== "undefined" && v !== "null" && v.trim() !== "");
-    return found || null;
+    return sources;
   };
 
-  let resolvedSupplierId = supplierId; // initially from useParams
+  const getExhaustiveParam = (name) => {
+    const variants = [name, `${name}[]`, name.toLowerCase(), `${name.toLowerCase()}[]`,
+      name.replace(/_([a-z])/g, (g) => g[1].toUpperCase())]; // camelCase
+
+    // Explicitly check for history_id if looking for history_ids
+    if (name === "history_ids") variants.push("history_id", "h_ids", "hist_ids");
+
+    const sources = getAllUrlSources();
+    for (const source of sources) {
+      for (const variant of variants) {
+        const val = source.get(variant);
+        if (val && val !== "undefined" && val !== "null" && val.trim() !== "") return val;
+      }
+    }
+    // Check extraParams (parsed from path if it had &)
+    for (const variant of variants) {
+      if (extraParams[variant]) return extraParams[variant];
+    }
+    return null;
+  };
+
+  let resolvedSupplierId = supplierId; // from useParams
   if (!resolvedSupplierId || resolvedSupplierId === "undefined" || resolvedSupplierId === "null") {
-    resolvedSupplierId = getRobustParam("supplier_id") || getRobustParam("id");
+    resolvedSupplierId = getExhaustiveParam("supplier_id") || getExhaustiveParam("id");
   }
 
-  let resolvedHistoryIds = getRobustParam("history_ids");
+  let resolvedHistoryIds = getExhaustiveParam("history_ids");
 
-  // Last resort regex on full URL string
+  // Last resort regex on full URL string (raw string search)
   if (!resolvedHistoryIds) {
     const regex = /[?&]history_id(?:s)?(?:%5B%5D|\[\])?=([^& #]+)/i;
-    const match = window.location.href.match(regex);
+    const match = window.location.href.match(regex) || (document.referrer && document.referrer.match(regex));
     if (match) resolvedHistoryIds = match[1];
   }
 
   const historyIdsFromUrl = resolvedHistoryIds;
-  const token = getRobustParam("token");
+  const tokenFromUrl = getExhaustiveParam("token");
 
-  console.log("===== URL DEBUG =====");
-  console.log("Full Href:", window.location.href);
-  console.log("Resolved Supplier ID:", resolvedSupplierId);
-  console.log("Resolved History IDs:", historyIdsFromUrl);
-  console.log("Resolved Token:", token);
-  console.log("=====================");
+  // LOG ALL PARAMS FOR DEBUGGING
+  console.log("===== PRODUCTION URL DEBUG =====");
+  console.log("Current Href:", window.location.href);
+  console.log("Referrer:", document.referrer);
+  try {
+    const allFoundParams = {};
+    const sources = getAllUrlSources();
+    sources.forEach(s => s.forEach((v, k) => { allFoundParams[k] = v; }));
+    console.log("All Detected Params:", allFoundParams);
+  } catch (e) { }
+  console.log("Final Resolved Supplier ID:", resolvedSupplierId);
+  console.log("Final Resolved History IDs:", historyIdsFromUrl);
+  console.log("Final Resolved Token:", tokenFromUrl);
+  console.log("================================");
 
-  // Re-assign for internal use
+  // Apply resolved values
   supplierId = resolvedSupplierId;
+  const token = tokenFromUrl;
   // --- END PARAMETER EXTRACTION ---
 
   // Loading and data states
