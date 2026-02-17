@@ -75,12 +75,12 @@ const VendorDetailFormStepper = () => {
   // Handle cases like: /9723&history_ids=5511&token=xxx
   let supplierId = rawId;
   let extraParams = {};
-  
+
   if (rawId && rawId.includes('&')) {
     // URL is malformed, extract ID and params
     const parts = rawId.split('&');
     supplierId = parts[0];
-    
+
     // Extract history_ids and token from path if present
     parts.slice(1).forEach(part => {
       const [key, value] = part.split('=');
@@ -90,13 +90,25 @@ const VendorDetailFormStepper = () => {
     });
   }
 
-  // Get token from URL query parameters (like approval-matrix page)
-  const urlParams = new URLSearchParams(location.search);
+  // Get parameters from URL query string
+  // Use both react-router location and window.location for maximum robustness
+  const queryStr = location.search || (window.location.search.includes('?') ? window.location.search : "");
+  const urlParams = new URLSearchParams(queryStr);
+
   const token = urlParams.get("token") || extraParams.token;
+  const historyIdsFromUrl = urlParams.get("history_ids") || urlParams.get("history_id") || extraParams.history_ids;
+
+  // If supplierId was not in the path (e.g., server URL using query params), try query params
+  if (!supplierId || supplierId === "undefined") {
+    supplierId = urlParams.get("supplier_id") || urlParams.get("id");
+  }
+
+  console.log("Raw ID from Path:", rawId);
+  console.log("Location Search:", location.search);
+  console.log("Window Location Search:", window.location.search);
+  console.log("Resolved Supplier ID:", supplierId);
+  console.log("Resolved History IDs:", historyIdsFromUrl);
   console.log("Token from URL:", token);
-  const historyIdsFromUrl = urlParams.get("history_ids") || extraParams.history_ids;
-  console.log("Supplier ID:", supplierId);
-  console.log("History IDs:", historyIdsFromUrl);
 
   // Loading and data states
   const [loading, setLoading] = useState(true);
@@ -315,12 +327,12 @@ const VendorDetailFormStepper = () => {
     return finCats.flatMap((cat) => {
       // Use category-level editable flag
       const catEditable = cat.editable ?? cat.approval_info?.can_edit ?? true;
-      
+
       return cat.subcats.map((sub) => {
         sectionCounter++;
         const currentSecIdx = sectionCounter;
         const subEditable = sub.editable ?? catEditable;
-        
+
         const items = sub.questions.map((q, qIdx) => {
           let vendorReply = q.answer || "NA";
           if (q.answer_option_id && q.options) {
@@ -628,7 +640,7 @@ const VendorDetailFormStepper = () => {
       beneficiaryName: bank.benficary_name || "-",
       remark: bank.remark || "-",
       virtualAccount: bank.virtual_account || "No",
-      selectCompany: bank.company_name || "-",
+      selectCompany: bank.company_names || "-",
       virtualAccountCode: bank.virtual_account_code || "-",
       cancelledCheque:
         bank.attachment || bank.cancelled_cheque_attachment || null,
@@ -911,7 +923,10 @@ const VendorDetailFormStepper = () => {
 
       if (response.status === 200 || response.status === 204) {
         toast.success("Status updated successfully!");
-        // alert("Status updated successfully!");
+        // Redirect to external pending approvals page after a short delay
+        setTimeout(() => {
+          window.location.href = "/pms/suppliers/pending_approvals?layout=true";
+        }, 1500);
       }
     } catch (error) {
       console.error("Error updating status:", error);
@@ -1143,17 +1158,16 @@ const VendorDetailFormStepper = () => {
                           background: isCurrent
                             ? "#e95420"
                             : isCompleted
-                            ? "#e95420"
-                            : "#fff",
+                              ? "#e95420"
+                              : "#fff",
                           color: isCurrent || isCompleted ? "#fff" : "#000",
-                          border: `2px solid ${
-                            isCurrent || isCompleted ? "#e95420" : "#ccc"
-                          }`,
+                          border: `2px solid ${isCurrent || isCompleted ? "#e95420" : "#ccc"
+                            }`,
                           boxShadow: isCurrent
                             ? "0 0 8px #e95420"
                             : isCompleted
-                            ? "0 0 4px #e95420"
-                            : "none",
+                              ? "0 0 4px #e95420"
+                              : "none",
                           transition: "all 0.3s ease",
                           display: "flex",
                           alignItems: "center",
@@ -1183,8 +1197,8 @@ const VendorDetailFormStepper = () => {
                           boxShadow: isCurrent
                             ? "0 0 8px #e95420"
                             : isCompleted
-                            ? "0 0 4px #e95420"
-                            : "none",
+                              ? "0 0 4px #e95420"
+                              : "none",
                           fontWeight: isCurrent ? "bold" : "normal",
                           overflow: "hidden",
                           whiteSpace: "nowrap",
@@ -1227,9 +1241,8 @@ const VendorDetailFormStepper = () => {
                         className="flex-grow-1"
                         style={{
                           height: 2,
-                          borderBottom: `2px dotted ${
-                            isCompleted ? "#e95420" : "#aaa"
-                          }`,
+                          borderBottom: `2px dotted ${isCompleted ? "#e95420" : "#aaa"
+                            }`,
                           margin: "0 4px",
                           background: isCompleted ? "#e95420" : "none",
                           transition: "all 0.3s ease",
@@ -1247,271 +1260,271 @@ const VendorDetailFormStepper = () => {
             {/* Organization Detail */}
             {normalize(steps[currentStep]?.label || "") ===
               normalize("Organization Detail") && (
-              <div className="card mx-4 pb-4 mt-4">
-                {/* Organization Details Card */}
-                <div className="card mx-4 pb-4 mt-4 mt-5">
-                  <div className="card-header3">
-                    <h3 className="card-title">Organization Details</h3>
-                  </div>
-                  <div className="card-body mt-0">
-                    <div className="row px-3">
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
-                        <div className="col-4 ">
-                          <label>Company</label>
+                <div className="card mx-4 pb-4 mt-4">
+                  {/* Organization Details Card */}
+                  <div className="card mx-4 pb-4 mt-4 mt-5">
+                    <div className="card-header3">
+                      <h3 className="card-title">Organization Details</h3>
+                    </div>
+                    <div className="card-body mt-0">
+                      <div className="row px-3">
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
+                          <div className="col-4 ">
+                            <label>Company</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {organizationData.companyName}
+                            </label>
+                          </div>
                         </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {organizationData.companyName}
-                          </label>
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
+                          <div className="col-6 ">
+                            <label>Certifying Company GSTIN</label>
+                          </div>
+                          <div className="col-6">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {organizationData.certifyingCompanyGstin || "-"}
+                            </label>
+                          </div>
                         </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
-                        <div className="col-6 ">
-                          <label>Certifying Company GSTIN</label>
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
+                          <div className="col-4 ">
+                            <label>Site</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {organizationData.site || "-"}
+                            </label>
+                          </div>
                         </div>
-                        <div className="col-6">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {organizationData.certifyingCompanyGstin || "-"}
-                          </label>
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
+                          <div className="col-6">
+                            <label>Department</label>
+                          </div>
+                          <div className="col-6">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {organizationData.department || "-"}
+                            </label>
+                          </div>
                         </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
-                        <div className="col-4 ">
-                          <label>Site</label>
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
+                          <div className="col-4 ">
+                            <label>Invited By</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {organizationData.invitedBy || "-"}
+                            </label>
+                          </div>
                         </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {organizationData.site || "-"}
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
-                        <div className="col-6">
-                          <label>Department</label>
-                        </div>
-                        <div className="col-6">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {organizationData.department || "-"}
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
-                        <div className="col-4 ">
-                          <label>Invited By</label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {organizationData.invitedBy || "-"}
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
-                        <div className="col-6 ">
-                          <label>Contact Number</label>
-                        </div>
-                        <div className="col-6">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {organizationData.contactNumber || "-"}
-                          </label>
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
+                          <div className="col-6 ">
+                            <label>Contact Number</label>
+                          </div>
+                          <div className="col-6">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {organizationData.contactNumber || "-"}
+                            </label>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Basic Information Card */}
-                <div className="card mx-4 pb-4 mt-5">
-                  <div className="card-header3">
-                    <h3 className="card-title">Basic Information</h3>
-                  </div>
-                  <div className="card-body mt-0">
-                    <div className="row px-3">
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3">
-                        <div className="col-4">
-                          <label>Vendor Organization Name</label>
+                  {/* Basic Information Card */}
+                  <div className="card mx-4 pb-4 mt-5">
+                    <div className="card-header3">
+                      <h3 className="card-title">Basic Information</h3>
+                    </div>
+                    <div className="card-body mt-0">
+                      <div className="row px-3">
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3">
+                          <div className="col-4">
+                            <label>Vendor Organization Name</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {organizationData.vendorOrganizationName || "-"}
+                            </label>
+                          </div>
                         </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {organizationData.vendorOrganizationName || "-"}
-                          </label>
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3">
+                          <div className="col-4">
+                            <label>Type of Organization</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {organizationData.organizationType || "-"}
+                            </label>
+                          </div>
                         </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3">
-                        <div className="col-4">
-                          <label>Type of Organization</label>
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
+                          <div className="col-4">
+                            <label>Nature of Business</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {organizationData.natureOfBusiness || "-"}
+                            </label>
+                          </div>
                         </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {organizationData.organizationType || "-"}
-                          </label>
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
+                          <div className="col-4">
+                            <label>Vendor Type</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {organizationData.vendorType || "-"}
+                            </label>
+                          </div>
                         </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
-                        <div className="col-4">
-                          <label>Nature of Business</label>
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
+                          <div className="col-4">
+                            <label>Type of Industry</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {organizationData.typeOfIndustry || "-"}
+                            </label>
+                          </div>
                         </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {organizationData.natureOfBusiness || "-"}
-                          </label>
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
+                          <div className="col-4">
+                            <label>Type of Work</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {organizationData.typeOfWork || "-"}
+                            </label>
+                          </div>
                         </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
-                        <div className="col-4">
-                          <label>Vendor Type</label>
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
+                          <div className="col-4">
+                            <label>Full Name</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {organizationData.fullName || "-"}
+                            </label>
+                          </div>
                         </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {organizationData.vendorType || "-"}
-                          </label>
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
+                          <div className="col-4">
+                            <label>Email</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {organizationData.email || "-"}
+                            </label>
+                          </div>
                         </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
-                        <div className="col-4">
-                          <label>Type of Industry</label>
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
+                          <div className="col-4">
+                            <label>Mobile</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {organizationData.mobile || "-"}
+                            </label>
+                          </div>
                         </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {organizationData.typeOfIndustry || "-"}
-                          </label>
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
+                          <div className="col-4">
+                            <label>Key Market</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {organizationData.keyMarket || "-"}
+                            </label>
+                          </div>
                         </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
-                        <div className="col-4">
-                          <label>Type of Work</label>
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
+                          <div className="col-4">
+                            <label>Schema Group</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {organizationData.schemaGroup || "-"}
+                            </label>
+                          </div>
                         </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {organizationData.typeOfWork || "-"}
-                          </label>
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
+                          <div className="col-4">
+                            <label>PAN No.</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {organizationData.panNo || "-"}
+                            </label>
+                          </div>
                         </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
-                        <div className="col-4">
-                          <label>Full Name</label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {organizationData.fullName || "-"}
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
-                        <div className="col-4">
-                          <label>Email</label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {organizationData.email || "-"}
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
-                        <div className="col-4">
-                          <label>Mobile</label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {organizationData.mobile || "-"}
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
-                        <div className="col-4">
-                          <label>Key Market</label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {organizationData.keyMarket || "-"}
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
-                        <div className="col-4">
-                          <label>Schema Group</label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {organizationData.schemaGroup || "-"}
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
-                        <div className="col-4">
-                          <label>PAN No.</label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {organizationData.panNo || "-"}
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
-                        <div className="col-4">
-                          <label>PAN Attachment</label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {organizationData.panAttachments &&
-                            organizationData.panAttachments.length > 0
-                              ? organizationData.panAttachments.map(
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
+                          <div className="col-4">
+                            <label>PAN Attachment</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {organizationData.panAttachments &&
+                                organizationData.panAttachments.length > 0
+                                ? organizationData.panAttachments.map(
                                   (file, index) => (
                                     <a
                                       key={index}
@@ -1537,35 +1550,35 @@ const VendorDetailFormStepper = () => {
                                     </a>
                                   )
                                 )
-                              : "-"}
-                          </label>
+                                : "-"}
+                            </label>
+                          </div>
                         </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
-                        <div className="col-4">
-                          <label>CIN/LLP No.</label>
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
+                          <div className="col-4">
+                            <label>CIN/LLP No.</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {organizationData.cinNo || "-"}
+                            </label>
+                          </div>
                         </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {organizationData.cinNo || "-"}
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
-                        <div className="col-4">
-                          <label>CIN/LLP Attachment</label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {organizationData.cinAttachments &&
-                            organizationData.cinAttachments.length > 0
-                              ? organizationData.cinAttachments.map(
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
+                          <div className="col-4">
+                            <label>CIN/LLP Attachment</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {organizationData.cinAttachments &&
+                                organizationData.cinAttachments.length > 0
+                                ? organizationData.cinAttachments.map(
                                   (file, index) => (
                                     <a
                                       key={index}
@@ -1591,74 +1604,74 @@ const VendorDetailFormStepper = () => {
                                     </a>
                                   )
                                 )
-                              : "-"}
-                          </label>
+                                : "-"}
+                            </label>
+                          </div>
                         </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
-                        <div className="col-4">
-                          <label>Date of Incorporation</label>
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
+                          <div className="col-4">
+                            <label>Date of Incorporation</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {organizationData.dateOfIncorporation || "-"}
+                            </label>
+                          </div>
                         </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {organizationData.dateOfIncorporation || "-"}
-                          </label>
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
+                          <div className="col-4">
+                            <label>GSTIN Applicable</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {organizationData.gstinApplicable || "-"}
+                            </label>
+                          </div>
                         </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
-                        <div className="col-4">
-                          <label>GSTIN Applicable</label>
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
+                          <div className="col-4">
+                            <label>GSTIN Classification</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {organizationData.gstinClassification || "-"}
+                            </label>
+                          </div>
                         </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {organizationData.gstinApplicable || "-"}
-                          </label>
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
+                          <div className="col-4">
+                            <label>GSTIN</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {organizationData.gstin || "-"}
+                            </label>
+                          </div>
                         </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
-                        <div className="col-4">
-                          <label>GSTIN Classification</label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {organizationData.gstinClassification || "-"}
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
-                        <div className="col-4">
-                          <label>GSTIN</label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {organizationData.gstin || "-"}
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
-                        <div className="col-4">
-                          <label>GSTIN Attachment</label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {organizationData.gstinAttachments &&
-                            organizationData.gstinAttachments.length > 0
-                              ? organizationData.gstinAttachments.map(
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
+                          <div className="col-4">
+                            <label>GSTIN Attachment</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {organizationData.gstinAttachments &&
+                                organizationData.gstinAttachments.length > 0
+                                ? organizationData.gstinAttachments.map(
                                   (file, index) => (
                                     <a
                                       key={index}
@@ -1684,260 +1697,260 @@ const VendorDetailFormStepper = () => {
                                     </a>
                                   )
                                 )
-                              : "-"}
-                          </label>
+                                : "-"}
+                            </label>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Additional Vendor Details Card */}
-                <div className="card mx-4 pb-4 mt-5">
-                  <div className="card-header3">
-                    <h3 className="card-title">Additional Vendor Details</h3>
-                  </div>
-                  <div className="card-body mt-0">
-                    <div className="row px-3">
-                      {/* Row 1 */}
-                      <div className="col-lg-4 col-md-6 col-sm-12 row px-3">
-                        <div className="col-4">
-                          <label>Delivery Lead Period (In Days)</label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {additionalDetailsData.deliveryLeadPeriod || "-"}
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-4 col-md-6 col-sm-12 row px-3">
-                        <div className="col-4">
-                          <label>Specify Warranty Period (In Years)</label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {additionalDetailsData.warrantyPeriod || "-"}
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-4 col-md-6 col-sm-12 row px-3">
-                        <div className="col-4">
-                          <label>AMC Provided</label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {additionalDetailsData.amcProvided || "-"}
-                          </label>
-                        </div>
-                      </div>
-
-                      {/* Row 2 */}
-                      <div className="col-lg-4 col-md-6 col-sm-12 row px-3 mt-2">
-                        <div className="col-4">
-                          <label>Website</label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            <a
-                              href={
-                                additionalDetailsData.website?.startsWith(
-                                  "http"
-                                )
-                                  ? additionalDetailsData.website
-                                  : `https://${additionalDetailsData.website}`
-                              }
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              style={{
-                                color: "#e95420",
-                                textDecoration: "underline",
-                              }}
-                            >
-                              {additionalDetailsData.website || "-"}
-                            </a>
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-4 col-md-6 col-sm-12 row px-3 mt-2">
-                        <div className="col-4">
-                          <label>Currency Type</label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {additionalDetailsData.currencyType || "-"}
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-4 col-md-6 col-sm-12 row px-3 mt-2">
-                        <div className="col-4">
-                          <label>MSME/Udyam Number Applicable</label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {additionalDetailsData.msmeApplicable || "-"}
-                          </label>
-                        </div>
-                      </div>
-
-                      {/* Row 3 */}
-                      <div className="col-lg-4 col-md-6 col-sm-12 row px-3 mt-2">
-                        <div className="col-4">
-                          <label>MSME/Udyam Number</label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {additionalDetailsData.msmeNo || "-"}
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-4 col-md-6 col-sm-12 row px-3 mt-2">
-                        <div className="col-4">
-                          <label>Date of Udyam Registration</label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {additionalDetailsData.udyamRegistrationDate || "-"}
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-4 col-md-6 col-sm-12 row px-3 mt-2">
-                        <div className="col-4">
-                          <label>Classification Year</label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {additionalDetailsData.classificationYear || "-"}
-                          </label>
-                        </div>
-                      </div>
-
-                      {/* Row 4 */}
-                      <div className="col-lg-4 col-md-6 col-sm-12 row px-3 mt-2">
-                        <div className="col-4">
-                          <label>Major Activity</label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {additionalDetailsData.majorActivity || "-"}
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-4 col-md-6 col-sm-12 row px-3 mt-2">
-                        <div className="col-4">
-                          <label>MSME/Udyam Valid From</label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {additionalDetailsData.validFrom || "-"}
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-4 col-md-6 col-sm-12 row px-3 mt-2">
-                        <div className="col-4">
-                          <label>MSME/Udyam Valid Till</label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {additionalDetailsData.validTill || "-"}
-                          </label>
-                        </div>
-                      </div>
-
-                      {/* Row 5 */}
-                      <div className="col-lg-4 col-md-6 col-sm-12 row px-3 mt-2">
-                        <div className="col-4">
-                          <label>MSME Enterprise Type</label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {additionalDetailsData.enterpriseType || "-"}
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-4 col-md-6 col-sm-12 row px-3 mt-2">
-                        <div className="col-4">
-                          <label>Download Specimen</label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text d-flex align-items-center">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            <a
-                              href={
-                                additionalDetailsData.msmeApplicable === "Yes"
-                                  ? `${baseURL}pms/suppliers/download_specimen?yes_msme=true`
-                                  : `${baseURL}pms/suppliers/download_specimen?no_msme=true`
-                              }
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              style={{
-                                color: "#e95420",
-                                textDecoration: "underline",
-                              }}
-                              title="Download Specimen"
-                            >
-                              <span className="material-symbols-outlined align-middle me-1">
-                                download
+                  {/* Additional Vendor Details Card */}
+                  <div className="card mx-4 pb-4 mt-5">
+                    <div className="card-header3">
+                      <h3 className="card-title">Additional Vendor Details</h3>
+                    </div>
+                    <div className="card-body mt-0">
+                      <div className="row px-3">
+                        {/* Row 1 */}
+                        <div className="col-lg-4 col-md-6 col-sm-12 row px-3">
+                          <div className="col-4">
+                            <label>Delivery Lead Period (In Days)</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
                               </span>
-                              {additionalDetailsData.msmeApplicable === "Yes"
-                                ? "Specimen For Yes Msme.pdf"
-                                : "Specimen For No Msme.pdf"}
-                            </a>
-                          </label>
+                              {additionalDetailsData.deliveryLeadPeriod || "-"}
+                            </label>
+                          </div>
                         </div>
-                      </div>
-                      <div className="col-lg-4 col-md-4 col-sm-12 row px-3 mt-2">
-                        <div className="col-4">
-                          <label>MSME Attachment</label>
+                        <div className="col-lg-4 col-md-6 col-sm-12 row px-3">
+                          <div className="col-4">
+                            <label>Specify Warranty Period (In Years)</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {additionalDetailsData.warrantyPeriod || "-"}
+                            </label>
+                          </div>
                         </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {additionalDetailsData.msmeAttachments &&
-                            additionalDetailsData.msmeAttachments.length > 0
-                              ? additionalDetailsData.msmeAttachments.map(
+                        <div className="col-lg-4 col-md-6 col-sm-12 row px-3">
+                          <div className="col-4">
+                            <label>AMC Provided</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {additionalDetailsData.amcProvided || "-"}
+                            </label>
+                          </div>
+                        </div>
+
+                        {/* Row 2 */}
+                        <div className="col-lg-4 col-md-6 col-sm-12 row px-3 mt-2">
+                          <div className="col-4">
+                            <label>Website</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              <a
+                                href={
+                                  additionalDetailsData.website?.startsWith(
+                                    "http"
+                                  )
+                                    ? additionalDetailsData.website
+                                    : `https://${additionalDetailsData.website}`
+                                }
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{
+                                  color: "#e95420",
+                                  textDecoration: "underline",
+                                }}
+                              >
+                                {additionalDetailsData.website || "-"}
+                              </a>
+                            </label>
+                          </div>
+                        </div>
+                        <div className="col-lg-4 col-md-6 col-sm-12 row px-3 mt-2">
+                          <div className="col-4">
+                            <label>Currency Type</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {additionalDetailsData.currencyType || "-"}
+                            </label>
+                          </div>
+                        </div>
+                        <div className="col-lg-4 col-md-6 col-sm-12 row px-3 mt-2">
+                          <div className="col-4">
+                            <label>MSME/Udyam Number Applicable</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {additionalDetailsData.msmeApplicable || "-"}
+                            </label>
+                          </div>
+                        </div>
+
+                        {/* Row 3 */}
+                        <div className="col-lg-4 col-md-6 col-sm-12 row px-3 mt-2">
+                          <div className="col-4">
+                            <label>MSME/Udyam Number</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {additionalDetailsData.msmeNo || "-"}
+                            </label>
+                          </div>
+                        </div>
+                        <div className="col-lg-4 col-md-6 col-sm-12 row px-3 mt-2">
+                          <div className="col-4">
+                            <label>Date of Udyam Registration</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {additionalDetailsData.udyamRegistrationDate || "-"}
+                            </label>
+                          </div>
+                        </div>
+                        <div className="col-lg-4 col-md-6 col-sm-12 row px-3 mt-2">
+                          <div className="col-4">
+                            <label>Classification Year</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {additionalDetailsData.classificationYear || "-"}
+                            </label>
+                          </div>
+                        </div>
+
+                        {/* Row 4 */}
+                        <div className="col-lg-4 col-md-6 col-sm-12 row px-3 mt-2">
+                          <div className="col-4">
+                            <label>Major Activity</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {additionalDetailsData.majorActivity || "-"}
+                            </label>
+                          </div>
+                        </div>
+                        <div className="col-lg-4 col-md-6 col-sm-12 row px-3 mt-2">
+                          <div className="col-4">
+                            <label>MSME/Udyam Valid From</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {additionalDetailsData.validFrom || "-"}
+                            </label>
+                          </div>
+                        </div>
+                        <div className="col-lg-4 col-md-6 col-sm-12 row px-3 mt-2">
+                          <div className="col-4">
+                            <label>MSME/Udyam Valid Till</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {additionalDetailsData.validTill || "-"}
+                            </label>
+                          </div>
+                        </div>
+
+                        {/* Row 5 */}
+                        <div className="col-lg-4 col-md-6 col-sm-12 row px-3 mt-2">
+                          <div className="col-4">
+                            <label>MSME Enterprise Type</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {additionalDetailsData.enterpriseType || "-"}
+                            </label>
+                          </div>
+                        </div>
+                        <div className="col-lg-4 col-md-6 col-sm-12 row px-3 mt-2">
+                          <div className="col-4">
+                            <label>Download Specimen</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text d-flex align-items-center">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              <a
+                                href={
+                                  additionalDetailsData.msmeApplicable === "Yes"
+                                    ? `${baseURL}pms/suppliers/download_specimen?yes_msme=true`
+                                    : `${baseURL}pms/suppliers/download_specimen?no_msme=true`
+                                }
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{
+                                  color: "#e95420",
+                                  textDecoration: "underline",
+                                }}
+                                title="Download Specimen"
+                              >
+                                <span className="material-symbols-outlined align-middle me-1">
+                                  download
+                                </span>
+                                {additionalDetailsData.msmeApplicable === "Yes"
+                                  ? "Specimen For Yes Msme.pdf"
+                                  : "Specimen For No Msme.pdf"}
+                              </a>
+                            </label>
+                          </div>
+                        </div>
+                        <div className="col-lg-4 col-md-4 col-sm-12 row px-3 mt-2">
+                          <div className="col-4">
+                            <label>MSME Attachment</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {additionalDetailsData.msmeAttachments &&
+                                additionalDetailsData.msmeAttachments.length > 0
+                                ? additionalDetailsData.msmeAttachments.map(
                                   (file, index) => (
                                     <a
                                       key={index}
@@ -1949,8 +1962,8 @@ const VendorDetailFormStepper = () => {
                                         textDecoration: "none",
                                         marginBottom:
                                           index <
-                                          additionalDetailsData.msmeAttachments
-                                            .length -
+                                            additionalDetailsData.msmeAttachments
+                                              .length -
                                             1
                                             ? "8px"
                                             : "0",
@@ -1974,38 +1987,38 @@ const VendorDetailFormStepper = () => {
                                     </a>
                                   )
                                 )
-                              : "No attachments available"}
-                          </label>
+                                : "No attachments available"}
+                            </label>
+                          </div>
                         </div>
-                      </div>
 
-                      {/* Row 6 */}
-                      <div className="col-lg-4 col-md-6 col-sm-12 row px-3 mt-2">
-                        <div className="col-4">
-                          <label>E-invoicing Applicable</label>
+                        {/* Row 6 */}
+                        <div className="col-lg-4 col-md-6 col-sm-12 row px-3 mt-2">
+                          <div className="col-4">
+                            <label>E-invoicing Applicable</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {additionalDetailsData.einvoicingApplicable || "-"}
+                            </label>
+                          </div>
                         </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {additionalDetailsData.einvoicingApplicable || "-"}
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-4 col-md-6 col-sm-12 row px-3 mt-2">
-                        <div className="col-4">
-                          <label>E-invoicing Attachment</label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {additionalDetailsData.einvoicingAttachments &&
-                            additionalDetailsData.einvoicingAttachments.length >
-                              0
-                              ? additionalDetailsData.einvoicingAttachments.map(
+                        <div className="col-lg-4 col-md-6 col-sm-12 row px-3 mt-2">
+                          <div className="col-4">
+                            <label>E-invoicing Attachment</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {additionalDetailsData.einvoicingAttachments &&
+                                additionalDetailsData.einvoicingAttachments.length >
+                                0
+                                ? additionalDetailsData.einvoicingAttachments.map(
                                   (file, index) => (
                                     <a
                                       key={index}
@@ -2032,13 +2045,13 @@ const VendorDetailFormStepper = () => {
                                     </a>
                                   )
                                 )
-                              : "-"}
-                          </label>
+                                : "-"}
+                            </label>
+                          </div>
                         </div>
-                      </div>
 
-                      {/* Extra Rows for previously added fields */}
-                      {/* <div className="col-lg-4 col-md-6 col-sm-12 row px-3 mt-2">
+                        {/* Extra Rows for previously added fields */}
+                        {/* <div className="col-lg-4 col-md-6 col-sm-12 row px-3 mt-2">
                                                     <div className="col-4">
                                                         <label>Purchasing Organization</label>
                                                     </div>
@@ -2051,50 +2064,50 @@ const VendorDetailFormStepper = () => {
                                                         </label>
                                                     </div>
                                                 </div> */}
-                      <div className="col-lg-4 col-md-6 col-sm-12 row px-3 mt-2">
-                        <div className="col-4">
-                          <label>Business Personality Type</label>
+                        <div className="col-lg-4 col-md-6 col-sm-12 row px-3 mt-2">
+                          <div className="col-4">
+                            <label>Business Personality Type</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {additionalDetailsData.businessPersonalityType ||
+                                "-"}
+                            </label>
+                          </div>
                         </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {additionalDetailsData.businessPersonalityType ||
-                              "-"}
-                          </label>
+                        <div className="col-lg-4 col-md-6 col-sm-12 row px-3 mt-2">
+                          <div className="col-4">
+                            <label>Term of Payment</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {additionalDetailsData.termOfPayment || "-"}
+                            </label>
+                          </div>
                         </div>
-                      </div>
-                      <div className="col-lg-4 col-md-6 col-sm-12 row px-3 mt-2">
-                        <div className="col-4">
-                          <label>Term of Payment</label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {additionalDetailsData.termOfPayment || "-"}
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-4 col-md-6 col-sm-12 row px-3 mt-2">
-                        <div className="col-4">
-                          <label>Organization</label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {additionalDetailsData.organization || "-"}
-                          </label>
+                        <div className="col-lg-4 col-md-6 col-sm-12 row px-3 mt-2">
+                          <div className="col-4">
+                            <label>Organization</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {additionalDetailsData.organization || "-"}
+                            </label>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
-                {/* <div className="col-lg-2 col-md-2 col-sm-12 mt-2 ms-auto">
+                  {/* <div className="col-lg-2 col-md-2 col-sm-12 mt-2 ms-auto">
                                                     <label htmlFor="status-select" className="form-label">Status</label>
                                                     <select
                                                         className="form-select"
@@ -2107,366 +2120,21 @@ const VendorDetailFormStepper = () => {
                                                         <option value="Completed">Completed</option>
                                                     </select>
                                                 </div> */}
-              </div>
-            )}
+                </div>
+              )}
 
             {/* Communication & Register Address */}
             {normalize(steps[currentStep]?.label || "") ===
               normalize("Communication & Register Address") && (
-              <div className="card mx-4 pb-4 mt-4">
-                {/* Billing / Registered Office Card */}
-                <div className="card mx-3 pb-4 mt-4">
-                  <div className="card-header3">
-                    <h3 className="card-title">Billing / Registered Office</h3>
-                  </div>
-                  <div className="card-body mt-0">
-                    <div className="row px-3">
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3">
-                        <div className="col-4">
-                          <label>Address</label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {registeredAddressData.address1 || "-"}
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3">
-                        <div className="col-4">
-                          <label>Address Line 2</label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {registeredAddressData.address2 || "-"}
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
-                        <div className="col-4">
-                          <label>Address Line 3</label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {registeredAddressData.address3 || "-"}
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
-                        <div className="col-4">
-                          <label>Address Line 4</label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {registeredAddressData.address4 || "-"}
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
-                        <div className="col-4">
-                          <label>Address Line 5</label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {registeredAddressData.address5 || "-"}
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
-                        <div className="col-4">
-                          <label>Country</label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {registeredAddressData.country || "-"}
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
-                        <div className="col-4">
-                          <label>State</label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {registeredAddressData.state || "-"}
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
-                        <div className="col-4">
-                          <label>City</label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {registeredAddressData.city || "-"}
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
-                        <div className="col-4">
-                          <label>Pin Code</label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {registeredAddressData.pincode || "-"}
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
-                        <div className="col-4">
-                          <label>Contact Number</label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {registeredAddressData.mobile || "-"}
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
-                        <div className="col-4">
-                          <label>Ordering Email ID</label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {registeredAddressData.orderingEmail || "-"}
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
-                        <div className="col-4">
-                          <label>Billing & Accounting Email ID</label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {registeredAddressData.billingEmail || "-"}
-                          </label>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Communication Address Card */}
-                <div className="card mx-3 pb-4 mt-4">
-                  <div className="card-header3">
-                    <h3 className="card-title">Communication Address</h3>
-                  </div>
-                  <div className="card-body mt-0">
-                    <div className="row ms-1"></div>
-                    <div className="row px-3">
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3">
-                        <div className="col-4">
-                          <label>Address</label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {communicationAddressData.address1 || "-"}
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3">
-                        <div className="col-4">
-                          <label>Address Line 2</label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {communicationAddressData.address2 || "-"}
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
-                        <div className="col-4">
-                          <label>Address Line 3</label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {communicationAddressData.address3 || "-"}
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
-                        <div className="col-4">
-                          <label>Address Line 4</label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {communicationAddressData.address4 || "-"}
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
-                        <div className="col-4">
-                          <label>Address Line 5</label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {communicationAddressData.address5 || "-"}
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
-                        <div className="col-4">
-                          <label>Country</label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {communicationAddressData.country || "-"}
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
-                        <div className="col-4">
-                          <label>State</label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {communicationAddressData.state || "-"}
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
-                        <div className="col-4">
-                          <label>City</label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {communicationAddressData.city || "-"}
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
-                        <div className="col-4">
-                          <label>Pin Code</label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {communicationAddressData.pincode || "-"}
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
-                        <div className="col-4">
-                          <label>Contact Number</label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {communicationAddressData.mobile || "-"}
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
-                        <div className="col-4">
-                          <label>Email ID</label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {communicationAddressData.orderingEmail || "-"}
-                          </label>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Bank Details */}
-            {normalize(steps[currentStep]?.label || "") ===
-              normalize("Bank Details") && (
-              <div className="card mx-4 pb-4 mt-4">
-                {bankDetailsData.map((bank, idx) => (
-                  <div key={idx} className="card mx-3 pb-4 mt-4">
+                <div className="card mx-4 pb-4 mt-4">
+                  {/* Billing / Registered Office Card */}
+                  <div className="card mx-3 pb-4 mt-4">
                     <div className="card-header3">
-                      <h3 className="card-title">
-                        Bank Details
-                        {bankDetailsData.length > 1 ? ` (${idx + 1})` : ""}
-                      </h3>
+                      <h3 className="card-title">Billing / Registered Office</h3>
                     </div>
                     <div className="card-body mt-0">
                       <div className="row px-3">
-                        {/* Row 1 */}
-                        <div className="col-lg-4 col-md-6 col-sm-12 row px-3">
-                          <div className="col-4">
-                            <label>Bank Name</label>
-                          </div>
-                          <div className="col-8">
-                            <label className="text">
-                              <span className="me-3">
-                                <span className="text-dark">:</span>
-                              </span>
-                              {bank.bankName || "-"}
-                            </label>
-                          </div>
-                        </div>
-                        <div className="col-lg-4 col-md-6 col-sm-12 row px-3">
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3">
                           <div className="col-4">
                             <label>Address</label>
                           </div>
@@ -2475,11 +2143,63 @@ const VendorDetailFormStepper = () => {
                               <span className="me-3">
                                 <span className="text-dark">:</span>
                               </span>
-                              {bank.address || "-"}
+                              {registeredAddressData.address1 || "-"}
                             </label>
                           </div>
                         </div>
-                        <div className="col-lg-4 col-md-6 col-sm-12 row px-3 ">
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3">
+                          <div className="col-4">
+                            <label>Address Line 2</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {registeredAddressData.address2 || "-"}
+                            </label>
+                          </div>
+                        </div>
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
+                          <div className="col-4">
+                            <label>Address Line 3</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {registeredAddressData.address3 || "-"}
+                            </label>
+                          </div>
+                        </div>
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
+                          <div className="col-4">
+                            <label>Address Line 4</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {registeredAddressData.address4 || "-"}
+                            </label>
+                          </div>
+                        </div>
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
+                          <div className="col-4">
+                            <label>Address Line 5</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {registeredAddressData.address5 || "-"}
+                            </label>
+                          </div>
+                        </div>
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
                           <div className="col-4">
                             <label>Country</label>
                           </div>
@@ -2488,13 +2208,11 @@ const VendorDetailFormStepper = () => {
                               <span className="me-3">
                                 <span className="text-dark">:</span>
                               </span>
-                              {bank.country || "-"}
+                              {registeredAddressData.country || "-"}
                             </label>
                           </div>
                         </div>
-
-                        {/* Row 2 */}
-                        <div className="col-lg-4 col-md-6 col-sm-12 row px-3 mt-2">
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
                           <div className="col-4">
                             <label>State</label>
                           </div>
@@ -2503,11 +2221,11 @@ const VendorDetailFormStepper = () => {
                               <span className="me-3">
                                 <span className="text-dark">:</span>
                               </span>
-                              {bank.state || "-"}
+                              {registeredAddressData.state || "-"}
                             </label>
                           </div>
                         </div>
-                        <div className="col-lg-4 col-md-6 col-sm-12 row px-3 mt-2">
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
                           <div className="col-4">
                             <label>City</label>
                           </div>
@@ -2516,11 +2234,11 @@ const VendorDetailFormStepper = () => {
                               <span className="me-3">
                                 <span className="text-dark">:</span>
                               </span>
-                              {bank.city || "-"}
+                              {registeredAddressData.city || "-"}
                             </label>
                           </div>
                         </div>
-                        <div className="col-lg-4 col-md-6 col-sm-12 row px-3 mt-2">
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
                           <div className="col-4">
                             <label>Pin Code</label>
                           </div>
@@ -2529,957 +2247,472 @@ const VendorDetailFormStepper = () => {
                               <span className="me-3">
                                 <span className="text-dark">:</span>
                               </span>
-                              {bank.pincode || "-"}
+                              {registeredAddressData.pincode || "-"}
                             </label>
                           </div>
                         </div>
-
-                        {/* Row 3 */}
-                        <div className="col-lg-4 col-md-6 col-sm-12 row px-3 mt-2">
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
                           <div className="col-4">
-                            <label>Account Type</label>
+                            <label>Contact Number</label>
                           </div>
                           <div className="col-8">
                             <label className="text">
                               <span className="me-3">
                                 <span className="text-dark">:</span>
                               </span>
-                              {bank.accountType || "-"}
+                              {registeredAddressData.mobile || "-"}
                             </label>
                           </div>
                         </div>
-                        <div className="col-lg-4 col-md-6 col-sm-12 row px-3 mt-2">
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
                           <div className="col-4">
-                            <label>Account Number</label>
+                            <label>Ordering Email ID</label>
                           </div>
                           <div className="col-8">
                             <label className="text">
                               <span className="me-3">
                                 <span className="text-dark">:</span>
                               </span>
-                              {bank.accountNumber || "-"}
+                              {registeredAddressData.orderingEmail || "-"}
                             </label>
                           </div>
                         </div>
-                        <div className="col-lg-4 col-md-6 col-sm-12 row px-3 mt-2">
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
                           <div className="col-4">
-                            <label>Confirm Account Number</label>
+                            <label>Billing & Accounting Email ID</label>
                           </div>
                           <div className="col-8">
                             <label className="text">
                               <span className="me-3">
                                 <span className="text-dark">:</span>
                               </span>
-                              {bank.accountNumber || "-"}
-                            </label>
-                          </div>
-                        </div>
-
-                        {/* Row 4 */}
-                        <div className="col-lg-4 col-md-6 col-sm-12 row px-3 mt-2">
-                          <div className="col-4">
-                            <label>Branch Name</label>
-                          </div>
-                          <div className="col-8">
-                            <label className="text">
-                              <span className="me-3">
-                                <span className="text-dark">:</span>
-                              </span>
-                              {bank.branchName || "-"}
-                            </label>
-                          </div>
-                        </div>
-                        <div className="col-lg-4 col-md-6 col-sm-12 row px-3 mt-2">
-                          <div className="col-4">
-                            <label>MICR No.</label>
-                          </div>
-                          <div className="col-8">
-                            <label className="text">
-                              <span className="me-3">
-                                <span className="text-dark">:</span>
-                              </span>
-                              {bank.micrNumber || "-"}
-                            </label>
-                          </div>
-                        </div>
-                        <div className="col-lg-4 col-md-6 col-sm-12 row px-3 mt-2">
-                          <div className="col-4">
-                            <label>IFSC Code</label>
-                          </div>
-                          <div className="col-8">
-                            <label className="text">
-                              <span className="me-3">
-                                <span className="text-dark">:</span>
-                              </span>
-                              {bank.ifscCode || "-"}
-                            </label>
-                          </div>
-                        </div>
-
-                        {/* Row 5 */}
-                        <div className="col-lg-4 col-md-6 col-sm-12 row px-3 mt-2">
-                          <div className="col-4">
-                            <label>Beneficiary Name</label>
-                          </div>
-                          <div className="col-8">
-                            <label className="text">
-                              <span className="me-3">
-                                <span className="text-dark">:</span>
-                              </span>
-                              {bank.beneficiaryName || "-"}
-                            </label>
-                          </div>
-                        </div>
-                        <div className="col-lg-4 col-md-6 col-sm-12 row px-3 mt-2">
-                          <div className="col-4">
-                            <label>Virtual Account</label>
-                          </div>
-                          <div className="col-8">
-                            <label className="text">
-                              <span className="me-3">
-                                <span className="text-dark">:</span>
-                              </span>
-                              {bank.virtualAccount || "-"}
-                            </label>
-                          </div>
-                        </div>
-                        <div className="col-lg-4 col-md-6 col-sm-12 row px-3 mt-2">
-                          <div className="col-4">
-                            <label>Select Company</label>
-                          </div>
-                          <div className="col-8">
-                            <label className="text">
-                              <span className="me-3">
-                                <span className="text-dark">:</span>
-                              </span>
-                              {bank.selectCompany || "-"}
-                            </label>
-                          </div>
-                        </div>
-
-                        {/* Row 6 */}
-                        <div className="col-lg-4 col-md-6 col-sm-12 row px-3 mt-2">
-                          <div className="col-4">
-                            <label>Generated Virtual Account Code</label>
-                          </div>
-                          <div className="col-8">
-                            <label className="text">
-                              <span className="me-3">
-                                <span className="text-dark">:</span>
-                              </span>
-                              {bank.virtualAccountCode || "-"}
-                            </label>
-                          </div>
-                        </div>
-                        <div className="col-lg-4 col-md-6 col-sm-12 row px-3 mt-2">
-                          <div className="col-4">
-                            <label>Cancelled Cheque / Bank Copy</label>
-                          </div>
-                          <div className="col-8">
-                            <label className="text">
-                              <span className="me-3">
-                                <span className="text-dark">:</span>
-                              </span>
-                              {bank.cancelledCheque ? (
-                                <a
-                                  href={
-                                    bank.cancelledCheque.attachment_url
-                                      ? `${baseURL}${bank.cancelledCheque.attachment_url}`
-                                      : bank.cancelledCheque.file_url
-                                  }
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  style={{
-                                    color: "#e95420",
-                                    textDecoration: "none",
-                                  }}
-                                  className="d-flex align-items-center"
-                                  download
-                                >
-                                  <span className="material-symbols-outlined align-middle me-1">
-                                    download
-                                  </span>
-                                  {bank.cancelledCheque.document_name}
-                                </a>
-                              ) : (
-                                "-"
-                              )}
-                            </label>
-                          </div>
-                        </div>
-                        <div className="col-lg-4 col-md-6 col-sm-12 row px-3 mt-2">
-                          <div className="col-4">
-                            <label>Remark</label>
-                          </div>
-                          <div className="col-8">
-                            <label className="text">
-                              <span className="me-3">
-                                <span className="text-dark">:</span>
-                              </span>
-                              {bank.remark || "-"}
+                              {registeredAddressData.billingEmail || "-"}
                             </label>
                           </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
 
-            {/* Additional Details */}
+                  {/* Communication Address Card */}
+                  <div className="card mx-3 pb-4 mt-4">
+                    <div className="card-header3">
+                      <h3 className="card-title">Communication Address</h3>
+                    </div>
+                    <div className="card-body mt-0">
+                      <div className="row ms-1"></div>
+                      <div className="row px-3">
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3">
+                          <div className="col-4">
+                            <label>Address</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {communicationAddressData.address1 || "-"}
+                            </label>
+                          </div>
+                        </div>
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3">
+                          <div className="col-4">
+                            <label>Address Line 2</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {communicationAddressData.address2 || "-"}
+                            </label>
+                          </div>
+                        </div>
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
+                          <div className="col-4">
+                            <label>Address Line 3</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {communicationAddressData.address3 || "-"}
+                            </label>
+                          </div>
+                        </div>
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
+                          <div className="col-4">
+                            <label>Address Line 4</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {communicationAddressData.address4 || "-"}
+                            </label>
+                          </div>
+                        </div>
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
+                          <div className="col-4">
+                            <label>Address Line 5</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {communicationAddressData.address5 || "-"}
+                            </label>
+                          </div>
+                        </div>
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
+                          <div className="col-4">
+                            <label>Country</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {communicationAddressData.country || "-"}
+                            </label>
+                          </div>
+                        </div>
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
+                          <div className="col-4">
+                            <label>State</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {communicationAddressData.state || "-"}
+                            </label>
+                          </div>
+                        </div>
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
+                          <div className="col-4">
+                            <label>City</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {communicationAddressData.city || "-"}
+                            </label>
+                          </div>
+                        </div>
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
+                          <div className="col-4">
+                            <label>Pin Code</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {communicationAddressData.pincode || "-"}
+                            </label>
+                          </div>
+                        </div>
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
+                          <div className="col-4">
+                            <label>Contact Number</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {communicationAddressData.mobile || "-"}
+                            </label>
+                          </div>
+                        </div>
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
+                          <div className="col-4">
+                            <label>Email ID</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {communicationAddressData.orderingEmail || "-"}
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
 
+            {/* Bank Details */}
             {normalize(steps[currentStep]?.label || "") ===
-              normalize("Additional Details") && (
-              <div className="card mx-4 pb-4 mt-4">
+              normalize("Bank Details") && (
                 <div className="card mx-4 pb-4 mt-4">
-                  <div className="card-header3">
-                    <h3 className="card-title">Client References</h3>
-                    <div className="d-flex align-items-center">
-                      <img
-                        src="/assets/images/Trash.svg"
-                        alt="Trash"
-                        className="img-fluid ms-3"
-                      />
-                    </div>
-                  </div>
-                  <div className="card-body mt-0">
-                    <div className="row px-3">
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
-                        <div className="col-4 ">
-                          <label>Site Type</label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {clientReferencesData.siteType}
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
-                        <div className="col-6 ">
-                          <label>Service Provided From</label>
-                        </div>
-                        <div className="col-6">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {clientReferencesData.serviceProvidedFrom}
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
-                        <div className="col-4 ">
-                          <label>Client Name</label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {clientReferencesData.clientName}
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
-                        <div className="col-6 ">
-                          <label>Contact Person</label>
-                        </div>
-                        <div className="col-6">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {clientReferencesData.contactPerson}
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
-                        <div className="col-4 ">
-                          <label>Country</label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {clientReferencesData.clientCountry}
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
-                        <div className="col-6 ">
-                          <label>Contact No.</label>
-                        </div>
-                        <div className="col-6">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {clientReferencesData.contactNo}
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
-                        <div className="col-4 ">
-                          <label>WO/PO Amount in Last 12 month in lacs</label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {clientReferencesData.woPoAmount}
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
-                        <div className="col-6 ">
-                          <label>Stage Of Project</label>
-                        </div>
-                        <div className="col-6">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {clientReferencesData.stageOfProject}
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
-                        <div className="col-4 ">
-                          <label>Product or Service Provided</label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {clientReferencesData.productOrServiceProvided}
-                          </label>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Factory Warehouse Details Card */}
-                <div className="card mx-4 pb-4 mt-4">
-                  <div className="card-header3">
-                    <h3 className="card-title">Factory Warehouse Details</h3>
-                    <div className="d-flex align-items-center">
-                      <img
-                        src="/assets/images/Trash.svg"
-                        alt="Trash"
-                        className="img-fluid ms-3"
-                      />
-                    </div>
-                  </div>
-                  <div className="card-body mt-0">
-                    <div className="row px-3">
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
-                        <div className="col-4 ">
-                          <label>Address</label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {factoryWarehouseDetailsData.factoryAddress}
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
-                        <div className="col-6 ">
-                          <label>Country</label>
-                        </div>
-                        <div className="col-6">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {factoryWarehouseDetailsData.factoryCountry}
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
-                        <div className="col-4 ">
-                          <label>State</label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {factoryWarehouseDetailsData.factoryState}
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
-                        <div className="col-6 ">
-                          <label>City</label>
-                        </div>
-                        <div className="col-6">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {factoryWarehouseDetailsData.factoryCity}
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
-                        <div className="col-4 ">
-                          <label>Contact Number</label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {factoryWarehouseDetailsData.factoryContactNumber}
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
-                        <div className="col-6 ">
-                          <label>Contact Person</label>
-                        </div>
-                        <div className="col-6">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {factoryWarehouseDetailsData.factoryContactPerson}
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
-                        <div className="col-4 ">
-                          <label>Contact Person Email</label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {
-                              factoryWarehouseDetailsData.factoryContactPersonEmail
-                            }
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
-                        <div className="col-6 ">
-                          <label>Attachment Existing File</label>
-                        </div>
-                        <div className="col-6">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {factoryWarehouseDetailsData.factoryAttachment ? (
-                              <a
-                                href={
-                                  factoryWarehouseDetailsData.factoryAttachment
-                                    .attachment_url
-                                }
-                                download
-                                className="d-flex align-items-center"
-                                style={{
-                                  color: "#e95420",
-                                  textDecoration: "none",
-                                }}
-                              >
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  width={20}
-                                  height={20}
-                                  fill="#DE7008"
-                                  className="bi bi-download"
-                                  viewBox="0 0 16 16"
-                                >
-                                  <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
-                                  <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
-                                </svg>
-                                <span className="me-2 ms-2">
-                                  {
-                                    factoryWarehouseDetailsData
-                                      .factoryAttachment.document_name
-                                  }
-                                </span>
-                              </a>
-                            ) : (
-                              "No file chosen"
-                            )}
-                          </label>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Owner / Director Details Card */}
-                <div className="card mx-4 pb-4 mt-4">
-                  <div className="card-header3">
-                    <h3 className="card-title">Owner / Director Details</h3>
-                    <div className="d-flex align-items-center">
-                      <img
-                        src="/assets/images/Trash.svg"
-                        alt="Trash"
-                        className="img-fluid ms-3"
-                      />
-                    </div>
-                  </div>
-                  <div className="card-body mt-0">
-                    <div className="row px-3">
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
-                        <div className="col-4 ">
-                          <label>First Name</label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {ownerDirectorDetailsData.ownerFirstName}
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
-                        <div className="col-6 ">
-                          <label>Last Name</label>
-                        </div>
-                        <div className="col-6">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {ownerDirectorDetailsData.ownerLastName}
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
-                        <div className="col-4 ">
-                          <label>Designation</label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {ownerDirectorDetailsData.ownerDesignation}
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
-                        <div className="col-6 ">
-                          <label>Qualification</label>
-                        </div>
-                        <div className="col-6">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {ownerDirectorDetailsData.ownerQualification}
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
-                        <div className="col-4 ">
-                          <label>Experience</label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {ownerDirectorDetailsData.ownerExperience}
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
-                        <div className="col-6 ">
-                          <label>Email</label>
-                        </div>
-                        <div className="col-6">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {ownerDirectorDetailsData.ownerEmail}
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
-                        <div className="col-4 ">
-                          <label>Contact Number</label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {ownerDirectorDetailsData.ownerContactNumber}
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
-                        <div className="col-6 ">
-                          <label>Attachment Existing File</label>
-                        </div>
-                        <div className="col-6">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {ownerDirectorDetailsData.ownerAttachment ? (
-                              <a
-                                href={
-                                  ownerDirectorDetailsData.ownerAttachment
-                                    .attachment_url
-                                }
-                                download
-                                className="d-flex align-items-center"
-                                style={{
-                                  color: "#e95420",
-                                  textDecoration: "none",
-                                }}
-                              >
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  width={20}
-                                  height={20}
-                                  fill="#DE7008"
-                                  className="bi bi-download"
-                                  viewBox="0 0 16 16"
-                                >
-                                  <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
-                                  <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
-                                </svg>
-                                <span className="me-2 ms-2">
-                                  {
-                                    ownerDirectorDetailsData.ownerAttachment
-                                      .document_name
-                                  }
-                                </span>
-                              </a>
-                            ) : (
-                              "No file chosen"
-                            )}
-                          </label>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Branch Office Details Card */}
-                <div className="card mx-4 pb-4 mt-4">
-                  <div className="card-header3">
-                    <h3 className="card-title">Branch Office Details</h3>
-                    <div className="d-flex align-items-center">
-                      <img
-                        src="/assets/images/Trash.svg"
-                        alt="Trash"
-                        className="img-fluid ms-3"
-                      />
-                    </div>
-                  </div>
-                  <div className="card-body mt-0">
-                    <div className="row px-3">
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
-                        <div className="col-4 ">
-                          <label>Address</label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {branchOfficeDetailsData.branchAddress}
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
-                        <div className="col-6 ">
-                          <label>Country</label>
-                        </div>
-                        <div className="col-6">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {branchOfficeDetailsData.branchCountry}
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
-                        <div className="col-4 ">
-                          <label>State</label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {branchOfficeDetailsData.branchState}
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
-                        <div className="col-6 ">
-                          <label>City</label>
-                        </div>
-                        <div className="col-6">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {branchOfficeDetailsData.branchCity}
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
-                        <div className="col-4 ">
-                          <label>Pin Code</label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {branchOfficeDetailsData.branchPinCode}
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
-                        <div className="col-6 ">
-                          <label>Contact Number</label>
-                        </div>
-                        <div className="col-6">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark">:</span>
-                            </span>
-                            {branchOfficeDetailsData.branchContactNumber}
-                          </label>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Contact Person Details Section */}
-                {contactPersonDetailsData.length > 0 &&
-                  contactPersonDetailsData.map((contact, index) => (
-                    <div key={index} className="card mx-4 pb-4 mt-4">
+                  {bankDetailsData.map((bank, idx) => (
+                    <div key={idx} className="card mx-3 pb-4 mt-4">
                       <div className="card-header3">
                         <h3 className="card-title">
-                          Contact Person Details{" "}
-                          {contactPersonDetailsData.length > 1
-                            ? `(${index + 1})`
-                            : ""}
+                          Bank Details
+                          {bankDetailsData.length > 1 ? ` (${idx + 1})` : ""}
                         </h3>
-                        <div className="d-flex align-items-center">
-                          <img
-                            src="/assets/images/Trash.svg"
-                            alt="Trash"
-                            className="img-fluid ms-3"
-                          />
-                        </div>
                       </div>
                       <div className="card-body mt-0">
                         <div className="row px-3">
                           {/* Row 1 */}
-                          <div className="col-lg-4 col-md-4 col-sm-12 row px-3">
+                          <div className="col-lg-4 col-md-6 col-sm-12 row px-3">
                             <div className="col-4">
-                              <label>Escalation Level</label>
+                              <label>Bank Name</label>
                             </div>
                             <div className="col-8">
                               <label className="text">
                                 <span className="me-3">
                                   <span className="text-dark">:</span>
                                 </span>
-                                {contact.escalationLevel}
+                                {bank.bankName || "-"}
                               </label>
                             </div>
                           </div>
-                          <div className="col-lg-4 col-md-4 col-sm-12 row px-3">
+                          <div className="col-lg-4 col-md-6 col-sm-12 row px-3">
                             <div className="col-4">
-                              <label>Name Title</label>
+                              <label>Address</label>
                             </div>
                             <div className="col-8">
                               <label className="text">
                                 <span className="me-3">
                                   <span className="text-dark">:</span>
                                 </span>
-                                {contact.nameTitle}
+                                {bank.address || "-"}
                               </label>
                             </div>
                           </div>
-                          <div className="col-lg-4 col-md-4 col-sm-12 row px-3">
+                          <div className="col-lg-4 col-md-6 col-sm-12 row px-3 ">
                             <div className="col-4">
-                              <label>First Name</label>
+                              <label>Country</label>
                             </div>
                             <div className="col-8">
                               <label className="text">
                                 <span className="me-3">
                                   <span className="text-dark">:</span>
                                 </span>
-                                {contact.firstName}
+                                {bank.country || "-"}
                               </label>
                             </div>
                           </div>
 
                           {/* Row 2 */}
-                          <div className="col-lg-4 col-md-4 col-sm-12 row px-3 mt-2">
+                          <div className="col-lg-4 col-md-6 col-sm-12 row px-3 mt-2">
                             <div className="col-4">
-                              <label>Last Name</label>
+                              <label>State</label>
                             </div>
                             <div className="col-8">
                               <label className="text">
                                 <span className="me-3">
                                   <span className="text-dark">:</span>
                                 </span>
-                                {contact.lastName}
+                                {bank.state || "-"}
                               </label>
                             </div>
                           </div>
-                          <div className="col-lg-4 col-md-4 col-sm-12 row px-3 mt-2">
+                          <div className="col-lg-4 col-md-6 col-sm-12 row px-3 mt-2">
                             <div className="col-4">
-                              <label>Designation</label>
+                              <label>City</label>
                             </div>
                             <div className="col-8">
                               <label className="text">
                                 <span className="me-3">
                                   <span className="text-dark">:</span>
                                 </span>
-                                {contact.designation}
+                                {bank.city || "-"}
                               </label>
                             </div>
                           </div>
-                          <div className="col-lg-4 col-md-4 col-sm-12 row px-3 mt-2">
+                          <div className="col-lg-4 col-md-6 col-sm-12 row px-3 mt-2">
                             <div className="col-4">
-                              <label>Primary Email ID</label>
+                              <label>Pin Code</label>
                             </div>
                             <div className="col-8">
                               <label className="text">
                                 <span className="me-3">
                                   <span className="text-dark">:</span>
                                 </span>
-                                {contact.primaryEmailId}
+                                {bank.pincode || "-"}
                               </label>
                             </div>
                           </div>
 
                           {/* Row 3 */}
-                          <div className="col-lg-4 col-md-4 col-sm-12 row px-3 mt-2">
+                          <div className="col-lg-4 col-md-6 col-sm-12 row px-3 mt-2">
                             <div className="col-4">
-                              <label>Secondary Email ID</label>
+                              <label>Account Type</label>
                             </div>
                             <div className="col-8">
                               <label className="text">
                                 <span className="me-3">
                                   <span className="text-dark">:</span>
                                 </span>
-                                {contact.secondaryEmailId}
+                                {bank.accountType || "-"}
                               </label>
                             </div>
                           </div>
-                          <div className="col-lg-4 col-md-4 col-sm-12 row px-3 mt-2">
+                          <div className="col-lg-4 col-md-6 col-sm-12 row px-3 mt-2">
                             <div className="col-4">
-                              <label>Primary Contact No.</label>
+                              <label>Account Number</label>
                             </div>
                             <div className="col-8">
                               <label className="text">
                                 <span className="me-3">
                                   <span className="text-dark">:</span>
                                 </span>
-                                {contact.primaryContactNo}
+                                {bank.accountNumber || "-"}
                               </label>
                             </div>
                           </div>
-                          <div className="col-lg-4 col-md-4 col-sm-12 row px-3 mt-2">
+                          <div className="col-lg-4 col-md-6 col-sm-12 row px-3 mt-2">
                             <div className="col-4">
-                              <label>Secondary Contact No.</label>
+                              <label>Confirm Account Number</label>
                             </div>
                             <div className="col-8">
                               <label className="text">
                                 <span className="me-3">
                                   <span className="text-dark">:</span>
                                 </span>
-                                {contact.secondaryContactNo}
+                                {bank.accountNumber || "-"}
                               </label>
                             </div>
                           </div>
 
                           {/* Row 4 */}
-                          <div className="col-lg-4 col-md-4 col-sm-12 row px-3 mt-2">
+                          <div className="col-lg-4 col-md-6 col-sm-12 row px-3 mt-2">
                             <div className="col-4">
-                              <label>Nationality</label>
+                              <label>Branch Name</label>
                             </div>
                             <div className="col-8">
                               <label className="text">
                                 <span className="me-3">
                                   <span className="text-dark">:</span>
                                 </span>
-                                {contact.nationality}
+                                {bank.branchName || "-"}
                               </label>
                             </div>
                           </div>
-                          <div className="col-lg-4 col-md-4 col-sm-12 row px-3 mt-2">
+                          <div className="col-lg-4 col-md-6 col-sm-12 row px-3 mt-2">
                             <div className="col-4">
-                              <label>Date of Birth</label>
+                              <label>MICR No.</label>
                             </div>
                             <div className="col-8">
                               <label className="text">
                                 <span className="me-3">
                                   <span className="text-dark">:</span>
                                 </span>
-                                {contact.dateOfBirth}
+                                {bank.micrNumber || "-"}
                               </label>
                             </div>
                           </div>
-                          <div className="col-lg-4 col-md-4 col-sm-12 row px-3 mt-2">
+                          <div className="col-lg-4 col-md-6 col-sm-12 row px-3 mt-2">
                             <div className="col-4">
-                              <label>Attachment Existing File</label>
+                              <label>IFSC Code</label>
                             </div>
                             <div className="col-8">
                               <label className="text">
                                 <span className="me-3">
                                   <span className="text-dark">:</span>
                                 </span>
-                                {contact.attachment ? (
+                                {bank.ifscCode || "-"}
+                              </label>
+                            </div>
+                          </div>
+
+                          {/* Row 5 */}
+                          <div className="col-lg-4 col-md-6 col-sm-12 row px-3 mt-2">
+                            <div className="col-4">
+                              <label>Beneficiary Name</label>
+                            </div>
+                            <div className="col-8">
+                              <label className="text">
+                                <span className="me-3">
+                                  <span className="text-dark">:</span>
+                                </span>
+                                {bank.beneficiaryName || "-"}
+                              </label>
+                            </div>
+                          </div>
+                          <div className="col-lg-4 col-md-6 col-sm-12 row px-3 mt-2">
+                            <div className="col-4">
+                              <label>Virtual Account</label>
+                            </div>
+                            <div className="col-8">
+                              <label className="text">
+                                <span className="me-3">
+                                  <span className="text-dark">:</span>
+                                </span>
+                                {bank.virtualAccount || "-"}
+                              </label>
+                            </div>
+                          </div>
+                          <div className="col-lg-4 col-md-6 col-sm-12 row px-3 mt-2">
+                            <div className="col-4">
+                              <label>Select Company</label>
+                            </div>
+                            <div className="col-8">
+                              <label className="text">
+                                <span className="me-3">
+                                  <span className="text-dark">:</span>
+                                </span>
+                                {bank.selectCompany || "-"}
+                              </label>
+                            </div>
+                          </div>
+
+                          {/* Row 6 */}
+                          <div className="col-lg-4 col-md-6 col-sm-12 row px-3 mt-2">
+                            <div className="col-4">
+                              <label>Generated Virtual Account Code</label>
+                            </div>
+                            <div className="col-8">
+                              <label className="text">
+                                <span className="me-3">
+                                  <span className="text-dark">:</span>
+                                </span>
+                                {bank.virtualAccountCode || "-"}
+                              </label>
+                            </div>
+                          </div>
+                          <div className="col-lg-4 col-md-6 col-sm-12 row px-3 mt-2">
+                            <div className="col-4">
+                              <label>Cancelled Cheque / Bank Copy</label>
+                            </div>
+                            <div className="col-8">
+                              <label className="text">
+                                <span className="me-3">
+                                  <span className="text-dark">:</span>
+                                </span>
+                                {bank.cancelledCheque ? (
                                   <a
-                                    href={`${baseURL}${contact.attachment.attachment_url}`}
-                                    download
-                                    className="d-flex align-items-center"
+                                    href={
+                                      bank.cancelledCheque.attachment_url
+                                        ? `${baseURL}${bank.cancelledCheque.attachment_url}`
+                                        : bank.cancelledCheque.file_url
+                                    }
+                                    target="_blank"
+                                    rel="noopener noreferrer"
                                     style={{
                                       color: "#e95420",
                                       textDecoration: "none",
                                     }}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
+                                    className="d-flex align-items-center"
+                                    download
                                   >
-                                    <svg
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      width={18}
-                                      height={18}
-                                      fill="#DE7008"
-                                      className="bi bi-download"
-                                      viewBox="0 0 16 16"
-                                    >
-                                      <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
-                                      <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
-                                    </svg>
-                                    <span className="ms-2">
-                                      {contact.attachment.document_name}
+                                    <span className="material-symbols-outlined align-middle me-1">
+                                      download
                                     </span>
+                                    {bank.cancelledCheque.document_name}
                                   </a>
                                 ) : (
                                   "-"
@@ -3487,81 +2720,861 @@ const VendorDetailFormStepper = () => {
                               </label>
                             </div>
                           </div>
+                          <div className="col-lg-4 col-md-6 col-sm-12 row px-3 mt-2">
+                            <div className="col-4">
+                              <label>Remark</label>
+                            </div>
+                            <div className="col-8">
+                              <label className="text">
+                                <span className="me-3">
+                                  <span className="text-dark">:</span>
+                                </span>
+                                {bank.remark || "-"}
+                              </label>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
                   ))}
+                </div>
+              )}
 
-                {/* Annual Turnover Table */}
-                <div className="card mx-3 pb-4 mt-4">
-                  <div className="card-header3 mb-3">
-                    <h3 className="card-title">Annual Turnover</h3>
+            {/* Additional Details */}
+
+            {normalize(steps[currentStep]?.label || "") ===
+              normalize("Additional Details") && (
+                <div className="card mx-4 pb-4 mt-4">
+                  <div className="card mx-4 pb-4 mt-4">
+                    <div className="card-header3">
+                      <h3 className="card-title">Client References</h3>
+                      <div className="d-flex align-items-center">
+                        <img
+                          src="/assets/images/Trash.svg"
+                          alt="Trash"
+                          className="img-fluid ms-3"
+                        />
+                      </div>
+                    </div>
+                    <div className="card-body mt-0">
+                      <div className="row px-3">
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
+                          <div className="col-4 ">
+                            <label>Site Type</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {clientReferencesData.siteType}
+                            </label>
+                          </div>
+                        </div>
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
+                          <div className="col-6 ">
+                            <label>Service Provided From</label>
+                          </div>
+                          <div className="col-6">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {clientReferencesData.serviceProvidedFrom}
+                            </label>
+                          </div>
+                        </div>
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
+                          <div className="col-4 ">
+                            <label>Client Name</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {clientReferencesData.clientName}
+                            </label>
+                          </div>
+                        </div>
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
+                          <div className="col-6 ">
+                            <label>Contact Person</label>
+                          </div>
+                          <div className="col-6">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {clientReferencesData.contactPerson}
+                            </label>
+                          </div>
+                        </div>
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
+                          <div className="col-4 ">
+                            <label>Country</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {clientReferencesData.clientCountry}
+                            </label>
+                          </div>
+                        </div>
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
+                          <div className="col-6 ">
+                            <label>Contact No.</label>
+                          </div>
+                          <div className="col-6">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {clientReferencesData.contactNo}
+                            </label>
+                          </div>
+                        </div>
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
+                          <div className="col-4 ">
+                            <label>WO/PO Amount in Last 12 month in lacs</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {clientReferencesData.woPoAmount}
+                            </label>
+                          </div>
+                        </div>
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
+                          <div className="col-6 ">
+                            <label>Stage Of Project</label>
+                          </div>
+                          <div className="col-6">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {clientReferencesData.stageOfProject}
+                            </label>
+                          </div>
+                        </div>
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
+                          <div className="col-4 ">
+                            <label>Product or Service Provided</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {clientReferencesData.productOrServiceProvided}
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <div
-                    className="tbl-container mx-3 mt-3"
-                    style={{ overflowX: "auto", display: "block" }}
-                  >
-                    <table className="w-100">
-                      <thead>
-                        <tr>
-                          <th className="text-start">FY</th>
-                          <th className="text-start">TurnOver</th>
-                          <th className="text-start">Attachment</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {prequalificationData.annualTurnover.length > 0 ? (
-                          prequalificationData.annualTurnover.map((at, idx) => (
-                            <tr key={idx}>
-                              <td className="text-start">{at.year}</td>
-                              <td className="text-start">
-                                {!at.turnover || at.turnover === "null"
-                                  ? "Not available"
-                                  : at.turnover}
-                              </td>
-                              <td className="text-start">
-                                {at.attachmentUrl ? (
-                                  <a
-                                    href={at.attachmentUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    style={{
-                                      color: "#e95420",
-                                      textDecoration: "underline",
-                                    }}
+
+                  {/* Factory Warehouse Details Card */}
+                  <div className="card mx-4 pb-4 mt-4">
+                    <div className="card-header3">
+                      <h3 className="card-title">Factory Warehouse Details</h3>
+                      <div className="d-flex align-items-center">
+                        <img
+                          src="/assets/images/Trash.svg"
+                          alt="Trash"
+                          className="img-fluid ms-3"
+                        />
+                      </div>
+                    </div>
+                    <div className="card-body mt-0">
+                      <div className="row px-3">
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
+                          <div className="col-4 ">
+                            <label>Address</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {factoryWarehouseDetailsData.factoryAddress}
+                            </label>
+                          </div>
+                        </div>
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
+                          <div className="col-6 ">
+                            <label>Country</label>
+                          </div>
+                          <div className="col-6">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {factoryWarehouseDetailsData.factoryCountry}
+                            </label>
+                          </div>
+                        </div>
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
+                          <div className="col-4 ">
+                            <label>State</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {factoryWarehouseDetailsData.factoryState}
+                            </label>
+                          </div>
+                        </div>
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
+                          <div className="col-6 ">
+                            <label>City</label>
+                          </div>
+                          <div className="col-6">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {factoryWarehouseDetailsData.factoryCity}
+                            </label>
+                          </div>
+                        </div>
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
+                          <div className="col-4 ">
+                            <label>Contact Number</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {factoryWarehouseDetailsData.factoryContactNumber}
+                            </label>
+                          </div>
+                        </div>
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
+                          <div className="col-6 ">
+                            <label>Contact Person</label>
+                          </div>
+                          <div className="col-6">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {factoryWarehouseDetailsData.factoryContactPerson}
+                            </label>
+                          </div>
+                        </div>
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
+                          <div className="col-4 ">
+                            <label>Contact Person Email</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {
+                                factoryWarehouseDetailsData.factoryContactPersonEmail
+                              }
+                            </label>
+                          </div>
+                        </div>
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
+                          <div className="col-6 ">
+                            <label>Attachment Existing File</label>
+                          </div>
+                          <div className="col-6">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {factoryWarehouseDetailsData.factoryAttachment ? (
+                                <a
+                                  href={
+                                    factoryWarehouseDetailsData.factoryAttachment
+                                      .attachment_url
+                                  }
+                                  download
+                                  className="d-flex align-items-center"
+                                  style={{
+                                    color: "#e95420",
+                                    textDecoration: "none",
+                                  }}
+                                >
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width={20}
+                                    height={20}
+                                    fill="#DE7008"
+                                    className="bi bi-download"
+                                    viewBox="0 0 16 16"
                                   >
-                                    {at.attachmentName}
-                                  </a>
-                                ) : (
-                                  at.attachmentName || "No file attached"
-                                )}
+                                    <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                                    <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                                  </svg>
+                                  <span className="me-2 ms-2">
+                                    {
+                                      factoryWarehouseDetailsData
+                                        .factoryAttachment.document_name
+                                    }
+                                  </span>
+                                </a>
+                              ) : (
+                                "No file chosen"
+                              )}
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Owner / Director Details Card */}
+                  <div className="card mx-4 pb-4 mt-4">
+                    <div className="card-header3">
+                      <h3 className="card-title">Owner / Director Details</h3>
+                      <div className="d-flex align-items-center">
+                        <img
+                          src="/assets/images/Trash.svg"
+                          alt="Trash"
+                          className="img-fluid ms-3"
+                        />
+                      </div>
+                    </div>
+                    <div className="card-body mt-0">
+                      <div className="row px-3">
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
+                          <div className="col-4 ">
+                            <label>First Name</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {ownerDirectorDetailsData.ownerFirstName}
+                            </label>
+                          </div>
+                        </div>
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
+                          <div className="col-6 ">
+                            <label>Last Name</label>
+                          </div>
+                          <div className="col-6">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {ownerDirectorDetailsData.ownerLastName}
+                            </label>
+                          </div>
+                        </div>
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
+                          <div className="col-4 ">
+                            <label>Designation</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {ownerDirectorDetailsData.ownerDesignation}
+                            </label>
+                          </div>
+                        </div>
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
+                          <div className="col-6 ">
+                            <label>Qualification</label>
+                          </div>
+                          <div className="col-6">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {ownerDirectorDetailsData.ownerQualification}
+                            </label>
+                          </div>
+                        </div>
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
+                          <div className="col-4 ">
+                            <label>Experience</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {ownerDirectorDetailsData.ownerExperience}
+                            </label>
+                          </div>
+                        </div>
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
+                          <div className="col-6 ">
+                            <label>Email</label>
+                          </div>
+                          <div className="col-6">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {ownerDirectorDetailsData.ownerEmail}
+                            </label>
+                          </div>
+                        </div>
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
+                          <div className="col-4 ">
+                            <label>Contact Number</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {ownerDirectorDetailsData.ownerContactNumber}
+                            </label>
+                          </div>
+                        </div>
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
+                          <div className="col-6 ">
+                            <label>Attachment Existing File</label>
+                          </div>
+                          <div className="col-6">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {ownerDirectorDetailsData.ownerAttachment ? (
+                                <a
+                                  href={
+                                    ownerDirectorDetailsData.ownerAttachment
+                                      .attachment_url
+                                  }
+                                  download
+                                  className="d-flex align-items-center"
+                                  style={{
+                                    color: "#e95420",
+                                    textDecoration: "none",
+                                  }}
+                                >
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width={20}
+                                    height={20}
+                                    fill="#DE7008"
+                                    className="bi bi-download"
+                                    viewBox="0 0 16 16"
+                                  >
+                                    <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                                    <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                                  </svg>
+                                  <span className="me-2 ms-2">
+                                    {
+                                      ownerDirectorDetailsData.ownerAttachment
+                                        .document_name
+                                    }
+                                  </span>
+                                </a>
+                              ) : (
+                                "No file chosen"
+                              )}
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Branch Office Details Card */}
+                  <div className="card mx-4 pb-4 mt-4">
+                    <div className="card-header3">
+                      <h3 className="card-title">Branch Office Details</h3>
+                      <div className="d-flex align-items-center">
+                        <img
+                          src="/assets/images/Trash.svg"
+                          alt="Trash"
+                          className="img-fluid ms-3"
+                        />
+                      </div>
+                    </div>
+                    <div className="card-body mt-0">
+                      <div className="row px-3">
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
+                          <div className="col-4 ">
+                            <label>Address</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {branchOfficeDetailsData.branchAddress}
+                            </label>
+                          </div>
+                        </div>
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
+                          <div className="col-6 ">
+                            <label>Country</label>
+                          </div>
+                          <div className="col-6">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {branchOfficeDetailsData.branchCountry}
+                            </label>
+                          </div>
+                        </div>
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
+                          <div className="col-4 ">
+                            <label>State</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {branchOfficeDetailsData.branchState}
+                            </label>
+                          </div>
+                        </div>
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
+                          <div className="col-6 ">
+                            <label>City</label>
+                          </div>
+                          <div className="col-6">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {branchOfficeDetailsData.branchCity}
+                            </label>
+                          </div>
+                        </div>
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
+                          <div className="col-4 ">
+                            <label>Pin Code</label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {branchOfficeDetailsData.branchPinCode}
+                            </label>
+                          </div>
+                        </div>
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3 ">
+                          <div className="col-6 ">
+                            <label>Contact Number</label>
+                          </div>
+                          <div className="col-6">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark">:</span>
+                              </span>
+                              {branchOfficeDetailsData.branchContactNumber}
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Contact Person Details Section */}
+                  {contactPersonDetailsData.length > 0 &&
+                    contactPersonDetailsData.map((contact, index) => (
+                      <div key={index} className="card mx-4 pb-4 mt-4">
+                        <div className="card-header3">
+                          <h3 className="card-title">
+                            Contact Person Details{" "}
+                            {contactPersonDetailsData.length > 1
+                              ? `(${index + 1})`
+                              : ""}
+                          </h3>
+                          <div className="d-flex align-items-center">
+                            <img
+                              src="/assets/images/Trash.svg"
+                              alt="Trash"
+                              className="img-fluid ms-3"
+                            />
+                          </div>
+                        </div>
+                        <div className="card-body mt-0">
+                          <div className="row px-3">
+                            {/* Row 1 */}
+                            <div className="col-lg-4 col-md-4 col-sm-12 row px-3">
+                              <div className="col-4">
+                                <label>Escalation Level</label>
+                              </div>
+                              <div className="col-8">
+                                <label className="text">
+                                  <span className="me-3">
+                                    <span className="text-dark">:</span>
+                                  </span>
+                                  {contact.escalationLevel}
+                                </label>
+                              </div>
+                            </div>
+                            <div className="col-lg-4 col-md-4 col-sm-12 row px-3">
+                              <div className="col-4">
+                                <label>Name Title</label>
+                              </div>
+                              <div className="col-8">
+                                <label className="text">
+                                  <span className="me-3">
+                                    <span className="text-dark">:</span>
+                                  </span>
+                                  {contact.nameTitle}
+                                </label>
+                              </div>
+                            </div>
+                            <div className="col-lg-4 col-md-4 col-sm-12 row px-3">
+                              <div className="col-4">
+                                <label>First Name</label>
+                              </div>
+                              <div className="col-8">
+                                <label className="text">
+                                  <span className="me-3">
+                                    <span className="text-dark">:</span>
+                                  </span>
+                                  {contact.firstName}
+                                </label>
+                              </div>
+                            </div>
+
+                            {/* Row 2 */}
+                            <div className="col-lg-4 col-md-4 col-sm-12 row px-3 mt-2">
+                              <div className="col-4">
+                                <label>Last Name</label>
+                              </div>
+                              <div className="col-8">
+                                <label className="text">
+                                  <span className="me-3">
+                                    <span className="text-dark">:</span>
+                                  </span>
+                                  {contact.lastName}
+                                </label>
+                              </div>
+                            </div>
+                            <div className="col-lg-4 col-md-4 col-sm-12 row px-3 mt-2">
+                              <div className="col-4">
+                                <label>Designation</label>
+                              </div>
+                              <div className="col-8">
+                                <label className="text">
+                                  <span className="me-3">
+                                    <span className="text-dark">:</span>
+                                  </span>
+                                  {contact.designation}
+                                </label>
+                              </div>
+                            </div>
+                            <div className="col-lg-4 col-md-4 col-sm-12 row px-3 mt-2">
+                              <div className="col-4">
+                                <label>Primary Email ID</label>
+                              </div>
+                              <div className="col-8">
+                                <label className="text">
+                                  <span className="me-3">
+                                    <span className="text-dark">:</span>
+                                  </span>
+                                  {contact.primaryEmailId}
+                                </label>
+                              </div>
+                            </div>
+
+                            {/* Row 3 */}
+                            <div className="col-lg-4 col-md-4 col-sm-12 row px-3 mt-2">
+                              <div className="col-4">
+                                <label>Secondary Email ID</label>
+                              </div>
+                              <div className="col-8">
+                                <label className="text">
+                                  <span className="me-3">
+                                    <span className="text-dark">:</span>
+                                  </span>
+                                  {contact.secondaryEmailId}
+                                </label>
+                              </div>
+                            </div>
+                            <div className="col-lg-4 col-md-4 col-sm-12 row px-3 mt-2">
+                              <div className="col-4">
+                                <label>Primary Contact No.</label>
+                              </div>
+                              <div className="col-8">
+                                <label className="text">
+                                  <span className="me-3">
+                                    <span className="text-dark">:</span>
+                                  </span>
+                                  {contact.primaryContactNo}
+                                </label>
+                              </div>
+                            </div>
+                            <div className="col-lg-4 col-md-4 col-sm-12 row px-3 mt-2">
+                              <div className="col-4">
+                                <label>Secondary Contact No.</label>
+                              </div>
+                              <div className="col-8">
+                                <label className="text">
+                                  <span className="me-3">
+                                    <span className="text-dark">:</span>
+                                  </span>
+                                  {contact.secondaryContactNo}
+                                </label>
+                              </div>
+                            </div>
+
+                            {/* Row 4 */}
+                            <div className="col-lg-4 col-md-4 col-sm-12 row px-3 mt-2">
+                              <div className="col-4">
+                                <label>Nationality</label>
+                              </div>
+                              <div className="col-8">
+                                <label className="text">
+                                  <span className="me-3">
+                                    <span className="text-dark">:</span>
+                                  </span>
+                                  {contact.nationality}
+                                </label>
+                              </div>
+                            </div>
+                            <div className="col-lg-4 col-md-4 col-sm-12 row px-3 mt-2">
+                              <div className="col-4">
+                                <label>Date of Birth</label>
+                              </div>
+                              <div className="col-8">
+                                <label className="text">
+                                  <span className="me-3">
+                                    <span className="text-dark">:</span>
+                                  </span>
+                                  {contact.dateOfBirth}
+                                </label>
+                              </div>
+                            </div>
+                            <div className="col-lg-4 col-md-4 col-sm-12 row px-3 mt-2">
+                              <div className="col-4">
+                                <label>Attachment Existing File</label>
+                              </div>
+                              <div className="col-8">
+                                <label className="text">
+                                  <span className="me-3">
+                                    <span className="text-dark">:</span>
+                                  </span>
+                                  {contact.attachment ? (
+                                    <a
+                                      href={`${baseURL}${contact.attachment.attachment_url}`}
+                                      download
+                                      className="d-flex align-items-center"
+                                      style={{
+                                        color: "#e95420",
+                                        textDecoration: "none",
+                                      }}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                    >
+                                      <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width={18}
+                                        height={18}
+                                        fill="#DE7008"
+                                        className="bi bi-download"
+                                        viewBox="0 0 16 16"
+                                      >
+                                        <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                                        <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                                      </svg>
+                                      <span className="ms-2">
+                                        {contact.attachment.document_name}
+                                      </span>
+                                    </a>
+                                  ) : (
+                                    "-"
+                                  )}
+                                </label>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+
+                  {/* Annual Turnover Table */}
+                  <div className="card mx-3 pb-4 mt-4">
+                    <div className="card-header3 mb-3">
+                      <h3 className="card-title">Annual Turnover</h3>
+                    </div>
+                    <div
+                      className="tbl-container mx-3 mt-3"
+                      style={{ overflowX: "auto", display: "block" }}
+                    >
+                      <table className="w-100">
+                        <thead>
+                          <tr>
+                            <th className="text-start">FY</th>
+                            <th className="text-start">TurnOver</th>
+                            <th className="text-start">Attachment</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {prequalificationData.annualTurnover.length > 0 ? (
+                            prequalificationData.annualTurnover.map((at, idx) => (
+                              <tr key={idx}>
+                                <td className="text-start">{at.year}</td>
+                                <td className="text-start">
+                                  {!at.turnover || at.turnover === "null"
+                                    ? "Not available"
+                                    : at.turnover}
+                                </td>
+                                <td className="text-start">
+                                  {at.attachmentUrl ? (
+                                    <a
+                                      href={at.attachmentUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      style={{
+                                        color: "#e95420",
+                                        textDecoration: "underline",
+                                      }}
+                                    >
+                                      {at.attachmentName}
+                                    </a>
+                                  ) : (
+                                    at.attachmentName || "No file attached"
+                                  )}
+                                </td>
+                              </tr>
+                            ))
+                          ) : (
+                            <tr>
+                              <td colSpan="3" className="text-center py-3">
+                                No turnover data available
                               </td>
                             </tr>
-                          ))
-                        ) : (
-                          <tr>
-                            <td colSpan="3" className="text-center py-3">
-                              No turnover data available
-                            </td>
-                          </tr>
-                        )}
-                      </tbody>
-                    </table>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
 
             {/* Statutory Details */}
             {normalize(steps[currentStep]?.label || "") ===
               normalize("Statutory Details") && (
-              <div className="card mx-4 pb-4 mt-4">
-                <div className="card-header3">
-                  <h3 className="card-title">Statutory Details</h3>
-                </div>
-                <div className="card-body mt-0">
-                  <div className="row px-3">
-                    {/* <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
+                <div className="card mx-4 pb-4 mt-4">
+                  <div className="card-header3">
+                    <h3 className="card-title">Statutory Details</h3>
+                  </div>
+                  <div className="card-body mt-0">
+                    <div className="row px-3">
+                      {/* <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
                                     <div className="col-4">
                                         <label>PAN Number</label>
                                     </div>
@@ -3588,10 +3601,10 @@ const VendorDetailFormStepper = () => {
                                     </div>
                                 </div> */}
 
-                    {/* Dynamically render all statutory details */}
-                    {statutoryDetailsData.statutoryDetails &&
-                    statutoryDetailsData.statutoryDetails.length > 0
-                      ? statutoryDetailsData.statutoryDetails.map(
+                      {/* Dynamically render all statutory details */}
+                      {statutoryDetailsData.statutoryDetails &&
+                        statutoryDetailsData.statutoryDetails.length > 0
+                        ? statutoryDetailsData.statutoryDetails.map(
                           (detail, index) => (
                             <React.Fragment key={detail.id || index}>
                               <div className="col-lg-6 col-md-6 col-sm-12 row px-3 mt-2">
@@ -3623,8 +3636,8 @@ const VendorDetailFormStepper = () => {
                                             detail.attachment.attachment_url
                                               ? `${baseURL}${detail.attachment.attachment_url}`
                                               : detail.attachment.file_url
-                                              ? `${baseURL}${detail.attachment.file_url}`
-                                              : detail.attachment.url
+                                                ? `${baseURL}${detail.attachment.file_url}`
+                                                : detail.attachment.url
                                           }
                                           download
                                           className="text-primary d-flex align-items-center"
@@ -3655,710 +3668,710 @@ const VendorDetailFormStepper = () => {
                             </React.Fragment>
                           )
                         )
-                      : null}
+                        : null}
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
 
             {/* Prequalification */}
             {normalize(steps[currentStep]?.label || "") ===
               normalize("Prequalification") && (
-              <>
-                {/* Financial Pre-Qualification */}
-                <div
-                  className="card mx-4 mt-5 pb-4"
-                  style={{ overflow: "hidden" }}
-                >
-                  <div className="card-header3 mb-3">
-                    <h3 className="card-title">Financial Pre-Qualification</h3>
-                  </div>
+                <>
+                  {/* Financial Pre-Qualification */}
                   <div
-                    className="tbl-container mx-3 mt-3"
-                    style={{ overflowX: "auto", display: "block" }}
+                    className="card mx-4 mt-5 pb-4"
+                    style={{ overflow: "hidden" }}
                   >
-                    <table className="w-100" style={{ minWidth: "1200px" }}>
-                      <thead>
-                        <tr>
-                          <th className="text-start" style={{ width: 66 }}>
-                            Sr. No.
-                          </th>
-                          <th className="text-start">Particulars</th>
-                          <th className="text-start">Vendor Reply</th>
-                          <th className="text-start">Required Documents</th>
-                          <th className="text-start">Remark by Vendor</th>
-                          <th className="text-start">Total Score</th>
-                          <th className="text-start">Passing Score</th>
-                          <th className="text-start" style={{ width: 200 }}>
-                            Score By Approver
-                          </th>
-                          <th className="text-start" style={{ width: 200 }}>
-                            Remark by Approver
-                          </th>
-                          <th
-                            className="text-center"
-                            style={{ width: 180, minWidth: 180 }}
-                          >
-                            <div
-                              className="d-flex align-items-center justify-content-center"
-                              style={{ gap: "6px" }}
-                            >
-                              <span
-                                style={{
-                                  fontSize: "12px",
-                                  whiteSpace: "nowrap",
-                                  fontWeight: "700",
-                                }}
-                              >
-                                Mark All NA
-                              </span>
-                              <div
-                                className="form-check form-switch mb-0 p-0"
-                                style={{ minHeight: "unset" }}
-                              >
-                                <input
-                                  className="form-check-input mark-all-na-toggle"
-                                  type="checkbox"
-                                  role="switch"
-                                  style={{
-                                    cursor: "pointer",
-                                    margin: 0,
-                                    float: "none",
-                                    marginLeft: 0,
-                                  }}
-                                  id="markAllNaToggle_fin"
-                                  checked={markAllNaFinancial}
-                                  onChange={(e) =>
-                                    setMarkAllNaFinancial(e.target.checked)
-                                  }
-                                  disabled={!isFinancialEditable}
-                                />
-                                <label
-                                  className="form-check-label visually-hidden"
-                                  htmlFor="markAllNaToggle_fin"
-                                >
-                                  Toggle to mark all remarks as NA
-                                </label>
-                              </div>
-                            </div>
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {financialPreQualSections.map((section) => (
-                          <React.Fragment key={section.id}>
-                            <tr>
-                              <td
-                                className="text-start"
-                                style={{
-                                  color: "#000",
-                                  fontWeight: "bold",
-                                  fontSize: "1.1em",
-                                  backgroundColor: "#f5f5f5",
-                                }}
-                              >
-                                {section.srNo}
-                              </td>
-                              <td
-                                className="text-start"
-                                style={{
-                                  color: "#000",
-                                  fontWeight: "bold",
-                                  fontSize: "1.1em",
-                                  backgroundColor: "#f5f5f5",
-                                }}
-                              >
-                                {section.title}
-                              </td>
-                              <td style={{ backgroundColor: "#f5f5f5" }} />
-                              <td style={{ backgroundColor: "#f5f5f5" }} />
-                              <td style={{ backgroundColor: "#f5f5f5" }} />
-                              <td
-                                className="text-start"
-                                style={{
-                                  color: "#000",
-                                  fontWeight: "bold",
-                                  fontSize: "1.1em",
-                                  backgroundColor: "#f5f5f5",
-                                }}
-                              >
-                                {section.totalScore}
-                              </td>
-                              <td
-                                className="text-start total_passing_score"
-                                style={{
-                                  color: "#000",
-                                  fontWeight: "bold",
-                                  fontSize: "1.1em",
-                                  backgroundColor: "#f5f5f5",
-                                }}
-                              >
-                                {section.passingScore}
-                              </td>
-                              <td style={{ backgroundColor: "#f5f5f5" }} />
-                              <td style={{ backgroundColor: "#f5f5f5" }} />
-                              <td style={{ backgroundColor: "#f5f5f5" }} />
-                            </tr>
-                            {section.items.map((row) => (
-                              <tr key={row.id}>
-                                <td className="text-start">{row.srNo}</td>
-                                <td className="text-start">
-                                  {row.particulars}{" "}
-                                  {/* <i style={{ fontSize: 16, color: "black", marginLeft: 6 }} className="fa">
-                                                                            {"\uF129"}
-                                                                        </i> */}
-                                </td>
-                                <td className="text-start">
-                                  {markAllNaFinancial ? "NA" : row.vendorReply}
-                                </td>
-                                <td className="text-start">
-                                  {row.documentUrl ? (
-                                    <a
-                                      href={row.documentUrl}
-                                      download
-                                      className="d-flex align-items-center"
-                                      style={{
-                                        color: "#e95420",
-                                        textDecoration: "none",
-                                      }}
-                                    >
-                                      <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width={20}
-                                        height={20}
-                                        fill="#DE7008"
-                                        className="bi bi-download"
-                                        viewBox="0 0 16 16"
-                                      >
-                                        <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
-                                        <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
-                                      </svg>
-                                      <span className="me-2 ms-2">
-                                        {row.requiredDocuments ||
-                                          "Document Attached"}
-                                      </span>
-                                    </a>
-                                  ) : (
-                                    row.requiredDocuments || "-"
-                                  )}
-                                </td>
-                                <td>{row.remarkByVendor}</td>
-                                <td>{row.totalScore}</td>
-                                <td></td>
-                                <td>
-                                  <input
-                                    type="number"
-                                    className="form-control passing_score"
-                                    max={row.totalScore}
-                                    min={0}
-                                    value={scoreByApprover[row.id] ?? ""}
-                                    disabled={!row.editable}
-                                    onChange={(e) => {
-                                      const val = e.target.value;
-                                      if (
-                                        val === "" ||
-                                        (Number(val) <= row.totalScore &&
-                                          Number(val) >= 0)
-                                      ) {
-                                        setScoreByApprover((p) => ({
-                                          ...p,
-                                          [row.id]: val,
-                                        }));
-                                      } else if (Number(val) > row.totalScore) {
-                                        toast.warn(
-                                          `Score cannot exceed total score (${row.totalScore})`
-                                        );
-                                        setScoreByApprover((p) => ({
-                                          ...p,
-                                          [row.id]: row.totalScore,
-                                        }));
-                                      }
-                                    }}
-                                  />
-                                </td>
-                                <td>
-                                  <textarea
-                                    className="form-control approver-remark-textarea"
-                                    value={
-                                      remarkByApprover[row.id] ??
-                                      (markAllNaFinancial ? "NA" : "")
-                                    }
-                                    disabled={!row.editable}
-                                    onChange={(e) =>
-                                      setRemarkByApprover((p) => ({
-                                        ...p,
-                                        [row.id]: e.target.value,
-                                      }))
-                                    }
-                                  />
-                                </td>
-                                <td />
-                              </tr>
-                            ))}
-                          </React.Fragment>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-
-                  <div className="details_page">
-                    <div className="row px-3">
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3">
-                        <div className="col-4">
-                          <label className="fw-bold">
-                            Total Obtained Marks
-                          </label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark total_score">
-                                : {totalObtainedMarks}
-                              </span>
-                            </span>
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3">
-                        <div className="col-4">
-                          <label className="fw-bold">
-                            Qualification Status
-                          </label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark status unqualified">
-                                : Pending
-                              </span>
-                            </span>
-                          </label>
-                        </div>
-                      </div>
+                    <div className="card-header3 mb-3">
+                      <h3 className="card-title">Financial Pre-Qualification</h3>
                     </div>
-                  </div>
-                </div>
-
-                {/* Technical Pre-Qualification */}
-                <div
-                  className="card mx-4 mt-5 pb-4"
-                  style={{ overflow: "hidden" }}
-                >
-                  <div className="card-header3 mb-3">
-                    <h3 className="card-title">Technical Pre-Qualification</h3>
-                  </div>
-                  <div
-                    className="tbl-container mx-3 mt-3"
-                    style={{ overflowX: "auto", display: "block" }}
-                  >
-                    <table className="w-100" style={{ minWidth: "1200px" }}>
-                      <thead>
-                        <tr>
-                          <th className="text-start" style={{ width: 66 }}>
-                            Sr. No.
-                          </th>
-                          <th className="text-start">Particulars</th>
-                          <th className="text-start">Vendor Reply</th>
-                          <th className="text-start">Required Documents</th>
-                          <th className="text-start">Remark by Vendor</th>
-                          <th className="text-start">Total Score</th>
-                          <th className="text-start">Passing Score</th>
-                          <th className="text-start" style={{ width: 200 }}>
-                            Score By Approver
-                          </th>
-                          <th className="text-start" style={{ width: 200 }}>
-                            Remark by Approver
-                          </th>
-                          <th
-                            className="text-center"
-                            style={{ width: 180, minWidth: 180 }}
-                          >
-                            <div
-                              className="d-flex align-items-center justify-content-center"
-                              style={{ gap: "6px" }}
-                            >
-                              <span
-                                style={{
-                                  fontSize: "12px",
-                                  whiteSpace: "nowrap",
-                                  fontWeight: "700",
-                                }}
-                              >
-                                Mark All NA
-                              </span>
-                              <div
-                                className="form-check form-switch mb-0 p-0"
-                                style={{ minHeight: "unset" }}
-                              >
-                                <input
-                                  className="form-check-input mark-all-na-toggle"
-                                  type="checkbox"
-                                  role="switch"
-                                  style={{
-                                    cursor: "pointer",
-                                    margin: 0,
-                                    float: "none",
-                                    marginLeft: 0,
-                                  }}
-                                  id="markAllNaToggle_tech"
-                                  checked={markAllNaTechnical}
-                                  onChange={(e) =>
-                                    setMarkAllNaTechnical(e.target.checked)
-                                  }
-                                  disabled={!isTechnicalEditable}
-                                />
-                                <label
-                                  className="form-check-label visually-hidden"
-                                  htmlFor="markAllNaToggle_tech"
-                                >
-                                  Toggle to mark all remarks as NA
-                                </label>
-                              </div>
-                            </div>
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {technicalPreQualSections.map((section) => (
-                          <React.Fragment key={section.id}>
-                            <tr>
-                              <td
-                                className="text-start"
-                                style={{
-                                  color: "#000",
-                                  fontWeight: "bold",
-                                  fontSize: "1.1em",
-                                  backgroundColor: "#f5f5f5",
-                                }}
-                              >
-                                {section.srNo}
-                              </td>
-                              <td
-                                className="text-start"
-                                style={{
-                                  color: "#000",
-                                  fontWeight: "bold",
-                                  fontSize: "1.1em",
-                                  backgroundColor: "#f5f5f5",
-                                }}
-                              >
-                                {section.title}
-                              </td>
-                              <td style={{ backgroundColor: "#f5f5f5" }} />
-                              <td style={{ backgroundColor: "#f5f5f5" }} />
-                              <td style={{ backgroundColor: "#f5f5f5" }} />
-                              <td
-                                className="text-start"
-                                style={{
-                                  color: "#000",
-                                  fontWeight: "bold",
-                                  fontSize: "1.1em",
-                                  backgroundColor: "#f5f5f5",
-                                }}
-                              >
-                                {section.totalScore}
-                              </td>
-                              <td
-                                className="text-start total_passing_score"
-                                style={{
-                                  color: "#000",
-                                  fontWeight: "bold",
-                                  fontSize: "1.1em",
-                                  backgroundColor: "#f5f5f5",
-                                }}
-                              >
-                                {section.passingScore}
-                              </td>
-                              <td style={{ backgroundColor: "#f5f5f5" }} />
-                              <td style={{ backgroundColor: "#f5f5f5" }} />
-                              <td style={{ backgroundColor: "#f5f5f5" }} />
-                            </tr>
-                            {section.items.map((row) => (
-                              <tr key={row.id}>
-                                <td className="text-start">{row.srNo}</td>
-                                <td className="text-start">
-                                  {row.particulars}{" "}
-                                  {/* <i style={{ fontSize: 16, color: "black", marginLeft: 6 }} className="fa">
-                                                                            {"\uF129"}
-                                                                        </i> */}
-                                </td>
-                                <td className="text-start">
-                                  {markAllNaTechnical ? "NA" : row.vendorReply}
-                                </td>
-                                <td className="text-start">
-                                  {row.documentUrl ? (
-                                    <a
-                                      href={row.documentUrl}
-                                      download
-                                      className="d-flex align-items-center"
-                                      style={{
-                                        color: "#e95420",
-                                        textDecoration: "none",
-                                      }}
-                                    >
-                                      <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width={20}
-                                        height={20}
-                                        fill="#DE7008"
-                                        className="bi bi-download"
-                                        viewBox="0 0 16 16"
-                                      >
-                                        <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
-                                        <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
-                                      </svg>
-                                      <span className="me-2 ms-2">
-                                        {row.requiredDocuments ||
-                                          "Document Attached"}
-                                      </span>
-                                    </a>
-                                  ) : (
-                                    row.requiredDocuments || "-"
-                                  )}
-                                </td>
-                                <td>{row.remarkByVendor}</td>
-                                <td>{row.totalScore}</td>
-                                <td></td>
-                                <td>
-                                  <input
-                                    type="number"
-                                    className="form-control passing_score"
-                                    max={row.totalScore}
-                                    min={0}
-                                    value={scoreByApprover[row.id] ?? ""}
-                                    disabled={!row.editable}
-                                    onChange={(e) => {
-                                      const val = e.target.value;
-                                      if (
-                                        val === "" ||
-                                        (Number(val) <= row.totalScore &&
-                                          Number(val) >= 0)
-                                      ) {
-                                        setScoreByApprover((p) => ({
-                                          ...p,
-                                          [row.id]: val,
-                                        }));
-                                      } else if (Number(val) > row.totalScore) {
-                                        toast.warn(
-                                          `Score cannot exceed total score (${row.totalScore})`
-                                        );
-                                        setScoreByApprover((p) => ({
-                                          ...p,
-                                          [row.id]: row.totalScore,
-                                        }));
-                                      }
-                                    }}
-                                  />
-                                </td>
-                                <td>
-                                  <textarea
-                                    className="form-control approver-remark-textarea"
-                                    value={
-                                      remarkByApprover[row.id] ??
-                                      (markAllNaTechnical ? "NA" : "")
-                                    }
-                                    disabled={!row.editable}
-                                    onChange={(e) =>
-                                      setRemarkByApprover((p) => ({
-                                        ...p,
-                                        [row.id]: e.target.value,
-                                      }))
-                                    }
-                                  />
-                                </td>
-                                <td />
-                              </tr>
-                            ))}
-                          </React.Fragment>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-
-                  <div className="details_page">
-                    <div className="row px-3">
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3">
-                        <div className="col-4">
-                          <label className="fw-bold">
-                            Total Obtained Marks
-                          </label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark total_score">
-                                : {totalObtainedMarks}
-                              </span>
-                            </span>
-                          </label>
-                        </div>
-                      </div>
-                      <div className="col-lg-6 col-md-6 col-sm-12 row px-3">
-                        <div className="col-4">
-                          <label className="fw-bold">
-                            Qualification Status
-                          </label>
-                        </div>
-                        <div className="col-8">
-                          <label className="text">
-                            <span className="me-3">
-                              <span className="text-dark status unqualified">
-                                : Pending
-                              </span>
-                            </span>
-                          </label>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Bottom remarks + status + save */}
-                <div className="mt-4 mx-4">
-                  <div className="mx-1">
-                    <div className="mb-2">
-                      <label>Invitation Remark</label>
-                    </div>
-                    <textarea
-                      className="form-control"
-                      rows={3}
-                      value={invitationRemark}
-                      onChange={(e) => setInvitationRemark(e.target.value)}
-                    />
-                  </div>
-
-                  <div className="card mx-2 pb-4 mt-4">
-                    <div>
-                      <h3
-                        className="card-title"
-                        style={{ color: "white", margin: 0, fontSize: "14px" }}
-                      >
-                        Withholding Tax Data
-                      </h3>
-                    </div>
-                    <div className="card-body mt-4">
-                      <div className="row px-3">
-                        <div className="col-lg-6 col-md-6 col-sm-12 mt-4">
-                          <label className="form-label">
-                            Withholding Section{" "}
-                            <span className="text-danger">*</span>
-                          </label>
-                          <select
-                            className="form-select"
-                            value={withholdingSection}
-                            onChange={(e) =>
-                              setWithholdingSection(e.target.value)
-                            }
-                          >
-                            <option value="">Select Withholding Section</option>
-                            {withholdingSections.map((ws) => (
-                              <option key={ws.value} value={ws.value}>
-                                {ws.name}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                        <div className="col-lg-6 col-md-6 col-sm-12 mt-4">
-                          <label className="form-label">
-                            Type Of Recipient{" "}
-                            <span className="text-danger">*</span>
-                          </label>
-                          <select
-                            className="form-select"
-                            value={typeOfRecipient}
-                            onChange={(e) => setTypeOfRecipient(e.target.value)}
-                          >
-                            <option value="">Select Type Of Recipient</option>
-                            {typeOfRecipients.map((tr) => (
-                              <option key={tr.value} value={tr.value}>
-                                {tr.name}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="card mx-2  mt-4">
                     <div
-                    // style={{ background: '#e95420', width: 'fit-content', borderRadius: '4px', padding: '5px 15px', marginTop: '-15px', marginLeft: '15px' }}
+                      className="tbl-container mx-3 mt-3"
+                      style={{ overflowX: "auto", display: "block" }}
                     >
-                      <h3
-                        className="card-title"
-                        // style={{ color: 'white', margin: 0, fontSize: '14px' }}
-                      >
-                        206AB Compliance
-                      </h3>
+                      <table className="w-100" style={{ minWidth: "1200px" }}>
+                        <thead>
+                          <tr>
+                            <th className="text-start" style={{ width: 66 }}>
+                              Sr. No.
+                            </th>
+                            <th className="text-start">Particulars</th>
+                            <th className="text-start">Vendor Reply</th>
+                            <th className="text-start">Required Documents</th>
+                            <th className="text-start">Remark by Vendor</th>
+                            <th className="text-start">Total Score</th>
+                            <th className="text-start">Passing Score</th>
+                            <th className="text-start" style={{ width: 200 }}>
+                              Score By Approver
+                            </th>
+                            <th className="text-start" style={{ width: 200 }}>
+                              Remark by Approver
+                            </th>
+                            <th
+                              className="text-center"
+                              style={{ width: 180, minWidth: 180 }}
+                            >
+                              <div
+                                className="d-flex align-items-center justify-content-center"
+                                style={{ gap: "6px" }}
+                              >
+                                <span
+                                  style={{
+                                    fontSize: "12px",
+                                    whiteSpace: "nowrap",
+                                    fontWeight: "700",
+                                  }}
+                                >
+                                  Mark All NA
+                                </span>
+                                <div
+                                  className="form-check form-switch mb-0 p-0"
+                                  style={{ minHeight: "unset" }}
+                                >
+                                  <input
+                                    className="form-check-input mark-all-na-toggle"
+                                    type="checkbox"
+                                    role="switch"
+                                    style={{
+                                      cursor: "pointer",
+                                      margin: 0,
+                                      float: "none",
+                                      marginLeft: 0,
+                                    }}
+                                    id="markAllNaToggle_fin"
+                                    checked={markAllNaFinancial}
+                                    onChange={(e) =>
+                                      setMarkAllNaFinancial(e.target.checked)
+                                    }
+                                    disabled={!isFinancialEditable}
+                                  />
+                                  <label
+                                    className="form-check-label visually-hidden"
+                                    htmlFor="markAllNaToggle_fin"
+                                  >
+                                    Toggle to mark all remarks as NA
+                                  </label>
+                                </div>
+                              </div>
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {financialPreQualSections.map((section) => (
+                            <React.Fragment key={section.id}>
+                              <tr>
+                                <td
+                                  className="text-start"
+                                  style={{
+                                    color: "#000",
+                                    fontWeight: "bold",
+                                    fontSize: "1.1em",
+                                    backgroundColor: "#f5f5f5",
+                                  }}
+                                >
+                                  {section.srNo}
+                                </td>
+                                <td
+                                  className="text-start"
+                                  style={{
+                                    color: "#000",
+                                    fontWeight: "bold",
+                                    fontSize: "1.1em",
+                                    backgroundColor: "#f5f5f5",
+                                  }}
+                                >
+                                  {section.title}
+                                </td>
+                                <td style={{ backgroundColor: "#f5f5f5" }} />
+                                <td style={{ backgroundColor: "#f5f5f5" }} />
+                                <td style={{ backgroundColor: "#f5f5f5" }} />
+                                <td
+                                  className="text-start"
+                                  style={{
+                                    color: "#000",
+                                    fontWeight: "bold",
+                                    fontSize: "1.1em",
+                                    backgroundColor: "#f5f5f5",
+                                  }}
+                                >
+                                  {section.totalScore}
+                                </td>
+                                <td
+                                  className="text-start total_passing_score"
+                                  style={{
+                                    color: "#000",
+                                    fontWeight: "bold",
+                                    fontSize: "1.1em",
+                                    backgroundColor: "#f5f5f5",
+                                  }}
+                                >
+                                  {section.passingScore}
+                                </td>
+                                <td style={{ backgroundColor: "#f5f5f5" }} />
+                                <td style={{ backgroundColor: "#f5f5f5" }} />
+                                <td style={{ backgroundColor: "#f5f5f5" }} />
+                              </tr>
+                              {section.items.map((row) => (
+                                <tr key={row.id}>
+                                  <td className="text-start">{row.srNo}</td>
+                                  <td className="text-start">
+                                    {row.particulars}{" "}
+                                    {/* <i style={{ fontSize: 16, color: "black", marginLeft: 6 }} className="fa">
+                                                                            {"\uF129"}
+                                                                        </i> */}
+                                  </td>
+                                  <td className="text-start">
+                                    {markAllNaFinancial ? "NA" : row.vendorReply}
+                                  </td>
+                                  <td className="text-start">
+                                    {row.documentUrl ? (
+                                      <a
+                                        href={row.documentUrl}
+                                        download
+                                        className="d-flex align-items-center"
+                                        style={{
+                                          color: "#e95420",
+                                          textDecoration: "none",
+                                        }}
+                                      >
+                                        <svg
+                                          xmlns="http://www.w3.org/2000/svg"
+                                          width={20}
+                                          height={20}
+                                          fill="#DE7008"
+                                          className="bi bi-download"
+                                          viewBox="0 0 16 16"
+                                        >
+                                          <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                                          <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                                        </svg>
+                                        <span className="me-2 ms-2">
+                                          {row.requiredDocuments ||
+                                            "Document Attached"}
+                                        </span>
+                                      </a>
+                                    ) : (
+                                      row.requiredDocuments || "-"
+                                    )}
+                                  </td>
+                                  <td>{row.remarkByVendor}</td>
+                                  <td>{row.totalScore}</td>
+                                  <td></td>
+                                  <td>
+                                    <input
+                                      type="number"
+                                      className="form-control passing_score"
+                                      max={row.totalScore}
+                                      min={0}
+                                      value={scoreByApprover[row.id] ?? ""}
+                                      disabled={!row.editable}
+                                      onChange={(e) => {
+                                        const val = e.target.value;
+                                        if (
+                                          val === "" ||
+                                          (Number(val) <= row.totalScore &&
+                                            Number(val) >= 0)
+                                        ) {
+                                          setScoreByApprover((p) => ({
+                                            ...p,
+                                            [row.id]: val,
+                                          }));
+                                        } else if (Number(val) > row.totalScore) {
+                                          toast.warn(
+                                            `Score cannot exceed total score (${row.totalScore})`
+                                          );
+                                          setScoreByApprover((p) => ({
+                                            ...p,
+                                            [row.id]: row.totalScore,
+                                          }));
+                                        }
+                                      }}
+                                    />
+                                  </td>
+                                  <td>
+                                    <textarea
+                                      className="form-control approver-remark-textarea"
+                                      value={
+                                        remarkByApprover[row.id] ??
+                                        (markAllNaFinancial ? "NA" : "")
+                                      }
+                                      disabled={!row.editable}
+                                      onChange={(e) =>
+                                        setRemarkByApprover((p) => ({
+                                          ...p,
+                                          [row.id]: e.target.value,
+                                        }))
+                                      }
+                                    />
+                                  </td>
+                                  <td />
+                                </tr>
+                              ))}
+                            </React.Fragment>
+                          ))}
+                        </tbody>
+                      </table>
                     </div>
-                    <div className="card-body mt-6">
-                      <div className="row px-2 mt-4">
-                        <div className="col-lg-6 col-md-6 col-sm-12 d-flex align-items-center">
-                          <input
-                            type="checkbox"
-                            className="form-check-input me-2"
-                            checked={higherRateApplicable}
-                            onChange={(e) =>
-                              setHigherRateApplicable(e.target.checked)
-                            }
-                          />
-                          <label className="form-check-label">
-                            Higher Rate Applicable
-                          </label>
+
+                    <div className="details_page">
+                      <div className="row px-3">
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3">
+                          <div className="col-4">
+                            <label className="fw-bold">
+                              Total Obtained Marks
+                            </label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark total_score">
+                                  : {totalObtainedMarks}
+                                </span>
+                              </span>
+                            </label>
+                          </div>
                         </div>
-                        <div className="col-lg-6 col-md-6 col-sm-12 d-flex align-items-center mt-4">
-                          <input
-                            type="checkbox"
-                            className="form-check-input me-2"
-                            checked={panAadharNotLinked}
-                            onChange={(e) =>
-                              setPanAadharNotLinked(e.target.checked)
-                            }
-                          />
-                          <label className="form-check-label">
-                            Pan & Aadhar Not Linked
-                          </label>
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3">
+                          <div className="col-4">
+                            <label className="fw-bold">
+                              Qualification Status
+                            </label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark status unqualified">
+                                  : Pending
+                                </span>
+                              </span>
+                            </label>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  <div className="mx-1 mt-3">
-                    <div className="mb-2">
-                      <label>
-                        Approver Remark <span style={{ color: "red" }}>*</span>
-                      </label>
+                  {/* Technical Pre-Qualification */}
+                  <div
+                    className="card mx-4 mt-5 pb-4"
+                    style={{ overflow: "hidden" }}
+                  >
+                    <div className="card-header3 mb-3">
+                      <h3 className="card-title">Technical Pre-Qualification</h3>
                     </div>
-                    <textarea
-                      className="form-control"
-                      rows={4}
-                      value={approverRemark}
-                      onChange={(e) => setApproverRemark(e.target.value)}
-                    />
+                    <div
+                      className="tbl-container mx-3 mt-3"
+                      style={{ overflowX: "auto", display: "block" }}
+                    >
+                      <table className="w-100" style={{ minWidth: "1200px" }}>
+                        <thead>
+                          <tr>
+                            <th className="text-start" style={{ width: 66 }}>
+                              Sr. No.
+                            </th>
+                            <th className="text-start">Particulars</th>
+                            <th className="text-start">Vendor Reply</th>
+                            <th className="text-start">Required Documents</th>
+                            <th className="text-start">Remark by Vendor</th>
+                            <th className="text-start">Total Score</th>
+                            <th className="text-start">Passing Score</th>
+                            <th className="text-start" style={{ width: 200 }}>
+                              Score By Approver
+                            </th>
+                            <th className="text-start" style={{ width: 200 }}>
+                              Remark by Approver
+                            </th>
+                            <th
+                              className="text-center"
+                              style={{ width: 180, minWidth: 180 }}
+                            >
+                              <div
+                                className="d-flex align-items-center justify-content-center"
+                                style={{ gap: "6px" }}
+                              >
+                                <span
+                                  style={{
+                                    fontSize: "12px",
+                                    whiteSpace: "nowrap",
+                                    fontWeight: "700",
+                                  }}
+                                >
+                                  Mark All NA
+                                </span>
+                                <div
+                                  className="form-check form-switch mb-0 p-0"
+                                  style={{ minHeight: "unset" }}
+                                >
+                                  <input
+                                    className="form-check-input mark-all-na-toggle"
+                                    type="checkbox"
+                                    role="switch"
+                                    style={{
+                                      cursor: "pointer",
+                                      margin: 0,
+                                      float: "none",
+                                      marginLeft: 0,
+                                    }}
+                                    id="markAllNaToggle_tech"
+                                    checked={markAllNaTechnical}
+                                    onChange={(e) =>
+                                      setMarkAllNaTechnical(e.target.checked)
+                                    }
+                                    disabled={!isTechnicalEditable}
+                                  />
+                                  <label
+                                    className="form-check-label visually-hidden"
+                                    htmlFor="markAllNaToggle_tech"
+                                  >
+                                    Toggle to mark all remarks as NA
+                                  </label>
+                                </div>
+                              </div>
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {technicalPreQualSections.map((section) => (
+                            <React.Fragment key={section.id}>
+                              <tr>
+                                <td
+                                  className="text-start"
+                                  style={{
+                                    color: "#000",
+                                    fontWeight: "bold",
+                                    fontSize: "1.1em",
+                                    backgroundColor: "#f5f5f5",
+                                  }}
+                                >
+                                  {section.srNo}
+                                </td>
+                                <td
+                                  className="text-start"
+                                  style={{
+                                    color: "#000",
+                                    fontWeight: "bold",
+                                    fontSize: "1.1em",
+                                    backgroundColor: "#f5f5f5",
+                                  }}
+                                >
+                                  {section.title}
+                                </td>
+                                <td style={{ backgroundColor: "#f5f5f5" }} />
+                                <td style={{ backgroundColor: "#f5f5f5" }} />
+                                <td style={{ backgroundColor: "#f5f5f5" }} />
+                                <td
+                                  className="text-start"
+                                  style={{
+                                    color: "#000",
+                                    fontWeight: "bold",
+                                    fontSize: "1.1em",
+                                    backgroundColor: "#f5f5f5",
+                                  }}
+                                >
+                                  {section.totalScore}
+                                </td>
+                                <td
+                                  className="text-start total_passing_score"
+                                  style={{
+                                    color: "#000",
+                                    fontWeight: "bold",
+                                    fontSize: "1.1em",
+                                    backgroundColor: "#f5f5f5",
+                                  }}
+                                >
+                                  {section.passingScore}
+                                </td>
+                                <td style={{ backgroundColor: "#f5f5f5" }} />
+                                <td style={{ backgroundColor: "#f5f5f5" }} />
+                                <td style={{ backgroundColor: "#f5f5f5" }} />
+                              </tr>
+                              {section.items.map((row) => (
+                                <tr key={row.id}>
+                                  <td className="text-start">{row.srNo}</td>
+                                  <td className="text-start">
+                                    {row.particulars}{" "}
+                                    {/* <i style={{ fontSize: 16, color: "black", marginLeft: 6 }} className="fa">
+                                                                            {"\uF129"}
+                                                                        </i> */}
+                                  </td>
+                                  <td className="text-start">
+                                    {markAllNaTechnical ? "NA" : row.vendorReply}
+                                  </td>
+                                  <td className="text-start">
+                                    {row.documentUrl ? (
+                                      <a
+                                        href={row.documentUrl}
+                                        download
+                                        className="d-flex align-items-center"
+                                        style={{
+                                          color: "#e95420",
+                                          textDecoration: "none",
+                                        }}
+                                      >
+                                        <svg
+                                          xmlns="http://www.w3.org/2000/svg"
+                                          width={20}
+                                          height={20}
+                                          fill="#DE7008"
+                                          className="bi bi-download"
+                                          viewBox="0 0 16 16"
+                                        >
+                                          <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                                          <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                                        </svg>
+                                        <span className="me-2 ms-2">
+                                          {row.requiredDocuments ||
+                                            "Document Attached"}
+                                        </span>
+                                      </a>
+                                    ) : (
+                                      row.requiredDocuments || "-"
+                                    )}
+                                  </td>
+                                  <td>{row.remarkByVendor}</td>
+                                  <td>{row.totalScore}</td>
+                                  <td></td>
+                                  <td>
+                                    <input
+                                      type="number"
+                                      className="form-control passing_score"
+                                      max={row.totalScore}
+                                      min={0}
+                                      value={scoreByApprover[row.id] ?? ""}
+                                      disabled={!row.editable}
+                                      onChange={(e) => {
+                                        const val = e.target.value;
+                                        if (
+                                          val === "" ||
+                                          (Number(val) <= row.totalScore &&
+                                            Number(val) >= 0)
+                                        ) {
+                                          setScoreByApprover((p) => ({
+                                            ...p,
+                                            [row.id]: val,
+                                          }));
+                                        } else if (Number(val) > row.totalScore) {
+                                          toast.warn(
+                                            `Score cannot exceed total score (${row.totalScore})`
+                                          );
+                                          setScoreByApprover((p) => ({
+                                            ...p,
+                                            [row.id]: row.totalScore,
+                                          }));
+                                        }
+                                      }}
+                                    />
+                                  </td>
+                                  <td>
+                                    <textarea
+                                      className="form-control approver-remark-textarea"
+                                      value={
+                                        remarkByApprover[row.id] ??
+                                        (markAllNaTechnical ? "NA" : "")
+                                      }
+                                      disabled={!row.editable}
+                                      onChange={(e) =>
+                                        setRemarkByApprover((p) => ({
+                                          ...p,
+                                          [row.id]: e.target.value,
+                                        }))
+                                      }
+                                    />
+                                  </td>
+                                  <td />
+                                </tr>
+                              ))}
+                            </React.Fragment>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    <div className="details_page">
+                      <div className="row px-3">
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3">
+                          <div className="col-4">
+                            <label className="fw-bold">
+                              Total Obtained Marks
+                            </label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark total_score">
+                                  : {totalObtainedMarks}
+                                </span>
+                              </span>
+                            </label>
+                          </div>
+                        </div>
+                        <div className="col-lg-6 col-md-6 col-sm-12 row px-3">
+                          <div className="col-4">
+                            <label className="fw-bold">
+                              Qualification Status
+                            </label>
+                          </div>
+                          <div className="col-8">
+                            <label className="text">
+                              <span className="me-3">
+                                <span className="text-dark status unqualified">
+                                  : Pending
+                                </span>
+                              </span>
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="d-flex justify-content-end mt-3">
-                    <div style={{ minWidth: 260 }}>
-                      <label className="mb-1">Status</label>
-                      <select
-                        className="form-select"
-                        value={qualificationStatus}
-                        onChange={(e) => setQualificationStatus(e.target.value)}
+                  {/* Bottom remarks + status + save */}
+                  <div className="mt-4 mx-4">
+                    <div className="mx-1">
+                      <div className="mb-2">
+                        <label>Invitation Remark</label>
+                      </div>
+                      <textarea
+                        className="form-control"
+                        rows={3}
+                        value={invitationRemark}
+                        onChange={(e) => setInvitationRemark(e.target.value)}
+                      />
+                    </div>
+
+                    <div className="card mx-2 pb-4 mt-4">
+                      <div>
+                        <h3
+                          className="card-title"
+                          style={{ color: "white", margin: 0, fontSize: "14px" }}
+                        >
+                          Withholding Tax Data
+                        </h3>
+                      </div>
+                      <div className="card-body mt-4">
+                        <div className="row px-3">
+                          <div className="col-lg-6 col-md-6 col-sm-12 mt-4">
+                            <label className="form-label">
+                              Withholding Section{" "}
+                              <span className="text-danger">*</span>
+                            </label>
+                            <select
+                              className="form-select"
+                              value={withholdingSection}
+                              onChange={(e) =>
+                                setWithholdingSection(e.target.value)
+                              }
+                            >
+                              <option value="">Select Withholding Section</option>
+                              {withholdingSections.map((ws) => (
+                                <option key={ws.value} value={ws.value}>
+                                  {ws.name}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          <div className="col-lg-6 col-md-6 col-sm-12 mt-4">
+                            <label className="form-label">
+                              Type Of Recipient{" "}
+                              <span className="text-danger">*</span>
+                            </label>
+                            <select
+                              className="form-select"
+                              value={typeOfRecipient}
+                              onChange={(e) => setTypeOfRecipient(e.target.value)}
+                            >
+                              <option value="">Select Type Of Recipient</option>
+                              {typeOfRecipients.map((tr) => (
+                                <option key={tr.value} value={tr.value}>
+                                  {tr.name}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="card mx-2  mt-4">
+                      <div
+                      // style={{ background: '#e95420', width: 'fit-content', borderRadius: '4px', padding: '5px 15px', marginTop: '-15px', marginLeft: '15px' }}
                       >
-                        <option value="">Select Status</option>
-                        <option value="Approved">Approved</option>
-                        <option value="Rejected">Rejected</option>
-                        <option value="request_for_resubmission">
-                          Request For Resubmission
-                        </option>
-                      </select>
+                        <h3
+                          className="card-title"
+                        // style={{ color: 'white', margin: 0, fontSize: '14px' }}
+                        >
+                          206AB Compliance
+                        </h3>
+                      </div>
+                      <div className="card-body mt-6">
+                        <div className="row px-2 mt-4">
+                          <div className="col-lg-6 col-md-6 col-sm-12 d-flex align-items-center">
+                            <input
+                              type="checkbox"
+                              className="form-check-input me-2"
+                              checked={higherRateApplicable}
+                              onChange={(e) =>
+                                setHigherRateApplicable(e.target.checked)
+                              }
+                            />
+                            <label className="form-check-label">
+                              Higher Rate Applicable
+                            </label>
+                          </div>
+                          <div className="col-lg-6 col-md-6 col-sm-12 d-flex align-items-center mt-4">
+                            <input
+                              type="checkbox"
+                              className="form-check-input me-2"
+                              checked={panAadharNotLinked}
+                              onChange={(e) =>
+                                setPanAadharNotLinked(e.target.checked)
+                              }
+                            />
+                            <label className="form-check-label">
+                              Pan & Aadhar Not Linked
+                            </label>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Save and Cancel buttons moved to bottom navigation bar */}
-                </div>
-              </>
-            )}
+                    <div className="mx-1 mt-3">
+                      <div className="mb-2">
+                        <label>
+                          Approver Remark <span style={{ color: "red" }}>*</span>
+                        </label>
+                      </div>
+                      <textarea
+                        className="form-control"
+                        rows={4}
+                        value={approverRemark}
+                        onChange={(e) => setApproverRemark(e.target.value)}
+                      />
+                    </div>
+
+                    <div className="d-flex justify-content-end mt-3">
+                      <div style={{ minWidth: 260 }}>
+                        <label className="mb-1">Status</label>
+                        <select
+                          className="form-select"
+                          value={qualificationStatus}
+                          onChange={(e) => setQualificationStatus(e.target.value)}
+                        >
+                          <option value="">Select Status</option>
+                          <option value="Approved">Approved</option>
+                          <option value="Rejected">Rejected</option>
+                          <option value="request_for_resubmission">
+                            Request For Resubmission
+                          </option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Save and Cancel buttons moved to bottom navigation bar */}
+                  </div>
+                </>
+              )}
           </div>
 
           {/* Navigation Buttons - Back, Save, Cancel, Next */}
@@ -4464,8 +4477,8 @@ const VendorDetailFormStepper = () => {
                               row.status === "Approved"
                                 ? "#198754"
                                 : row.status === "Pending"
-                                ? "yellow"
-                                : "#dc3545",
+                                  ? "yellow"
+                                  : "#dc3545",
                             color: row.status === "Pending" ? "black" : "white",
                           }}
                         >
@@ -4480,19 +4493,19 @@ const VendorDetailFormStepper = () => {
                       <td>
                         {Array.isArray(row.users)
                           ? row.users
-                              .map((u) =>
-                                typeof u === "object"
-                                  ? u.full_name || u.name || ""
-                                  : u
-                              )
-                              .filter((u) => u)
-                              .join(", ")
+                            .map((u) =>
+                              typeof u === "object"
+                                ? u.full_name || u.name || ""
+                                : u
+                            )
+                            .filter((u) => u)
+                            .join(", ")
                           : typeof row.users === "string"
-                          ? row.users
+                            ? row.users
                               .split(/\s+/)
                               .filter((u) => u)
                               .join(", ")
-                          : row.users}
+                            : row.users}
                       </td>
                     </tr>
                   ))}
