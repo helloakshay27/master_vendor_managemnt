@@ -94,7 +94,7 @@ const RekycDetail = () => {
   const fetchDropdowns = async () => {
     try {
       const response = await axios.get(
-        "https://vendors.lockated.com/supplier_field_approvals/dropdowns.json"
+      `${baseURL}/supplier_field_approvals/dropdowns.json`
       );
       console.log("Dropdowns:", response.data);
       if (response.data && response.data.data) {
@@ -355,7 +355,7 @@ const RekycDetail = () => {
 
       // Using the new API endpoint with supplier_id and rekyc_id as query parameters
       const response = await axios.patch(
-        `${baseURL}/supplier_field_approvals/${editModal.request.id}/update_new_value_api.json?supplier_id=${supplierId}&rekyc_id=${rekycId}`,
+        `${baseURL}/supplier_field_approvals/${editModal.request.id}/update_new_value_api.json`,
         payload,
         config
       );

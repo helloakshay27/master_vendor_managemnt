@@ -90,25 +90,74 @@ const VendorDetailFormStepper = () => {
     });
   }
 
-  // Get parameters from URL query string
-  // Use both react-router location and window.location for maximum robustness
-  const queryStr = location.search || (window.location.search.includes('?') ? window.location.search : "");
-  const urlParams = new URLSearchParams(queryStr);
+  // --- ADVANCED PARAMETER EXTRACTION ---
+  const getSearchString = () => {
+    try {
+      let search = location.search || "";
+      if (!search && window.location.search) search = window.location.search;
+      if (!search && window.location.href.includes('?')) {
+        search = "?" + window.location.href.split('?')[1].split('#')[0];
+      }
+      return search;
+    } catch (e) { return ""; }
+  };
 
-  const token = urlParams.get("token") || extraParams.token;
-  const historyIdsFromUrl = urlParams.get("history_ids") || urlParams.get("history_id") || extraParams.history_ids;
+  const getHashString = () => {
+    try {
+      const hash = window.location.hash || "";
+      return hash.includes('?') ? "?" + hash.split('?')[1] : "";
+    } catch (e) { return ""; }
+  };
 
-  // If supplierId was not in the path (e.g., server URL using query params), try query params
-  if (!supplierId || supplierId === "undefined") {
-    supplierId = urlParams.get("supplier_id") || urlParams.get("id");
+  const searchParamsInstance = new URLSearchParams(getSearchString());
+  const hashParamsInstance = new URLSearchParams(getHashString());
+
+  const getRobustParam = (name) => {
+    const possibleNames = [name, `${name}[]`, name.toLowerCase(), `${name.toLowerCase()}[]`];
+    const values = [];
+
+    possibleNames.forEach(n => {
+      values.push(...searchParamsInstance.getAll(n));
+      values.push(...hashParamsInstance.getAll(n));
+      if (extraParams[n]) values.push(extraParams[n]);
+    });
+
+    // Cross-check variations
+    if (name === "history_ids") {
+      values.push(...searchParamsInstance.getAll("history_id"), ...hashParamsInstance.getAll("history_id"));
+    }
+
+    const found = values.find(v => v && v !== "undefined" && v !== "null" && v.trim() !== "");
+    return found || null;
+  };
+
+  let resolvedSupplierId = supplierId; // initially from useParams
+  if (!resolvedSupplierId || resolvedSupplierId === "undefined" || resolvedSupplierId === "null") {
+    resolvedSupplierId = getRobustParam("supplier_id") || getRobustParam("id");
   }
 
-  console.log("Raw ID from Path:", rawId);
-  console.log("Location Search:", location.search);
-  console.log("Window Location Search:", window.location.search);
-  console.log("Resolved Supplier ID:", supplierId);
+  let resolvedHistoryIds = getRobustParam("history_ids");
+
+  // Last resort regex on full URL string
+  if (!resolvedHistoryIds) {
+    const regex = /[?&]history_id(?:s)?(?:%5B%5D|\[\])?=([^& #]+)/i;
+    const match = window.location.href.match(regex);
+    if (match) resolvedHistoryIds = match[1];
+  }
+
+  const historyIdsFromUrl = resolvedHistoryIds;
+  const token = getRobustParam("token");
+
+  console.log("===== URL DEBUG =====");
+  console.log("Full Href:", window.location.href);
+  console.log("Resolved Supplier ID:", resolvedSupplierId);
   console.log("Resolved History IDs:", historyIdsFromUrl);
-  console.log("Token from URL:", token);
+  console.log("Resolved Token:", token);
+  console.log("=====================");
+
+  // Re-assign for internal use
+  supplierId = resolvedSupplierId;
+  // --- END PARAMETER EXTRACTION ---
 
   // Loading and data states
   const [loading, setLoading] = useState(true);
