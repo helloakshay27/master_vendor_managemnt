@@ -236,14 +236,17 @@ const VendorDetailFormStepper = () => {
 
         const dropdownsUrl = `${base}/pms/suppliers/dropdowns.json`;
 
-        // Add token and history_ids to request if available (order matters for query string)
-        const config = { params: {} };
-        if (historyIdsFromUrl) config.params.history_ids = historyIdsFromUrl;
-        if (token) config.params.token = token;
+        const config = {
+          params: {
+            token: token,
+            history_ids: historyIdsFromUrl || undefined
+          }
+        };
+        // Remove undefined params
+        Object.keys(config.params).forEach(key => config.params[key] === undefined && delete config.params[key]);
 
-        console.log("Fetching data from:", vendorUrl);
-        console.log("Checklist URL:", checklistUrl);
-        console.log("Config params:", config.params);
+        console.log("Fetching Vendor Data from:", vendorUrl);
+        console.log("Final Config Params:", config.params);
         const [
           vendorResponse,
           checklistResponse,
