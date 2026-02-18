@@ -175,6 +175,7 @@ const VendorDetailFormStepper = () => {
   const [vendorData, setVendorData] = useState(null);
   const [checklistConfig, setChecklistConfig] = useState([]);
   const [approvalLogs, setApprovalLogs] = useState([]);
+  const [apiUserId, setApiUserId] = useState(null);
   const [departments, setDepartments] = useState([]);
 
   // Define all steps
@@ -275,6 +276,12 @@ const VendorDetailFormStepper = () => {
         const checklistData =
           checklistResponse.data?.data || checklistResponse.data || [];
         setChecklistConfig(Array.isArray(checklistData) ? checklistData : []);
+
+        // Capture current_user_id from checklist API
+        if (checklistResponse.data?.current_user_id) {
+          setApiUserId(checklistResponse.data.current_user_id);
+        }
+
         setDepartments(dropdownsResponse.data?.departments || []);
         setWithholdingSections(
           dropdownsResponse.data?.withholding_sections || []
@@ -959,7 +966,7 @@ const VendorDetailFormStepper = () => {
           .map((log) => log.id)
           .filter((id) => id)
           .join(",");
-      const userId = userIdFromUrl;
+      const userId = apiUserId || userIdFromUrl || sessionStorage.getItem("user_id") || 45;
 
       const payload = {
         status: qualificationStatus.toLowerCase(),
