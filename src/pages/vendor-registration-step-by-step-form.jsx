@@ -188,7 +188,7 @@ const VendorRegistrationStepByStepForm = () => {
         fetchChecklistConfig();
     }, []);
 
-  
+
 
     // Qualification options for owners/contact persons
     const qualificationList = [
@@ -952,9 +952,9 @@ const VendorRegistrationStepByStepForm = () => {
 
     const [supplierShowData, setSupplierShowData] = useState(null);
     const [bankDetailsList, setBankDetailsList] = useState([]);
-    
+
     const [bankDeclaration, setBankDeclaration] = useState(false);
-    
+
     // Exposed helper to (re)load supplier show data so other UI actions
     // (like Back navigation) can refresh the step-specific state.
     const reloadSupplierShowData = async () => {
@@ -963,13 +963,13 @@ const VendorRegistrationStepByStepForm = () => {
             setSupplierShowData(response?.data);
             setVrfStatus(response?.data?.status || "draft");
             // setVrfStatus("pending")
-            
+
             const bankDeclarationFromApi = response?.data?.bank_declaration || false;
             setBankDeclaration(bankDeclarationFromApi);
-            
+
             // Load bank details from API
             const bankDetails = response?.data?.bank_details || [];
-            
+
             // Only add one empty bank if no banks exist AND declaration is not checked
             if (bankDetails.length === 0 && !bankDeclarationFromApi) {
                 setBankDetailsList([
@@ -1003,13 +1003,13 @@ const VendorRegistrationStepByStepForm = () => {
                     // Convert is_vertual boolean to virtual_account string
                     virtual_account: bank.is_vertual === true ? "Yes" : (bank.is_vertual === false ? "No" : ""),
                     // Convert company_codes array to selected_company object (will be reconciled with options later)
-                    selected_company: bank.company_codes && bank.company_codes.length > 0 
-                        ? { value: bank.company_codes[0], label: "" } 
+                    selected_company: bank.company_codes && bank.company_codes.length > 0
+                        ? { value: bank.company_codes[0], label: "" }
                         : null,
                 }));
                 setBankDetailsList(mappedBankDetails);
             }
-            
+
             // console.log("supplier show data:", response.data.bank_details)
             setStatutoryDetails(response?.data?.statutory_details);
             // NOTE: vrf_step is now handled on OTP verification response instead
@@ -1093,33 +1093,33 @@ const VendorRegistrationStepByStepForm = () => {
     useEffect(() => {
         if (!companyOptions || companyOptions.length === 0) return;
         if (!bankDetailsList || bankDetailsList.length === 0) return;
-        
+
         setBankDetailsList(prevBanks => {
             let updated = false;
             const newBanks = prevBanks.map(bank => {
                 if (!bank.selected_company) return bank;
-                
-                const currentVal = typeof bank.selected_company === 'object' 
-                    ? bank.selected_company.value 
+
+                const currentVal = typeof bank.selected_company === 'object'
+                    ? bank.selected_company.value
                     : bank.selected_company;
-                
+
                 // Skip if already has proper label
                 if (typeof bank.selected_company === 'object' && bank.selected_company.label && bank.selected_company.label !== "") {
                     return bank;
                 }
-                
-                const match = companyOptions.find(opt => 
-                    String(opt.value) === String(currentVal) || 
+
+                const match = companyOptions.find(opt =>
+                    String(opt.value) === String(currentVal) ||
                     Number(opt.value) === Number(currentVal)
                 );
-                
+
                 if (match && match !== bank.selected_company) {
                     updated = true;
                     return { ...bank, selected_company: match };
                 }
                 return bank;
             });
-            
+
             return updated ? newBanks : prevBanks;
         });
     }, [companyOptions, bankDetailsList]);
@@ -1409,8 +1409,8 @@ const VendorRegistrationStepByStepForm = () => {
                     pincode: office.pin_code || office.pin_code || office.pinCode || prev.pincode || '',
                     telephone: office.telephone_number || office.tel_number || prev.telephone || '',
                     mobile: office.mobile || prev.mobile || '',
-                    orderingEmail:  prev.orderingEmail || supplierShowData.ordering_email || office.email ||'',
-                    billingEmail:  prev.billingEmail || supplierShowData.billing_account_email || office.email ||'',
+                    orderingEmail: prev.orderingEmail || supplierShowData.ordering_email || office.email || '',
+                    billingEmail: prev.billingEmail || supplierShowData.billing_account_email || office.email || '',
                 }));
             }
 
@@ -1519,7 +1519,7 @@ const VendorRegistrationStepByStepForm = () => {
         // Map major_customers from API to local majorCustomers state
         if (Array.isArray(supplierShowData.major_customers) && supplierShowData.major_customers.length > 0) {
             const mappedCustomers = supplierShowData.major_customers.map(c => {
-                const countryOption = countryOptions.find(opt => Number(opt.value) === Number(c.country_id)) || countryOptions.find(opt => opt.value === c.country_id) || (c.country_id ? { value: c.country_id, label: c.country_name  || '' } : null);
+                const countryOption = countryOptions.find(opt => Number(opt.value) === Number(c.country_id)) || countryOptions.find(opt => opt.value === c.country_id) || (c.country_id ? { value: c.country_id, label: c.country_name || '' } : null);
                 return ({
                     idPre: c.id,
                     id: c.id || null,
@@ -1604,7 +1604,7 @@ const VendorRegistrationStepByStepForm = () => {
 
                 // Name title: try to match by id or label; fallback to provided id/string
                 const nameTitle = (nameTitleOptions || []).find(opt => String(opt.value) === String(cp.name_title_id) || String(opt.label) === String(cp.name_title))
-                    || (typeof cp.name_title_id !== 'undefined' && cp.name_title_id !== null ? { value: cp.name_title_id, label: cp.name_title  } : (cp.name_title ? { value: cp.name_title, label: cp.name_title } : null));
+                    || (typeof cp.name_title_id !== 'undefined' && cp.name_title_id !== null ? { value: cp.name_title_id, label: cp.name_title } : (cp.name_title ? { value: cp.name_title, label: cp.name_title } : null));
 
                 // Designation: match against fetched designationOptions if available
                 const designation = (designationOptions || []).find(opt => String(opt.value) === String(cp.designation_id))
@@ -1755,13 +1755,13 @@ const VendorRegistrationStepByStepForm = () => {
         if (field === 'classificationYear') {
             // value may be an object { label, value } or a string like '2021-22'
             const yearValue = value && typeof value === 'object' ? value.value : value;
-            
+
             // If classification year is cleared/empty, also clear validFrom and validTill
             if (!yearValue || yearValue === '') {
                 setAdditionalDetails(prev => ({ ...prev, classificationYear: value, validFrom: '', validTill: '' }));
                 return;
             }
-            
+
             if (yearValue && typeof yearValue === 'string') {
                 // Expect format like '2021-22' or '2023-24'
                 const parts = yearValue.split('-');
@@ -1793,7 +1793,7 @@ const VendorRegistrationStepByStepForm = () => {
 
     // Set default classification year to current year when msmeUdyamApplicable is Yes or No and no value exists
     useEffect(() => {
-        if ((additionalDetails.msmeUdyamApplicable?.value === "Yes" || additionalDetails.msmeUdyamApplicable?.value === "No") && 
+        if ((additionalDetails.msmeUdyamApplicable?.value === "Yes" || additionalDetails.msmeUdyamApplicable?.value === "No") &&
             !additionalDetails.classificationYear) {
             const currentYear = new Date().getFullYear();
             const nextYear = currentYear + 1;
@@ -1851,7 +1851,7 @@ const VendorRegistrationStepByStepForm = () => {
         'mobile',
         'keyMarket',
         'panNo',
-        // 'panAttachment',
+        'panAttachment',
         'schemaGroup',
         // 'dateOfIncorporation',
         // Add more as needed
@@ -2062,11 +2062,11 @@ const VendorRegistrationStepByStepForm = () => {
                 additionalErrors.msmeUdyamApplicable = 'This field is required.';
             }
             if (!additionalDetails.classificationYear || (typeof additionalDetails.classificationYear === 'object' && !additionalDetails.classificationYear.value && !additionalDetails.classificationYear.label)) {
-                    additionalErrors.classificationYear = 'This field is required.';
-                }
+                additionalErrors.classificationYear = 'This field is required.';
+            }
 
-                  if (!additionalDetails.validFrom) additionalErrors.validFrom = 'This field is required.';
-                if (!additionalDetails.validTill) additionalErrors.validTill = 'This field is required.';
+            if (!additionalDetails.validFrom) additionalErrors.validFrom = 'This field is required.';
+            if (!additionalDetails.validTill) additionalErrors.validTill = 'This field is required.';
 
             // If MSME/Udyam is Yes, validate all required fields
             if (additionalDetails.msmeUdyamApplicable?.value === 'Yes') {
@@ -2586,19 +2586,19 @@ const VendorRegistrationStepByStepForm = () => {
         if (isSectionVisible("bank detail")) {
             // Get active bank details (not marked for deletion)
             const activeBanks = bankDetailsList.filter(b => b._destroy !== true && b._destroy !== "true");
-            
+
             // If bank declaration is checked and no active banks, validation passes
             if (bankDeclaration && activeBanks.length === 0) {
                 setBankErrors({});
                 return true;
             }
-            
+
             // If no declaration and no banks provided, require either banks or declaration
             if (!bankDeclaration && activeBanks.length === 0) {
                 toast.error("Please add bank details or check the bank declaration.");
                 return false;
             }
-            
+
             let validationErrors = {};
             // if (isRekycTypeEmpty || isBankRekyc) {
             let hasNewBankDetails = false;
@@ -2762,7 +2762,7 @@ const VendorRegistrationStepByStepForm = () => {
 
     // Ensure preselected branches have their per-branch state options populated
     // and reconcile stored state values to the canonical option objects when options arrive.
-     // Per-branch states map so each branch row can have its own state options
+    // Per-branch states map so each branch row can have its own state options
     const [branchStatesMap, setBranchStatesMap] = useState({});
     useEffect(() => {
         if (!branchOffices || branchOffices.length === 0) return;
@@ -2788,7 +2788,7 @@ const VendorRegistrationStepByStepForm = () => {
             }
         });
     }, [branchOffices, branchStatesMap]);
-    
+
 
     // const deleteBranchOffice = (id) => {
     //     // setBranchOffices(prev => prev.length === 1 ? prev : prev.filter(branch => branch.id !== id));
@@ -4361,9 +4361,9 @@ const VendorRegistrationStepByStepForm = () => {
     // Per-bank states map so each bank row can have its own state options
     const [bankStatesMap, setBankStatesMap] = useState({});
 
-   
 
-    
+
+
     const fetchStatesForBank = async (bankId, countryId) => {
         if (!bankId || !countryId) return;
         try {
@@ -5350,7 +5350,7 @@ const VendorRegistrationStepByStepForm = () => {
         setLoading2(true)
         const payload = {
             pms_supplier: {
-                ...(stepName ? {vrf_step: stepName } : {}),
+                ...(stepName ? { vrf_step: stepName } : {}),
                 status: "draft",
                 company_id: supplierShowData?.company_id || null,
                 organization_name: basicInfo.vendorOrganizationName,
@@ -6208,16 +6208,16 @@ const VendorRegistrationStepByStepForm = () => {
 
 
     // Generate last 5 years from current year
-  const currentYear = new Date().getFullYear();
-  const optionsClassificationYear = [
-    { value: "", label: "Select Option" },
-    ...Array.from({ length: 5 }, (_, i) => {
-      const startYear = currentYear - i;
-      const endYear = startYear + 1;
-      const yearLabel = `${startYear}-${String(endYear).slice(-2)}`;
-      return { value: yearLabel, label: yearLabel };
-    })
-  ];
+    const currentYear = new Date().getFullYear();
+    const optionsClassificationYear = [
+        { value: "", label: "Select Option" },
+        ...Array.from({ length: 5 }, (_, i) => {
+            const startYear = currentYear - i;
+            const endYear = startYear + 1;
+            const yearLabel = `${startYear}-${String(endYear).slice(-2)}`;
+            return { value: yearLabel, label: yearLabel };
+        })
+    ];
 
 
     // Server-driven steps: keep a default fallback but allow the API to provide
@@ -6246,7 +6246,7 @@ const VendorRegistrationStepByStepForm = () => {
     const [enabledSections, setEnabledSections] = useState(new Set());
     const [apiSectionsLoaded, setApiSectionsLoaded] = useState(false);
 
-  // If backend reported a vrf_step earlier, apply it once `steps` are available
+    // If backend reported a vrf_step earlier, apply it once `steps` are available
     useEffect(() => {
         if (!pendingVrfStep) return;
         if (!steps || steps.length === 0) return;
@@ -7726,7 +7726,7 @@ const VendorRegistrationStepByStepForm = () => {
 
 
                                                     <div className="row">
-                                                        {basicInfo.gstinApplicable.label === 'Yes' && (
+                                                        {basicInfo.gstinApplicable?.label === 'Yes' && (
                                                             <>
                                                                 <div className="col-md-4 mt-2">
                                                                     <div className="form-group">
@@ -7759,7 +7759,7 @@ const VendorRegistrationStepByStepForm = () => {
 
 
                                                                 {/* GSTIN Attachment */}
-                                                                {basicInfo.gstinApplicable.label === 'Yes' && (
+                                                                {basicInfo.gstinApplicable?.label === 'Yes' && (
                                                                     <div className="col-md-4 mt-2">
                                                                         <div className="form-group">
                                                                             <div className="d-flex align-items-center flex-wrap">
@@ -7826,7 +7826,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                                 )}
                                                             </>
                                                         )}
-                                                        {basicInfo.gstinApplicable.label === 'No' && (
+                                                        {basicInfo.gstinApplicable?.label === 'No' && (
                                                             <>
                                                                 <div className="col-md-4 mt-2">
                                                                     <div className="form-group">
@@ -8482,7 +8482,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                     </div>
 
 
-                                                    {basicInfo.gstinApplicable.label === 'Yes' && (
+                                                    {basicInfo.gstinApplicable?.label === 'Yes' && (
                                                         <div className="col-md-4 mt-2">
                                                             <div className="form-group">
 
@@ -9756,7 +9756,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                                 </div>
                                                             </div>
                                                         )}
-{console.log("company options:", companyOptions)}
+                                                        {console.log("company options:", companyOptions)}
 
                                                         {/* Generated Virtual Account Code - only show for existing banks with virtual account = Yes */}
                                                         {!bankDetail.isNew && bankDetail.virtual_account === "Yes" && (
@@ -9911,8 +9911,8 @@ const VendorRegistrationStepByStepForm = () => {
                                                                 className="form-check-input mt-1 me-3"
                                                                 style={{ width: '18px', height: '18px', cursor: 'pointer' }}
                                                             />
-                                                            <label 
-                                                                htmlFor="bankDeclarationCheckbox" 
+                                                            <label
+                                                                htmlFor="bankDeclarationCheckbox"
                                                                 style={{ cursor: 'pointer', fontSize: '15px', lineHeight: '1.6', color: '#333' }}
                                                             >
                                                                 <strong> We hereby declare that all financial transactions will be processed via cheque as we are not providing our bank details for this registration.</strong>
@@ -9924,11 +9924,11 @@ const VendorRegistrationStepByStepForm = () => {
 
                                             <div className="row mt-2 ms-2 justify-content-start">
                                                 <div className="col-md-4">
-                                                    <button 
-                                                        className="purple-btn1" 
+                                                    <button
+                                                        className="purple-btn1"
                                                         onClick={addBankDetails}
                                                         disabled={bankDeclaration}
-                                                        style={{ 
+                                                        style={{
                                                             opacity: bankDeclaration ? 0.5 : 1,
                                                             cursor: bankDeclaration ? 'not-allowed' : 'pointer'
                                                         }}
@@ -12502,7 +12502,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                             </div>
                                                         </div>
                                                         <div className="row">
-                                                            {basicInfo.gstinApplicable.label === 'Yes' && (
+                                                            {basicInfo.gstinApplicable?.label === 'Yes' && (
                                                                 <>
                                                                     <div className="col-md-4 mt-2">
                                                                         <div className="form-group">
@@ -12586,7 +12586,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                                     </div>
                                                                 </>
                                                             )}
-                                                            {basicInfo.gstinApplicable.label === 'No' && (
+                                                            {basicInfo.gstinApplicable?.label === 'No' && (
                                                                 <>
                                                                     <div className="col-md-4 mt-2">
                                                                         <div className="form-group">
@@ -13234,7 +13234,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                         </div>
 
 
-                                                        {basicInfo.gstinApplicable.label === 'Yes' && (
+                                                        {basicInfo.gstinApplicable?.label === 'Yes' && (
                                                             <div className="col-md-4 mt-2">
                                                                 <div className="form-group">
 
@@ -13643,295 +13643,295 @@ const VendorRegistrationStepByStepForm = () => {
                                             <>
                                                 {bankDetailsList?.filter(b => b._destroy !== "true").map((bankDetail, idx) => (
 
-                                                     <div className="card mx-3 pb-4 mt-4"  key={bankDetail.id}>
-                                                <div className="card-header3">
-                                                    <h3 className="card-title">{`Bank Details${bankDetailsList.length > 1 ? ` (${idx + 1})` : ''}`}</h3>
-                                                </div>
-                                                    {/* <CollapsedCardKYC
+                                                    <div className="card mx-3 pb-4 mt-4" key={bankDetail.id}>
+                                                        <div className="card-header3">
+                                                            <h3 className="card-title">{`Bank Details${bankDetailsList.length > 1 ? ` (${idx + 1})` : ''}`}</h3>
+                                                        </div>
+                                                        {/* <CollapsedCardKYC
                                                         key={bankDetail.id}
                                                         title="Bank Details"
                                                     // No delete in preview
                                                     > */}
-                                                    <div className="card-body mt-0">
-                                                        <div className="row">
-                                                            {/* Bank Name */}
-                                                            <div className="col-md-4">
-                                                                <div className="form-group">
-                                                                    <label>
-                                                                        Bank Name <span>*</span>
-                                                                        <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
-                                                                    </label>
-                                                                    <input className="form-control" type="text" value={bankDetail.bank_name || ''} disabled readOnly />
-                                                                </div>
-                                                            </div>
-                                                            {/* Address */}
-                                                            <div className="col-md-4">
-                                                                <div className="form-group">
-                                                                    <label>
-                                                                        Address <span>*</span>
-                                                                        <TooltipIcon message="Please provide the complete address of your bank branch,including the street address,city and postal code." />
-                                                                    </label>
-                                                                    <input className="form-control" type="text" value={bankDetail.address || ''} disabled readOnly />
-                                                                </div>
-                                                            </div>
-                                                            {/* Country */}
-                                                            <div className="col-md-4">
-                                                                <div className="form-group">
-                                                                    <label>
-                                                                        Country <span>*</span>
-                                                                        <TooltipIcon message="Please choose your country from the list" />
-                                                                    </label>
-                                                                    <SingleSelector
-                                                                        options={countries}
-                                                                        value={countries.find((c) => c.value === bankDetail.country_id) || null}
-                                                                        isDisabled={true}
-                                                                    />
-                                                                </div>
-                                                            </div>
-                                                            {/* State */}
-                                                            <div className="col-md-4">
-                                                                <div className="form-group mt-2">
-                                                                    <label>
-                                                                        State <span>*</span>
-                                                                        <TooltipIcon message="Please choose your State from the list" />
-                                                                    </label>
-                                                                    {/* <SingleSelector
-                                                                        options={states2}
-                                                                        value={states2.find((s) => s.value === bankDetail.state_id) || null}
-                                                                        isDisabled={true}
-                                                                    /> */}
-                                                                    <SingleSelector
-                                                                    options={bankStatesMap[bankDetail.id] || []}
-                                                                    value={
-                                                                        (bankStatesMap[bankDetail.id] || []).find(
-                                                                            (s) => s.value === bankDetail.state_id
-                                                                        ) || null
-                                                                    }
-                                                                    onChange={(selectedOption) =>
-                                                                        handleStateChange(selectedOption, bankDetail.id)
-                                                                    }
-                                                                    placeholder="Select State"
-                                                                    // isDisabled={!bankDetail.country_id},
-                                                                    isDisabled={!bankDetail.isNew}
-                                                                />
-                                                                </div>
-                                                            </div>
-                                                            {/* City */}
-                                                            <div className="col-md-4 mt-2">
-                                                                <div className="form-group">
-                                                                    <label>
-                                                                        City <span>*</span>
-                                                                        <TooltipIcon message="Enter the city where your bank branch is located" />
-                                                                    </label>
-                                                                    <input className="form-control" type="text" value={bankDetail.city_name || ''} disabled readOnly />
-                                                                </div>
-                                                            </div>
-                                                            {/* Pin Code */}
-                                                            <div className="col-md-4 mt-2">
-                                                                <div className="form-group">
-                                                                    <label>
-                                                                        Pin Code <span>*</span>
-                                                                        <TooltipIcon message="Enter the postal code (Pin Code) for the bank branch location" />
-                                                                    </label>
-                                                                    <input className="form-control" type="text" value={bankDetail.pincode || ''} disabled readOnly />
-                                                                </div>
-                                                            </div>
-                                                            {/* Account Type */}
-                                                            <div className="col-md-4 mt-2">
-                                                                <div className="form-group">
-                                                                    <label>
-                                                                        Account Type <span>*</span>
-                                                                        <TooltipIcon message="Select the type of bank account your organization holds,such as Savings,Current,or any other relevant type" />
-                                                                    </label>
-                                                                    <SingleSelector
-                                                                        options={accountTypeOptions}
-                                                                        value={accountTypeOptions.find((option) => option.value === bankDetail.account_type) || null}
-                                                                        isDisabled={true}
-                                                                    />
-                                                                </div>
-                                                            </div>
-                                                            {/* Account Number */}
-                                                            <div className="col-md-4 mt-2">
-                                                                <div className="form-group">
-                                                                    <label>
-                                                                        Account Number <span>*</span>
-                                                                        <TooltipIcon message="Please provide your organization's bank account number.Make sure it is correct and matches the details at your bank" />
-                                                                    </label>
-                                                                    <input className="form-control" type="text" value={bankDetail.account_number || ''} disabled readOnly />
-                                                                </div>
-                                                            </div>
-                                                            {/* Confirm Account Number */}
-                                                            <div className="col-md-4 mt-2">
-                                                                <div className="form-group">
-                                                                    <label>
-                                                                        Confirm Account Number <span>*</span>
-                                                                        <TooltipIcon message="Re-enter the bank account number to confirm accuracy. Ensure it matches the original account number entered above." />
-                                                                    </label>
-                                                                    <input className="form-control" type="text" value={bankDetail.confirm_account_number || ''} disabled readOnly />
-                                                                </div>
-                                                            </div>
-                                                            {/* Branch Name */}
-                                                            <div className="col-md-4 mt-2">
-                                                                <div className="form-group">
-                                                                    <label>
-                                                                        Branch Name <span>*</span>
-                                                                        <TooltipIcon message="Enter the name of the bank branch where your organization's account is held. " />
-                                                                    </label>
-                                                                    <input className="form-control" type="text" value={bankDetail.branch_name || ''} disabled readOnly />
-                                                                </div>
-                                                            </div>
-                                                            {/* MICR No. */}
-                                                            <div className="col-md-4 mt-2">
-                                                                <div className="form-group">
-                                                                    <label>
-                                                                        MICR No. <span>*</span>
-                                                                        <TooltipIcon message="MICR: Enter the MICR (Magnetic Ink Character Recognition) number of your  bank branch. This number is typically found on your cheque leaf" />
-                                                                    </label>
-                                                                    <input className="form-control" type="text" value={bankDetail.micr_number || ''} disabled readOnly />
-                                                                </div>
-                                                            </div>
-                                                            {/* IFSC Code */}
-                                                            <div className="col-md-4 mt-2">
-                                                                <div className="form-group">
-                                                                    <label>
-                                                                        IFSC Code <span>*</span>
-                                                                        <TooltipIcon message="Enter the IFSC (Indian Financial System Code) of your bank branch. This is required for electronic fund transfers like NEFT and RTGS" />
-                                                                    </label>
-                                                                    <input className="form-control" type="text" value={bankDetail.ifsc_code || ''} maxLength={11} disabled readOnly />
-                                                                </div>
-                                                            </div>
-                                                            {/* Beneficiary Name */}
-                                                            <div className="col-md-4 mt-2">
-                                                                <div className="form-group">
-                                                                    <label>
-                                                                        Beneficiary Name <span>*</span>
-                                                                        <TooltipIcon message="Enter the full legel name of the beneficiary." />
-                                                                    </label>
-                                                                    <input className="form-control" type="text" value={bankDetail.benficary_name || ''} disabled readOnly />
-                                                                </div>
-                                                            </div>
-                                                            {/* Virtual Account */}
-                                                            <div className="col-md-4 mt-2">
-                                                                <div className="form-group">
-                                                                    <label>
-                                                                        Virtual Account
-                                                                    </label>
-                                                                    <SingleSelector
-                                                                        options={[{ label: 'Yes', value: 'Yes' }, { label: 'No', value: 'No' }]}
-                                                                        value={[{ label: 'Yes', value: 'Yes' }, { label: 'No', value: 'No' }].find(opt => opt.value === bankDetail.virtual_account) || null}
-                                                                        isDisabled={true}
-                                                                    />
-                                                                </div>
-                                                            </div>
-                                                            {/* Select Company (if Virtual Account is Yes) */}
-                                                            {bankDetail.virtual_account === 'Yes' && (
-                                                                <div className="col-md-4 mt-2">
+                                                        <div className="card-body mt-0">
+                                                            <div className="row">
+                                                                {/* Bank Name */}
+                                                                <div className="col-md-4">
                                                                     <div className="form-group">
                                                                         <label>
-                                                                            Select Company <span>*</span>
+                                                                            Bank Name <span>*</span>
+                                                                            <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
+                                                                        </label>
+                                                                        <input className="form-control" type="text" value={bankDetail.bank_name || ''} disabled readOnly />
+                                                                    </div>
+                                                                </div>
+                                                                {/* Address */}
+                                                                <div className="col-md-4">
+                                                                    <div className="form-group">
+                                                                        <label>
+                                                                            Address <span>*</span>
+                                                                            <TooltipIcon message="Please provide the complete address of your bank branch,including the street address,city and postal code." />
+                                                                        </label>
+                                                                        <input className="form-control" type="text" value={bankDetail.address || ''} disabled readOnly />
+                                                                    </div>
+                                                                </div>
+                                                                {/* Country */}
+                                                                <div className="col-md-4">
+                                                                    <div className="form-group">
+                                                                        <label>
+                                                                            Country <span>*</span>
+                                                                            <TooltipIcon message="Please choose your country from the list" />
                                                                         </label>
                                                                         <SingleSelector
-                                                                            options={companyOptions}
-                                                                            value={bankDetail.selected_company}
+                                                                            options={countries}
+                                                                            value={countries.find((c) => c.value === bankDetail.country_id) || null}
                                                                             isDisabled={true}
                                                                         />
                                                                     </div>
                                                                 </div>
-                                                            )}
-                                                            {/* Generated Virtual Account Code - only show for existing banks with virtual account = Yes */}
-                                                            {!bankDetail.isNew && bankDetail.virtual_account === 'Yes' && (
+                                                                {/* State */}
+                                                                <div className="col-md-4">
+                                                                    <div className="form-group mt-2">
+                                                                        <label>
+                                                                            State <span>*</span>
+                                                                            <TooltipIcon message="Please choose your State from the list" />
+                                                                        </label>
+                                                                        {/* <SingleSelector
+                                                                        options={states2}
+                                                                        value={states2.find((s) => s.value === bankDetail.state_id) || null}
+                                                                        isDisabled={true}
+                                                                    /> */}
+                                                                        <SingleSelector
+                                                                            options={bankStatesMap[bankDetail.id] || []}
+                                                                            value={
+                                                                                (bankStatesMap[bankDetail.id] || []).find(
+                                                                                    (s) => s.value === bankDetail.state_id
+                                                                                ) || null
+                                                                            }
+                                                                            onChange={(selectedOption) =>
+                                                                                handleStateChange(selectedOption, bankDetail.id)
+                                                                            }
+                                                                            placeholder="Select State"
+                                                                            // isDisabled={!bankDetail.country_id},
+                                                                            isDisabled={!bankDetail.isNew}
+                                                                        />
+                                                                    </div>
+                                                                </div>
+                                                                {/* City */}
                                                                 <div className="col-md-4 mt-2">
                                                                     <div className="form-group">
                                                                         <label>
-                                                                            Generated Virtual Account Code
+                                                                            City <span>*</span>
+                                                                            <TooltipIcon message="Enter the city where your bank branch is located" />
                                                                         </label>
-                                                                        <input className="form-control" type="text" value={bankDetail.virtual_account_code || ''} disabled readOnly />
+                                                                        <input className="form-control" type="text" value={bankDetail.city_name || ''} disabled readOnly />
                                                                     </div>
                                                                 </div>
-                                                            )}
+                                                                {/* Pin Code */}
+                                                                <div className="col-md-4 mt-2">
+                                                                    <div className="form-group">
+                                                                        <label>
+                                                                            Pin Code <span>*</span>
+                                                                            <TooltipIcon message="Enter the postal code (Pin Code) for the bank branch location" />
+                                                                        </label>
+                                                                        <input className="form-control" type="text" value={bankDetail.pincode || ''} disabled readOnly />
+                                                                    </div>
+                                                                </div>
+                                                                {/* Account Type */}
+                                                                <div className="col-md-4 mt-2">
+                                                                    <div className="form-group">
+                                                                        <label>
+                                                                            Account Type <span>*</span>
+                                                                            <TooltipIcon message="Select the type of bank account your organization holds,such as Savings,Current,or any other relevant type" />
+                                                                        </label>
+                                                                        <SingleSelector
+                                                                            options={accountTypeOptions}
+                                                                            value={accountTypeOptions.find((option) => option.value === bankDetail.account_type) || null}
+                                                                            isDisabled={true}
+                                                                        />
+                                                                    </div>
+                                                                </div>
+                                                                {/* Account Number */}
+                                                                <div className="col-md-4 mt-2">
+                                                                    <div className="form-group">
+                                                                        <label>
+                                                                            Account Number <span>*</span>
+                                                                            <TooltipIcon message="Please provide your organization's bank account number.Make sure it is correct and matches the details at your bank" />
+                                                                        </label>
+                                                                        <input className="form-control" type="text" value={bankDetail.account_number || ''} disabled readOnly />
+                                                                    </div>
+                                                                </div>
+                                                                {/* Confirm Account Number */}
+                                                                <div className="col-md-4 mt-2">
+                                                                    <div className="form-group">
+                                                                        <label>
+                                                                            Confirm Account Number <span>*</span>
+                                                                            <TooltipIcon message="Re-enter the bank account number to confirm accuracy. Ensure it matches the original account number entered above." />
+                                                                        </label>
+                                                                        <input className="form-control" type="text" value={bankDetail.confirm_account_number || ''} disabled readOnly />
+                                                                    </div>
+                                                                </div>
+                                                                {/* Branch Name */}
+                                                                <div className="col-md-4 mt-2">
+                                                                    <div className="form-group">
+                                                                        <label>
+                                                                            Branch Name <span>*</span>
+                                                                            <TooltipIcon message="Enter the name of the bank branch where your organization's account is held. " />
+                                                                        </label>
+                                                                        <input className="form-control" type="text" value={bankDetail.branch_name || ''} disabled readOnly />
+                                                                    </div>
+                                                                </div>
+                                                                {/* MICR No. */}
+                                                                <div className="col-md-4 mt-2">
+                                                                    <div className="form-group">
+                                                                        <label>
+                                                                            MICR No. <span>*</span>
+                                                                            <TooltipIcon message="MICR: Enter the MICR (Magnetic Ink Character Recognition) number of your  bank branch. This number is typically found on your cheque leaf" />
+                                                                        </label>
+                                                                        <input className="form-control" type="text" value={bankDetail.micr_number || ''} disabled readOnly />
+                                                                    </div>
+                                                                </div>
+                                                                {/* IFSC Code */}
+                                                                <div className="col-md-4 mt-2">
+                                                                    <div className="form-group">
+                                                                        <label>
+                                                                            IFSC Code <span>*</span>
+                                                                            <TooltipIcon message="Enter the IFSC (Indian Financial System Code) of your bank branch. This is required for electronic fund transfers like NEFT and RTGS" />
+                                                                        </label>
+                                                                        <input className="form-control" type="text" value={bankDetail.ifsc_code || ''} maxLength={11} disabled readOnly />
+                                                                    </div>
+                                                                </div>
+                                                                {/* Beneficiary Name */}
+                                                                <div className="col-md-4 mt-2">
+                                                                    <div className="form-group">
+                                                                        <label>
+                                                                            Beneficiary Name <span>*</span>
+                                                                            <TooltipIcon message="Enter the full legel name of the beneficiary." />
+                                                                        </label>
+                                                                        <input className="form-control" type="text" value={bankDetail.benficary_name || ''} disabled readOnly />
+                                                                    </div>
+                                                                </div>
+                                                                {/* Virtual Account */}
+                                                                <div className="col-md-4 mt-2">
+                                                                    <div className="form-group">
+                                                                        <label>
+                                                                            Virtual Account
+                                                                        </label>
+                                                                        <SingleSelector
+                                                                            options={[{ label: 'Yes', value: 'Yes' }, { label: 'No', value: 'No' }]}
+                                                                            value={[{ label: 'Yes', value: 'Yes' }, { label: 'No', value: 'No' }].find(opt => opt.value === bankDetail.virtual_account) || null}
+                                                                            isDisabled={true}
+                                                                        />
+                                                                    </div>
+                                                                </div>
+                                                                {/* Select Company (if Virtual Account is Yes) */}
+                                                                {bankDetail.virtual_account === 'Yes' && (
+                                                                    <div className="col-md-4 mt-2">
+                                                                        <div className="form-group">
+                                                                            <label>
+                                                                                Select Company <span>*</span>
+                                                                            </label>
+                                                                            <SingleSelector
+                                                                                options={companyOptions}
+                                                                                value={bankDetail.selected_company}
+                                                                                isDisabled={true}
+                                                                            />
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+                                                                {/* Generated Virtual Account Code - only show for existing banks with virtual account = Yes */}
+                                                                {!bankDetail.isNew && bankDetail.virtual_account === 'Yes' && (
+                                                                    <div className="col-md-4 mt-2">
+                                                                        <div className="form-group">
+                                                                            <label>
+                                                                                Generated Virtual Account Code
+                                                                            </label>
+                                                                            <input className="form-control" type="text" value={bankDetail.virtual_account_code || ''} disabled readOnly />
+                                                                        </div>
+                                                                    </div>
+                                                                )}
 
 
-                                                            {/* Cancelled Cheque / Bank Copy */}
-                                                            <div className="col-md-4 mt-2">
-                                                                <div className="form-group">
-                                                                    <label
+                                                                {/* Cancelled Cheque / Bank Copy */}
+                                                                <div className="col-md-4 mt-2">
+                                                                    <div className="form-group">
+                                                                        <label
 
-                                                                    >
-                                                                        Cancelled Cheque / Bank Copy <span>*</span>
-                                                                        <TooltipIcon message="Provide a cancelled cheque or a bank statement copy that clearly displays your bank account details.This helps verify your account information. The document must be uploaded in PDF format" />
-                                                                    </label>
+                                                                        >
+                                                                            Cancelled Cheque / Bank Copy <span>*</span>
+                                                                            <TooltipIcon message="Provide a cancelled cheque or a bank statement copy that clearly displays your bank account details.This helps verify your account information. The document must be uploaded in PDF format" />
+                                                                        </label>
 
-                                                                    {/* Conditionally Render Existing File Download Link
+                                                                        {/* Conditionally Render Existing File Download Link
                                                     Show download only when attachment has a server URL (attachment_url or file_url).
                                                     If the attachment is a user-selected file (has filename but no server URL) show filename as plain text. */}
 
 
 
-                                                                    {bankDetail?.attachment || bankAttachments[bankDetail.id] ? (
-                                                                        bankDetail?.attachment?.attachment_url || bankDetail?.attachment?.file_url ? (
-                                                                            <span className="ms-2">
-                                                                                <a
-                                                                                    href={`${baseURL}${bankDetail.attachment.attachment_url || bankDetail.attachment.file_url}`}
-                                                                                    download
-                                                                                    className="text-primary d-flex align-items-center"
-                                                                                >
-                                                                                    <span className="me-2">Existing File:</span>
-                                                                                    <svg
-                                                                                        xmlns="http://www.w3.org/2000/svg"
-                                                                                        width={24}
-                                                                                        height={24}
-                                                                                        fill="#DE7008"
-                                                                                        className="bi bi-download"
-                                                                                        viewBox="0 0 16 16"
+                                                                        {bankDetail?.attachment || bankAttachments[bankDetail.id] ? (
+                                                                            bankDetail?.attachment?.attachment_url || bankDetail?.attachment?.file_url ? (
+                                                                                <span className="ms-2">
+                                                                                    <a
+                                                                                        href={`${baseURL}${bankDetail.attachment.attachment_url || bankDetail.attachment.file_url}`}
+                                                                                        download
+                                                                                        className="text-primary d-flex align-items-center"
                                                                                     >
-                                                                                        <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
-                                                                                        <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
-                                                                                    </svg>
-                                                                                    {bankDetail?.attachment.filename || bankDetail?.attachment.document_name}
-                                                                                </a>
-                                                                            </span>
-                                                                        ) :
-                                                                            (bankAttachments && bankAttachments[bankDetail.id]) ? (
-                                                                                <span className=" d-flex align-items-center">
-                                                                                    <span className="me-2">Selected File:</span>
-                                                                                    <span className="text-muted">{bankAttachments[bankDetail.id]?.filename}</span>
+                                                                                        <span className="me-2">Existing File:</span>
+                                                                                        <svg
+                                                                                            xmlns="http://www.w3.org/2000/svg"
+                                                                                            width={24}
+                                                                                            height={24}
+                                                                                            fill="#DE7008"
+                                                                                            className="bi bi-download"
+                                                                                            viewBox="0 0 16 16"
+                                                                                        >
+                                                                                            <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                                                                                            <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                                                                                        </svg>
+                                                                                        {bankDetail?.attachment.filename || bankDetail?.attachment.document_name}
+                                                                                    </a>
                                                                                 </span>
-                                                                            )
+                                                                            ) :
+                                                                                (bankAttachments && bankAttachments[bankDetail.id]) ? (
+                                                                                    <span className=" d-flex align-items-center">
+                                                                                        <span className="me-2">Selected File:</span>
+                                                                                        <span className="text-muted">{bankAttachments[bankDetail.id]?.filename}</span>
+                                                                                    </span>
+                                                                                )
 
-                                                                                : null
-                                                                    ) : null}
+                                                                                    : null
+                                                                        ) : null}
 
-                                                                    {/* File Input for Uploading New Attachments */}
-                                                                    <input
-                                                                        className="form-control mt-2"
-                                                                        type="file"
-                                                                        onChange={(e) =>
-                                                                            handleFileChangeBank(
-                                                                                e.target.files[0],
-                                                                                bankDetail.id
-                                                                            )
-                                                                        }
-                                                                        ref={fileInputRef}
-                                                                        multiple
-                                                                        accept=".pdf"
-                                                                        // disabled={!bankDetail.isNew}
-                                                                        disabled
-                                                                    />
+                                                                        {/* File Input for Uploading New Attachments */}
+                                                                        <input
+                                                                            className="form-control mt-2"
+                                                                            type="file"
+                                                                            onChange={(e) =>
+                                                                                handleFileChangeBank(
+                                                                                    e.target.files[0],
+                                                                                    bankDetail.id
+                                                                                )
+                                                                            }
+                                                                            ref={fileInputRef}
+                                                                            multiple
+                                                                            accept=".pdf"
+                                                                            // disabled={!bankDetail.isNew}
+                                                                            disabled
+                                                                        />
 
+                                                                    </div>
+                                                                </div>
+                                                                {/* Remark */}
+                                                                <div className="col-md-4 mt-2">
+                                                                    <div className="form-group">
+                                                                        <label>
+                                                                            Remark
+                                                                        </label>
+                                                                        <textarea className="form-control" rows="3" value={bankDetail.remark || ''} disabled readOnly />
+                                                                    </div>
                                                                 </div>
                                                             </div>
-                                                            {/* Remark */}
-                                                            <div className="col-md-4 mt-2">
-                                                                <div className="form-group">
-                                                                    <label>
-                                                                        Remark
-                                                                    </label>
-                                                                    <textarea className="form-control" rows="3" value={bankDetail.remark || ''} disabled readOnly />
-                                                                </div>
-                                                            </div>
+                                                            {/* </CollapsedCardKYC> */}
                                                         </div>
-                                                    {/* </CollapsedCardKYC> */}
-                                                    </div>
                                                     </div>
                                                 ))}
 
@@ -13943,11 +13943,11 @@ const VendorRegistrationStepByStepForm = () => {
                                         {isSectionVisible('major customers served by you') && (
                                             <>
                                                 {majorCustomers.filter(mc => mc._destroy !== true && mc._destroy !== "true").map((customer, idx) => (
-                                                     <div className="card mx-3 pb-4 mt-4"  key={customer.id}>
-                                                <div className="card-header3">
-                                                    <h3 className="card-title"> {`Client References${majorCustomers.length > 1 ? ` (${idx + 1})` : ''}`}</h3>
-                                                </div>
-                                                    {/* <CollapsedCardKYC
+                                                    <div className="card mx-3 pb-4 mt-4" key={customer.id}>
+                                                        <div className="card-header3">
+                                                            <h3 className="card-title"> {`Client References${majorCustomers.length > 1 ? ` (${idx + 1})` : ''}`}</h3>
+                                                        </div>
+                                                        {/* <CollapsedCardKYC
                                                         key={customer.id}
                                                         title={`Client References${majorCustomers.length > 1 ? ` ${idx + 1}` : ''}`}
                                                     > */}
@@ -14229,8 +14229,8 @@ const VendorRegistrationStepByStepForm = () => {
                                                             </div>
 
                                                         </div>
-                                                    {/* </CollapsedCardKYC> */}
-                                                     </div>
+                                                        {/* </CollapsedCardKYC> */}
+                                                    </div>
                                                 ))}
 
                                             </>
@@ -14240,11 +14240,11 @@ const VendorRegistrationStepByStepForm = () => {
                                         {isSectionVisible('branch office') && (
                                             <>
                                                 {branchOffices.filter(mc => mc._destroy !== true && mc._destroy !== "true").map((branch, idx) => (
-                                                    <div className="card mx-3 pb-4 mt-4"  key={branch.id}>
-                                                <div className="card-header3">
-                                                    <h3 className="card-title">{`Branch Office${branchOffices.length > 1 ? ` (${idx + 1})` : ''}`}</h3>
-                                                </div>
-                                                    {/* <CollapsedCardKYC
+                                                    <div className="card mx-3 pb-4 mt-4" key={branch.id}>
+                                                        <div className="card-header3">
+                                                            <h3 className="card-title">{`Branch Office${branchOffices.length > 1 ? ` (${idx + 1})` : ''}`}</h3>
+                                                        </div>
+                                                        {/* <CollapsedCardKYC
                                                         showDelete={false}
                                                         key={branch.id}
                                                         title={`Branch Office${branchOffices.length > 1 ? ` (${idx + 1})` : ''}`}
@@ -14284,7 +14284,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                                             value={typeof branch.state === 'object' && branch.state ? branch.state : (branchStatesMap[branch.id] || []).find(s => String(s.value) === String((branch.state && branch.state.value) || branch.state)) || null}
                                                                             isDisabled={true}
                                                                         />
-                                                                            {/* isDisabled={true}
+                                                                        {/* isDisabled={true}
                                                                         /> */}
                                                                         {branchErrors[idx]?.state && (
                                                                             <div className="ValidationColor">{branchErrors[idx].state}</div>
@@ -14383,20 +14383,20 @@ const VendorRegistrationStepByStepForm = () => {
                                                         </div>
 
 
-                                                    {/* </CollapsedCardKYC> */}
+                                                        {/* </CollapsedCardKYC> */}
                                                     </div>
                                                 ))}
-                                                
+
                                             </>)}
 
                                         {isSectionVisible('factory / warehouse details') && (
                                             <>
                                                 {warehouses.filter(mc => mc._destroy !== true && mc._destroy !== "true").map((warehouse, idx) => (
-                                                     <div className="card mx-3 pb-4 mt-4"  key={warehouse.id}>
-                                                <div className="card-header3">
-                                                    <h3 className="card-title">{`Factory Warehouse Details${warehouses.length > 1 ? ` (${idx + 1})` : ''}`}</h3>
-                                                </div>
-                                                    {/* <CollapsedCardKYC
+                                                    <div className="card mx-3 pb-4 mt-4" key={warehouse.id}>
+                                                        <div className="card-header3">
+                                                            <h3 className="card-title">{`Factory Warehouse Details${warehouses.length > 1 ? ` (${idx + 1})` : ''}`}</h3>
+                                                        </div>
+                                                        {/* <CollapsedCardKYC
                                                         key={warehouse.id}
                                                         title={`Factory Warehouse Details${warehouses.length > 1 ? ` ${idx + 1}` : ''}`}
                                                     > */}
@@ -14607,8 +14607,8 @@ const VendorRegistrationStepByStepForm = () => {
 
                                                             </div>
                                                         </div>
-                                                    {/* </CollapsedCardKYC> */}
-                                                     </div>
+                                                        {/* </CollapsedCardKYC> */}
+                                                    </div>
                                                 ))}
                                             </>)}
 
@@ -14617,11 +14617,11 @@ const VendorRegistrationStepByStepForm = () => {
                                             <>
 
                                                 {contactPersons.filter(mc => mc._destroy !== true && mc._destroy !== "true").map((person, idx) => (
-                                                    <div className="card mx-3 pb-4 mt-4"  key={person.id}>
-                                                <div className="card-header3">
-                                                    <h3 className="card-title">{`Contact Person Details${contactPersons.length > 1 ? ` (${idx + 1})` : ''}`}</h3>
-                                                </div>
-                                                    {/* <CollapsedCardKYC
+                                                    <div className="card mx-3 pb-4 mt-4" key={person.id}>
+                                                        <div className="card-header3">
+                                                            <h3 className="card-title">{`Contact Person Details${contactPersons.length > 1 ? ` (${idx + 1})` : ''}`}</h3>
+                                                        </div>
+                                                        {/* <CollapsedCardKYC
                                                         key={person.id}
                                                         title={`Contact Person Details${contactPersons.length > 1 ? ` ${idx + 1}` : ""}`}
                                                     > */}
@@ -14939,8 +14939,8 @@ const VendorRegistrationStepByStepForm = () => {
 
                                                             </div>
                                                         </div>
-                                                    {/* </CollapsedCardKYC> */}
-                                                     </div>
+                                                        {/* </CollapsedCardKYC> */}
+                                                    </div>
                                                 ))}
 
                                             </>)}
@@ -14951,11 +14951,11 @@ const VendorRegistrationStepByStepForm = () => {
                                         {isSectionVisible('owners / directors information') && (
                                             <>
                                                 {owners.filter(mc => mc._destroy !== true && mc._destroy !== "true").map((owner, idx) => (
-                                                     <div className="card mx-3 pb-4 mt-4"  key={owner.id}>
-                                                <div className="card-header3">
-                                                    <h3 className="card-title">{`Owner / Director Details${owners.length > 1 ? ` (${idx + 1})` : ''}`}</h3>
-                                                </div>
-                                                    {/* <CollapsedCardKYC
+                                                    <div className="card mx-3 pb-4 mt-4" key={owner.id}>
+                                                        <div className="card-header3">
+                                                            <h3 className="card-title">{`Owner / Director Details${owners.length > 1 ? ` (${idx + 1})` : ''}`}</h3>
+                                                        </div>
+                                                        {/* <CollapsedCardKYC
                                                         key={owner.id}
                                                         title={`Owner / Director Details${owners.length > 1 ? ` ${idx + 1}` : ''}`}
                                                     > */}
@@ -15071,8 +15071,8 @@ const VendorRegistrationStepByStepForm = () => {
                                                             </div>
                                                         </div>
 
-                                                    {/* </CollapsedCardKYC> */}
-                                                     </div>
+                                                        {/* </CollapsedCardKYC> */}
+                                                    </div>
                                                 ))}
                                             </>)}
 
@@ -15782,18 +15782,18 @@ const VendorRegistrationStepByStepForm = () => {
                                         <button
                                             className="purple-btn2"
                                             onClick={async () => {
-                                                    // Step-wise validation logic
-                                                    let isValid = true;
-                                                    const stepName = steps[currentStep]?.label || '';
-                                                    if ((normalize(steps[currentStep]?.label || '') === normalize('Organization Detail'))) {
-                                                        isValid = validateBasicInfo();
-                                                        if (!isValid) return;
-                                                        await saveDraftStep1(stepName);
+                                                // Step-wise validation logic
+                                                let isValid = true;
+                                                const stepName = steps[currentStep]?.label || '';
+                                                if ((normalize(steps[currentStep]?.label || '') === normalize('Organization Detail'))) {
+                                                    isValid = validateBasicInfo();
+                                                    if (!isValid) return;
+                                                    await saveDraftStep1(stepName);
 
-                                                    }
+                                                }
                                                 // Add more step validations as needed
                                                 else
-                                                        if ((normalize(steps[currentStep]?.label || '') === normalize('Communication & Register Address'))) {
+                                                    if ((normalize(steps[currentStep]?.label || '') === normalize('Communication & Register Address'))) {
                                                         isValid = validateStep2();
                                                         if (!isValid) return;
                                                         await saveDraftStep2(stepName);

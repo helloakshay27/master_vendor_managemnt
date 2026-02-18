@@ -1008,7 +1008,7 @@ const VendorDetailFormStepper = () => {
         setTimeout(() => {
           const finalRedirectUrl =
             response.data?.redirect_url ||
-            `${window.location.origin}/pms/suppliers/pending_approvals?layout=true`;
+            `${window.location.origin}/pms/suppliers/pending_approvals`;
 
           console.log("Navigating to:", finalRedirectUrl);
 
@@ -4342,7 +4342,7 @@ const VendorDetailFormStepper = () => {
                           <div className="col-lg-6 col-md-6 col-sm-12 mt-4">
                             <label className="form-label">
                               Withholding Section{" "}
-                              <span className="text-danger">*</span>
+                              {/* <span className="text-danger">*</span> */}
                             </label>
                             <select
                               className="form-select"
@@ -4362,7 +4362,7 @@ const VendorDetailFormStepper = () => {
                           <div className="col-lg-6 col-md-6 col-sm-12 mt-4">
                             <label className="form-label">
                               Type Of Recipient{" "}
-                              <span className="text-danger">*</span>
+                              {/* <span className="text-danger">*</span> */}
                             </label>
                             <select
                               className="form-select"
