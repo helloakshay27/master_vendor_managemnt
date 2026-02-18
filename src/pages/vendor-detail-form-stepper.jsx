@@ -974,25 +974,39 @@ const VendorDetailFormStepper = () => {
         },
       };
 
-      const url = `${baseURL}/pms/suppliers/${supplierId}/update_status.json`;
+      const normalizedBaseURL = baseURL.endsWith("/") ? baseURL.slice(0, -1) : baseURL;
+      const url = `${normalizedBaseURL}/pms/suppliers/${supplierId}/update_status.json`;
       const config = {
         params: token ? { token } : {},
       };
 
-      console.log("Saving qualification status...", payload);
+      console.log("Saving qualification status to:", url);
+      console.log("Payload:", payload);
       const response = await axios.put(url, payload, config);
+      console.log("Save Response Data:", response.data);
 
-      if (response.status === 200 || response.status === 204) {
-        toast.success("Status updated successfully!");
+      if (response.status >= 200 && response.status < 300) {
+             toast.success("Status updated successfully!");
+
         // Redirect based on backend response or fallback to default external page
-        setTimeout(() => {
-          if (response.data && response.data.redirect_url) {
-            window.location.href = response.data.redirect_url;
-          } else {
-            window.location.href = "/pms/suppliers/pending_approvals?layout=true";
-          }
-        }, 1500);
-      }
+//         setTimeout(() => {
+//  finalRedirectUrl = response.data?.redirect_url || "/pms/suppliers/pending_approvals?layout=true";
+//           console.log("Navigating to:", finalRedirectUrl);
+//           window.location.href = finalRedirectUrl;
+//         }, 1500);
+//       }
+
+setTimeout(() => {
+    const finalRedirectUrl =
+      response.data?.redirect_url ||
+      `${window.location.origin}/pms/suppliers/pending_approvals?layout=true`;
+
+    console.log("Navigating to:", finalRedirectUrl);
+
+    window.location.replace(finalRedirectUrl);
+  }, 1500);
+}
+
     } catch (error) {
       console.error("Error updating status:", error);
       const errorMsg =
