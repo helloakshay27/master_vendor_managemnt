@@ -147,6 +147,7 @@ const VendorDetailFormStepper = () => {
 
   const historyIdsFromUrl = resolvedHistoryIds;
   const tokenFromUrl = getExhaustiveParam("token");
+  const userIdFromUrl = getExhaustiveParam("user_id");
 
   // LOG ALL PARAMS FOR DEBUGGING
   console.log("===== PRODUCTION URL DEBUG =====");
@@ -161,6 +162,7 @@ const VendorDetailFormStepper = () => {
   console.log("Final Resolved Supplier ID:", resolvedSupplierId);
   console.log("Final Resolved History IDs:", historyIdsFromUrl);
   console.log("Final Resolved Token:", tokenFromUrl);
+  console.log("Final Resolved User ID:", userIdFromUrl);
   console.log("================================");
 
   // Apply resolved values
@@ -957,7 +959,7 @@ const VendorDetailFormStepper = () => {
           .map((log) => log.id)
           .filter((id) => id)
           .join(",");
-      const userId = sessionStorage.getItem("user_id") || 45;
+      const userId = userIdFromUrl;
 
       const payload = {
         status: qualificationStatus.toLowerCase(),
@@ -986,26 +988,26 @@ const VendorDetailFormStepper = () => {
       console.log("Save Response Data:", response.data);
 
       if (response.status >= 200 && response.status < 300) {
-             toast.success("Status updated successfully!");
+        toast.success("Status updated successfully!");
 
         // Redirect based on backend response or fallback to default external page
-//         setTimeout(() => {
-//  finalRedirectUrl = response.data?.redirect_url || "/pms/suppliers/pending_approvals?layout=true";
-//           console.log("Navigating to:", finalRedirectUrl);
-//           window.location.href = finalRedirectUrl;
-//         }, 1500);
-//       }
+        //         setTimeout(() => {
+        //  finalRedirectUrl = response.data?.redirect_url || "/pms/suppliers/pending_approvals?layout=true";
+        //           console.log("Navigating to:", finalRedirectUrl);
+        //           window.location.href = finalRedirectUrl;
+        //         }, 1500);
+        //       }
 
-setTimeout(() => {
-    const finalRedirectUrl =
-      response.data?.redirect_url ||
-      `${window.location.origin}/pms/suppliers/pending_approvals?layout=true`;
+        setTimeout(() => {
+          const finalRedirectUrl =
+            response.data?.redirect_url ||
+            `${window.location.origin}/pms/suppliers/pending_approvals?layout=true`;
 
-    console.log("Navigating to:", finalRedirectUrl);
+          console.log("Navigating to:", finalRedirectUrl);
 
-    window.location.replace(finalRedirectUrl);
-  }, 1500);
-}
+          window.location.replace(finalRedirectUrl);
+        }, 1500);
+      }
 
     } catch (error) {
       console.error("Error updating status:", error);
