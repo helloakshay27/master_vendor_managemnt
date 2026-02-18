@@ -984,9 +984,13 @@ const VendorDetailFormStepper = () => {
 
       if (response.status === 200 || response.status === 204) {
         toast.success("Status updated successfully!");
-        // Redirect to external pending approvals page after a short delay
+        // Redirect based on backend response or fallback to default external page
         setTimeout(() => {
-          window.location.href = "/pms/suppliers/pending_approvals?layout=true";
+          if (response.data && response.data.redirect_url) {
+            window.location.href = response.data.redirect_url;
+          } else {
+            window.location.href = "/pms/suppliers/pending_approvals?layout=true";
+          }
         }, 1500);
       }
     } catch (error) {
@@ -4552,21 +4556,9 @@ const VendorDetailFormStepper = () => {
                       <td>{row.delegateTo}</td>
                       <td>{row.delegateRemark}</td>
                       <td>
-                        {Array.isArray(row.users)
-                          ? row.users
-                            .map((u) =>
-                              typeof u === "object"
-                                ? u.full_name || u.name || ""
-                                : u
-                            )
-                            .filter((u) => u)
-                            .join(", ")
-                          : typeof row.users === "string"
-                            ? row.users
-                              .split(/\s+/)
-                              .filter((u) => u)
-                              .join(", ")
-                            : row.users}
+                        {
+                          row.users
+                        }
                       </td>
                     </tr>
                   ))}
