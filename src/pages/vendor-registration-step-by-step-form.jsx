@@ -1851,7 +1851,7 @@ const VendorRegistrationStepByStepForm = () => {
         'mobile',
         'keyMarket',
         'panNo',
-        'panAttachment',
+        // panAttachment is handled separately so that an existing file satisfies the requirement
         'schemaGroup',
         // 'dateOfIncorporation',
         // Add more as needed
@@ -1950,6 +1950,34 @@ const VendorRegistrationStepByStepForm = () => {
                         if (size > 0 && size > MAX_BYTES) {
                             errors.gstinDeclaration = 'File size must be 5 MB or less.';
                         }
+                    }
+                }
+            }
+
+            // PAN attachment requirement: only enforce if no file object is already present
+            if (!basicInfo.panAttachmentObj) {
+                errors.panAttachment = 'This field is required.';
+            } else {
+                // Validate PDF and file size like other attachments
+                const fileObj = basicInfo.panAttachmentObj;
+                const filename = (fileObj.filename || fileObj.name || '').toString();
+                const contentType = (fileObj.content_type || fileObj.type || '').toString();
+                const isPdf = contentType.toLowerCase() === 'application/pdf' || filename.toLowerCase().endsWith('.pdf');
+                if (!isPdf) {
+                    errors.panAttachment = 'File must be a PDF.';
+                } else {
+                    const MAX_BYTES = 5 * 1024 * 1024; // 5 MB
+                    let size = 0;
+                    if (typeof fileObj.size === 'number') {
+                        size = fileObj.size;
+                    } else if (fileObj.content) {
+                        const b64 = fileObj.content.split(',').pop();
+                        if (b64) {
+                            size = Math.floor((b64.length * 3) / 4);
+                        }
+                    }
+                    if (size > 0 && size > MAX_BYTES) {
+                        errors.panAttachment = 'File size must be 5 MB or less.';
                     }
                 }
             }
@@ -7206,7 +7234,7 @@ const VendorRegistrationStepByStepForm = () => {
                                                         <div className="form-group">
                                                             <div className="d-flex align-items-center flex-wrap">
                                                                 <label className="me-2 mb-0">
-                                                                    PAN Attachment <span>*</span>
+                                                                    PAN Attachment <span>*</span> 
                                                                     <TooltipIcon message="Please attach a clear PDF of your organization's PAN certificate. This is required for identity and tax verification." />
                                                                 </label>
 

@@ -749,6 +749,8 @@ const VendorRegistrationForm = () => {
 
   // name rekyc attachments 
   const [panAttachments, setPanAttachments] = useState([]);
+  // whether API already provided a PAN file; used for validation/labels
+  const hasExistingPan = supplierData?.basic_information?.pan_attachments?.length > 0;
   const [msmeAttachments2, setMsmeAttachments2] = useState([]);
   const [cinAttachments, setCinAttachments] = useState([]);
   const [gstinAttachments2, setGstinAttachments2] = useState([]);
@@ -1888,7 +1890,7 @@ const VendorRegistrationForm = () => {
                 <div className="col-md-4 mt-2">
                   <div className="form-group">
                     <label>
-                      PAN Attachment <span>*</span>
+                      PAN Attachment { !hasExistingPan && <span>*</span> }
                       <TooltipIcon message="Enter the name of the bank that holds your organization's business account.This information is required for payment and verification purposes." />
                     </label>
                     <input
@@ -5823,7 +5825,7 @@ const VendorRegistrationForm = () => {
                   {/* PAN Upload */}
                   <div className="col-md-4 mt-2">
                     <div className="form-group">
-                      <label>PAN Attachment <span>*</span></label>
+                      <label>PAN Attachment { !hasExistingPan && <span>*</span> }</label>
 
                       {supplierData?.basic_information?.pan_attachments?.length >
                         0 && (
