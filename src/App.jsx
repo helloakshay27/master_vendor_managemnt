@@ -41,6 +41,7 @@ import VendorRegistrationStepByStepForm from "./pages/vendor-registration-step-b
 
 import VendorDetailFormStepper from "./pages/vendor-detail-form-stepper.jsx";
 import RekycDetail from "./pages/rekyc-detail.jsx";
+import VendorManagementDashboard from "./pages/VendorManagementDashboard.jsx";
 
 function App() {
   return (
@@ -106,6 +107,8 @@ function App() {
                      {/* <Route path="/vendor-details-form/:id" element={<VendorDetailsForm />} /> */}
                      <Route path="/vendor-detail-form-stepper/:id" element={<VendorDetailFormStepper />} />
                      <Route path="/rekyc-detail/:id" element={<RekycDetail />} />
+                     <Route path="/vendor-management-dashboard" element={<VendorManagementDashboard />} />
+
         </Routes>
       </div>
     </BrowserRouter>

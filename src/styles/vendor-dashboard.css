@@ -1,0 +1,29 @@
+/* Vendor Dashboard Specific Styles */
+
+/* Stat Card Background */
+.vendor-stat-card {
+  background-color: #F6F4EE !important;
+}
+
+/* Table Header Background */
+.vendor-table-header {
+  background-color: #ede4d8 !important;
+}
+
+/* Bar Chart Colors */
+.vendor-bar-chart-primary {
+  fill: #c4b99d;
+}
+
+.vendor-bar-chart-secondary {
+  fill: #8b7355;
+}
+
+/* Pie Chart Colors */
+.vendor-pie-chart-color-1 {
+  fill: #c4b99d;
+}
+
+.vendor-pie-chart-color-2 {
+  fill: #dad6ca;
+}

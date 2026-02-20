@@ -81,6 +81,9 @@ function Members() {
                <li>
                 <Link to="/rekyc-detail">Rekyc Detail</Link>
               </li>
+               <li>
+                <Link to="/vendor-management-dashboard">Vendor Management Dashboard</Link>
+              </li>
 
               {/* <li>
                 <Link to="/user-list">user_list</Link>

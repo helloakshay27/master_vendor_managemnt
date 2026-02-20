@@ -4152,6 +4152,19 @@ ul#pills-tab {
   border-top-right-radius: 0.25rem;
 }
 
+.vendor-card-header {
+  padding: 16px 20px;
+  margin-bottom: 0;
+  color: #111827 !important;
+  background-color: transparent !important;
+  border-bottom: 1px solid #e5e7eb;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+}
+
 .card-header2 {
 
   background-color: transparent;
@@ -4269,6 +4282,27 @@ ul#pills-tab {
   margin: 0;
   top: 0;
 }
+
+.vendor-card-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+  position: relative;
+  background: transparent !important;
+  padding: 0 !important;
+  left: auto !important;
+  top: auto !important;
+  flex: 1;
+}
+
+.vendor-card-header .flex {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
 .ShortTable{
   width: 35% !important;
 
