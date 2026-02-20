@@ -543,7 +543,7 @@ function VendorManagementDashboard() {
                   <div className="px-0 py-4">
                     <div className="d-flex justify-content-between align-items-center flex-wrap gap-3">
                       <div>
-                        <h1 className="text-2xl font-bold mb-2" style={{ color: '#1A1A1A' }}>Vendor Management Dashboard</h1>
+                        <h1 className="text-2xl font-bold mb-2" style={{ color: '#1A1A1A' }}>Vendor Management (PQ) Dashboard</h1>
                         <p className="text-gray-600 mb-0">Overview of vendor statistics and analytics</p>
                       </div>
                       
