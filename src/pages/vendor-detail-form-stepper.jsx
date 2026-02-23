@@ -8,6 +8,7 @@ import Select from "react-select";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
+
 // Add custom scrollbar styles
 const scrollbarStyles = `
     .vendor-detail-stepper-container::-webkit-scrollbar {
