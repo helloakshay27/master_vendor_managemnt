@@ -1,45 +1,61 @@
-import React from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { Download } from 'lucide-react';
+import React from "react";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+} from "recharts";
+import { Download } from "lucide-react";
 
 const CHART_COLORS = {
-  pqApproved: '#c4b99d',
-  nonPqApproved: '#8b7355',
+  pqApproved: "#c4b99d",
+  nonPqApproved: "#8b7355",
 };
 
 // Dummy data for demonstration
 const DUMMY_DATA = [
-  { year: '2020', pqApproved: 45, nonPqApproved: 120 },
-  { year: '2021', pqApproved: 78, nonPqApproved: 245 },
-  { year: '2022', pqApproved: 123, nonPqApproved: 456 },
-  { year: '2023', pqApproved: 189, nonPqApproved: 678 },
-  { year: '2024', pqApproved: 234, nonPqApproved: 892 },
-  { year: '2025', pqApproved: 298, nonPqApproved: 1123 },
+  { year: "2020", pqApproved: 45, nonPqApproved: 120 },
+  { year: "2021", pqApproved: 78, nonPqApproved: 245 },
+  { year: "2022", pqApproved: 123, nonPqApproved: 456 },
+  { year: "2023", pqApproved: 189, nonPqApproved: 678 },
+  { year: "2024", pqApproved: 234, nonPqApproved: 892 },
+  { year: "2025", pqApproved: 298, nonPqApproved: 1123 },
 ];
 
-export const YearWiseRegistrationChart = ({ data, onDownload, className = "" }) => {
+export const YearWiseRegistrationChart = ({
+  data,
+  onDownload,
+  className = "",
+}) => {
   // Use provided data or fallback to dummy data
-  const chartData = (data && data.length > 0 ? data : DUMMY_DATA).map(item => ({
-    year: item.year || 'Unknown',
-    pqApproved: item.pqApproved || 0,
-    nonPqApproved: item.nonPqApproved || 0,
-    total: (item.pqApproved || 0) + (item.nonPqApproved || 0)
-  }));
+  const chartData = (data && data.length > 0 ? data : DUMMY_DATA).map(
+    (item) => ({
+      year: item.year || "Unknown",
+      pqApproved: item.pqApproved || 0,
+      nonPqApproved: item.nonPqApproved || 0,
+      total: (item.pqApproved || 0) + (item.nonPqApproved || 0),
+    }),
+  );
 
-  console.log('YearWiseRegistrationChart - chartData:', chartData);
+  console.log("YearWiseRegistrationChart - chartData:", chartData);
 
   return (
-    <div className={`card go-shadow bg-white rounded-lg ${className}`} style={{ height: '500px', display: 'flex', flexDirection: 'column' }}>
+    <div
+      className={`card go-shadow bg-white rounded-lg ${className}`}
+      style={{ height: "500px", display: "flex", flexDirection: "column" }}
+    >
       <div className="vendor-card-header">
         <div className="flex items-center justify-between">
-          <h3 className="vendor-card-title">
-            Year-Wise Vendor Registration
-          </h3>
+          <h3 className="vendor-card-title">Year-Wise Vendor Registration</h3>
           {onDownload && (
             <Download
               data-no-drag="true"
               className="w-5 h-5 cursor-pointer transition-colors z-50"
-              style={{ color: '#6b7280', pointerEvents: 'auto' }}
+              style={{ color: "#6b7280", pointerEvents: "auto" }}
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -51,9 +67,18 @@ export const YearWiseRegistrationChart = ({ data, onDownload, className = "" }) 
           )}
         </div>
       </div>
-      <div className="card-body" style={{ padding: '20px', flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+      <div
+        className="card-body"
+        style={{
+          padding: "20px",
+          flex: 1,
+          overflow: "hidden",
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
         {chartData.length > 0 ? (
-          <div style={{ width: '100%', flex: 1, minHeight: 0 }}>
+          <div style={{ width: "100%", flex: 1, minHeight: 0 }}>
             <ResponsiveContainer width="100%" height={400}>
               <BarChart
                 data={chartData}
@@ -63,7 +88,7 @@ export const YearWiseRegistrationChart = ({ data, onDownload, className = "" }) 
                 <XAxis
                   dataKey="year"
                   fontSize={12}
-                  tick={{ fill: '#374151' }}
+                  tick={{ fill: "#374151" }}
                   angle={-45}
                   textAnchor="end"
                   height={100}
@@ -71,9 +96,20 @@ export const YearWiseRegistrationChart = ({ data, onDownload, className = "" }) 
                 />
                 <YAxis
                   fontSize={12}
-                  tick={{ fill: '#374151' }}
+                  tick={{ fill: "#374151" }}
                   allowDecimals={false}
-                  domain={[0, chartData.length > 0 ? Math.max(3, Math.ceil(Math.max(...chartData.map(d => d.total || 0)) * 1.2)) : 3]}
+                  domain={[
+                    0,
+                    chartData.length > 0
+                      ? Math.max(
+                          3,
+                          Math.ceil(
+                            Math.max(...chartData.map((d) => d.total || 0)) *
+                              1.2,
+                          ),
+                        )
+                      : 3,
+                  ]}
                 />
                 <Tooltip
                   content={({ active, payload, label }) => {
@@ -81,19 +117,31 @@ export const YearWiseRegistrationChart = ({ data, onDownload, className = "" }) 
                       const data = payload[0].payload;
                       return (
                         <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
-                          <p className="font-semibold text-gray-800 mb-2">Year: {label}</p>
+                          <p className="font-semibold text-gray-800 mb-2">
+                            Year: {label}
+                          </p>
                           <div className="space-y-1">
                             <div className="flex justify-between items-center gap-4">
-                              <span className="font-medium" style={{ color: CHART_COLORS.pqApproved }}>
+                              <span
+                                className="font-medium"
+                                style={{ color: CHART_COLORS.pqApproved }}
+                              >
                                 PQ Approved:
                               </span>
-                              <span className="text-gray-700">{data.pqApproved}</span>
+                              <span className="text-gray-700">
+                                {data.pqApproved}
+                              </span>
                             </div>
                             <div className="flex justify-between items-center gap-4">
-                              <span className="font-medium" style={{ color: CHART_COLORS.nonPqApproved }}>
+                              <span
+                                className="font-medium"
+                                style={{ color: CHART_COLORS.nonPqApproved }}
+                              >
                                 Non PQ Approved:
                               </span>
-                              <span className="text-gray-700">{data.nonPqApproved}</span>
+                              <span className="text-gray-700">
+                                {data.nonPqApproved}
+                              </span>
                             </div>
                             <div className="pt-1 border-t border-gray-200">
                               <div className="flex justify-between items-center font-semibold gap-4">
@@ -109,11 +157,21 @@ export const YearWiseRegistrationChart = ({ data, onDownload, className = "" }) 
                   }}
                 />
                 <Legend
-                  wrapperStyle={{ paddingTop: '20px' }}
+                  wrapperStyle={{ paddingTop: "20px" }}
                   iconType="circle"
                 />
-                <Bar dataKey="pqApproved" stackId="a" fill={CHART_COLORS.pqApproved} name="PQ Approved Vendors" />
-                <Bar dataKey="nonPqApproved" stackId="a" fill={CHART_COLORS.nonPqApproved} name="Non PQ Approved Vendors" />
+                <Bar
+                  dataKey="pqApproved"
+                  stackId="a"
+                  fill={CHART_COLORS.pqApproved}
+                  name="PQ Approved Vendors"
+                />
+                <Bar
+                  dataKey="nonPqApproved"
+                  stackId="a"
+                  fill={CHART_COLORS.nonPqApproved}
+                  name="Non PQ Approved Vendors"
+                />
               </BarChart>
             </ResponsiveContainer>
           </div>

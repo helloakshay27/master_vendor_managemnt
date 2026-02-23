@@ -42,6 +42,7 @@ import VendorRegistrationStepByStepForm from "./pages/vendor-registration-step-b
 import VendorDetailFormStepper from "./pages/vendor-detail-form-stepper.jsx";
 import RekycDetail from "./pages/rekyc-detail.jsx";
 import VendorManagementDashboard from "./pages/VendorManagementDashboard.jsx";
+import VendersAssesmentDashboard from "./pages/VendersAssesmentDashboard";
 
 function App() {
   return (
@@ -102,13 +103,28 @@ function App() {
           <Route path="/approval-matrix" element={<ApprovalMatrix />} />
           <Route path="/approval-list" element={<ApprovalList />} />
           <Route path="/approval-edit/:id" element={<ApprovalEdit />} />
-          <Route path="/vendor-registration-form/:id" element={<VendorRegistrationForm />} />
-           <Route path="/vendor-registration-step-by-step-form/:id" element={<VendorRegistrationStepByStepForm />} />
-                     {/* <Route path="/vendor-details-form/:id" element={<VendorDetailsForm />} /> */}
-                     <Route path="/vendor-detail-form-stepper/:id" element={<VendorDetailFormStepper />} />
-                     <Route path="/rekyc-detail/:id" element={<RekycDetail />} />
-                     <Route path="/vendor-management-dashboard" element={<VendorManagementDashboard />} />
-
+          <Route
+            path="/vendor-registration-form/:id"
+            element={<VendorRegistrationForm />}
+          />
+          <Route
+            path="/vendor-registration-step-by-step-form/:id"
+            element={<VendorRegistrationStepByStepForm />}
+          />
+          {/* <Route path="/vendor-details-form/:id" element={<VendorDetailsForm />} /> */}
+          <Route
+            path="/vendor-detail-form-stepper/:id"
+            element={<VendorDetailFormStepper />}
+          />
+          <Route path="/rekyc-detail/:id" element={<RekycDetail />} />
+          <Route
+            path="/vendor-management-dashboard"
+            element={<VendorManagementDashboard />}
+          />
+          <Route
+            path="/vendor-assesment-livedata-dashboard"
+            element={<VendersAssesmentDashboard />}
+          />
         </Routes>
       </div>
     </BrowserRouter>
