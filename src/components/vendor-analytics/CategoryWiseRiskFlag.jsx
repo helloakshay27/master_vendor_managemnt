@@ -7,173 +7,163 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend,
+  LabelList,
 } from "recharts";
 import { Download } from "lucide-react";
 
-const RISK_COLORS = {
-  HIGH: "#d32f2f",       // Red
-  LOW: "#42d65c",        // Green
-  MODERATE: "#d4b44c",   // Yellow
+const COLORS = {
+  HIGH: "#5c4033",
+  LOW: "#b08968",
+  MODERATE: "#e6d5c3",
 };
 
-export const CategoryWiseRiskFlag = ({
-  data,
-  onDownload,
-  className = "",
-}) => {
-  const chartData =
-    data && data.length > 0
-      ? data.map((item) => ({
-          name: item.name || "Unknown",
-          HIGH: item.HIGH || 0,
-          LOW: item.LOW || 0,
-          MODERATE: item.MODERATE || 0,
-          total:
-            (item.HIGH || 0) +
-            (item.LOW || 0) +
-            (item.MODERATE || 0),
-        }))
-      : [];
+export const CategoryWiseRiskFlag = ({ data = [], onDownload }) => {
+  const chartData = data.map((item) => ({
+    name: item.name,
+    HIGH: item.HIGH || 0,
+    LOW: item.LOW || 0,
+    MODERATE: item.MODERATE || 0,
+  }));
 
   return (
     <div
-      className={`bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden ${className}`}
-      style={{ height: "500px", display: "flex", flexDirection: "column" }}
+      style={{
+        borderRadius: "14px",
+        overflow: "hidden",
+        border: "1px solid #e6d5c3",
+        background: "#ffffff",
+        boxShadow: "0 2px 8px rgba(176,137,104,0.15)",
+      }}
     >
-      {/* Header */}
-      <div className="bg-[#D97706] p-2 px-4 flex justify-between items-center">
-        <span className="text-white font-bold text-sm mx-auto">
-          Category Wise Risk Flag
-        </span>
+      {/* ✅ Header (White Background Now) */}
+      <div
+        style={{
+          background: "#ffffff",
+          color: "#5c4033",
+          textAlign: "center",
+          padding: "14px",
+          fontWeight: "600",
+          fontSize: "16px",
+          borderBottom: "1px solid #f1e6da",
+        }}
+      >
+        Category Wise Risk Flag
+      </div>
+
+      {/* Legend */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: "20px",
+          padding: "12px 20px",
+          fontSize: "13px",
+          fontWeight: "600",
+          color: "#5c4033",
+          borderBottom: "1px solid #f1e6da",
+        }}
+      >
+        <span>Risk Category</span>
+
+        {["HIGH", "LOW", "MODERATE"].map((key) => (
+          <span
+            key={key}
+            style={{ display: "flex", alignItems: "center", gap: 6 }}
+          >
+            <span
+              style={{
+                width: 10,
+                height: 10,
+                background: COLORS[key],
+                borderRadius: "50%",
+              }}
+            />
+            {key} RISK
+          </span>
+        ))}
 
         {onDownload && (
           <Download
-            size={18}
-            className="text-white cursor-pointer absolute right-4"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              onDownload();
+            size={16}
+            style={{
+              marginLeft: "auto",
+              cursor: "pointer",
+              color: "#5c4033",
             }}
+            onClick={onDownload}
           />
         )}
       </div>
 
-      {/* Legend */}
-      <div className="flex justify-center items-center gap-4 py-2 text-xs font-bold">
-        <span className="text-gray-700">Risk Category</span>
-
-        {Object.keys(RISK_COLORS).map((key) => (
-          <div key={key} className="flex items-center gap-1">
-            <span
-              className="w-3 h-3 rounded-full"
-              style={{ backgroundColor: RISK_COLORS[key] }}
-            ></span>
-            <span className="text-gray-600">
-              {key.replace("_", " ")} RISK
-            </span>
-          </div>
-        ))}
-      </div>
-
       {/* Chart */}
-      <div style={{ width: "100%", flex: 1, padding: "0 20px 20px" }}>
-        {chartData.length > 0 ? (
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart
-              data={chartData}
-              margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+      <div style={{ height: 420, padding: "20px" }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart
+            data={chartData}
+            margin={{ top: 20, right: 30, left: 20, bottom: 80 }}
+          >
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke="#efe6dc"
+              vertical={false}
+            />
+
+            {/* ✅ Cross / Tilted Labels */}
+            <XAxis
+              dataKey="name"
+              angle={-30}
+              textAnchor="end"
+              interval={0}
+              height={80}
+              tick={{ fontSize: 11, fill: "#8d6e63" }}
+            />
+
+            <YAxis
+              allowDecimals={false}
+              tick={{ fontSize: 11, fill: "#8d6e63" }}
+              label={{
+                value: "Total Assessments",
+                angle: -90,
+                position: "insideLeft",
+                style: {
+                  textAnchor: "middle",
+                  fill: "#8d6e63",
+                },
+              }}
+            />
+
+            <Tooltip
+              contentStyle={{
+                borderRadius: "8px",
+                border: "1px solid #e6d5c3",
+                boxShadow: "0 4px 12px rgba(176,137,104,0.15)",
+              }}
+            />
+
+            <Bar
+              dataKey="HIGH"
+              stackId="a"
+              fill={COLORS.HIGH}
+              radius={[0, 0, 6, 6]}
             >
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+              <LabelList dataKey="HIGH" position="center" />
+            </Bar>
 
-              <XAxis
-                dataKey="name"
-                angle={-25}
-                textAnchor="end"
-                interval={0}
-                height={70}
-                tick={{ fontSize: 11 }}
-              />
+            <Bar dataKey="LOW" stackId="a" fill={COLORS.LOW}>
+              <LabelList dataKey="LOW" position="center" />
+            </Bar>
 
-              <YAxis
-                allowDecimals={false}
-                tick={{ fontSize: 11 }}
-                label={{
-                  value: "Total Assessments",
-                  angle: -90,
-                  position: "insideLeft",
-                  style: { textAnchor: "middle" },
-                }}
-              />
-
-              <Tooltip
-                content={({ active, payload, label }) => {
-                  if (active && payload && payload.length) {
-                    const data = payload[0].payload;
-                    return (
-                      <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg text-sm">
-                        <p className="font-semibold mb-2">{label}</p>
-
-                        <div className="space-y-1">
-                          <div className="flex justify-between gap-4">
-                            <span style={{ color: RISK_COLORS.HIGH }}>
-                              High Risk:
-                            </span>
-                            <span>{data.HIGH}</span>
-                          </div>
-
-                          <div className="flex justify-between gap-4">
-                            <span style={{ color: RISK_COLORS.LOW }}>
-                              Low Risk:
-                            </span>
-                            <span>{data.LOW}</span>
-                          </div>
-
-                          <div className="flex justify-between gap-4">
-                            <span style={{ color: RISK_COLORS.MODERATE }}>
-                              Moderate Risk:
-                            </span>
-                            <span>{data.MODERATE}</span>
-                          </div>
-
-                          <div className="pt-1 border-t font-semibold flex justify-between">
-                            <span>Total:</span>
-                            <span>{data.total}</span>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  }
-                  return null;
-                }}
-              />
-
-              <Legend verticalAlign="top" height={20} />
-
-              <Bar
-                dataKey="HIGH"
-                stackId="a"
-                fill={RISK_COLORS.HIGH}
-                radius={[6, 6, 0, 0]}
-              />
-              <Bar
-                dataKey="LOW"
-                stackId="a"
-                fill={RISK_COLORS.LOW}
-              />
-              <Bar
-                dataKey="MODERATE"
-                stackId="a"
-                fill={RISK_COLORS.MODERATE}
-              />
-            </BarChart>
-          </ResponsiveContainer>
-        ) : (
-          <div className="text-center py-8 text-gray-500">
-            No risk data available
-          </div>
-        )}
+            <Bar
+              dataKey="MODERATE"
+              stackId="a"
+              fill={COLORS.MODERATE}
+              radius={[6, 6, 0, 0]}
+            >
+              <LabelList dataKey="MODERATE" position="center" />
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
       </div>
     </div>
   );

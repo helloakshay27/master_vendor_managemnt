@@ -2,25 +2,19 @@ import React from "react";
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 import { Download } from "lucide-react";
 
-/**
- * OnTimeCompletion
- * Props:
- *  - submitted: number
- *  - totalAssessments: number
- *  - onDownload?: () => void
- */
-
 const OnTimeCompletion = ({
   submitted = 317,
   totalAssessments = 319,
   onDownload,
 }) => {
-  const percentage = Math.round((submitted / totalAssessments) * 100);
+  const percentage =
+    totalAssessments > 0 ? Math.round((submitted / totalAssessments) * 100) : 0;
+
   const remaining = totalAssessments - submitted;
 
   const donutData = [
-    { value: submitted, color: "#f58513" },
-    { value: remaining, color: "#e5e7eb" },
+    { value: submitted, color: "#b08968" }, // primary light brown
+    { value: remaining, color: "#ede0d4" }, // soft brown background
   ];
 
   return (
@@ -28,14 +22,15 @@ const OnTimeCompletion = ({
       style={{
         background: "#fff",
         borderRadius: "10px",
-        border: "1px solid #e5e7eb",
+        border: "1px solid #e6d5c3",
         padding: "20px 24px",
-        boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
+        boxShadow: "0 1px 4px rgba(176,137,104,0.15)",
         height: "100%",
         display: "flex",
         flexDirection: "column",
       }}
     >
+      {/* Header */}
       <div
         style={{
           display: "flex",
@@ -48,18 +43,19 @@ const OnTimeCompletion = ({
           style={{
             fontSize: "15px",
             fontWeight: 600,
-            color: "#1a1a1a",
+            color: "#5c4033",
             margin: 0,
           }}
         >
           On-Time Completion
         </h2>
+
         {onDownload && (
           <button
             onClick={onDownload}
             style={{
-              background: "none",
-              border: "1px solid #d1d5db",
+              background: "#f6f1eb",
+              border: "1px solid #e6d5c3",
               borderRadius: "6px",
               padding: "5px 10px",
               cursor: "pointer",
@@ -67,7 +63,7 @@ const OnTimeCompletion = ({
               alignItems: "center",
               gap: "5px",
               fontSize: "12px",
-              color: "#6b7280",
+              color: "#5c4033",
             }}
           >
             <Download size={13} /> Export
@@ -75,7 +71,7 @@ const OnTimeCompletion = ({
         )}
       </div>
 
-      {/* Stats row */}
+      {/* Stats Row */}
       <div
         style={{
           display: "flex",
@@ -88,7 +84,7 @@ const OnTimeCompletion = ({
           style={{
             flex: 1,
             minWidth: "120px",
-            background: "#f9fafb",
+            background: "#f6f1eb",
             borderRadius: "8px",
             padding: "12px 16px",
             textAlign: "center",
@@ -98,7 +94,7 @@ const OnTimeCompletion = ({
             style={{
               margin: "0 0 4px",
               fontSize: "11px",
-              color: "#6b7280",
+              color: "#8d6e63",
               fontWeight: 500,
             }}
           >
@@ -109,17 +105,18 @@ const OnTimeCompletion = ({
               margin: 0,
               fontSize: "22px",
               fontWeight: 700,
-              color: "#f58513",
+              color: "#b08968",
             }}
           >
             {submitted}
           </p>
         </div>
+
         <div
           style={{
             flex: 1,
             minWidth: "120px",
-            background: "#f9fafb",
+            background: "#f6f1eb",
             borderRadius: "8px",
             padding: "12px 16px",
             textAlign: "center",
@@ -129,7 +126,7 @@ const OnTimeCompletion = ({
             style={{
               margin: "0 0 4px",
               fontSize: "11px",
-              color: "#6b7280",
+              color: "#8d6e63",
               fontWeight: 500,
             }}
           >
@@ -140,7 +137,7 @@ const OnTimeCompletion = ({
               margin: 0,
               fontSize: "22px",
               fontWeight: 700,
-              color: "#1a1a1a",
+              color: "#5c4033",
             }}
           >
             {totalAssessments}
@@ -148,7 +145,7 @@ const OnTimeCompletion = ({
         </div>
       </div>
 
-      {/* Donut chart with center label */}
+      {/* Donut Chart */}
       <div style={{ flex: 1, position: "relative", minHeight: "220px" }}>
         <ResponsiveContainer width="100%" height={220}>
           <PieChart>
@@ -170,7 +167,7 @@ const OnTimeCompletion = ({
           </PieChart>
         </ResponsiveContainer>
 
-        {/* Center label */}
+        {/* Center Label */}
         <div
           style={{
             position: "absolute",
@@ -186,13 +183,13 @@ const OnTimeCompletion = ({
               margin: 0,
               fontSize: "28px",
               fontWeight: 800,
-              color: "#1a1a1a",
+              color: "#5c4033",
               lineHeight: 1,
             }}
           >
             {submitted}
           </p>
-          <p style={{ margin: "4px 0 0", fontSize: "11px", color: "#6b7280" }}>
+          <p style={{ margin: "4px 0 0", fontSize: "11px", color: "#8d6e63" }}>
             {percentage}% complete
           </p>
         </div>
@@ -213,13 +210,14 @@ const OnTimeCompletion = ({
               width: "12px",
               height: "12px",
               borderRadius: "2px",
-              background: "#f58513",
+              background: "#b08968",
             }}
           />
-          <span style={{ fontSize: "12px", color: "#374151" }}>
+          <span style={{ fontSize: "12px", color: "#5c4033" }}>
             Submitted ({submitted})
           </span>
         </div>
+
         {remaining > 0 && (
           <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
             <div
@@ -227,10 +225,10 @@ const OnTimeCompletion = ({
                 width: "12px",
                 height: "12px",
                 borderRadius: "2px",
-                background: "#e5e7eb",
+                background: "#ede0d4",
               }}
             />
-            <span style={{ fontSize: "12px", color: "#374151" }}>
+            <span style={{ fontSize: "12px", color: "#5c4033" }}>
               Pending ({remaining})
             </span>
           </div>

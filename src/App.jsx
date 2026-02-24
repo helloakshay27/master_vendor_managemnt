@@ -43,6 +43,7 @@ import VendorDetailFormStepper from "./pages/vendor-detail-form-stepper.jsx";
 import RekycDetail from "./pages/rekyc-detail.jsx";
 import VendorManagementDashboard from "./pages/VendorManagementDashboard.jsx";
 import VendersAssesmentDashboard from "./pages/VendersAssesmentDashboard";
+import KYCManagementDashboard from "./pages/ReKycDashboard";
 
 function App() {
   return (
@@ -124,6 +125,10 @@ function App() {
           <Route
             path="/vendor-assesment-livedata-dashboard"
             element={<VendersAssesmentDashboard />}
+          />
+          <Route
+            path="/re-kyc-dashboard"
+            element={<KYCManagementDashboard />}
           />
         </Routes>
       </div>

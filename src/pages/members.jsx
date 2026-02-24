@@ -56,7 +56,9 @@ function Members() {
                 <Link to="/approval-matrix">Approval matrix</Link>
               </li>
               <li>
-                <Link to="/approval-list?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414">Approval List</Link>
+                <Link to="/approval-list?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414">
+                  Approval List
+                </Link>
               </li>
 
               <li>
@@ -66,26 +68,40 @@ function Members() {
                 <Link to="/rekyc">Section Re KYC Details</Link>
               </li>
               <li>
-                <Link to="/vendor-registration-form">Vendor Registration Form</Link>
+                <Link to="/vendor-registration-form">
+                  Vendor Registration Form
+                </Link>
               </li>
               <li>
-                <Link to="/vendor-registration-step-by-step-form">Vendor Registration Form step by step</Link>
+                <Link to="/vendor-registration-step-by-step-form">
+                  Vendor Registration Form step by step
+                </Link>
               </li>
               {/* <li>a
                 <Link to="/vendor-details-form">Vendor Details Form</Link>
               </li> */}
               <li>
-                <Link to="/vendor-detail-form-stepper">Vendor Detail Form Stepper</Link>
+                <Link to="/vendor-detail-form-stepper">
+                  Vendor Detail Form Stepper
+                </Link>
               </li>
 
-               <li>
+              <li>
                 <Link to="/rekyc-detail">Rekyc Detail</Link>
               </li>
-               <li>
-                <Link to="/vendor-assesment-livedata-dashboard">Vendor Assesment live Data</Link>
+              <li>
+                <Link to="/vendor-assesment-livedata-dashboard">
+                  Vendor Assesment live Data
+                </Link>
               </li>
-               <li>
-                <Link to="/vendor-management-dashboard">Vendor Management (PQ) Dashboard</Link>
+              <li>
+                <Link to="/vendor-management-dashboard">
+                  Vendor Management (PQ) Dashboard
+                </Link>
+              </li>
+
+              <li>
+                <Link to="/re-kyc-dashboard">Re Kyc Dashboard</Link>
               </li>
 
               {/* <li>

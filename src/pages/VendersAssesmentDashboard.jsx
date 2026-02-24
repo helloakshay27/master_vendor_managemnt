@@ -26,13 +26,12 @@ import { VendorAnalyticsFilterDialog } from "@/components/vendor-analytics/Vendo
 import { GradeAssessmentBar } from "@/components/vendor-analytics/GradeAssessmentBar";
 import { TopBottomVendorsChart } from "@/components/vendor-analytics/TopBottomVendorsChart";
 import { VendorDataTable } from "@/components/vendor-analytics/VendorDataTable";
-import { DepartmentPreQualificationChart } from "@/components/vendor-analytics/DepartmentPreQualificationChart";
 import SubmittedPendingOverview from "@/components/vendor-analytics/SubmittedPendingOverview";
 import SubmittedAssessmentOverview from "@/components/vendor-analytics/SubmittedAssessmentOverview";
 import { CategoryWiseRiskFlag } from "@/components/vendor-analytics/CategoryWiseRiskFlag";
-import { LeaderBoard } from "@/components/vendor-analytics/LeaderBoard";
-import { PercentageCompletionChart } from "@/components/vendor-analytics/PercentageCompletionChart";
 import OnTimeCompletion from "@/components/vendor-analytics/OnTimeCompletionChart";
+import LeaderBoard from "@/components/vendor-analytics/leaderBoard";
+import PercentageCompletionChart from "@/components/vendor-analytics/PercentageCompletionChart";
 
 // =============================================================================
 // MOCK DATA
@@ -47,7 +46,7 @@ const MOCK_STAT_DATA = {
   Pending: 0,
   TotalUniqueVendorCountForAssessment: 100,
   TotalQualifiedVendors: 98,
-  DisqualifiedVendorDuetoRatingNotGiven: 0, // shown as "(Blank)"
+  DisqualifiedVendorDuetoRatingNotGiven: 0,
   TotalDisqualifiedVendorsDuetoRating: 2,
   TotalWatchlistVendors: 25,
 };
@@ -61,21 +60,25 @@ const MOCK_GRADE_DATA = [
   { grade: "F", value: 8, color: "#e00000" },
 ];
 
-// 3 ─ Top 10 Vendors (by Average Score — highest = best)
+// 3 ─ Top 10 Vendors
 const MOCK_TOP_VENDORS = [
-  { name: "MC Bauchemie India Pvt Ltd", avgScore: 89.0 },
-  { name: "MAGNUS VENTURES", avgScore: 85.0 },
-  { name: "Mitsubishi Electric India", avgScore: 85.0 },
-  { name: "Tata Steel Limited", avgScore: 84.83 },
-  { name: "Merino Industries Limited", avgScore: 84.43 },
-  { name: "Systemair India Pvt Ltd", avgScore: 84.0 },
-  { name: "3A Composites India", avgScore: 83.17 },
-  { name: "Kalburgi Cement Pvt Ltd", avgScore: 83.0 },
-  { name: "Ritikaa Enterprises", avgScore: 83.0 },
-  { name: "Bhoruka Extrusion", avgScore: 82.57 },
+  { name: "FABRICASTO PRIVATE LIMITED", avgScore: 98 },
+  { name: "M/S POKARNA ENGINEERING", avgScore: 95 },
+  { name: "Om Sai Enterprises", avgScore: 94 },
+  { name: "Envirotech", avgScore: 92 },
+  { name: "THE SHINE REFLECTO", avgScore: 91 },
+  { name: "RAMJI VITHAL JAGTAP", avgScore: 89 },
+  { name: "TOR.AI LIMITED", avgScore: 87 },
+  { name: "RSB INFOTECH", avgScore: 85 },
+  { name: "R. A. CONTRACTOR'S", avgScore: 84 },
+  { name: "Snehal Fiber Products", avgScore: 82 },
+  { name: "Royal Stone Solution", avgScore: 80 },
+  { name: "DECKO FLOOR PRIVATE LIMITED", avgScore: 78 },
+  { name: "R S Consultants", avgScore: 75 },
+  { name: "BALAJI MANAGEMENT SOLUTIONS", avgScore: 72 },
 ];
 
-// 4 ─ Bottom 10 Vendors (by Average Score — lowest = worst)
+// 4 ─ Bottom 10 Vendors
 const MOCK_BOTTOM_VENDORS = [
   { name: "Stone Natural", avgScore: 55.5 },
   { name: "R K Associates", avgScore: 54.0 },
@@ -244,11 +247,12 @@ const MOCK_SCORES_COLUMNS = [
   { key: "givenScore", label: "Given Score" },
   { key: "siteScore", label: "Site Score" },
   { key: "vendorAvgScore", label: "Vendor Avg Score (Complete Sites)" },
+  { key: "remainingSites", label: "Remaining Sites" },
 ];
 
 const MOCK_SCORES_DATA = [
   {
-    organizationName: "Siddhivinayak Precast Pipes Pvt Ltd",
+    organizationName: "Siddhivinayak Precast Pipes Private Limited",
     siteName: "L BOMB-Common",
     category: "Procurement Feedback",
     firstName: "Satyabrata",
@@ -257,10 +261,11 @@ const MOCK_SCORES_DATA = [
     givenScore: 45,
     siteScore: 80,
     vendorAvgScore: 77.5,
+    remainingSites: "Sup",
   },
   {
-    organizationName: "",
-    siteName: "",
+    organizationName: "Siddhivinayak Precast Pipes Private Limited",
+    siteName: "L BOMB-Common",
     category: "QAQC Feedback",
     firstName: "Amol",
     lastName: "Yadav",
@@ -268,10 +273,11 @@ const MOCK_SCORES_DATA = [
     givenScore: 15,
     siteScore: 80,
     vendorAvgScore: 77.5,
+    remainingSites: "Sido",
   },
   {
-    organizationName: "",
-    siteName: "",
+    organizationName: "Siddhivinayak Precast Pipes Private Limited",
+    siteName: "L BOMB-Common",
     category: "Project Execution Feedback",
     firstName: "Tushar",
     lastName: "Ghate",
@@ -279,9 +285,10 @@ const MOCK_SCORES_DATA = [
     givenScore: 20,
     siteScore: 80,
     vendorAvgScore: 77.5,
+    remainingSites: "Over",
   },
   {
-    organizationName: "",
+    organizationName: "Siddhivinayak Precast Pipes Private Limited",
     siteName: "Commercial – Mahadev-Bandra",
     category: "Procurement Feedback",
     firstName: "Satyabrata",
@@ -290,10 +297,11 @@ const MOCK_SCORES_DATA = [
     givenScore: 45,
     siteScore: 75,
     vendorAvgScore: 77.5,
+    remainingSites: "Sup",
   },
   {
-    organizationName: "",
-    siteName: "",
+    organizationName: "Siddhivinayak Precast Pipes Private Limited",
+    siteName: "Commercial – Mahadev-Bandra",
     category: "QAQC Feedback",
     firstName: "Amol",
     lastName: "Yadav",
@@ -301,20 +309,10 @@ const MOCK_SCORES_DATA = [
     givenScore: 15,
     siteScore: 75,
     vendorAvgScore: 77.5,
+    remainingSites: "Sido",
   },
   {
-    organizationName: "",
-    siteName: "",
-    category: "Project Execution Feedback",
-    firstName: "Mahesh",
-    lastName: "Raje",
-    riskCategory: "Low Risk",
-    givenScore: 15,
-    siteScore: 75,
-    vendorAvgScore: 77.5,
-  },
-  {
-    organizationName: "YI Engineering LLP",
+    organizationName: "YI Engineering Ltd",
     siteName: "Commercial – Mahadev-Bandra",
     category: "QAQC Feedback",
     firstName: "Amol",
@@ -323,10 +321,11 @@ const MOCK_SCORES_DATA = [
     givenScore: 15,
     siteScore: 78,
     vendorAvgScore: 78.33,
+    remainingSites: "YI Engineering Ltd",
   },
   {
-    organizationName: "",
-    siteName: "",
+    organizationName: "YI Engineering Ltd",
+    siteName: "Commercial – Mahadev-Bandra",
     category: "Procurement Feedback",
     firstName: "Satyabrata",
     lastName: "Dash",
@@ -334,138 +333,31 @@ const MOCK_SCORES_DATA = [
     givenScore: 47,
     siteScore: 78,
     vendorAvgScore: 78.33,
-  },
-  {
-    organizationName: "",
-    siteName: "",
-    category: "Project Execution Feedback",
-    firstName: "Mahesh",
-    lastName: "Raje",
-    riskCategory: "Low Risk",
-    givenScore: 16,
-    siteScore: 78,
-    vendorAvgScore: 78.33,
-  },
-  {
-    organizationName: "",
-    siteName: "SRA(Resi.)–Mahadev-Bandra",
-    category: "QAQC Feedback",
-    firstName: "Amol",
-    lastName: "Yadav",
-    riskCategory: "Low Risk",
-    givenScore: 15,
-    siteScore: 78,
-    vendorAvgScore: 78.33,
-  },
-  {
-    organizationName: "",
-    siteName: "",
-    category: "Procurement Feedback",
-    firstName: "Satyabrata",
-    lastName: "Dash",
-    riskCategory: "Low Risk",
-    givenScore: 47,
-    siteScore: 78,
-    vendorAvgScore: 78.33,
-  },
-  {
-    organizationName: "",
-    siteName: "",
-    category: "Project Execution Feedback",
-    firstName: "Mahesh",
-    lastName: "Raje",
-    riskCategory: "Low Risk",
-    givenScore: 16,
-    siteScore: 78,
-    vendorAvgScore: 78.33,
-  },
-  {
-    organizationName: "",
-    siteName: "L BOMB-Common",
-    category: "QAQC Feedback",
-    firstName: "Amol",
-    lastName: "Yadav",
-    riskCategory: "Low Risk",
-    givenScore: 15,
-    siteScore: 79,
-    vendorAvgScore: 78.33,
-  },
-  {
-    organizationName: "",
-    siteName: "",
-    category: "Procurement Feedback",
-    firstName: "Satyabrata",
-    lastName: "Dash",
-    riskCategory: "Low Risk",
-    givenScore: 47,
-    siteScore: 79,
-    vendorAvgScore: 78.33,
-  },
-  {
-    organizationName: "",
-    siteName: "",
-    category: "Project Execution Feedback",
-    firstName: "Tushar",
-    lastName: "Ghate",
-    riskCategory: "Low Risk",
-    givenScore: 17,
-    siteScore: 79,
-    vendorAvgScore: 78.33,
+    remainingSites: "Sup",
   },
   {
     organizationName: "Magnumtuff India Private Limited",
     siteName: "Golden Bell Phase II",
-    category: "Project Execution Feedback",
+    category: "QAQC Feedback",
     firstName: "Nikhil",
     lastName: "Patharkar",
     riskCategory: "Low Risk",
     givenScore: 15,
     siteScore: 80,
     vendorAvgScore: 80.0,
+    remainingSites: "The",
   },
   {
-    organizationName: "",
-    siteName: "",
-    category: "QAQC Feedback",
-    firstName: "Amol",
-    lastName: "Yadav",
-    riskCategory: "Low Risk",
-    givenScore: 15,
-    siteScore: 80,
-    vendorAvgScore: 80.0,
-  },
-  {
-    organizationName: "",
-    siteName: "",
-    category: "Procurement Feedback",
-    firstName: "Chetan",
+    organizationName: "Magnumtuff India Private Limited",
+    siteName: "Golden Bell Phase II",
+    category: "Design Coordination Feedback",
+    firstName: "Chenan",
     lastName: "Chordia",
     riskCategory: "Low Risk",
     givenScore: 50,
     siteScore: 80,
     vendorAvgScore: 80.0,
-  },
-  {
-    organizationName: "Abhiyanta Consulting Engineers LLP",
-    siteName: "SHEHENSHA INFRA WORK",
-    category: "Design Coordination Feedback",
-    firstName: "Yogesh",
-    lastName: "Naidu",
-    riskCategory: "Low Risk",
-    givenScore: 27,
-    siteScore: 63,
-    vendorAvgScore: 63.5,
-  },
-  {
-    organizationName: "",
-    siteName: "",
-    category: "Design Feedback",
-    firstName: "Pramod",
-    lastName: "Bangal",
-    riskCategory: "Low Risk",
-    givenScore: 36,
-    siteScore: 63,
-    vendorAvgScore: 63.5,
+    remainingSites: "Meek",
   },
 ];
 
@@ -507,7 +399,7 @@ const MOCK_SUBMITTED_ASSESSMENT_DATA = [
   { name: "Safety Feedback", A: 1, B: 8, C: 0, D: 42, F: 40, total: 91 },
 ];
 
-// 12 ─ Percentage of Completed Assessment by Category (Bar chart values from PDF)
+// 12 ─ Percentage of Completed Assessment by Category
 const MOCK_PERCENTAGE_COMPLETION_DATA = [
   { department: "Procurement Feedback", percentage: 92 },
   { department: "Design Feedback", percentage: 69 },
@@ -524,46 +416,64 @@ const MOCK_PERCENTAGE_COMPLETION_DATA = [
 // 13 ─ Category Wise Risk Flag
 const MOCK_CATEGORY_RISK_DATA = [
   {
-    category: "Procurement Feedback",
-    totalAssessments: 191,
-    riskScore: "LOW RISK",
+    name: "Procurement Feedback",
+    HIGH: 5,
+    LOW: 191,
+    MODERATE: 10,
   },
   {
-    category: "Project Execution Feedback",
-    totalAssessments: 191,
-    riskScore: "LOW RISK",
-  },
-  { category: "QAQC Feedback", totalAssessments: 191, riskScore: "LOW RISK" },
-  {
-    category: "Billing Feedback",
-    totalAssessments: 35,
-    riskScore: "MODERATE RISK",
+    name: "Project Execution",
+    HIGH: 3,
+    LOW: 191,
+    MODERATE: 12,
   },
   {
-    category: "Execution Feedback",
-    totalAssessments: 35,
-    riskScore: "MODERATE RISK",
+    name: "QAQC Feedback",
+    HIGH: 4,
+    LOW: 191,
+    MODERATE: 9,
   },
   {
-    category: "Planning Feedback",
-    totalAssessments: 35,
-    riskScore: "HIGH RISK",
+    name: "Billing Feedback",
+    HIGH: 2,
+    LOW: 35,
+    MODERATE: 53,
   },
   {
-    category: "Quality Feedback",
-    totalAssessments: 35,
-    riskScore: "HIGH RISK",
-  },
-  { category: "Safety Feedback", totalAssessments: 35, riskScore: "HIGH RISK" },
-  {
-    category: "Design Feedback",
-    totalAssessments: 21,
-    riskScore: "MODERATE RISK",
+    name: "Execution Feedback",
+    HIGH: 1,
+    LOW: 35,
+    MODERATE: 53,
   },
   {
-    category: "Design Coordination Feedback",
-    totalAssessments: 21,
-    riskScore: "MODERATE RISK",
+    name: "Planning Feedback",
+    HIGH: 3,
+    LOW: 35,
+    MODERATE: 53,
+  },
+  {
+    name: "Quality Feedback",
+    HIGH: 2,
+    LOW: 35,
+    MODERATE: 53,
+  },
+  {
+    name: "Safety Feedback",
+    HIGH: 4,
+    LOW: 35,
+    MODERATE: 53,
+  },
+  {
+    name: "Design Review 1",
+    HIGH: 1,
+    LOW: 21,
+    MODERATE: 5,
+  },
+  {
+    name: "Design Review 2",
+    HIGH: 2,
+    LOW: 21,
+    MODERATE: 4,
   },
 ];
 
@@ -709,21 +619,17 @@ const VENDER_ASSESMENT_CONFIG = {
 };
 
 // =============================================================================
-// CHART ORDER
+// CHART ORDER - SAME POSITIONS BUT INDIVIDUAL CHARTS FOR DRAG & DROP
 // =============================================================================
 
 const ALL_CHART_IDS = [
   "gradeAssessmentBar",
-  "topBottomVendors",
-  // --- row: notGivenRating | watchlist | disqualified (handled as a group row)
-  "notGivenRatingWatchlistDisqualified",
+  "topVendorsNotGivenRatingRow",
+  "watchlistDisqualifiedRow",
   "countVendorsByGrade",
   "scoresOfVendor",
-  // --- row: submittedPending | submittedAssessmentOverview
   "submittedRow",
-  // --- row: percentageCompletion | categoryWiseRiskFlag
   "percentageCategoryRow",
-  // --- row: leaderBoard | onTimeCompletion
   "leaderBoardRow",
 ];
 
@@ -800,9 +706,6 @@ const VendersAssesmentDashboard = () => {
 
   const show = (id) => visibleSections.includes(id);
 
-  // ==========================================================================
-  // RENDER
-  // ==========================================================================
   return (
     <div className="site-content">
       <div className="website-content">
@@ -810,7 +713,7 @@ const VendersAssesmentDashboard = () => {
           <div className="container-fluid">
             <div className="row">
               <div className="col-12">
-                {/* ── Header ──────────────────────────────────────────────── */}
+                {/* Header */}
                 <div className="bg-white border-b mb-4">
                   <div className="px-0 py-4">
                     <div className="d-flex justify-content-between align-items-center flex-wrap gap-3">
@@ -856,7 +759,7 @@ const VendersAssesmentDashboard = () => {
                   </div>
                 </div>
 
-                {/* ── Stat Cards ──────────────────────────────────────────── */}
+                {/* Stat Cards */}
                 <div className="row g-3 mb-4">
                   {show("TotalapprovedVendors") && (
                     <div className="col-lg-3 col-md-6 col-sm-12">
@@ -949,7 +852,7 @@ const VendersAssesmentDashboard = () => {
                   )}
                 </div>
 
-                {/* ── Charts with Drag & Drop ──────────────────────────────── */}
+                {/* Charts with Drag & Drop - SAME POSITIONS */}
                 <DndContext
                   sensors={sensors}
                   collisionDetection={closestCenter}
@@ -961,7 +864,7 @@ const VendersAssesmentDashboard = () => {
                   >
                     <div className="col-12">
                       {chartOrder.map((chartId) => {
-                        // ── 1. Count of Assessments by Grade (full width) ───
+                        // 1. Count of Assessments by Grade (full width)
                         if (
                           chartId === "gradeAssessmentBar" &&
                           show("gradeAssessmentBar")
@@ -978,41 +881,33 @@ const VendersAssesmentDashboard = () => {
                           );
                         }
 
-                        // ── 2. Top / Bottom Vendors (full width) ────────────
-                        if (
-                          chartId === "topBottomVendors" &&
-                          show("topBottomVendors")
-                        ) {
-                          return (
-                            <div key={chartId} className="mt-4">
-                              <SortableChartItem id={chartId}>
-                                <TopBottomVendorsChart
-                                  topData={MOCK_TOP_VENDORS}
-                                  bottomData={MOCK_BOTTOM_VENDORS}
-                                  scoreLabel="avgScore"
-                                  scoreKey="avgScore"
-                                  onDownload={() => {}}
-                                />
-                              </SortableChartItem>
-                            </div>
-                          );
-                        }
-
-                        // ── 3. Row: Not-Given | Watchlist | Disqualified ────
-                        // (3 panels side by side, matching PDF layout)
-                        if (chartId === "notGivenRatingWatchlistDisqualified") {
+                        // 2. Row: Top/Bottom Vendors + Not Given Rating
+                        if (chartId === "topVendorsNotGivenRatingRow") {
                           const anyVisible =
-                            show("notGivenRatingTable") ||
-                            show("watchlistVendors") ||
-                            show("disqualifiedVendors");
+                            show("topBottomVendors") ||
+                            show("notGivenRatingTable");
                           if (!anyVisible) return null;
+
                           return (
                             <div key={chartId} className="mt-4">
                               <SortableChartItem id={chartId}>
                                 <div className="row g-3">
-                                  {/* Left: Not Given Rating */}
+                                  {show("topBottomVendors") && (
+                                    <div
+                                      className={`col-12 ${show("notGivenRatingTable") ? "col-lg-8" : "col-lg-12"}`}
+                                    >
+                                      <TopBottomVendorsChart
+                                        topData={MOCK_TOP_VENDORS}
+                                        bottomData={MOCK_BOTTOM_VENDORS}
+                                        onDownload={() => {}}
+                                      />
+                                    </div>
+                                  )}
+
                                   {show("notGivenRatingTable") && (
-                                    <div className="col-12 col-lg-4">
+                                    <div
+                                      className={`col-12 ${show("topBottomVendors") ? "col-lg-4" : "col-lg-12"}`}
+                                    >
                                       <VendorDataTable
                                         title="Name of Approver Who Have Not Given Rating"
                                         columns={MOCK_NOT_GIVEN_RATING_COLUMNS}
@@ -1021,10 +916,26 @@ const VendersAssesmentDashboard = () => {
                                       />
                                     </div>
                                   )}
-                                  {/* Middle: Watchlist */}
+                                </div>
+                              </SortableChartItem>
+                            </div>
+                          );
+                        }
+
+                        // 3. Row: Watchlist | Disqualified
+                        if (chartId === "watchlistDisqualifiedRow") {
+                          const anyVisible =
+                            show("watchlistVendors") ||
+                            show("disqualifiedVendors");
+                          if (!anyVisible) return null;
+
+                          return (
+                            <div key={chartId} className="mt-4">
+                              <SortableChartItem id={chartId}>
+                                <div className="row g-3">
                                   {show("watchlistVendors") && (
                                     <div
-                                      className={`col-12 ${show("notGivenRatingTable") && show("disqualifiedVendors") ? "col-lg-4" : show("notGivenRatingTable") || show("disqualifiedVendors") ? "col-lg-6" : "col-lg-12"}`}
+                                      className={`col-12 ${show("disqualifiedVendors") ? "col-lg-6" : "col-lg-12"}`}
                                     >
                                       <VendorDataTable
                                         title="List of Watchlist Vendors"
@@ -1034,10 +945,9 @@ const VendersAssesmentDashboard = () => {
                                       />
                                     </div>
                                   )}
-                                  {/* Right: Disqualified */}
                                   {show("disqualifiedVendors") && (
                                     <div
-                                      className={`col-12 ${show("notGivenRatingTable") && show("watchlistVendors") ? "col-lg-4" : show("notGivenRatingTable") || show("watchlistVendors") ? "col-lg-6" : "col-lg-12"}`}
+                                      className={`col-12 ${show("watchlistVendors") ? "col-lg-6" : "col-lg-12"}`}
                                     >
                                       <VendorDataTable
                                         title="List of Disqualified Vendors"
@@ -1053,7 +963,7 @@ const VendersAssesmentDashboard = () => {
                           );
                         }
 
-                        // ── 4. Count of Vendors by Grade (full width) ───────
+                        // 4. Count of Vendors by Grade (full width)
                         if (
                           chartId === "countVendorsByGrade" &&
                           show("countVendorsByGrade")
@@ -1061,7 +971,7 @@ const VendersAssesmentDashboard = () => {
                           return (
                             <div key={chartId} className="mt-4">
                               <SortableChartItem id={chartId}>
-                                <CountOfVendorsByGrade
+                                <GradeAssessmentBar
                                   data={MOCK_VENDOR_GRADE_DATA}
                                   onDownload={() => {}}
                                 />
@@ -1070,7 +980,7 @@ const VendersAssesmentDashboard = () => {
                           );
                         }
 
-                        // ── 5. Scores of Vendor in Respected Sites (full width)
+                        // 5. Scores of Vendor in Respected Sites
                         if (
                           chartId === "scoresOfVendor" &&
                           show("scoresOfVendor")
@@ -1078,30 +988,33 @@ const VendersAssesmentDashboard = () => {
                           return (
                             <div key={chartId} className="mt-4">
                               <SortableChartItem id={chartId}>
-                                <ScoresOfVendorTable
+                                <VendorDataTable
                                   title="Scores of Vendor in Respected Sites"
                                   columns={MOCK_SCORES_COLUMNS}
                                   data={MOCK_SCORES_DATA}
-                                  onDownload={() => {}}
+                                  onDownload={() => {
+                                    console.log("Downloading scores data...");
+                                  }}
                                 />
                               </SortableChartItem>
                             </div>
                           );
                         }
 
-                        // ── 6. Row: Submitted vs Pending | Submitted Overview
+                        // 6. Row: Submitted vs Pending | Submitted Overview
                         if (chartId === "submittedRow") {
                           const anyVisible =
                             show("submittedPendingOverview") ||
                             show("submittedAssessmentOverview");
                           if (!anyVisible) return null;
+
                           return (
                             <div key={chartId} className="mt-4">
                               <SortableChartItem id={chartId}>
                                 <div className="row g-3">
                                   {show("submittedPendingOverview") && (
                                     <div
-                                      className={`col-12 ${show("submittedAssessmentOverview") ? "col-lg-6" : ""}`}
+                                      className={`col-12 ${show("submittedAssessmentOverview") ? "col-lg-6" : "col-lg-12"}`}
                                     >
                                       <SubmittedPendingOverview
                                         data={MOCK_SUBMITTED_PENDING_DATA}
@@ -1111,7 +1024,7 @@ const VendersAssesmentDashboard = () => {
                                   )}
                                   {show("submittedAssessmentOverview") && (
                                     <div
-                                      className={`col-12 ${show("submittedPendingOverview") ? "col-lg-6" : ""}`}
+                                      className={`col-12 ${show("submittedPendingOverview") ? "col-lg-6" : "col-lg-12"}`}
                                     >
                                       <SubmittedAssessmentOverview
                                         data={MOCK_SUBMITTED_ASSESSMENT_DATA}
@@ -1125,19 +1038,20 @@ const VendersAssesmentDashboard = () => {
                           );
                         }
 
-                        // ── 7. Row: Percentage Completion | Category Risk Flag
+                        // 7. Row: Percentage Completion | Category Risk Flag
                         if (chartId === "percentageCategoryRow") {
                           const anyVisible =
                             show("percentageCompletion") ||
                             show("categoryWiseRiskFlag");
                           if (!anyVisible) return null;
+
                           return (
                             <div key={chartId} className="mt-4">
                               <SortableChartItem id={chartId}>
                                 <div className="row g-3">
                                   {show("percentageCompletion") && (
                                     <div
-                                      className={`col-12 ${show("categoryWiseRiskFlag") ? "col-lg-6" : ""}`}
+                                      className={`col-12 ${show("categoryWiseRiskFlag") ? "col-lg-6" : "col-lg-12"}`}
                                     >
                                       <PercentageCompletionChart
                                         data={MOCK_PERCENTAGE_COMPLETION_DATA}
@@ -1147,7 +1061,7 @@ const VendersAssesmentDashboard = () => {
                                   )}
                                   {show("categoryWiseRiskFlag") && (
                                     <div
-                                      className={`col-12 ${show("percentageCompletion") ? "col-lg-6" : ""}`}
+                                      className={`col-12 ${show("percentageCompletion") ? "col-lg-6" : "col-lg-12"}`}
                                     >
                                       <CategoryWiseRiskFlag
                                         data={MOCK_CATEGORY_RISK_DATA}
@@ -1161,18 +1075,19 @@ const VendersAssesmentDashboard = () => {
                           );
                         }
 
-                        // ── 8. Row: Leader Board | On-Time Completion ───────
+                        // 8. Row: Leader Board | On-Time Completion
                         if (chartId === "leaderBoardRow") {
                           const anyVisible =
                             show("leaderBoard") || show("onTimeCompletion");
                           if (!anyVisible) return null;
+
                           return (
                             <div key={chartId} className="mt-4 mb-4">
                               <SortableChartItem id={chartId}>
                                 <div className="row g-3">
                                   {show("leaderBoard") && (
                                     <div
-                                      className={`col-12 ${show("onTimeCompletion") ? "col-lg-6" : ""}`}
+                                      className={`col-12 ${show("onTimeCompletion") ? "col-lg-6" : "col-lg-12"}`}
                                     >
                                       <LeaderBoard
                                         data={MOCK_LEADERBOARD_DATA}
@@ -1182,7 +1097,7 @@ const VendersAssesmentDashboard = () => {
                                   )}
                                   {show("onTimeCompletion") && (
                                     <div
-                                      className={`col-12 ${show("leaderBoard") ? "col-lg-6" : ""}`}
+                                      className={`col-12 ${show("leaderBoard") ? "col-lg-6" : "col-lg-12"}`}
                                     >
                                       <OnTimeCompletion
                                         submitted={
@@ -1207,7 +1122,7 @@ const VendersAssesmentDashboard = () => {
                   </SortableContext>
                 </DndContext>
 
-                {/* ── Filter Dialog ────────────────────────────────────────── */}
+                {/* Filter Dialog */}
                 <VendorAnalyticsFilterDialog
                   isOpen={isFilterOpen}
                   onClose={() => setIsFilterOpen(false)}

@@ -8,85 +8,105 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
+  LabelList,
 } from "recharts";
-import { Download } from "lucide-react";
 
-/**
- * SubmittedPendingOverview
- * Props:
- *  - data: Array<{ name: string, submitted: number, pending: number }>
- *  - onDownload?: () => void
- */
-const SubmittedPendingOverview = ({ data = [], onDownload }) => {
+const COLORS = {
+  SUBMITTED: "#b08968", // primary brown
+  PENDING: "#5c4033", // dark brown
+};
+
+const SubmittedPendingOverview = ({ data = [] }) => {
   return (
     <div
       style={{
-        background: "#fff",
-        borderRadius: "10px",
-        border: "1px solid #e5e7eb",
-        padding: "20px 24px",
-        boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
+        borderRadius: "14px",
+        overflow: "hidden",
+        border: "1px solid #e6d5c3",
+        background: "#ffffff",
+        boxShadow: "0 2px 8px rgba(176,137,104,0.15)",
       }}
     >
-      {/* Header */}
+      {/* ✅ White Header */}
       <div
         style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: "20px",
+          background: "#ffffff",
+          color: "#5c4033",
+          textAlign: "center",
+          padding: "14px",
+          fontWeight: 600,
+          fontSize: "16px",
+          borderBottom: "1px solid #f1e6da",
         }}
       >
-        <h2 style={{ fontSize: "15px", fontWeight: 600, color: "#1a1a1a", margin: 0 }}>
-          Submitted vs Pending Assessment Overview
-        </h2>
-        {onDownload && (
-          <button
-            onClick={onDownload}
-            style={{
-              background: "none",
-              border: "1px solid #d1d5db",
-              borderRadius: "6px",
-              padding: "5px 10px",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              gap: "5px",
-              fontSize: "12px",
-              color: "#6b7280",
-            }}
-          >
-            <Download size={13} /> Export
-          </button>
-        )}
+        Submitted vs. Pending Assessment Overview
       </div>
 
-      <ResponsiveContainer width="100%" height={300}>
-        <BarChart data={data} margin={{ top: 5, right: 20, left: 0, bottom: 60 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-          <XAxis
-            dataKey="name"
-            tick={{ fontSize: 11, fill: "#6b7280" }}
-            angle={-30}
-            textAnchor="end"
-            interval={0}
-          />
-          <YAxis tick={{ fontSize: 11, fill: "#6b7280" }} />
-          <Tooltip
-            contentStyle={{
-              borderRadius: "8px",
-              border: "1px solid #e5e7eb",
-              fontSize: "12px",
-            }}
-          />
-          <Legend
-            wrapperStyle={{ fontSize: "12px", paddingTop: "8px" }}
-            verticalAlign="top"
-          />
-          <Bar dataKey="submitted" name="Submitted" fill="#3b82f6" radius={[3, 3, 0, 0]} />
-          <Bar dataKey="pending" name="Pending" fill="#f59e0b" radius={[3, 3, 0, 0]} />
-        </BarChart>
-      </ResponsiveContainer>
+      <div style={{ padding: "20px" }}>
+        <ResponsiveContainer width="100%" height={420}>
+          <BarChart
+            data={data}
+            layout="vertical"
+            margin={{ top: 10, right: 40, left: 40, bottom: 20 }}
+          >
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke="#efe6dc"
+              horizontal={false}
+            />
+
+            <XAxis type="number" tick={{ fontSize: 11, fill: "#8d6e63" }} />
+
+            <YAxis
+              type="category"
+              dataKey="name"
+              width={180}
+              tick={{ fontSize: 12, fill: "#8d6e63" }}
+            />
+
+            <Tooltip
+              contentStyle={{
+                borderRadius: "8px",
+                border: "1px solid #e6d5c3",
+                boxShadow: "0 4px 12px rgba(176,137,104,0.15)",
+              }}
+            />
+
+            <Legend
+              wrapperStyle={{
+                color: "#5c4033",
+                fontSize: "13px",
+              }}
+            />
+
+            {/* Submitted */}
+            <Bar
+              dataKey="submitted"
+              stackId="a"
+              fill={COLORS.SUBMITTED}
+              radius={[0, 0, 0, 0]}
+            >
+              <LabelList
+                dataKey="submitted"
+                position="right"
+                style={{
+                  fill: "#5c4033",
+                  fontWeight: 600,
+                  fontSize: 11,
+                }}
+              />
+            </Bar>
+
+            {/* Pending */}
+            <Bar
+              dataKey="pending"
+              stackId="a"
+              fill={COLORS.PENDING}
+              radius={[0, 6, 6, 0]}
+            />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   );
 };

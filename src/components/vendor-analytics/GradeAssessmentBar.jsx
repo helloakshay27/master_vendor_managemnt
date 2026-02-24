@@ -5,21 +5,40 @@ export const GradeAssessmentBar = ({ data, className = "" }) => {
 
   const total = data.reduce((acc, item) => acc + item.value, 0);
 
-  const greyShades = ["#1f2937", "#374151", "#4b5563", "#6b7280", "#9ca3af"];
+  // Brown theme palette (same as other charts)
+  const brownShades = [
+    "#5c4033", // dark
+    "#7a5a45",
+    "#b08968",
+    "#d6bfa9",
+    "#e6d5c3", // light
+  ];
 
   return (
     <div
-      className={`card shadow-sm border-0 bg-white position-relative ${className}`}
+      className={`card border-0 position-relative ${className}`}
+      style={{
+        background: "#ffffff",
+        borderRadius: "14px",
+        border: "1px solid #e6d5c3",
+        boxShadow: "0 2px 8px rgba(176,137,104,0.15)",
+      }}
     >
       {/* Header */}
       <div
         style={{
           padding: "18px 25px",
-          borderBottom: "1px solid #e5e7eb",
-          background: "#f9fafb",
+          borderBottom: "1px solid #e6d5c3",
+          background: "#faf6f1",
         }}
       >
-        <h5 style={{ margin: 0, fontWeight: 600, color: "#111827" }}>
+        <h5
+          style={{
+            margin: 0,
+            fontWeight: 600,
+            color: "#5c4033",
+          }}
+        >
           Count of Assessments by Grade
         </h5>
       </div>
@@ -28,7 +47,7 @@ export const GradeAssessmentBar = ({ data, className = "" }) => {
       <div style={{ padding: "30px" }}>
         {/* Legend */}
         <div className="text-center mb-4">
-          <strong className="me-2" style={{ color: "#374151" }}>
+          <strong className="me-2" style={{ color: "#7a5a45" }}>
             Grade
           </strong>
           {data.map((item, index) => (
@@ -38,11 +57,14 @@ export const GradeAssessmentBar = ({ data, className = "" }) => {
                   display: "inline-block",
                   width: "10px",
                   height: "10px",
-                  background: greyShades[index % greyShades.length],
+                  background: brownShades[index % brownShades.length],
                   marginRight: "6px",
+                  borderRadius: "2px",
                 }}
               ></span>
-              <span style={{ color: "#4b5563" }}>{item.grade}</span>
+              <span style={{ color: "#6b4f3a", fontWeight: 500 }}>
+                {item.grade}
+              </span>
             </span>
           ))}
         </div>
@@ -54,26 +76,30 @@ export const GradeAssessmentBar = ({ data, className = "" }) => {
             height: "55px",
             width: "100%",
             overflow: "hidden",
-            borderRadius: "6px",
+            borderRadius: "8px",
             position: "relative",
           }}
         >
           {data.map((item, index) => {
-            const percentage = ((item.value / total) * 100).toFixed(1);
+            const percentage =
+              total > 0 ? ((item.value / total) * 100).toFixed(1) : 0;
+
+            const isLight = index >= 3; // light shades for text contrast control
 
             return (
               <div
                 key={item.grade}
                 style={{
                   width: `${percentage}%`,
-                  background: greyShades[index % greyShades.length],
+                  background: brownShades[index % brownShades.length],
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   fontWeight: 600,
-                  color: "#ffffff",
+                  color: isLight ? "#5c4033" : "#ffffff",
                   fontSize: "14px",
                   cursor: "pointer",
+                  transition: "all 0.2s ease",
                 }}
                 onMouseEnter={(e) => {
                   const rect = e.target.getBoundingClientRect();
@@ -99,15 +125,15 @@ export const GradeAssessmentBar = ({ data, className = "" }) => {
         <div
           style={{
             position: "fixed",
-            top: tooltip.y - 60,
+            top: tooltip.y - 65,
             left: tooltip.x,
             transform: "translateX(-50%)",
-            background: "#111827",
+            background: "#5c4033",
             color: "#fff",
-            padding: "8px 12px",
-            borderRadius: "6px",
+            padding: "10px 14px",
+            borderRadius: "8px",
             fontSize: "13px",
-            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+            boxShadow: "0 6px 16px rgba(92,64,51,0.25)",
             zIndex: 1000,
             whiteSpace: "nowrap",
           }}

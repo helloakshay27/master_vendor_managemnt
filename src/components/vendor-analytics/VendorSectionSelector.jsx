@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { BarChart3, ChevronDown, TrendingUp } from "lucide-react";
 
-
-
 export const VendorSectionSelector = ({
   data,
   onSelectionChange,
