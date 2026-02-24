@@ -918,6 +918,8 @@ console.log("Financial Sections:", checklistConfig);
       // Validate Financial Mandatory
       if (isFinancialEditable) {
         for (const q of financialQuestions) {
+           // ✅ Skip if question is not editable
+    if (!q.editable) continue;
           const score = scoreByApprover[q.id];
           if (score === undefined || score === "" || score === null) {
             toast.error(
@@ -931,6 +933,8 @@ console.log("Financial Sections:", checklistConfig);
       // Validate Technical Mandatory
       if (isTechnicalEditable) {
         for (const q of technicalQuestions) {
+           // ✅ Skip non-editable questions
+    if (!q.editable) continue;
           const score = scoreByApprover[q.id];
           if (score === undefined || score === "" || score === null) {
             toast.error(
