@@ -8,6 +8,7 @@ import Select from "react-select";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
+
 // Add custom scrollbar styles
 const scrollbarStyles = `
     .vendor-detail-stepper-container::-webkit-scrollbar {
@@ -207,6 +208,8 @@ const VendorDetailFormStepper = () => {
   const [approverRemark, setApproverRemark] = useState("");
   const [markAllNaFinancial, setMarkAllNaFinancial] = useState(false);
   const [markAllNaTechnical, setMarkAllNaTechnical] = useState(false);
+
+ 
   const [organizationStatus, setOrganizationStatus] = useState("Approved");
   const [higherRateApplicable, setHigherRateApplicable] = useState(false);
   const [panAadharNotLinked, setPanAadharNotLinked] = useState(false);
@@ -423,6 +426,7 @@ const VendorDetailFormStepper = () => {
             totalScore: q.weightage || 5,
             passingScore: q.passing_score || 0,
             editable: q.editable ?? subEditable,
+            answer: q.answer,
           };
         });
 
@@ -441,7 +445,8 @@ const VendorDetailFormStepper = () => {
       });
     });
   }, [checklistConfig]);
-
+  
+console.log("Financial Sections:", checklistConfig);
   const technicalPreQualSections = useMemo(() => {
     const techCats = checklistConfig.filter((cat) =>
       normalize(cat.snag_cat_name).includes("technical")
@@ -479,6 +484,7 @@ const VendorDetailFormStepper = () => {
             totalScore: q.weightage || 5,
             passingScore: q.passing_score || 0,
             editable: q.editable ?? subEditable,
+            answer: q.answer,
           };
         });
 
@@ -578,6 +584,7 @@ const VendorDetailFormStepper = () => {
       schemaGroup: vendorData.schema_group_name || "-",
       panNo: vendorData.pan_number || "-",
       cinNo: vendorData.cin_number || "-",
+      llpNo: vendorData.llp_number || "-",
       dateOfIncorporation: vendorData.date_of_incorporation || "-",
       gstinApplicable: vendorData.gstin_applicable === "1" ? "Yes" : "No",
       gstinClassification: vendorData.gst_classification_name || "-",
@@ -585,9 +592,11 @@ const VendorDetailFormStepper = () => {
       gstinAttachments: vendorData.gstin_attachments || [],
       panAttachments: vendorData.pan_attachments || [],
       cinAttachments: vendorData.cin_number_attachments || [],
+      llpAttachments: vendorData.llp_attachments || [],
     };
   }, [vendorData]);
 
+  console.log("Mapped Organization Data:", organizationData);
   // Map API data for Branch Office Details
   const branchOfficeDetailsData = useMemo(() => {
     if (
@@ -709,7 +718,7 @@ const VendorDetailFormStepper = () => {
       mobile: "-",
       beneficiaryName: bank.benficary_name || "-",
       remark: bank.remark || "-",
-      virtualAccount: bank.virtual_account || "No",
+      virtualAccount: typeof bank.is_vertual === "boolean" ? (bank.is_vertual ? "Yes" : "No") : "-",
       selectCompany: bank.company_names || "-",
       virtualAccountCode: bank.virtual_account_code || "-",
       cancelledCheque:
@@ -865,7 +874,34 @@ const VendorDetailFormStepper = () => {
       explanation: decl.explanation || "",
     }));
   }, [vendorData]);
+ // When Mark All NA toggled, set all Remark by Approver to 'NA' for editable rows
+  useEffect(() => {
+    if (markAllNaFinancial) {
+      setRemarkByApprover((prev) => {
+        const updated = { ...prev };
+        financialPreQualSections.forEach((section) => {
+          section.items.forEach((row) => {
+            if (row.editable) updated[row.id] = 'NA';
+          });
+        });
+        return updated;
+      });
+    }
+  }, [markAllNaFinancial, financialPreQualSections]);
 
+  useEffect(() => {
+    if (markAllNaTechnical) {
+      setRemarkByApprover((prev) => {
+        const updated = { ...prev };
+        technicalPreQualSections.forEach((section) => {
+          section.items.forEach((row) => {
+            if (row.editable) updated[row.id] = 'NA';
+          });
+        });
+        return updated;
+      });
+    }
+  }, [markAllNaTechnical, technicalPreQualSections]);
   const handleSave = async () => {
     try {
       // Validate all scores
@@ -882,6 +918,8 @@ const VendorDetailFormStepper = () => {
       // Validate Financial Mandatory
       if (isFinancialEditable) {
         for (const q of financialQuestions) {
+           // ✅ Skip if question is not editable
+    if (!q.editable) continue;
           const score = scoreByApprover[q.id];
           if (score === undefined || score === "" || score === null) {
             toast.error(
@@ -895,6 +933,8 @@ const VendorDetailFormStepper = () => {
       // Validate Technical Mandatory
       if (isTechnicalEditable) {
         for (const q of technicalQuestions) {
+           // ✅ Skip non-editable questions
+    if (!q.editable) continue;
           const score = scoreByApprover[q.id];
           if (score === undefined || score === "" || score === null) {
             toast.error(
@@ -1651,7 +1691,7 @@ const VendorDetailFormStepper = () => {
                               <span className="me-3">
                                 <span className="text-dark">:</span>
                               </span>
-                              {organizationData.cinNo || "-"}
+                              {organizationData.cinNo !== "-" ? organizationData.cinNo : (organizationData.llpNo !== "-" ? organizationData.llpNo : "-")}
                             </label>
                           </div>
                         </div>
@@ -1664,10 +1704,8 @@ const VendorDetailFormStepper = () => {
                               <span className="me-3">
                                 <span className="text-dark">:</span>
                               </span>
-                              {organizationData.cinAttachments &&
-                                organizationData.cinAttachments.length > 0
-                                ? organizationData.cinAttachments.map(
-                                  (file, index) => (
+                              {organizationData.cinAttachments && organizationData.cinAttachments.length > 0
+                                ? organizationData.cinAttachments.map((file, index) => (
                                     <a
                                       key={index}
                                       href={`${baseURL}${file.file_url}`}
@@ -1690,9 +1728,33 @@ const VendorDetailFormStepper = () => {
                                       </svg>
                                       {file.document_name || "CIN Document"}
                                     </a>
-                                  )
-                                )
-                                : "-"}
+                                  ))
+                                : organizationData.llpAttachments && organizationData.llpAttachments.length > 0
+                                  ? organizationData.llpAttachments.map((file, index) => (
+                                      <a
+                                        key={index}
+                                        href={`${baseURL}${file.file_url}`}
+                                        download
+                                        className="text-primary d-flex align-items-center mb-1"
+                                        style={{ textDecoration: "none" }}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                      >
+                                        <svg
+                                          xmlns="http://www.w3.org/2000/svg"
+                                          width={18}
+                                          height={18}
+                                          fill="#DE7008"
+                                          className="bi bi-download me-2"
+                                          viewBox="0 0 16 16"
+                                        >
+                                          <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                                          <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                                        </svg>
+                                        {file.document_name || "LLP Document"}
+                                      </a>
+                                    ))
+                                  : "-"}
                             </label>
                           </div>
                         </div>
@@ -2740,7 +2802,7 @@ const VendorDetailFormStepper = () => {
                                 <span className="me-3">
                                   <span className="text-dark">:</span>
                                 </span>
-                                {bank.virtualAccount || "-"}
+                                  {bank.virtualAccount || "-"}
                               </label>
                             </div>
                           </div>
@@ -3943,16 +4005,23 @@ const VendorDetailFormStepper = () => {
                                       row.requiredDocuments || "-"
                                     )}
                                   </td>
-                                  <td>{row.remarkByVendor}</td>
+                                  <td>
+                                    {/* {row.remarkByVendor} */}
+                                    </td>
                                   <td>{row.totalScore}</td>
                                   <td></td>
                                   <td>
+                                    {console.log("aanswer", row.answer)}
                                     <input
                                       type="number"
                                       className="form-control passing_score"
                                       max={row.totalScore}
                                       min={0}
-                                      value={scoreByApprover[row.id] ?? ""}
+                                      value={
+                                        scoreByApprover[row.id] !== undefined
+                                          ? scoreByApprover[row.id]
+                                          : (row.answer ?? "")
+                                      }
                                       disabled={!row.editable}
                                       onChange={(e) => {
                                         const val = e.target.value;
@@ -3981,8 +4050,9 @@ const VendorDetailFormStepper = () => {
                                     <textarea
                                       className="form-control approver-remark-textarea"
                                       value={
-                                        remarkByApprover[row.id] ??
-                                        (markAllNaFinancial ? "NA" : "")
+                                        remarkByApprover[row.id] !== undefined
+                                          ? remarkByApprover[row.id]
+                                          : (row.remarkByVendor ?? (markAllNaFinancial ? "NA" : ""))
                                       }
                                       disabled={!row.editable}
                                       onChange={(e) =>
@@ -4217,7 +4287,9 @@ const VendorDetailFormStepper = () => {
                                       row.requiredDocuments || "-"
                                     )}
                                   </td>
-                                  <td>{row.remarkByVendor}</td>
+                                  <td>
+                                    {/* {row.remarkByVendor} */}
+                                    </td>
                                   <td>{row.totalScore}</td>
                                   <td></td>
                                   <td>
@@ -4226,7 +4298,11 @@ const VendorDetailFormStepper = () => {
                                       className="form-control passing_score"
                                       max={row.totalScore}
                                       min={0}
-                                      value={scoreByApprover[row.id] ?? ""}
+                                      value={
+                                        scoreByApprover[row.id] !== undefined && scoreByApprover[row.id] !== ""
+                                          ? scoreByApprover[row.id]
+                                          : (row.answer ?? "")
+                                      }
                                       disabled={!row.editable}
                                       onChange={(e) => {
                                         const val = e.target.value;
@@ -4255,8 +4331,9 @@ const VendorDetailFormStepper = () => {
                                     <textarea
                                       className="form-control approver-remark-textarea"
                                       value={
-                                        remarkByApprover[row.id] ??
-                                        (markAllNaTechnical ? "NA" : "")
+                                        remarkByApprover[row.id] !== undefined
+                                          ? remarkByApprover[row.id]
+                                          : (row.remarkByVendor ?? (markAllNaTechnical ? "NA" : ""))
                                       }
                                       disabled={!row.editable}
                                       onChange={(e) =>
