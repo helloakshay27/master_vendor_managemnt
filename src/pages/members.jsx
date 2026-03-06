@@ -100,10 +100,15 @@ function Members() {
                 </Link>
               </li>
 
-              <li>
-                <Link to="/re-kyc-dashboard">Re Kyc Dashboard</Link>
-              </li>
+              <div className="d-flex gap-3">
+                <li className="list-unstyled">
+                  <Link to="/re-kyc-dashboard">Re Kyc Dashboard</Link>
+                </li>
 
+                <li className="list-unstyled">
+                  <Link to="/re-kyc-dashboard-sec">Re Kyc Dashboard 2</Link>
+                </li>
+              </div>
               {/* <li>
                 <Link to="/user-list">user_list</Link>
               </li>

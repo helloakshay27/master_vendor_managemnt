@@ -44,6 +44,7 @@ import RekycDetail from "./pages/rekyc-detail.jsx";
 import VendorManagementDashboard from "./pages/VendorManagementDashboard.jsx";
 import VendersAssesmentDashboard from "./pages/VendersAssesmentDashboard";
 import KYCManagementDashboard from "./pages/ReKycDashboard";
+import ReKYCDashboard from "./pages/ReKycDashboardSec";
 
 function App() {
   return (
@@ -130,6 +131,8 @@ function App() {
             path="/re-kyc-dashboard"
             element={<KYCManagementDashboard />}
           />
+
+          <Route path="/re-kyc-dashboard-sec" element={<ReKYCDashboard />} />
         </Routes>
       </div>
     </BrowserRouter>

@@ -34,10 +34,9 @@ import LeaderBoard from "@/components/vendor-analytics/leaderBoard";
 import PercentageCompletionChart from "@/components/vendor-analytics/PercentageCompletionChart";
 
 // =============================================================================
-// MOCK DATA
+// MOCK DATA (आपका वही रहेगा)
 // =============================================================================
 
-// 1 ─ Stat Cards
 const MOCK_STAT_DATA = {
   TotalapprovedVendors: 4987,
   TotalAssesmentCount: 319,
@@ -51,7 +50,6 @@ const MOCK_STAT_DATA = {
   TotalWatchlistVendors: 25,
 };
 
-// 2 ─ Grade Assessment Bar (Count of Assessments by Grade)
 const MOCK_GRADE_DATA = [
   { grade: "A", value: 5, color: "#00b050" },
   { grade: "B", value: 147, color: "#f58513" },
@@ -60,39 +58,32 @@ const MOCK_GRADE_DATA = [
   { grade: "F", value: 8, color: "#e00000" },
 ];
 
-// 3 ─ Top 10 Vendors
 const MOCK_TOP_VENDORS = [
-  { name: "FABRICASTO PRIVATE LIMITED", avgScore: 98 },
-  { name: "M/S POKARNA ENGINEERING", avgScore: 95 },
-  { name: "Om Sai Enterprises", avgScore: 94 },
-  { name: "Envirotech", avgScore: 92 },
-  { name: "THE SHINE REFLECTO", avgScore: 91 },
-  { name: "RAMJI VITHAL JAGTAP", avgScore: 89 },
-  { name: "TOR.AI LIMITED", avgScore: 87 },
-  { name: "RSB INFOTECH", avgScore: 85 },
-  { name: "R. A. CONTRACTOR'S", avgScore: 84 },
-  { name: "Snehal Fiber Products", avgScore: 82 },
-  { name: "Royal Stone Solution", avgScore: 80 },
-  { name: "DECKO FLOOR PRIVATE LIMITED", avgScore: 78 },
-  { name: "R S Consultants", avgScore: 75 },
-  { name: "BALAJI MANAGEMENT SOLUTIONS", avgScore: 72 },
+  { name: "FABRICASTO PRIVATE LIMITED", avgTat: 98 },
+  { name: "M/S POKARNA ENGINEERING", avgTat: 95 },
+  { name: "Om Sai Enterprises", avgTat: 94 },
+  { name: "Envirotech", avgTat: 92 },
+  { name: "THE SHINE REFLECTO", avgTat: 91 },
+  { name: "RAMJI VITHAL JAGTAP", avgTat: 89 },
+  { name: "TOR.AI LIMITED", avgTat: 87 },
+  { name: "RSB INFOTECH", avgTat: 85 },
+  { name: "R. A. CONTRACTOR'S", avgTat: 84 },
+  { name: "Snehal Fiber Products", avgTat: 82 },
 ];
 
-// 4 ─ Bottom 10 Vendors
 const MOCK_BOTTOM_VENDORS = [
-  { name: "Stone Natural", avgScore: 55.5 },
-  { name: "R K Associates", avgScore: 54.0 },
-  { name: "Kiran Buildcon", avgScore: 52.5 },
-  { name: "Front Line Technologies", avgScore: 52.33 },
-  { name: "Giitai Buildcon Private Ltd", avgScore: 52.0 },
-  { name: "PANKAJ DHARKAR & Associates", avgScore: 51.5 },
-  { name: "Instec Technology", avgScore: 51.0 },
-  { name: "S.A. INFRA", avgScore: 47.5 },
-  { name: "Aquastop Solutions", avgScore: 47.0 },
-  { name: "Dar & Wagh Architects", avgScore: 38.0 },
+  { name: "Stone Natural", avgTat: 55.5 },
+  { name: "R K Associates", avgTat: 54.0 },
+  { name: "Kiran Buildcon", avgTat: 52.5 },
+  { name: "Front Line Technologies", avgTat: 52.33 },
+  { name: "Giitai Buildcon Private Ltd", avgTat: 52.0 },
+  { name: "PANKAJ DHARKAR & Associates", avgTat: 51.5 },
+  { name: "Instec Technology", avgTat: 51.0 },
+  { name: "S.A. INFRA", avgTat: 47.5 },
+  { name: "Aquastop Solutions", avgTat: 47.0 },
+  { name: "Dar & Wagh Architects", avgTat: 38.0 },
 ];
 
-// 5 ─ Name of Approver Who Have Not Given Rating
 const MOCK_NOT_GIVEN_RATING_COLUMNS = [
   { key: "organizationName", label: "Organization Name" },
   { key: "siteName", label: "Site Name" },
@@ -112,7 +103,6 @@ const MOCK_NOT_GIVEN_RATING_DATA = [
   },
 ];
 
-// 6 ─ List of Watchlist Vendors
 const MOCK_WATCHLIST_COLUMNS = [
   { key: "organizationName", label: "Organization Name" },
   { key: "siteName", label: "Site Name" },
@@ -130,80 +120,8 @@ const MOCK_WATCHLIST_DATA = [
     siteName: "Kharadi (PBSPL) - Co",
     avgScore: 56.33,
   },
-  {
-    organizationName: "AASHI SOLUTIONS PRIVATE LIMITED",
-    siteName: "NTT Airoli Common DC",
-    avgScore: 56.33,
-  },
-  { organizationName: "Alu Facades", siteName: "", avgScore: 58.75 },
-  {
-    organizationName: "Alu Facades",
-    siteName: "Golden Bell Phase II",
-    avgScore: 58.75,
-  },
-  {
-    organizationName: "Alu Facades",
-    siteName: "Kharadi (PBSPL) - Co",
-    avgScore: 58.75,
-  },
-  {
-    organizationName: "Alu Facades",
-    siteName: "YOO Villa Phase I",
-    avgScore: 58.75,
-  },
-  {
-    organizationName: "Angel Facade Engineers Pvt Ltd",
-    siteName: "",
-    avgScore: 58.33,
-  },
-  {
-    organizationName: "Angel Facade Engineers Pvt Ltd",
-    siteName: "Kharadi Sr No 69",
-    avgScore: 58.33,
-  },
-  {
-    organizationName: "Angel Facade Engineers Pvt Ltd",
-    siteName: "Wakad Realty - LP2",
-    avgScore: 58.33,
-  },
-  {
-    organizationName: "Chandrakant Enterprises",
-    siteName: "Vantage Tower",
-    avgScore: 60.0,
-  },
-  {
-    organizationName: "Chandrakant Enterprises",
-    siteName: "Wakad Realty - LP2",
-    avgScore: 60.0,
-  },
-  {
-    organizationName: "Dar & Wagh Architects",
-    siteName: "ALOFT-Whitefield",
-    avgScore: 55.0,
-  },
-  {
-    organizationName: "Dar & Wagh Architects",
-    siteName: "YOO Pune",
-    avgScore: 55.0,
-  },
-  {
-    organizationName: "Dekor Exclusive Granites P. Limited",
-    siteName: "",
-    avgScore: 56.83,
-  },
-  {
-    organizationName: "Dekor Exclusive Granites P. Limited",
-    siteName: "Golden Bell",
-    avgScore: 56.83,
-  },
-  {
-    organizationName: "Dekor Exclusive Granites P. Limited",
-    siteName: "Kharadi (PBSPL) - Co",
-    avgScore: 56.83,
-  },
 ];
 
-// 7 ─ List of Disqualified Vendors
 const MOCK_DISQUALIFIED_COLUMNS = [
   { key: "organizationName", label: "Organization Name" },
   { key: "siteName", label: "Site Name" },
@@ -221,14 +139,8 @@ const MOCK_DISQUALIFIED_DATA = [
     siteName: "Almedia Park -Gold Fusion, Bandra",
     avgScore: 47.5,
   },
-  {
-    organizationName: "S.A. INFRA",
-    siteName: "SRA(Resi.)–Mahadev-Bandra",
-    avgScore: 47.5,
-  },
 ];
 
-// 8 ─ Count of Vendors by Grade
 const MOCK_VENDOR_GRADE_DATA = [
   { grade: "B", value: 40, color: "#f58513" },
   { grade: "C", value: 31, color: "#e6b325" },
@@ -236,7 +148,6 @@ const MOCK_VENDOR_GRADE_DATA = [
   { grade: "F", value: 2, color: "#e00000" },
 ];
 
-// 9 ─ Scores of Vendor in Respected Sites
 const MOCK_SCORES_COLUMNS = [
   { key: "organizationName", label: "Organization Name" },
   { key: "siteName", label: "Site Name" },
@@ -263,116 +174,13 @@ const MOCK_SCORES_DATA = [
     vendorAvgScore: 77.5,
     remainingSites: "Sup",
   },
-  {
-    organizationName: "Siddhivinayak Precast Pipes Private Limited",
-    siteName: "L BOMB-Common",
-    category: "QAQC Feedback",
-    firstName: "Amol",
-    lastName: "Yadav",
-    riskCategory: "Low Risk",
-    givenScore: 15,
-    siteScore: 80,
-    vendorAvgScore: 77.5,
-    remainingSites: "Sido",
-  },
-  {
-    organizationName: "Siddhivinayak Precast Pipes Private Limited",
-    siteName: "L BOMB-Common",
-    category: "Project Execution Feedback",
-    firstName: "Tushar",
-    lastName: "Ghate",
-    riskCategory: "Low Risk",
-    givenScore: 20,
-    siteScore: 80,
-    vendorAvgScore: 77.5,
-    remainingSites: "Over",
-  },
-  {
-    organizationName: "Siddhivinayak Precast Pipes Private Limited",
-    siteName: "Commercial – Mahadev-Bandra",
-    category: "Procurement Feedback",
-    firstName: "Satyabrata",
-    lastName: "Dash",
-    riskCategory: "Low Risk",
-    givenScore: 45,
-    siteScore: 75,
-    vendorAvgScore: 77.5,
-    remainingSites: "Sup",
-  },
-  {
-    organizationName: "Siddhivinayak Precast Pipes Private Limited",
-    siteName: "Commercial – Mahadev-Bandra",
-    category: "QAQC Feedback",
-    firstName: "Amol",
-    lastName: "Yadav",
-    riskCategory: "Low Risk",
-    givenScore: 15,
-    siteScore: 75,
-    vendorAvgScore: 77.5,
-    remainingSites: "Sido",
-  },
-  {
-    organizationName: "YI Engineering Ltd",
-    siteName: "Commercial – Mahadev-Bandra",
-    category: "QAQC Feedback",
-    firstName: "Amol",
-    lastName: "Yadav",
-    riskCategory: "Low Risk",
-    givenScore: 15,
-    siteScore: 78,
-    vendorAvgScore: 78.33,
-    remainingSites: "YI Engineering Ltd",
-  },
-  {
-    organizationName: "YI Engineering Ltd",
-    siteName: "Commercial – Mahadev-Bandra",
-    category: "Procurement Feedback",
-    firstName: "Satyabrata",
-    lastName: "Dash",
-    riskCategory: "Low Risk",
-    givenScore: 47,
-    siteScore: 78,
-    vendorAvgScore: 78.33,
-    remainingSites: "Sup",
-  },
-  {
-    organizationName: "Magnumtuff India Private Limited",
-    siteName: "Golden Bell Phase II",
-    category: "QAQC Feedback",
-    firstName: "Nikhil",
-    lastName: "Patharkar",
-    riskCategory: "Low Risk",
-    givenScore: 15,
-    siteScore: 80,
-    vendorAvgScore: 80.0,
-    remainingSites: "The",
-  },
-  {
-    organizationName: "Magnumtuff India Private Limited",
-    siteName: "Golden Bell Phase II",
-    category: "Design Coordination Feedback",
-    firstName: "Chenan",
-    lastName: "Chordia",
-    riskCategory: "Low Risk",
-    givenScore: 50,
-    siteScore: 80,
-    vendorAvgScore: 80.0,
-    remainingSites: "Meek",
-  },
 ];
 
-// 10 ─ Submitted vs Pending Assessment Overview
 const MOCK_SUBMITTED_PENDING_DATA = [
   { name: "Procurement Feedback", submitted: 198, pending: 0 },
   { name: "QAQC Feedback", submitted: 198, pending: 0 },
-  { name: "Project Execution Feedback", submitted: 198, pending: 0 },
-  { name: "Billing Feedback", submitted: 91, pending: 0 },
-  { name: "Execution Feedback", submitted: 91, pending: 0 },
-  { name: "Planning Feedback", submitted: 91, pending: 0 },
-  { name: "Quality Feedback", submitted: 91, pending: 0 },
 ];
 
-// 11 ─ Submitted Assessment Overview by Categories
 const MOCK_SUBMITTED_ASSESSMENT_DATA = [
   {
     name: "Procurement Feedback",
@@ -383,37 +191,13 @@ const MOCK_SUBMITTED_ASSESSMENT_DATA = [
     F: 2,
     total: 198,
   },
-  { name: "QAQC Feedback", A: 2, B: 12, C: 4, D: 180, F: 0, total: 198 },
-  {
-    name: "Project Execution Feedback",
-    A: 6,
-    B: 34,
-    C: 77,
-    D: 63,
-    F: 0,
-    total: 180,
-  },
-  { name: "Billing Feedback", A: 1, B: 6, C: 26, D: 58, F: 0, total: 91 },
-  { name: "Planning Feedback", A: 0, B: 7, C: 7, D: 51, F: 26, total: 91 },
-  { name: "Quality Feedback", A: 0, B: 5, C: 8, D: 63, F: 15, total: 91 },
-  { name: "Safety Feedback", A: 1, B: 8, C: 0, D: 42, F: 40, total: 91 },
 ];
 
-// 12 ─ Percentage of Completed Assessment by Category
 const MOCK_PERCENTAGE_COMPLETION_DATA = [
   { department: "Procurement Feedback", percentage: 92 },
   { department: "Design Feedback", percentage: 69 },
-  { department: "Project Execution Feedback", percentage: 67 },
-  { department: "Execution Feedback", percentage: 66 },
-  { department: "Billing Feedback", percentage: 64 },
-  { department: "QAQC Feedback", percentage: 60 },
-  { department: "Design Coordination Feedback", percentage: 59 },
-  { department: "Quality Feedback", percentage: 58 },
-  { department: "Planning Feedback", percentage: 56 },
-  { department: "Safety Feedback", percentage: 51 },
 ];
 
-// 13 ─ Category Wise Risk Flag
 const MOCK_CATEGORY_RISK_DATA = [
   {
     name: "Procurement Feedback",
@@ -421,127 +205,16 @@ const MOCK_CATEGORY_RISK_DATA = [
     LOW: 191,
     MODERATE: 10,
   },
-  {
-    name: "Project Execution",
-    HIGH: 3,
-    LOW: 191,
-    MODERATE: 12,
-  },
-  {
-    name: "QAQC Feedback",
-    HIGH: 4,
-    LOW: 191,
-    MODERATE: 9,
-  },
-  {
-    name: "Billing Feedback",
-    HIGH: 2,
-    LOW: 35,
-    MODERATE: 53,
-  },
-  {
-    name: "Execution Feedback",
-    HIGH: 1,
-    LOW: 35,
-    MODERATE: 53,
-  },
-  {
-    name: "Planning Feedback",
-    HIGH: 3,
-    LOW: 35,
-    MODERATE: 53,
-  },
-  {
-    name: "Quality Feedback",
-    HIGH: 2,
-    LOW: 35,
-    MODERATE: 53,
-  },
-  {
-    name: "Safety Feedback",
-    HIGH: 4,
-    LOW: 35,
-    MODERATE: 53,
-  },
-  {
-    name: "Design Review 1",
-    HIGH: 1,
-    LOW: 21,
-    MODERATE: 5,
-  },
-  {
-    name: "Design Review 2",
-    HIGH: 2,
-    LOW: 21,
-    MODERATE: 4,
-  },
 ];
 
-// 14 ─ Leader Board
 const MOCK_LEADERBOARD_DATA = [
   {
     organizationName: "Tata Steel Limited",
     siteName: "L BOMB-Common",
     bestSiteScore: 93.0,
   },
-  {
-    organizationName: "Merino Industries Limited",
-    siteName: "Golden Bell Phase II",
-    bestSiteScore: 90.0,
-  },
-  {
-    organizationName: "MC Bauchemie India Pvt Ltd",
-    siteName: "Panchshil Towers",
-    bestSiteScore: 89.0,
-  },
-  {
-    organizationName: "Mapei Construction Products India Pvt Ltd",
-    siteName: "YOO Villa Phase I",
-    bestSiteScore: 88.0,
-  },
-  {
-    organizationName: "Mapei Construction Products India Pvt Ltd",
-    siteName: "Golden Bell Phase II",
-    bestSiteScore: 87.0,
-  },
-  {
-    organizationName: "Systemair India Private Limited",
-    siteName: "Avant Garde",
-    bestSiteScore: 86.0,
-  },
-  {
-    organizationName: "Kuber Steel Industries Private Limited",
-    siteName: "L BOMB-Common",
-    bestSiteScore: 86.0,
-  },
-  {
-    organizationName: "Kesoram Industries Limited",
-    siteName: "Golden Bell Phase II",
-    bestSiteScore: 85.0,
-  },
-  {
-    organizationName: "Tata Steel Limited",
-    siteName: "Golden Bell Phase II",
-    bestSiteScore: 85.0,
-  },
-  {
-    organizationName: "Ultratech Cement Limited",
-    siteName: "Golden Bell Phase II",
-    bestSiteScore: 85.0,
-  },
-  {
-    organizationName: "Merino Industries Limited",
-    siteName: "Kharadi (PBSPL) - Co",
-    bestSiteScore: 85.0,
-  },
-  {
-    organizationName: "Srj Peety Steels Private Limited",
-    siteName: "Kharadi (PBSPL) - Co",
-    bestSiteScore: 85.0,
-  },
 ];
 
-// 15 ─ On-Time Completion
 const MOCK_ON_TIME_COMPLETION = {
   submitted: 317,
   totalAssessments: 319,
@@ -619,18 +292,23 @@ const VENDER_ASSESMENT_CONFIG = {
 };
 
 // =============================================================================
-// CHART ORDER - SAME POSITIONS BUT INDIVIDUAL CHARTS FOR DRAG & DROP
+// CHART ORDER - ROWS के अंदर अलग-अलग COMPONENTS
 // =============================================================================
 
 const ALL_CHART_IDS = [
   "gradeAssessmentBar",
-  "topVendorsNotGivenRatingRow",
-  "watchlistDisqualifiedRow",
+  "row1_col1_topBottom", // Row 1 ka pehla column
+  "row1_col2_notGivenRating", // Row 1 ka doosra column
+  "row2_col1_watchlist", // Row 2 ka pehla column
+  "row2_col2_disqualified", // Row 2 ka doosra column
   "countVendorsByGrade",
   "scoresOfVendor",
-  "submittedRow",
-  "percentageCategoryRow",
-  "leaderBoardRow",
+  "row3_col1_submittedPending", // Row 3 ka pehla column
+  "row3_col2_submittedOverview", // Row 3 ka doosra column
+  "row4_col1_percentage", // Row 4 ka pehla column
+  "row4_col2_categoryRisk", // Row 4 ka doosra column
+  "row5_col1_leaderBoard", // Row 5 ka pehla column
+  "row5_col2_onTimeCompletion", // Row 5 ka doosra column
 ];
 
 const ALL_STAT_IDS = [
@@ -705,6 +383,9 @@ const VendersAssesmentDashboard = () => {
   };
 
   const show = (id) => visibleSections.includes(id);
+
+  // Helper to check if any component in a row is visible
+  const showRow = (components) => components.some(show);
 
   return (
     <div className="site-content">
@@ -852,7 +533,7 @@ const VendersAssesmentDashboard = () => {
                   )}
                 </div>
 
-                {/* Charts with Drag & Drop - SAME POSITIONS */}
+                {/* Charts with Drag & Drop - ROWS के अंदर INDIVIDUAL COMPONENTS */}
                 <DndContext
                   sensors={sensors}
                   collisionDetection={closestCenter}
@@ -864,7 +545,7 @@ const VendersAssesmentDashboard = () => {
                   >
                     <div className="col-12">
                       {chartOrder.map((chartId) => {
-                        // 1. Count of Assessments by Grade (full width)
+                        // Grade Assessment Bar - Full Width
                         if (
                           chartId === "gradeAssessmentBar" &&
                           show("gradeAssessmentBar")
@@ -881,89 +562,164 @@ const VendersAssesmentDashboard = () => {
                           );
                         }
 
-                        // 2. Row: Top/Bottom Vendors + Not Given Rating
-                        if (chartId === "topVendorsNotGivenRatingRow") {
-                          const anyVisible =
-                            show("topBottomVendors") ||
-                            show("notGivenRatingTable");
-                          if (!anyVisible) return null;
-
-                          return (
-                            <div key={chartId} className="mt-4">
-                              <SortableChartItem id={chartId}>
-                                <div className="row g-3">
-                                  {show("topBottomVendors") && (
-                                    <div
-                                      className={`col-12 ${show("notGivenRatingTable") ? "col-lg-8" : "col-lg-12"}`}
-                                    >
+                        // ROW 1: Top/Bottom Vendors + Not Given Rating
+                        if (
+                          (chartId === "row1_col1_topBottom" &&
+                            show("topBottomVendors")) ||
+                          (chartId === "row1_col2_notGivenRating" &&
+                            show("notGivenRatingTable"))
+                        ) {
+                          // अगर ये पहला कॉलम है
+                          if (chartId === "row1_col1_topBottom") {
+                            return (
+                              <div key={chartId} className="mt-4">
+                                <div className="row">
+                                  <div className="col-lg-8">
+                                    <SortableChartItem id={chartId}>
                                       <TopBottomVendorsChart
                                         topData={MOCK_TOP_VENDORS}
                                         bottomData={MOCK_BOTTOM_VENDORS}
                                         onDownload={() => {}}
                                       />
+                                    </SortableChartItem>
+                                  </div>
+                                  {/* दूसरा कॉलम अगर visible है तो */}
+                                  {show("notGivenRatingTable") && (
+                                    <div className="col-lg-4">
+                                      {chartOrder.map((innerId) => {
+                                        if (
+                                          innerId === "row1_col2_notGivenRating"
+                                        ) {
+                                          return (
+                                            <SortableChartItem
+                                              key={innerId}
+                                              id={innerId}
+                                            >
+                                              <VendorDataTable
+                                                title="Name of Approver Who Have Not Given Rating"
+                                                columns={
+                                                  MOCK_NOT_GIVEN_RATING_COLUMNS
+                                                }
+                                                data={
+                                                  MOCK_NOT_GIVEN_RATING_DATA
+                                                }
+                                                onDownload={() => {}}
+                                              />
+                                            </SortableChartItem>
+                                          );
+                                        }
+                                        return null;
+                                      })}
                                     </div>
                                   )}
+                                </div>
+                              </div>
+                            );
+                          }
 
-                                  {show("notGivenRatingTable") && (
-                                    <div
-                                      className={`col-12 ${show("topBottomVendors") ? "col-lg-4" : "col-lg-12"}`}
-                                    >
+                          // अगर ये दूसरा कॉलम है
+                          if (
+                            chartId === "row1_col2_notGivenRating" &&
+                            !show("topBottomVendors")
+                          ) {
+                            return (
+                              <div key={chartId} className="mt-4">
+                                <div className="row">
+                                  <div className="col-lg-12">
+                                    <SortableChartItem id={chartId}>
                                       <VendorDataTable
                                         title="Name of Approver Who Have Not Given Rating"
                                         columns={MOCK_NOT_GIVEN_RATING_COLUMNS}
                                         data={MOCK_NOT_GIVEN_RATING_DATA}
                                         onDownload={() => {}}
                                       />
-                                    </div>
-                                  )}
+                                    </SortableChartItem>
+                                  </div>
                                 </div>
-                              </SortableChartItem>
-                            </div>
-                          );
+                              </div>
+                            );
+                          }
                         }
 
-                        // 3. Row: Watchlist | Disqualified
-                        if (chartId === "watchlistDisqualifiedRow") {
-                          const anyVisible =
-                            show("watchlistVendors") ||
-                            show("disqualifiedVendors");
-                          if (!anyVisible) return null;
-
-                          return (
-                            <div key={chartId} className="mt-4">
-                              <SortableChartItem id={chartId}>
-                                <div className="row g-3">
-                                  {show("watchlistVendors") && (
-                                    <div
-                                      className={`col-12 ${show("disqualifiedVendors") ? "col-lg-6" : "col-lg-12"}`}
-                                    >
+                        // ROW 2: Watchlist + Disqualified
+                        if (
+                          (chartId === "row2_col1_watchlist" &&
+                            show("watchlistVendors")) ||
+                          (chartId === "row2_col2_disqualified" &&
+                            show("disqualifiedVendors"))
+                        ) {
+                          // अगर ये पहला कॉलम है
+                          if (chartId === "row2_col1_watchlist") {
+                            return (
+                              <div key={chartId} className="mt-4">
+                                <div className="row">
+                                  <div className="col-lg-6">
+                                    <SortableChartItem id={chartId}>
                                       <VendorDataTable
                                         title="List of Watchlist Vendors"
                                         columns={MOCK_WATCHLIST_COLUMNS}
                                         data={MOCK_WATCHLIST_DATA}
                                         onDownload={() => {}}
                                       />
+                                    </SortableChartItem>
+                                  </div>
+                                  {/* दूसरा कॉलम अगर visible है तो */}
+                                  {show("disqualifiedVendors") && (
+                                    <div className="col-lg-6">
+                                      {chartOrder.map((innerId) => {
+                                        if (
+                                          innerId === "row2_col2_disqualified"
+                                        ) {
+                                          return (
+                                            <SortableChartItem
+                                              key={innerId}
+                                              id={innerId}
+                                            >
+                                              <VendorDataTable
+                                                title="List of Disqualified Vendors"
+                                                columns={
+                                                  MOCK_DISQUALIFIED_COLUMNS
+                                                }
+                                                data={MOCK_DISQUALIFIED_DATA}
+                                                onDownload={() => {}}
+                                              />
+                                            </SortableChartItem>
+                                          );
+                                        }
+                                        return null;
+                                      })}
                                     </div>
                                   )}
-                                  {show("disqualifiedVendors") && (
-                                    <div
-                                      className={`col-12 ${show("watchlistVendors") ? "col-lg-6" : "col-lg-12"}`}
-                                    >
+                                </div>
+                              </div>
+                            );
+                          }
+
+                          // अगर ये दूसरा कॉलम है
+                          if (
+                            chartId === "row2_col2_disqualified" &&
+                            !show("watchlistVendors")
+                          ) {
+                            return (
+                              <div key={chartId} className="mt-4">
+                                <div className="row">
+                                  <div className="col-lg-12">
+                                    <SortableChartItem id={chartId}>
                                       <VendorDataTable
                                         title="List of Disqualified Vendors"
                                         columns={MOCK_DISQUALIFIED_COLUMNS}
                                         data={MOCK_DISQUALIFIED_DATA}
                                         onDownload={() => {}}
                                       />
-                                    </div>
-                                  )}
+                                    </SortableChartItem>
+                                  </div>
                                 </div>
-                              </SortableChartItem>
-                            </div>
-                          );
+                              </div>
+                            );
+                          }
                         }
 
-                        // 4. Count of Vendors by Grade (full width)
+                        // Count of Vendors by Grade - Full Width
                         if (
                           chartId === "countVendorsByGrade" &&
                           show("countVendorsByGrade")
@@ -980,7 +736,7 @@ const VendersAssesmentDashboard = () => {
                           );
                         }
 
-                        // 5. Scores of Vendor in Respected Sites
+                        // Scores of Vendor - Full Width
                         if (
                           chartId === "scoresOfVendor" &&
                           show("scoresOfVendor")
@@ -992,113 +748,220 @@ const VendersAssesmentDashboard = () => {
                                   title="Scores of Vendor in Respected Sites"
                                   columns={MOCK_SCORES_COLUMNS}
                                   data={MOCK_SCORES_DATA}
-                                  onDownload={() => {
-                                    console.log("Downloading scores data...");
-                                  }}
+                                  onDownload={() => {}}
                                 />
                               </SortableChartItem>
                             </div>
                           );
                         }
 
-                        // 6. Row: Submitted vs Pending | Submitted Overview
-                        if (chartId === "submittedRow") {
-                          const anyVisible =
-                            show("submittedPendingOverview") ||
-                            show("submittedAssessmentOverview");
-                          if (!anyVisible) return null;
-
-                          return (
-                            <div key={chartId} className="mt-4">
-                              <SortableChartItem id={chartId}>
-                                <div className="row g-3">
-                                  {show("submittedPendingOverview") && (
-                                    <div
-                                      className={`col-12 ${show("submittedAssessmentOverview") ? "col-lg-6" : "col-lg-12"}`}
-                                    >
+                        // ROW 3: Submitted vs Pending + Submitted Overview
+                        if (
+                          (chartId === "row3_col1_submittedPending" &&
+                            show("submittedPendingOverview")) ||
+                          (chartId === "row3_col2_submittedOverview" &&
+                            show("submittedAssessmentOverview"))
+                        ) {
+                          // अगर ये पहला कॉलम है
+                          if (chartId === "row3_col1_submittedPending") {
+                            return (
+                              <div key={chartId} className="mt-4">
+                                <div className="row">
+                                  <div className="col-lg-6">
+                                    <SortableChartItem id={chartId}>
                                       <SubmittedPendingOverview
                                         data={MOCK_SUBMITTED_PENDING_DATA}
                                         onDownload={() => {}}
                                       />
+                                    </SortableChartItem>
+                                  </div>
+                                  {/* दूसरा कॉलम अगर visible है तो */}
+                                  {show("submittedAssessmentOverview") && (
+                                    <div className="col-lg-6">
+                                      {chartOrder.map((innerId) => {
+                                        if (
+                                          innerId ===
+                                          "row3_col2_submittedOverview"
+                                        ) {
+                                          return (
+                                            <SortableChartItem
+                                              key={innerId}
+                                              id={innerId}
+                                            >
+                                              <SubmittedAssessmentOverview
+                                                data={
+                                                  MOCK_SUBMITTED_ASSESSMENT_DATA
+                                                }
+                                                onDownload={() => {}}
+                                              />
+                                            </SortableChartItem>
+                                          );
+                                        }
+                                        return null;
+                                      })}
                                     </div>
                                   )}
-                                  {show("submittedAssessmentOverview") && (
-                                    <div
-                                      className={`col-12 ${show("submittedPendingOverview") ? "col-lg-6" : "col-lg-12"}`}
-                                    >
+                                </div>
+                              </div>
+                            );
+                          }
+
+                          // अगर ये दूसरा कॉलम है
+                          if (
+                            chartId === "row3_col2_submittedOverview" &&
+                            !show("submittedPendingOverview")
+                          ) {
+                            return (
+                              <div key={chartId} className="mt-4">
+                                <div className="row">
+                                  <div className="col-lg-12">
+                                    <SortableChartItem id={chartId}>
                                       <SubmittedAssessmentOverview
                                         data={MOCK_SUBMITTED_ASSESSMENT_DATA}
                                         onDownload={() => {}}
                                       />
-                                    </div>
-                                  )}
+                                    </SortableChartItem>
+                                  </div>
                                 </div>
-                              </SortableChartItem>
-                            </div>
-                          );
+                              </div>
+                            );
+                          }
                         }
 
-                        // 7. Row: Percentage Completion | Category Risk Flag
-                        if (chartId === "percentageCategoryRow") {
-                          const anyVisible =
-                            show("percentageCompletion") ||
-                            show("categoryWiseRiskFlag");
-                          if (!anyVisible) return null;
-
-                          return (
-                            <div key={chartId} className="mt-4">
-                              <SortableChartItem id={chartId}>
-                                <div className="row g-3">
-                                  {show("percentageCompletion") && (
-                                    <div
-                                      className={`col-12 ${show("categoryWiseRiskFlag") ? "col-lg-6" : "col-lg-12"}`}
-                                    >
+                        // ROW 4: Percentage Completion + Category Risk
+                        if (
+                          (chartId === "row4_col1_percentage" &&
+                            show("percentageCompletion")) ||
+                          (chartId === "row4_col2_categoryRisk" &&
+                            show("categoryWiseRiskFlag"))
+                        ) {
+                          // अगर ये पहला कॉलम है
+                          if (chartId === "row4_col1_percentage") {
+                            return (
+                              <div key={chartId} className="mt-4">
+                                <div className="row">
+                                  <div className="col-lg-6">
+                                    <SortableChartItem id={chartId}>
                                       <PercentageCompletionChart
                                         data={MOCK_PERCENTAGE_COMPLETION_DATA}
                                         onDownload={() => {}}
                                       />
+                                    </SortableChartItem>
+                                  </div>
+                                  {/* दूसरा कॉलम अगर visible है तो */}
+                                  {show("categoryWiseRiskFlag") && (
+                                    <div className="col-lg-6">
+                                      {chartOrder.map((innerId) => {
+                                        if (
+                                          innerId === "row4_col2_categoryRisk"
+                                        ) {
+                                          return (
+                                            <SortableChartItem
+                                              key={innerId}
+                                              id={innerId}
+                                            >
+                                              <CategoryWiseRiskFlag
+                                                data={MOCK_CATEGORY_RISK_DATA}
+                                                onDownload={() => {}}
+                                              />
+                                            </SortableChartItem>
+                                          );
+                                        }
+                                        return null;
+                                      })}
                                     </div>
                                   )}
-                                  {show("categoryWiseRiskFlag") && (
-                                    <div
-                                      className={`col-12 ${show("percentageCompletion") ? "col-lg-6" : "col-lg-12"}`}
-                                    >
+                                </div>
+                              </div>
+                            );
+                          }
+
+                          // अगर ये दूसरा कॉलम है
+                          if (
+                            chartId === "row4_col2_categoryRisk" &&
+                            !show("percentageCompletion")
+                          ) {
+                            return (
+                              <div key={chartId} className="mt-4">
+                                <div className="row">
+                                  <div className="col-lg-12">
+                                    <SortableChartItem id={chartId}>
                                       <CategoryWiseRiskFlag
                                         data={MOCK_CATEGORY_RISK_DATA}
                                         onDownload={() => {}}
                                       />
-                                    </div>
-                                  )}
+                                    </SortableChartItem>
+                                  </div>
                                 </div>
-                              </SortableChartItem>
-                            </div>
-                          );
+                              </div>
+                            );
+                          }
                         }
 
-                        // 8. Row: Leader Board | On-Time Completion
-                        if (chartId === "leaderBoardRow") {
-                          const anyVisible =
-                            show("leaderBoard") || show("onTimeCompletion");
-                          if (!anyVisible) return null;
-
-                          return (
-                            <div key={chartId} className="mt-4 mb-4">
-                              <SortableChartItem id={chartId}>
-                                <div className="row g-3">
-                                  {show("leaderBoard") && (
-                                    <div
-                                      className={`col-12 ${show("onTimeCompletion") ? "col-lg-6" : "col-lg-12"}`}
-                                    >
+                        // ROW 5: Leader Board + On-Time Completion
+                        if (
+                          (chartId === "row5_col1_leaderBoard" &&
+                            show("leaderBoard")) ||
+                          (chartId === "row5_col2_onTimeCompletion" &&
+                            show("onTimeCompletion"))
+                        ) {
+                          // अगर ये पहला कॉलम है
+                          if (chartId === "row5_col1_leaderBoard") {
+                            return (
+                              <div key={chartId} className="mt-4 mb-4">
+                                <div className="row">
+                                  <div className="col-lg-6">
+                                    <SortableChartItem id={chartId}>
                                       <LeaderBoard
                                         data={MOCK_LEADERBOARD_DATA}
                                         onDownload={() => {}}
                                       />
+                                    </SortableChartItem>
+                                  </div>
+                                  {/* दूसरा कॉलम अगर visible है तो */}
+                                  {show("onTimeCompletion") && (
+                                    <div className="col-lg-6">
+                                      {chartOrder.map((innerId) => {
+                                        if (
+                                          innerId ===
+                                          "row5_col2_onTimeCompletion"
+                                        ) {
+                                          return (
+                                            <SortableChartItem
+                                              key={innerId}
+                                              id={innerId}
+                                            >
+                                              <OnTimeCompletion
+                                                submitted={
+                                                  MOCK_ON_TIME_COMPLETION.submitted
+                                                }
+                                                totalAssessments={
+                                                  MOCK_ON_TIME_COMPLETION.totalAssessments
+                                                }
+                                                onDownload={() => {}}
+                                              />
+                                            </SortableChartItem>
+                                          );
+                                        }
+                                        return null;
+                                      })}
                                     </div>
                                   )}
-                                  {show("onTimeCompletion") && (
-                                    <div
-                                      className={`col-12 ${show("leaderBoard") ? "col-lg-6" : "col-lg-12"}`}
-                                    >
+                                </div>
+                              </div>
+                            );
+                          }
+
+                          // अगर ये दूसरा कॉलम है
+                          if (
+                            chartId === "row5_col2_onTimeCompletion" &&
+                            !show("leaderBoard")
+                          ) {
+                            return (
+                              <div key={chartId} className="mt-4 mb-4">
+                                <div className="row">
+                                  <div className="col-lg-12">
+                                    <SortableChartItem id={chartId}>
                                       <OnTimeCompletion
                                         submitted={
                                           MOCK_ON_TIME_COMPLETION.submitted
@@ -1108,12 +971,12 @@ const VendersAssesmentDashboard = () => {
                                         }
                                         onDownload={() => {}}
                                       />
-                                    </div>
-                                  )}
+                                    </SortableChartItem>
+                                  </div>
                                 </div>
-                              </SortableChartItem>
-                            </div>
-                          );
+                              </div>
+                            );
+                          }
                         }
 
                         return null;

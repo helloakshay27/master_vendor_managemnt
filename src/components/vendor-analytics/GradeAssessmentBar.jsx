@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-export const GradeAssessmentBar = ({ data, className = "" }) => {
+export const GradeAssessmentBar = ({ title, data, className = "" }) => {
   const [tooltip, setTooltip] = useState(null);
 
   const total = data.reduce((acc, item) => acc + item.value, 0);
@@ -39,7 +39,7 @@ export const GradeAssessmentBar = ({ data, className = "" }) => {
             color: "#5c4033",
           }}
         >
-          Count of Assessments by Grade
+          {title}
         </h5>
       </div>
 

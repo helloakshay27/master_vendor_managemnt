@@ -1413,7 +1413,7 @@ function VendorManagementDashboard() {
                           className="text-2xl font-bold mb-2"
                           style={{ color: "#1A1A1A" }}
                         >
-                          Vendor Management (PQ) Dashboard
+                          Vendor Management Dashboard
                         </h1>
                         <p className="text-gray-600 mb-0">
                           Overview of vendor statistics and analytics
