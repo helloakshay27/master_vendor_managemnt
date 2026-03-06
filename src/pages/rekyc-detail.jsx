@@ -242,21 +242,21 @@ const RekycDetail = () => {
     // Update local state
     setApprovals({ approved: allIds, rejected: [] });
 
-    try {
-      const config = token ? { params: { token } } : {};
-      const response = await axios.patch(
-        `${baseURL}/supplier_field_approvals/approve_all.json?supplier_id=${supplierId}&rekyc_id=${rekycId}`,
-        {},
-        config
-      );
-      if (response.status === 200 || response.status === 204) {
-        alert("All fields approved successfully");
-      }
-    } catch (error) {
-      console.error("Error in approve all:", error);
-      alert("Failed to approve all fields");
-    }
-  };
+  //   try {
+  //     const config = token ? { params: { token } } : {};
+  //     const response = await axios.patch(
+  //       `${baseURL}/supplier_field_approvals/approve_all.json?supplier_id=${supplierId}&rekyc_id=${rekycId}`,
+  //       {},
+  //       config
+  //     );
+  //     if (response.status === 200 || response.status === 204) {
+  //       alert("All fields approved successfully");
+  //     }
+  //   } catch (error) {
+  //     console.error("Error in approve all:", error);
+  //     alert("Failed to approve all fields");
+  //   }
+   };
 
   const handleRejectAll = async () => {
     const allIds = [];
@@ -271,20 +271,20 @@ const RekycDetail = () => {
     // Update local state
     setApprovals({ approved: [], rejected: allIds });
 
-    try {
-      const config = token ? { params: { token } } : {};
-      const response = await axios.patch(
-        `${baseURL}/supplier_field_approvals/reject_all.json?supplier_id=${supplierId}&rekyc_id=${rekycId}`,
-        {},
-        config
-      );
-      if (response.status === 200 || response.status === 204) {
-        alert("All fields rejected successfully");
-      }
-    } catch (error) {
-      console.error("Error in reject all:", error);
-      alert("Failed to reject all fields");
-    }
+    // try {
+    //   const config = token ? { params: { token } } : {};
+    //   const response = await axios.patch(
+    //     `${baseURL}/supplier_field_approvals/reject_all.json?supplier_id=${supplierId}&rekyc_id=${rekycId}`,
+    //     {},
+    //     config
+    //   );
+    //   if (response.status === 200 || response.status === 204) {
+    //     alert("All fields rejected successfully");
+    //   }
+    // } catch (error) {
+    //   console.error("Error in reject all:", error);
+    //   alert("Failed to reject all fields");
+    // }
   };
 
   const handleApprovalChange = (id, type) => {
