@@ -6,23 +6,21 @@ const CHART_COLORS = {
   approvals: '#c4b99d',
 };
 
-// Dummy data for demonstration
-const DUMMY_DATA = [
-  { level: 'Level 1', count: 45 },
-  { level: 'Level 2', count: 32 },
-  { level: 'Level 3', count: 28 },
-  { level: 'Level 4', count: 19 },
-  { level: 'Level 5', count: 12 },
-];
-
 export const PendingApprovalsByLevelChart = ({ data, onDownload, className = "" }) => {
-  // Use provided data or fallback to dummy data
-  const chartData = (data && data.length > 0 ? data : DUMMY_DATA).map(item => ({
-    level: item.level || 'Unknown',
-    count: item.count || 0
-  }));
+  
+  // 1. Safely extract array from API response (Handles both direct array and { data: [...] } format)
+  let safeData = [];
+  if (Array.isArray(data) && data.length > 0) {
+    safeData = data;
+  } else if (data && data.data && Array.isArray(data.data) && data.data.length > 0) {
+    safeData = data.data;
+  }
 
-  console.log('PendingApprovalsByLevelChart - chartData:', chartData);
+  // 2. Map API keys (approval_level & pending_count) to Chart keys (level & count)
+  const chartData = safeData.map(item => ({
+    level: item.approval_level || item.level || 'Unknown',
+    count: item.pending_count !== undefined ? Number(item.pending_count) : Number(item.count || 0)
+  }));
 
   return (
     <div className={`card go-shadow bg-white rounded-lg ${className}`} style={{ height: '500px', display: 'flex', flexDirection: 'column' }}>
@@ -47,18 +45,19 @@ export const PendingApprovalsByLevelChart = ({ data, onDownload, className = "" 
           )}
         </div>
       </div>
+      
       <div className="card-body" style={{ padding: '20px', flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
         {chartData.length > 0 ? (
           <div style={{ width: '100%', flex: 1, minHeight: 0 }}>
-            <ResponsiveContainer width="100%" height={400}>
+            <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={chartData}
                 margin={{ top: 20, right: 30, left: 20, bottom: 100 }}
               >
-                <CartesianGrid strokeDasharray="3 3" stroke="#e0e4e7" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#e0e4e7" vertical={false} />
                 <XAxis
                   dataKey="level"
-                  fontSize={10}
+                  fontSize={11}
                   tick={{ fill: '#374151' }}
                   angle={-45}
                   textAnchor="end"
@@ -69,12 +68,12 @@ export const PendingApprovalsByLevelChart = ({ data, onDownload, className = "" 
                   fontSize={12}
                   tick={{ fill: '#374151' }}
                   allowDecimals={false}
-                  domain={[0, chartData.length > 0 ? Math.max(3, Math.ceil(Math.max(...chartData.map(d => d.count || 0)) * 1.2)) : 3]}
                 />
                 <Tooltip
+                  cursor={{ fill: 'transparent', opacity: 0.1 }}
                   content={({ active, payload, label }) => {
                     if (active && payload && payload.length) {
-                      const data = payload[0].payload;
+                      const rowData = payload[0].payload;
                       return (
                         <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
                           <p className="font-semibold text-gray-800 mb-2">{label}</p>
@@ -82,7 +81,7 @@ export const PendingApprovalsByLevelChart = ({ data, onDownload, className = "" 
                             <span className="font-medium" style={{ color: CHART_COLORS.approvals }}>
                               Pending:
                             </span>
-                            <span className="text-gray-700 font-bold">{data.count}</span>
+                            <span className="text-gray-700 font-bold">{rowData.count}</span>
                           </div>
                         </div>
                       );
@@ -90,12 +89,18 @@ export const PendingApprovalsByLevelChart = ({ data, onDownload, className = "" 
                     return null;
                   }}
                 />
-                <Bar dataKey="count" fill={CHART_COLORS.approvals} name="Pending Approvals" />
+                <Bar 
+                  dataKey="count" 
+                  fill={CHART_COLORS.approvals} 
+                  name="Pending Approvals" 
+                  radius={[4, 4, 0, 0]}
+                  barSize={40}
+                />
               </BarChart>
             </ResponsiveContainer>
           </div>
         ) : (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center text-gray-500 h-full flex items-center justify-center">
             No pending approvals data available
           </div>
         )}
