@@ -32,20 +32,6 @@ export const DepartmentWiseDistributionChart = ({ data, onDownload, className = 
           <h3 className="vendor-card-title">
             Department-Wise Vendor Distribution
           </h3>
-          {onDownload && (
-            <Download
-              data-no-drag="true"
-              className="w-5 h-5 cursor-pointer transition-colors z-50"
-              style={{ color: '#6b7280', pointerEvents: 'auto' }}
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                onDownload();
-              }}
-              onPointerDown={(e) => e.stopPropagation()}
-              onMouseDown={(e) => e.stopPropagation()}
-            />
-          )}
         </div>
       </div>
       <div className="card-body" style={{ padding: '20px', flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>

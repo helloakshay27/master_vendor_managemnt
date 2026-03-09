@@ -51,20 +51,6 @@ export const YearWiseRegistrationChart = ({
       <div className="vendor-card-header">
         <div className="flex items-center justify-between">
           <h3 className="vendor-card-title">Year-Wise Vendor Registration</h3>
-          {onDownload && (
-            <Download
-              data-no-drag="true"
-              className="w-5 h-5 cursor-pointer transition-colors z-50"
-              style={{ color: "#6b7280", pointerEvents: "auto" }}
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                onDownload();
-              }}
-              onPointerDown={(e) => e.stopPropagation()}
-              onMouseDown={(e) => e.stopPropagation()}
-            />
-          )}
         </div>
       </div>
       <div

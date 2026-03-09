@@ -29,20 +29,6 @@ export const PendingApprovalsByLevelChart = ({ data, onDownload, className = "" 
           <h3 className="vendor-card-title">
             Pending Approvals by Level
           </h3>
-          {onDownload && (
-            <Download
-              data-no-drag="true"
-              className="w-5 h-5 cursor-pointer transition-colors z-50"
-              style={{ color: '#6b7280', pointerEvents: 'auto' }}
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                onDownload();
-              }}
-              onPointerDown={(e) => e.stopPropagation()}
-              onMouseDown={(e) => e.stopPropagation()}
-            />
-          )}
         </div>
       </div>
       

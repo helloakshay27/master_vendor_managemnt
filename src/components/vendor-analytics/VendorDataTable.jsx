@@ -25,20 +25,9 @@ export const VendorDataTable = ({
             }}
           >
             <h3 className="vendor-card-title">{title}</h3>
-            {onDownload && (
-              <Download
-                style={{
-                  width: "20px",
-                  height: "20px",
-                  cursor: "pointer",
-                  color: "#6b7280",
-                }}
-                onClick={onDownload}
-              />
-            )}
           </div>
         </div>
-        <div className="card-body" style={{ padding: "20px" }}>
+        <div className="card-body" style={{ padding: "0" }}>
           <div
             style={{
               display: "flex",
@@ -95,25 +84,6 @@ export const VendorDataTable = ({
           }}
         >
           <h3 className="vendor-card-title">{title}</h3>
-          {onDownload && (
-            <Download
-              data-no-drag="true"
-              style={{
-                width: "20px",
-                height: "20px",
-                cursor: "pointer",
-                color: "#6b7280",
-                pointerEvents: "auto",
-              }}
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                onDownload();
-              }}
-              onPointerDown={(e) => e.stopPropagation()}
-              onMouseDown={(e) => e.stopPropagation()}
-            />
-          )}
         </div>
       </div>
       <div
@@ -130,8 +100,10 @@ export const VendorDataTable = ({
           <table
             style={{
               width: "100%",
+              minWidth: "100%",
               borderCollapse: "collapse",
               border: "1px solid #d1d5db",
+              tableLayout: "fixed",
             }}
           >
             <thead style={{ position: "sticky", top: 0, zIndex: 1 }}>
@@ -146,7 +118,7 @@ export const VendorDataTable = ({
                       fontSize: "14px",
                       fontWeight: 700,
                       color: "#374151",
-                      whiteSpace: "nowrap",
+                      wordBreak: "break-word",
                     }}
                   >
                     {column.label}
@@ -174,7 +146,7 @@ export const VendorDataTable = ({
                           padding: "12px",
                           fontSize: "14px",
                           color: "#111827",
-                          whiteSpace: "nowrap",
+                          wordBreak: "break-word",
                         }}
                       >
                         {column.render
