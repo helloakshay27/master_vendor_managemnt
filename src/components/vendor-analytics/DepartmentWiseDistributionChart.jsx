@@ -21,10 +21,7 @@ const DUMMY_DATA = [
 ];
 
 export const DepartmentWiseDistributionChart = ({ data, onDownload, className = "" }) => {
-  // Use provided data or fallback to dummy data
   const chartData = (data && data.length > 0 ? data : DUMMY_DATA).filter(item => item.value > 0);
-  
-  console.log('DepartmentWiseDistributionChart - chartData:', chartData);
 
   const hasData = chartData && chartData.length > 0;
 

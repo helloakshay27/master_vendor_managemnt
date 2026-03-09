@@ -29,9 +29,11 @@ import {
   TopBottomVendorsChart,
 } from "@/components/vendor-analytics";
 import { VendorSectionSelector } from "@/components/vendor-analytics/VendorSectionSelector";
+import { VendorFilterCard } from "@/components/vendor-analytics/VendorFilterCard";
+import { baseURL } from "../confi/apiDomain";
 
 // =========================================================================
-// INLINE FILTER DIALOG
+// TABLE COLUMNS CONSTANTS
 // =========================================================================
 const InlineFilterDialog = ({
   isOpen,
@@ -215,7 +217,10 @@ const InlineFilterDialog = ({
       return `${day}/${month}/${year}`;
     };
 
-    setStartDate("2013-01-01");
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(today.getDate() - 7);
+
+    setStartDate(formatDt(sevenDaysAgo));
     setEndDate(formatDt(today));
     setCompanyName("");
     setFiscalYear("");
@@ -226,7 +231,7 @@ const InlineFilterDialog = ({
     setPqType("with_pq");
 
     onApplyFilters({
-      startDate: "01/01/2013",
+      startDate: formatOut(sevenDaysAgo),
       endDate: formatOut(today),
       companyName: "",
       departmentName: "",
@@ -572,7 +577,6 @@ const APPROVED_VENDORS_COLUMNS = [
 // MAIN COMPONENT
 // =========================================================================
 function VendorManagementDashboard() {
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [visibleSections, setVisibleSections] = useState([
     "departmentPreQual",
     "departmentDistribution",
@@ -663,16 +667,22 @@ function VendorManagementDashboard() {
   const [bottomVendorsData, setBottomVendorsData] = useState([]);
   const [verificationPendingData, setVerificationPendingData] = useState([]);
 
-  // Default start date is 2013
+  // Default start date is last 7 days
   const getDefaultDateRange = () => {
     const today = new Date();
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(today.getDate() - 7);
+
     const formatDate = (date) => {
       const day = String(date.getDate()).padStart(2, "0");
       const month = String(date.getMonth() + 1).padStart(2, "0");
       const year = date.getFullYear();
       return `${day}/${month}/${year}`;
     };
-    return { startDate: "01/01/2013", endDate: formatDate(today) };
+    return {
+      startDate: formatDate(sevenDaysAgo),
+      endDate: formatDate(today),
+    };
   };
 
   const [activeFilters, setActiveFilters] = useState({
@@ -703,7 +713,6 @@ function VendorManagementDashboard() {
 
   const handleAnalyticsFilterApply = (filters) => {
     setActiveFilters(filters);
-    setIsFilterOpen(false);
   };
 
   const handleSelectionChange = (selectedSections) => {
@@ -718,22 +727,53 @@ function VendorManagementDashboard() {
   useEffect(() => {
     const fetchStatCards = async () => {
       try {
-        const queryParams = new URLSearchParams({
-          token: "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414",
-          company_ids: activeFilters.companyName || "",
-          department_ids: activeFilters.departmentName || "",
-          vendor_ids: activeFilters.vendors || "",
-          status:
-            "approved,rejected,invited,verification_pending,details_submitted_by_vendor,request_for_resubmission,onboarding",
-          pq_type: "without_pq,with_pq",
-          from_date: formatDtForAPI(activeFilters.startDate),
-          end_date: formatDtForAPI(activeFilters.endDate),
-        });
+        const queryParams = new URLSearchParams();
+        queryParams.append("token", "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414");
+        queryParams.append("status", "approved,rejected,invited,verification_pending,details_submitted_by_vendor,request_for_resubmission,onboarding");
+        queryParams.append("pq_type", "without_pq,with_pq");
+        
+        if (activeFilters.companyName) queryParams.append("company_ids", activeFilters.companyName);
+        if (activeFilters.departmentName) queryParams.append("department_ids", activeFilters.departmentName);
+        if (activeFilters.vendors) queryParams.append("vendor_ids", activeFilters.vendors);
+        if (activeFilters.startDate) queryParams.append("from_date", formatDtForAPI(activeFilters.startDate));
+        if (activeFilters.endDate) queryParams.append("end_date", formatDtForAPI(activeFilters.endDate));
+        
         const response = await fetch(
-          `https://vendors.lockated.com/vendor_pq_dashboard/count_stats.json?${queryParams}`,
+          `${baseURL}vendor_pq_dashboard/count_stats.json?${queryParams}`,
         );
         const json = await response.json();
-        if (json?.success && json?.data) setVendorStats(json.data);
+        console.log("Count Stats API Response:", json);
+        
+        // Handle both direct array and wrapped response
+        let dataArray = [];
+        if (Array.isArray(json)) {
+          dataArray = json;
+        } else if (json?.data && Array.isArray(json.data)) {
+          dataArray = json.data;
+        }
+        
+        if (dataArray.length > 0) {
+          // Transform array of [{status, count}, ...] into object {status: count, ...}
+          // Start with default values and override with API data
+          const mappedStats = {
+            approved: 0,
+            with_pq: 0,
+            without_pq: 0,
+            onboarding: 0,
+            invited: 0,
+            details_submitted_by_vendor: 0,
+            verification_pending: 0,
+            request_for_resubmission: 0,
+            rejected: 0,
+          };
+          
+          dataArray.forEach((item) => {
+            mappedStats[item.status] = item.count;
+          });
+          
+          console.log("Mapped Stats:", mappedStats);
+          setVendorStats(mappedStats);
+        }
       } catch (error) {
         console.error("Error fetching Count Stats:", error);
       }
@@ -742,29 +782,44 @@ function VendorManagementDashboard() {
     const fetchDeptDistribution = async () => {
       setIsDeptDistributionLoading(true);
       try {
-        const queryParams = new URLSearchParams({
-          token: "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414",
-          company_ids: activeFilters.companyName || "",
-          department_ids: activeFilters.departmentName || "",
-          vendor_ids: activeFilters.vendors || "",
-          from_date: formatDtForAPI(activeFilters.startDate),
-          end_date: formatDtForAPI(activeFilters.endDate),
-        });
+        const queryParams = new URLSearchParams();
+        queryParams.append("token", "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414");
+        
+        if (activeFilters.companyName) queryParams.append("company_ids", activeFilters.companyName);
+        if (activeFilters.departmentName) queryParams.append("department_ids", activeFilters.departmentName);
+        if (activeFilters.vendors) queryParams.append("vendor_ids", activeFilters.vendors);
+        if (activeFilters.startDate) queryParams.append("from_date", formatDtForAPI(activeFilters.startDate));
+        if (activeFilters.endDate) queryParams.append("end_date", formatDtForAPI(activeFilters.endDate));
+        
         const response = await fetch(
-          `https://vendors.lockated.com/vendor_pq_dashboard/department_wise_distribution.json?${queryParams}`,
+          `${baseURL}vendor_pq_dashboard/department_wise_distribution.json?${queryParams}`,
         );
         const json = await response.json();
-        let rawData =
-          json?.data?.department_wise_distribution ||
-          Object.values(json).find((val) => Array.isArray(val)) ||
-          [];
-        setDeptDistributionData(
-          rawData.map((item) => ({
-            name: item.department_name || item.name || "Unknown",
-            value: Number(item.count || item.value || 0),
-          })),
-        );
+        console.log("Department Distribution API Response:", json);
+        
+        // Handle different response structures
+        let rawData = [];
+        if (json?.data?.departments && Array.isArray(json.data.departments)) {
+          rawData = json.data.departments;
+        } else if (json?.data?.department_wise_distribution && Array.isArray(json.data.department_wise_distribution)) {
+          rawData = json.data.department_wise_distribution;
+        } else if (Array.isArray(json?.data)) {
+          rawData = json.data;
+        } else {
+          rawData = Object.values(json).find((val) => Array.isArray(val)) || [];
+        }
+        
+        console.log("Extracted Raw Data:", rawData);
+        
+        const mappedData = rawData.map((item) => ({
+          name: item.department_name || item.name || "Unknown",
+          value: Number(item.vendor_count || item.count || item.value || 0),
+        }));
+        
+        console.log("Mapped Distribution Data:", mappedData);
+        setDeptDistributionData(mappedData);
       } catch (error) {
+        console.error("Error fetching Department Distribution:", error);
         setDeptDistributionData([]);
       } finally {
         setIsDeptDistributionLoading(false);
@@ -774,31 +829,39 @@ function VendorManagementDashboard() {
     const fetchQuarterWiseData = async () => {
       setIsQuarterWiseLoading(true);
       try {
-        const queryParams = new URLSearchParams({
-          token: "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414",
-          company_ids: activeFilters.companyName || "",
-          department_ids: activeFilters.departmentName || "",
-          vendor_ids: activeFilters.vendors || "",
-          status: "approved",
-          pq_type: "without_pq,with_pq",
-          from_date: formatDtForAPI(activeFilters.startDate),
-          end_date: formatDtForAPI(activeFilters.endDate),
-          group_by: "quarter",
-        });
+        const queryParams = new URLSearchParams();
+        queryParams.append("token", "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414");
+        queryParams.append("status", "approved");
+        queryParams.append("pq_type", "without_pq,with_pq");
+        queryParams.append("group_by", "quarter");
+        
+        if (activeFilters.companyName) queryParams.append("company_ids", activeFilters.companyName);
+        if (activeFilters.departmentName) queryParams.append("department_ids", activeFilters.departmentName);
+        if (activeFilters.vendors) queryParams.append("vendor_ids", activeFilters.vendors);
+        if (activeFilters.startDate) queryParams.append("from_date", formatDtForAPI(activeFilters.startDate));
+        if (activeFilters.endDate) queryParams.append("end_date", formatDtForAPI(activeFilters.endDate));
+        
         const response = await fetch(
-          `https://vendors.lockated.com/vendor_pq_dashboard/time_wise_registration.json?${queryParams}`,
+          `${baseURL}vendor_pq_dashboard/time_wise_registration.json?${queryParams}`,
         );
         const json = await response.json();
+        // API returns { data: { group_by: "quarter", quarters: [...] } }
+        // Each quarter has: quarter ("Q36"), label (full title), total, with_pq, without_pq
         let rawData =
+          json?.data?.quarters ||
           json?.data?.time_wise_registration ||
+          Object.values(json?.data || {}).find((val) => Array.isArray(val)) ||
           Object.values(json).find((val) => Array.isArray(val)) ||
           [];
         setQuarterWiseData(
-          rawData.map((item) => ({
-            quarter: item.quarter || item.period || "Q",
-            pqApproved: Number(item.with_pq || item.pqApproved || 0),
-            nonPqApproved: Number(item.without_pq || item.nonPqApproved || 0),
-          })),
+          rawData
+            .map((item) => ({
+              quarter: item.quarter || item.period || "Q",
+              label: item.label || item.quarter || "",
+              pqApproved: Number(item.with_pq || item.pqApproved || 0),
+              nonPqApproved: Number(item.without_pq || item.nonPqApproved || 0),
+              total: Number(item.total || 0),
+            })),
         );
       } catch (error) {
         setQuarterWiseData([]);
@@ -810,31 +873,38 @@ function VendorManagementDashboard() {
     const fetchMonthWiseData = async () => {
       setIsMonthWiseLoading(true);
       try {
-        const queryParams = new URLSearchParams({
-          token: "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414",
-          company_ids: activeFilters.companyName || "",
-          department_ids: activeFilters.departmentName || "",
-          vendor_ids: activeFilters.vendors || "",
-          status: "approved",
-          pq_type: "without_pq,with_pq",
-          from_date: formatDtForAPI(activeFilters.startDate),
-          end_date: formatDtForAPI(activeFilters.endDate),
-          group_by: "month",
-        });
+        const queryParams = new URLSearchParams();
+        queryParams.append("token", "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414");
+        queryParams.append("status", "approved");
+        queryParams.append("pq_type", "without_pq,with_pq");
+        queryParams.append("group_by", "month");
+        
+        if (activeFilters.companyName) queryParams.append("company_ids", activeFilters.companyName);
+        if (activeFilters.departmentName) queryParams.append("department_ids", activeFilters.departmentName);
+        if (activeFilters.vendors) queryParams.append("vendor_ids", activeFilters.vendors);
+        if (activeFilters.startDate) queryParams.append("from_date", formatDtForAPI(activeFilters.startDate));
+        if (activeFilters.endDate) queryParams.append("end_date", formatDtForAPI(activeFilters.endDate));
+        
         const response = await fetch(
-          `https://vendors.lockated.com/vendor_pq_dashboard/time_wise_registration.json?${queryParams}`,
+          `${baseURL}vendor_pq_dashboard/time_wise_registration.json?${queryParams}`,
         );
         const json = await response.json();
+        // API returns { data: { group_by: "month", months: [...] } }
+        // Each month has: label, total, with_pq, without_pq
         let rawData =
+          json?.data?.months ||
           json?.data?.time_wise_registration ||
+          Object.values(json?.data || {}).find((val) => Array.isArray(val)) ||
           Object.values(json).find((val) => Array.isArray(val)) ||
           [];
         setMonthWiseData(
-          rawData.map((item) => ({
-            month: item.month || item.period || "M",
-            pqApproved: Number(item.with_pq || item.pqApproved || 0),
-            nonPqApproved: Number(item.without_pq || item.nonPqApproved || 0),
-          })),
+          rawData
+            .map((item) => ({
+              month: item.label || item.month || item.period || "M",
+              pqApproved: Number(item.with_pq || item.pqApproved || 0),
+              nonPqApproved: Number(item.without_pq || item.nonPqApproved || 0),
+              total: Number(item.total || 0),
+            })),
         );
       } catch (error) {
         setMonthWiseData([]);
@@ -846,29 +916,27 @@ function VendorManagementDashboard() {
     const fetchDeptPreQual = async () => {
       setIsDeptPreQualLoading(true);
       try {
-        const queryParams = new URLSearchParams({
-          token: "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414",
-          company_ids: activeFilters.companyName || "",
-          department_ids: activeFilters.departmentName || "",
-          vendor_ids: activeFilters.vendors || "",
-          from_date: formatDtForAPI(activeFilters.startDate),
-          end_date: formatDtForAPI(activeFilters.endDate),
-        });
+        const queryParams = new URLSearchParams();
+        queryParams.append("token", "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414");
+        
+        if (activeFilters.companyName) queryParams.append("company_ids", activeFilters.companyName);
+        if (activeFilters.departmentName) queryParams.append("department_ids", activeFilters.departmentName);
+        if (activeFilters.vendors) queryParams.append("vendor_ids", activeFilters.vendors);
+        if (activeFilters.startDate) queryParams.append("from_date", formatDtForAPI(activeFilters.startDate));
+        if (activeFilters.endDate) queryParams.append("end_date", formatDtForAPI(activeFilters.endDate));
+        
         const response = await fetch(
-          `https://vendors.lockated.com/vendor_pq_dashboard/department_pq_split.json?${queryParams}`,
+          `${baseURL}vendor_pq_dashboard/department_pq_split.json?${queryParams}`,
         );
         const json = await response.json();
         let rawData =
+          json?.data?.departments ||
           json?.data?.department_pq_split ||
+          json?.departments ||
+          Object.values(json?.data || {}).find((val) => Array.isArray(val)) ||
           Object.values(json).find((val) => Array.isArray(val)) ||
           [];
-        setDeptPreQualData(
-          rawData.map((item) => ({
-            department: item.department_name || item.name || "Unknown",
-            pqApproved: Number(item.with_pq || item.pqApproved || 0),
-            nonPqApproved: Number(item.without_pq || item.nonPqApproved || 0),
-          })),
-        );
+        setDeptPreQualData(rawData);
       } catch (error) {
         setDeptPreQualData([]);
       } finally {
@@ -879,17 +947,18 @@ function VendorManagementDashboard() {
     const fetchPendingApprovals = async () => {
       setIsPendingApprovalsLoading(true);
       try {
-        const queryParams = new URLSearchParams({
-          token: "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414",
-          company_ids: activeFilters.companyName || "",
-          department_ids: activeFilters.departmentName || "",
-          vendor_ids: activeFilters.vendors || "",
-          status: "approved",
-          from_date: formatDtForAPI(activeFilters.startDate),
-          end_date: formatDtForAPI(activeFilters.endDate),
-        });
+        const queryParams = new URLSearchParams();
+        queryParams.append("token", "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414");
+        queryParams.append("status", "approved");
+        
+        if (activeFilters.companyName) queryParams.append("company_ids", activeFilters.companyName);
+        if (activeFilters.departmentName) queryParams.append("department_ids", activeFilters.departmentName);
+        if (activeFilters.vendors) queryParams.append("vendor_ids", activeFilters.vendors);
+        if (activeFilters.startDate) queryParams.append("from_date", formatDtForAPI(activeFilters.startDate));
+        if (activeFilters.endDate) queryParams.append("end_date", formatDtForAPI(activeFilters.endDate));
+        
         const response = await fetch(
-          `https://vendors.lockated.com/vendor_pq_dashboard/pending_approvals_by_level.json?${queryParams}`,
+          `${baseURL}vendor_pq_dashboard/pending_approvals_by_level.json?${queryParams}`,
         );
         const json = await response.json();
         let rawData =
@@ -912,16 +981,17 @@ function VendorManagementDashboard() {
     const fetchSupplierPerformance = async () => {
       setIsSupplierPerformanceLoading(true);
       try {
-        const queryParams = new URLSearchParams({
-          token: "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414",
-          company_ids: activeFilters.companyName || "",
-          department_ids: activeFilters.departmentName || "",
-          vendor_ids: activeFilters.vendors || "",
-          from_date: formatDtForAPI(activeFilters.startDate),
-          end_date: formatDtForAPI(activeFilters.endDate),
-        });
+        const queryParams = new URLSearchParams();
+        queryParams.append("token", "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414");
+        
+        if (activeFilters.companyName) queryParams.append("company_ids", activeFilters.companyName);
+        if (activeFilters.departmentName) queryParams.append("department_ids", activeFilters.departmentName);
+        if (activeFilters.vendors) queryParams.append("vendor_ids", activeFilters.vendors);
+        if (activeFilters.startDate) queryParams.append("from_date", formatDtForAPI(activeFilters.startDate));
+        if (activeFilters.endDate) queryParams.append("end_date", formatDtForAPI(activeFilters.endDate));
+        
         const response = await fetch(
-          `https://vendors.lockated.com/vendor_pq_dashboard/department_supplier_performance.json?${queryParams}`,
+          `${baseURL}vendor_pq_dashboard/department_supplier_performance.json?${queryParams}`,
         );
         const json = await response.json();
         let rawData =
@@ -946,17 +1016,18 @@ function VendorManagementDashboard() {
     const fetchApprovedVendors = async () => {
       setIsApprovedVendorsLoading(true);
       try {
-        const queryParams = new URLSearchParams({
-          token: "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414",
-          company_ids: activeFilters.companyName || "",
-          department_ids: activeFilters.departmentName || "",
-          vendor_ids: activeFilters.vendors || "",
-          status: "approved",
-          from_date: formatDtForAPI(activeFilters.startDate),
-          end_date: formatDtForAPI(activeFilters.endDate),
-        });
+        const queryParams = new URLSearchParams();
+        queryParams.append("token", "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414");
+        queryParams.append("status", "approved");
+        
+        if (activeFilters.companyName) queryParams.append("company_ids", activeFilters.companyName);
+        if (activeFilters.departmentName) queryParams.append("department_ids", activeFilters.departmentName);
+        if (activeFilters.vendors) queryParams.append("vendor_ids", activeFilters.vendors);
+        if (activeFilters.startDate) queryParams.append("from_date", formatDtForAPI(activeFilters.startDate));
+        if (activeFilters.endDate) queryParams.append("end_date", formatDtForAPI(activeFilters.endDate));
+        
         const response = await fetch(
-          `https://vendors.lockated.com/vendor_pq_dashboard/pq_vendor_stats.json?${queryParams}`,
+          `${baseURL}vendor_pq_dashboard/pq_vendor_stats.json?${queryParams}`,
         );
         const json = await response.json();
         let rawData = json?.data?.suppliers || [];
@@ -982,43 +1053,54 @@ function VendorManagementDashboard() {
       }
     };
 
-    const fetchPqVendorStats = async () => {
-      if (activeFilters.pqType === "with_pq") setIsPqVendorsLoading(true);
-      else setIsNonPqVendorsLoading(true);
+    const fetchPqVendors = async () => {
+      setIsPqVendorsLoading(true);
       try {
-        const queryParams = new URLSearchParams({
-          token: "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414",
-          company_ids: activeFilters.companyName || "",
-          department_ids: activeFilters.departmentName || "",
-          vendor_ids: activeFilters.vendors || "",
-          status: "approved",
-          from_date: formatDtForAPI(activeFilters.startDate),
-          end_date: formatDtForAPI(activeFilters.endDate),
-          pq_type: activeFilters.pqType || "with_pq",
-        });
+        const queryParams = new URLSearchParams();
+        queryParams.append("token", "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414");
+        queryParams.append("status", "approved");
+        queryParams.append("pq_type", "with_pq");
+        
+        if (activeFilters.companyName) queryParams.append("company_ids", activeFilters.companyName);
+        if (activeFilters.departmentName) queryParams.append("department_ids", activeFilters.departmentName);
+        if (activeFilters.vendors) queryParams.append("vendor_ids", activeFilters.vendors);
+        if (activeFilters.startDate) queryParams.append("from_date", formatDtForAPI(activeFilters.startDate));
+        if (activeFilters.endDate) queryParams.append("end_date", formatDtForAPI(activeFilters.endDate));
+        
         const response = await fetch(
-          `https://vendors.lockated.com/vendor_pq_dashboard/pq_vendor_stats.json?${queryParams}`,
+          `${baseURL}vendor_pq_dashboard/pq_vendor_stats.json?${queryParams}`,
         );
         const json = await response.json();
-        let rawData = json?.data?.suppliers || [];
-        const formattedData = rawData.map((item) => ({
-          organization: item.organization_name || "-",
-          department: item.department_name || "-",
-          status: item.status || "Approved",
-          vendorCode: item.vendor_code || "-",
-          registrationDate: item.registration_date || "-",
-          category: item.category || "-",
-          contactPerson: item.contact_person || "-",
-          email: item.contact_email || "-",
-          phone: item.contact_phone || "-",
-        }));
-        if (activeFilters.pqType === "with_pq") setPqVendorsData(formattedData);
-        else setNonPqVendorsData(formattedData);
+        setPqVendorsData(json?.data?.suppliers || []);
       } catch (error) {
         setPqVendorsData([]);
-        setNonPqVendorsData([]);
       } finally {
         setIsPqVendorsLoading(false);
+      }
+    };
+
+    const fetchNonPqVendors = async () => {
+      setIsNonPqVendorsLoading(true);
+      try {
+        const queryParams = new URLSearchParams();
+        queryParams.append("token", "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414");
+        queryParams.append("status", "approved");
+        queryParams.append("pq_type", "without_pq");
+        
+        if (activeFilters.companyName) queryParams.append("company_ids", activeFilters.companyName);
+        if (activeFilters.departmentName) queryParams.append("department_ids", activeFilters.departmentName);
+        if (activeFilters.vendors) queryParams.append("vendor_ids", activeFilters.vendors);
+        if (activeFilters.startDate) queryParams.append("from_date", formatDtForAPI(activeFilters.startDate));
+        if (activeFilters.endDate) queryParams.append("end_date", formatDtForAPI(activeFilters.endDate));
+        
+        const response = await fetch(
+          `${baseURL}vendor_pq_dashboard/pq_vendor_stats.json?${queryParams}`,
+        );
+        const json = await response.json();
+        setNonPqVendorsData(json?.data?.suppliers || []);
+      } catch (error) {
+        setNonPqVendorsData([]);
+      } finally {
         setIsNonPqVendorsLoading(false);
       }
     };
@@ -1026,17 +1108,18 @@ function VendorManagementDashboard() {
     const fetchResubmissionRequests = async () => {
       setIsResubmissionRequestsLoading(true);
       try {
-        const queryParams = new URLSearchParams({
-          token: "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414",
-          company_ids: activeFilters.companyName || "",
-          department_ids: activeFilters.departmentName || "",
-          vendor_ids: activeFilters.vendors || "",
-          status: "request_for_resubmission",
-          from_date: formatDtForAPI(activeFilters.startDate),
-          end_date: formatDtForAPI(activeFilters.endDate),
-        });
+        const queryParams = new URLSearchParams();
+        queryParams.append("token", "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414");
+        queryParams.append("status", "request_for_resubmission");
+        
+        if (activeFilters.companyName) queryParams.append("company_ids", activeFilters.companyName);
+        if (activeFilters.departmentName) queryParams.append("department_ids", activeFilters.departmentName);
+        if (activeFilters.vendors) queryParams.append("vendor_ids", activeFilters.vendors);
+        if (activeFilters.startDate) queryParams.append("from_date", formatDtForAPI(activeFilters.startDate));
+        if (activeFilters.endDate) queryParams.append("end_date", formatDtForAPI(activeFilters.endDate));
+        
         const response = await fetch(
-          `https://vendors.lockated.com/vendor_pq_dashboard/pq_vendor_stats.json?${queryParams}`,
+          `${baseURL}vendor_pq_dashboard/pq_vendor_stats.json?${queryParams}`,
         );
         const json = await response.json();
         let rawData = json?.data?.suppliers || [];
@@ -1045,6 +1128,9 @@ function VendorManagementDashboard() {
             organization: item.organization_name || "-",
             department: item.department_name || "-",
             status: item.status || "Request for Resubmission",
+            vendorTat: item.vendor_tat_days ?? "-",
+            internalTat: item.internal_tat_days ?? "-",
+            cumulativeTat: item.cumulative_tat_days ?? "-",
             requestDate: item.request_date || "-",
             reason: item.reason || "-",
             requestedBy: item.requested_by || "-",
@@ -1062,17 +1148,18 @@ function VendorManagementDashboard() {
     const fetchOnboardingInProcess = async () => {
       setIsOnboardingInProcessLoading(true);
       try {
-        const queryParams = new URLSearchParams({
-          token: "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414",
-          company_ids: activeFilters.companyName || "",
-          department_ids: activeFilters.departmentName || "",
-          vendor_ids: activeFilters.vendors || "",
-          status: "onboarding",
-          from_date: formatDtForAPI(activeFilters.startDate),
-          end_date: formatDtForAPI(activeFilters.endDate),
-        });
+        const queryParams = new URLSearchParams();
+        queryParams.append("token", "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414");
+        queryParams.append("status", "onboarding");
+        
+        if (activeFilters.companyName) queryParams.append("company_ids", activeFilters.companyName);
+        if (activeFilters.departmentName) queryParams.append("department_ids", activeFilters.departmentName);
+        if (activeFilters.vendors) queryParams.append("vendor_ids", activeFilters.vendors);
+        if (activeFilters.startDate) queryParams.append("from_date", formatDtForAPI(activeFilters.startDate));
+        if (activeFilters.endDate) queryParams.append("end_date", formatDtForAPI(activeFilters.endDate));
+        
         const response = await fetch(
-          `https://vendors.lockated.com/vendor_pq_dashboard/pq_vendor_stats.json?${queryParams}`,
+          `${baseURL}vendor_pq_dashboard/pq_vendor_stats.json?${queryParams}`,
         );
         const json = await response.json();
         let rawData = json?.data?.suppliers || [];
@@ -1081,6 +1168,9 @@ function VendorManagementDashboard() {
             organization: item.organization_name || "-",
             department: item.department_name || "-",
             status: item.status || "Onboarding",
+            vendorTat: item.vendor_tat_days ?? "-",
+            internalTat: item.internal_tat_days ?? "-",
+            cumulativeTat: item.cumulative_tat_days ?? "-",
             startDate: item.start_date || "-",
             currentStage: item.current_stage || "-",
             daysInProcess: item.days_in_process || "-",
@@ -1098,17 +1188,18 @@ function VendorManagementDashboard() {
     const fetchInvitedVendors = async () => {
       setIsInvitedVendorsLoading(true);
       try {
-        const queryParams = new URLSearchParams({
-          token: "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414",
-          company_ids: activeFilters.companyName || "",
-          department_ids: activeFilters.departmentName || "",
-          vendor_ids: activeFilters.vendors || "",
-          status: "invited",
-          from_date: formatDtForAPI(activeFilters.startDate),
-          end_date: formatDtForAPI(activeFilters.endDate),
-        });
+        const queryParams = new URLSearchParams();
+        queryParams.append("token", "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414");
+        queryParams.append("status", "invited");
+        
+        if (activeFilters.companyName) queryParams.append("company_ids", activeFilters.companyName);
+        if (activeFilters.departmentName) queryParams.append("department_ids", activeFilters.departmentName);
+        if (activeFilters.vendors) queryParams.append("vendor_ids", activeFilters.vendors);
+        if (activeFilters.startDate) queryParams.append("from_date", formatDtForAPI(activeFilters.startDate));
+        if (activeFilters.endDate) queryParams.append("end_date", formatDtForAPI(activeFilters.endDate));
+        
         const response = await fetch(
-          `https://vendors.lockated.com/vendor_pq_dashboard/pq_vendor_stats.json?${queryParams}`,
+          `${baseURL}vendor_pq_dashboard/pq_vendor_stats.json?${queryParams}`,
         );
         const json = await response.json();
         let rawData = json?.data?.suppliers || [];
@@ -1117,6 +1208,9 @@ function VendorManagementDashboard() {
             organization: item.organization_name || "-",
             department: item.department_name || "-",
             status: item.status || "Invited",
+            vendorTat: item.vendor_tat_days ?? "-",
+            internalTat: item.internal_tat_days ?? "-",
+            cumulativeTat: item.cumulative_tat_days ?? "-",
             invitationDate: item.invitation_date || "-",
             invitedBy: item.invited_by || "-",
             category: item.category || "-",
@@ -1134,17 +1228,18 @@ function VendorManagementDashboard() {
     const fetchDetailsSubmitted = async () => {
       setIsDetailsSubmittedLoading(true);
       try {
-        const queryParams = new URLSearchParams({
-          token: "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414",
-          company_ids: activeFilters.companyName || "",
-          department_ids: activeFilters.departmentName || "",
-          vendor_ids: activeFilters.vendors || "",
-          status: "details_submitted_by_vendor",
-          from_date: formatDtForAPI(activeFilters.startDate),
-          end_date: formatDtForAPI(activeFilters.endDate),
-        });
+        const queryParams = new URLSearchParams();
+        queryParams.append("token", "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414");
+        queryParams.append("status", "details_submitted_by_vendor");
+        
+        if (activeFilters.companyName) queryParams.append("company_ids", activeFilters.companyName);
+        if (activeFilters.departmentName) queryParams.append("department_ids", activeFilters.departmentName);
+        if (activeFilters.vendors) queryParams.append("vendor_ids", activeFilters.vendors);
+        if (activeFilters.startDate) queryParams.append("from_date", formatDtForAPI(activeFilters.startDate));
+        if (activeFilters.endDate) queryParams.append("end_date", formatDtForAPI(activeFilters.endDate));
+        
         const response = await fetch(
-          `https://vendors.lockated.com/vendor_pq_dashboard/pq_vendor_stats.json?${queryParams}`,
+          `${baseURL}vendor_pq_dashboard/pq_vendor_stats.json?${queryParams}`,
         );
         const json = await response.json();
         let rawData = json?.data?.suppliers || [];
@@ -1175,7 +1270,8 @@ function VendorManagementDashboard() {
     fetchPendingApprovals();
     fetchSupplierPerformance();
     fetchApprovedVendors();
-    fetchPqVendorStats();
+    fetchPqVendors();
+    fetchNonPqVendors();
     fetchResubmissionRequests();
     fetchOnboardingInProcess();
     fetchInvitedVendors();
@@ -1248,24 +1344,6 @@ function VendorManagementDashboard() {
                       </div>
 
                       <div className="d-flex align-items-center gap-3">
-                        {/* 🔥 CHANGED BUTTON: REMOVED DATES, ADDED "Filters" */}
-                        <button
-                          onClick={() => setIsFilterOpen(true)}
-                          className="btn d-flex align-items-center gap-2"
-                          style={{
-                            backgroundColor: "white",
-                            border: "1px solid #ddd",
-                            color: "#333",
-                            padding: "8px 16px",
-                            borderRadius: "6px",
-                            fontSize: "14px",
-                          }}
-                        >
-                          <Calendar style={{ width: "16px", height: "16px" }} />
-                          <span style={{ fontWeight: 500 }}>Filters</span>
-                          <Filter style={{ width: "16px", height: "16px" }} />
-                        </button>
-
                         <VendorSectionSelector
                           dashboardType="management"
                           data={VENDOR_MANGEMENT}
@@ -1275,6 +1353,13 @@ function VendorManagementDashboard() {
                     </div>
                   </div>
                 </div>
+
+                <VendorFilterCard
+                  onApplyFilters={handleAnalyticsFilterApply}
+                  currentStartDate={activeFilters.startDate}
+                  currentEndDate={activeFilters.endDate}
+                  currentPqType={activeFilters.pqType}
+                />
 
                 <div className="row g-3 mb-4">
                   {visibleSections.includes("approvedVendors") && (
@@ -1410,7 +1495,7 @@ function VendorManagementDashboard() {
                               visibleSections.includes("quarterWise")
                             ) {
                               return (
-                                <div key={chartId} className="col-12 col-lg-6">
+                                <div key={chartId} className="col-12">
                                   <SortableChartItem id={chartId}>
                                     {isQuarterWiseLoading ? (
                                       <div
@@ -1439,7 +1524,7 @@ function VendorManagementDashboard() {
                               visibleSections.includes("monthWise")
                             ) {
                               return (
-                                <div key={chartId} className="col-12 col-lg-6">
+                                <div key={chartId} className="col-12">
                                   <SortableChartItem id={chartId}>
                                     {isMonthWiseLoading ? (
                                       <div
@@ -1611,8 +1696,7 @@ function VendorManagementDashboard() {
 
                           if (
                             chartId === "pqVendorsTable" &&
-                            visibleSections.includes("pqVendors") &&
-                            activeFilters.pqType === "with_pq"
+                            visibleSections.includes("pqVendors")
                           ) {
                             return (
                               <div key={chartId} className="mt-4">
@@ -1635,29 +1719,12 @@ function VendorManagementDashboard() {
                                       title="PQ Vendors"
                                       data={pqVendorsData}
                                       columns={[
-                                        {
-                                          key: "organization",
-                                          label: "Organization Name",
-                                        },
-                                        {
-                                          key: "department",
-                                          label: "Department Name",
-                                        },
+                                        { key: "organization_name", label: "Organization Name" },
+                                        { key: "department_name", label: "Department Name" },
                                         { key: "status", label: "Status" },
-                                        {
-                                          key: "vendorCode",
-                                          label: "Vendor Code",
-                                        },
-                                        {
-                                          key: "registrationDate",
-                                          label: "Registration Date",
-                                        },
-                                        { key: "category", label: "Category" },
-                                        {
-                                          key: "contactPerson",
-                                          label: "Contact Person",
-                                        },
-                                        { key: "email", label: "Email" },
+                                        { key: "vendor_tat_days", label: "Vendor TAT (Days)" },
+                                        { key: "internal_tat_days", label: "Internal TAT (Days)" },
+                                        { key: "cumulative_tat_days", label: "Cumulative TAT (Days)" },
                                       ]}
                                       onDownload={() => {}}
                                     />
@@ -1669,8 +1736,7 @@ function VendorManagementDashboard() {
 
                           if (
                             chartId === "nonPqVendorsTable" &&
-                            visibleSections.includes("nonPqVendors") &&
-                            activeFilters.pqType === "without_pq"
+                            visibleSections.includes("nonPqVendors")
                           ) {
                             return (
                               <div key={chartId} className="mt-4">
@@ -1693,29 +1759,12 @@ function VendorManagementDashboard() {
                                       title="Non PQ Vendors"
                                       data={nonPqVendorsData}
                                       columns={[
-                                        {
-                                          key: "organization",
-                                          label: "Organization Name",
-                                        },
-                                        {
-                                          key: "department",
-                                          label: "Department Name",
-                                        },
+                                        { key: "organization_name", label: "Organization Name" },
+                                        { key: "department_name", label: "Department Name" },
                                         { key: "status", label: "Status" },
-                                        {
-                                          key: "vendorCode",
-                                          label: "Vendor Code",
-                                        },
-                                        {
-                                          key: "registrationDate",
-                                          label: "Registration Date",
-                                        },
-                                        { key: "category", label: "Category" },
-                                        {
-                                          key: "contactPerson",
-                                          label: "Contact Person",
-                                        },
-                                        { key: "phone", label: "Phone" },
+                                        { key: "vendor_tat_days", label: "Vendor TAT (Days)" },
+                                        { key: "internal_tat_days", label: "Internal TAT (Days)" },
+                                        { key: "cumulative_tat_days", label: "Cumulative TAT (Days)" },
                                       ]}
                                       onDownload={() => {}}
                                     />
@@ -1759,6 +1808,18 @@ function VendorManagementDashboard() {
                                           label: "Department Name",
                                         },
                                         { key: "status", label: "Status" },
+                                        {
+                                          key: "vendorTat",
+                                          label: "Vendor TAT (Days)",
+                                        },
+                                        {
+                                          key: "internalTat",
+                                          label: "Internal TAT (Days)",
+                                        },
+                                        {
+                                          key: "cumulativeTat",
+                                          label: "Cumulative TAT (Days)",
+                                        },
                                         {
                                           key: "invitationDate",
                                           label: "Invitation Date",
@@ -1937,6 +1998,18 @@ function VendorManagementDashboard() {
                                         },
                                         { key: "status", label: "Status" },
                                         {
+                                          key: "vendorTat",
+                                          label: "Vendor TAT (Days)",
+                                        },
+                                        {
+                                          key: "internalTat",
+                                          label: "Internal TAT (Days)",
+                                        },
+                                        {
+                                          key: "cumulativeTat",
+                                          label: "Cumulative TAT (Days)",
+                                        },
+                                        {
                                           key: "startDate",
                                           label: "Start Date",
                                         },
@@ -2000,6 +2073,18 @@ function VendorManagementDashboard() {
                                         },
                                         { key: "status", label: "Status" },
                                         {
+                                          key: "vendorTat",
+                                          label: "Vendor TAT (Days)",
+                                        },
+                                        {
+                                          key: "internalTat",
+                                          label: "Internal TAT (Days)",
+                                        },
+                                        {
+                                          key: "cumulativeTat",
+                                          label: "Cumulative TAT (Days)",
+                                        },
+                                        {
                                           key: "requestDate",
                                           label: "Request Date",
                                         },
@@ -2031,15 +2116,6 @@ function VendorManagementDashboard() {
                     </div>
                   </SortableContext>
                 </DndContext>
-
-                <InlineFilterDialog
-                  isOpen={isFilterOpen}
-                  onClose={() => setIsFilterOpen(false)}
-                  onApplyFilters={handleAnalyticsFilterApply}
-                  currentStartDate={activeFilters.startDate}
-                  currentEndDate={activeFilters.endDate}
-                  currentPqType={activeFilters.pqType}
-                />
               </div>
             </div>
           </div>
@@ -2050,3 +2126,5 @@ function VendorManagementDashboard() {
 }
 
 export default VendorManagementDashboard;
+
+

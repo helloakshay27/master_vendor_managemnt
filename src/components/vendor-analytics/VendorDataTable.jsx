@@ -1,5 +1,5 @@
 import React from "react";
-import { Download } from "lucide-react";
+import { Download, ChevronLeft, ChevronRight } from "lucide-react";
 
 export const VendorDataTable = ({
   title,
@@ -7,6 +7,8 @@ export const VendorDataTable = ({
   columns,
   onDownload,
   className = "",
+  pagination,
+  onPageChange,
 }) => {
 
   if (!data || data.length === 0) {
@@ -162,6 +164,69 @@ export const VendorDataTable = ({
           </table>
         </div>
       </div>
+      {pagination && (
+        <div
+          style={{
+            padding: "12px 20px",
+            borderTop: "1px solid #d1d5db",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            flexShrink: 0,
+            backgroundColor: "#fff",
+            borderBottomLeftRadius: "8px",
+            borderBottomRightRadius: "8px",
+          }}
+        >
+          <div style={{ fontSize: "14px", color: "#374151" }}>
+            Showing page {pagination.current_page} of {pagination.total_pages}{" "}
+            ({pagination.total_records} total records)
+          </div>
+          <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+            <button
+              onClick={() => onPageChange(pagination.current_page - 1)}
+              disabled={pagination.current_page <= 1}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                padding: "6px 12px",
+                border: "1px solid #d1d5db",
+                borderRadius: "4px",
+                backgroundColor: pagination.current_page <= 1 ? "#f3f4f6" : "#fff",
+                cursor: pagination.current_page <= 1 ? "not-allowed" : "pointer",
+                color: pagination.current_page <= 1 ? "#9ca3af" : "#374151",
+              }}
+            >
+              <ChevronLeft size={16} />
+              <span style={{ marginLeft: "4px" }}>Prev</span>
+            </button>
+            <button
+              onClick={() => onPageChange(pagination.current_page + 1)}
+              disabled={pagination.current_page >= pagination.total_pages}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                padding: "6px 12px",
+                border: "1px solid #d1d5db",
+                borderRadius: "4px",
+                backgroundColor:
+                  pagination.current_page >= pagination.total_pages ? "#f3f4f6" : "#fff",
+                cursor:
+                  pagination.current_page >= pagination.total_pages
+                    ? "not-allowed"
+                    : "pointer",
+                color:
+                  pagination.current_page >= pagination.total_pages
+                    ? "#9ca3af"
+                    : "#374151",
+              }}
+            >
+              <span style={{ marginRight: "4px" }}>Next</span>
+              <ChevronRight size={16} />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
