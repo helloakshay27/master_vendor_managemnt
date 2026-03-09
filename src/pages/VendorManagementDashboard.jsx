@@ -643,23 +643,39 @@ function VendorManagementDashboard() {
   const [isSupplierPerformanceLoading, setIsSupplierPerformanceLoading] =
     useState(false);
   const [approvedVendorsData, setApprovedVendorsData] = useState([]);
-  const [isApprovedVendorsLoading, setIsApprovedVendorsLoading] =
-    useState(false);
+  const [approvedVendorsPagination, setApprovedVendorsPagination] = useState(null);
+  const [approvedVendorsPage, setApprovedVendorsPage] = useState(1);
+  const [isApprovedVendorsLoading, setIsApprovedVendorsLoading] = useState(false);
+
   const [pqVendorsData, setPqVendorsData] = useState([]);
+  const [pqVendorsPagination, setPqVendorsPagination] = useState(null);
+  const [pqVendorsPage, setPqVendorsPage] = useState(1);
   const [isPqVendorsLoading, setIsPqVendorsLoading] = useState(false);
+
   const [nonPqVendorsData, setNonPqVendorsData] = useState([]);
+  const [nonPqVendorsPagination, setNonPqVendorsPagination] = useState(null);
+  const [nonPqVendorsPage, setNonPqVendorsPage] = useState(1);
   const [isNonPqVendorsLoading, setIsNonPqVendorsLoading] = useState(false);
+
   const [resubmissionRequestsData, setResubmissionRequestsData] = useState([]);
-  const [isResubmissionRequestsLoading, setIsResubmissionRequestsLoading] =
-    useState(false);
+  const [resubmissionRequestsPagination, setResubmissionRequestsPagination] = useState(null);
+  const [resubmissionRequestsPage, setResubmissionRequestsPage] = useState(1);
+  const [isResubmissionRequestsLoading, setIsResubmissionRequestsLoading] = useState(false);
+
   const [onboardingInProcessData, setOnboardingInProcessData] = useState([]);
-  const [isOnboardingInProcessLoading, setIsOnboardingInProcessLoading] =
-    useState(false);
+  const [onboardingInProcessPagination, setOnboardingInProcessPagination] = useState(null);
+  const [onboardingInProcessPage, setOnboardingInProcessPage] = useState(1);
+  const [isOnboardingInProcessLoading, setIsOnboardingInProcessLoading] = useState(false);
+
   const [invitedVendorsData, setInvitedVendorsData] = useState([]);
+  const [invitedVendorsPagination, setInvitedVendorsPagination] = useState(null);
+  const [invitedVendorsPage, setInvitedVendorsPage] = useState(1);
   const [isInvitedVendorsLoading, setIsInvitedVendorsLoading] = useState(false);
+
   const [detailsSubmittedData, setDetailsSubmittedData] = useState([]);
-  const [isDetailsSubmittedLoading, setIsDetailsSubmittedLoading] =
-    useState(false);
+  const [detailsSubmittedPagination, setDetailsSubmittedPagination] = useState(null);
+  const [detailsSubmittedPage, setDetailsSubmittedPage] = useState(1);
+  const [isDetailsSubmittedLoading, setIsDetailsSubmittedLoading] = useState(false);
 
   // Default Empty States
   const [yearWiseData, setYearWiseData] = useState([]);

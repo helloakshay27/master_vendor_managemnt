@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Download, ChevronLeft, ChevronRight } from "lucide-react";
 
 export const VendorDataTable = ({
@@ -7,9 +7,11 @@ export const VendorDataTable = ({
   columns,
   onDownload,
   className = "",
-  pagination,
-  onPageChange,
+  pagination: externalPagination,
+  onPageChange: externalOnPageChange,
+  itemsPerPage = 10,
 }) => {
+  const [currentPage, setCurrentPage] = useState(1);
 
   if (!data || data.length === 0) {
     return (
@@ -51,6 +53,32 @@ export const VendorDataTable = ({
       </div>
     );
   }
+
+  const isLocalPagination = !externalPagination;
+  const activePerPage = externalPagination?.per_page || itemsPerPage;
+  const totalRecords = isLocalPagination ? data.length : externalPagination.total_records;
+  const totalPages = isLocalPagination
+    ? Math.max(1, Math.ceil(totalRecords / activePerPage))
+    : externalPagination.total_pages;
+
+  // Make sure current page is within valid range for local pagination
+  const safeCurrentPage = isLocalPagination
+    ? Math.min(Math.max(1, currentPage), totalPages)
+    : externalPagination.current_page;
+
+  const handlePageChange = (newPage) => {
+    if (isLocalPagination) {
+      setCurrentPage(newPage);
+    } else if (externalOnPageChange) {
+      externalOnPageChange(newPage);
+    }
+  };
+
+  const displayData = isLocalPagination
+    ? data.slice((safeCurrentPage - 1) * activePerPage, safeCurrentPage * activePerPage)
+    : data;
+
+  const showPagination = totalPages > 1 || externalPagination;
 
   return (
     <div
@@ -127,7 +155,7 @@ export const VendorDataTable = ({
               </tr>
             </thead>
             <tbody style={{ backgroundColor: "white" }}>
-              {data.map((row, rowIndex) => {
+              {displayData.map((row, rowIndex) => {
                 const isTotal = row.isTotal;
                 return (
                   <tr
@@ -152,9 +180,9 @@ export const VendorDataTable = ({
                         {column.render
                           ? column.render(row[column.key], row)
                           : row[column.key] !== undefined &&
-                              row[column.key] !== ""
-                            ? row[column.key]
-                            : ""}
+                            row[column.key] !== ""
+                          ? row[column.key]
+                          : ""}
                       </td>
                     ))}
                   </tr>
@@ -164,69 +192,105 @@ export const VendorDataTable = ({
           </table>
         </div>
       </div>
-      {pagination && (
-        <div
-          style={{
-            padding: "12px 20px",
-            borderTop: "1px solid #d1d5db",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            flexShrink: 0,
-            backgroundColor: "#fff",
-            borderBottomLeftRadius: "8px",
-            borderBottomRightRadius: "8px",
-          }}
-        >
-          <div style={{ fontSize: "14px", color: "#374151" }}>
-            Showing page {pagination.current_page} of {pagination.total_pages}{" "}
-            ({pagination.total_records} total records)
+      {showPagination && (() => {
+        const startIndex = totalRecords === 0 ? 0 : (safeCurrentPage - 1) * activePerPage + 1;
+        const endIndex = Math.min(safeCurrentPage * activePerPage, totalRecords);
+
+        // Generate visible page numbers
+        let startPage = Math.max(1, safeCurrentPage - 2);
+        let endPage = Math.min(totalPages, safeCurrentPage + 2);
+        if (endPage - startPage < 4) {
+          if (startPage === 1) endPage = Math.min(totalPages, 5);
+          else if (endPage === totalPages) startPage = Math.max(1, totalPages - 4);
+        }
+        const pages = [];
+        for (let i = startPage; i <= endPage; i++) {
+          pages.push(i);
+        }
+
+        const btnStyle = {
+          padding: "6px 12px",
+          border: "1px solid #d1d5db",
+          borderRadius: "4px",
+          fontSize: "14px",
+          cursor: "pointer",
+          backgroundColor: "#fff",
+          color: "#374151"
+        };
+        const activeBtnStyle = {
+          ...btnStyle,
+          backgroundColor: "#d97938",
+          color: "#fff",
+          borderColor: "#d97938"
+        };
+        const disabledBtnStyle = {
+          ...btnStyle,
+          backgroundColor: "#e5e7eb",
+          color: "#6b7280",
+          cursor: "not-allowed"
+        };
+
+        return (
+          <div
+            style={{
+              padding: "12px 20px",
+              borderTop: "1px solid #d1d5db",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              flexShrink: 0,
+              backgroundColor: "#fff",
+              borderBottomLeftRadius: "8px",
+              borderBottomRightRadius: "8px",
+            }}
+          >
+            <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+              <button
+                onClick={() => handlePageChange(1)}
+                disabled={safeCurrentPage <= 1}
+                style={safeCurrentPage <= 1 ? disabledBtnStyle : btnStyle}
+              >
+                First
+              </button>
+              <button
+                onClick={() => handlePageChange(safeCurrentPage - 1)}
+                disabled={safeCurrentPage <= 1}
+                style={safeCurrentPage <= 1 ? disabledBtnStyle : btnStyle}
+              >
+                Prev
+              </button>
+              
+              {pages.map(page => (
+                <button
+                  key={page}
+                  onClick={() => handlePageChange(page)}
+                  style={page === safeCurrentPage ? activeBtnStyle : btnStyle}
+                >
+                  {page}
+                </button>
+              ))}
+
+              <button
+                onClick={() => handlePageChange(safeCurrentPage + 1)}
+                disabled={safeCurrentPage >= totalPages}
+                style={safeCurrentPage >= totalPages ? disabledBtnStyle : btnStyle}
+              >
+                Next
+              </button>
+              <button
+                onClick={() => handlePageChange(totalPages)}
+                disabled={safeCurrentPage >= totalPages}
+                style={safeCurrentPage >= totalPages ? disabledBtnStyle : btnStyle}
+              >
+                Last
+              </button>
+            </div>
+            <div style={{ fontSize: "14px", color: "#6b7280" }}>
+              Showing {startIndex} to {endIndex} of {totalRecords} entries
+            </div>
           </div>
-          <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-            <button
-              onClick={() => onPageChange(pagination.current_page - 1)}
-              disabled={pagination.current_page <= 1}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                padding: "6px 12px",
-                border: "1px solid #d1d5db",
-                borderRadius: "4px",
-                backgroundColor: pagination.current_page <= 1 ? "#f3f4f6" : "#fff",
-                cursor: pagination.current_page <= 1 ? "not-allowed" : "pointer",
-                color: pagination.current_page <= 1 ? "#9ca3af" : "#374151",
-              }}
-            >
-              <ChevronLeft size={16} />
-              <span style={{ marginLeft: "4px" }}>Prev</span>
-            </button>
-            <button
-              onClick={() => onPageChange(pagination.current_page + 1)}
-              disabled={pagination.current_page >= pagination.total_pages}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                padding: "6px 12px",
-                border: "1px solid #d1d5db",
-                borderRadius: "4px",
-                backgroundColor:
-                  pagination.current_page >= pagination.total_pages ? "#f3f4f6" : "#fff",
-                cursor:
-                  pagination.current_page >= pagination.total_pages
-                    ? "not-allowed"
-                    : "pointer",
-                color:
-                  pagination.current_page >= pagination.total_pages
-                    ? "#9ca3af"
-                    : "#374151",
-              }}
-            >
-              <span style={{ marginRight: "4px" }}>Next</span>
-              <ChevronRight size={16} />
-            </button>
-          </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 };
