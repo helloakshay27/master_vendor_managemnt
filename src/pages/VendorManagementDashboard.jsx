@@ -42,6 +42,7 @@ const InlineFilterDialog = ({
   currentStartDate,
   currentEndDate,
   currentPqType,
+  token, // Added token prop
 }) => {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -82,7 +83,7 @@ const InlineFilterDialog = ({
         setIsLoadingCompanies(true);
         try {
           const response = await fetch(
-            `${baseURL}vendor_pq_dashboard/company_slicer.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`,
+            `${baseURL}vendor_pq_dashboard/company_slicer.json?token=${token}`,
           );
           const data = await response.json();
           let arr = [];
@@ -109,7 +110,7 @@ const InlineFilterDialog = ({
         setIsLoadingDepartments(true);
         try {
           const response = await fetch(
-            `${baseURL}vendor_pq_dashboard/department_slicer.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&company_ids=${companyName}`,
+            `${baseURL}vendor_pq_dashboard/department_slicer.json?token=${token}&company_ids=${companyName}`,
           );
           const data = await response.json();
           let arr = [];
@@ -142,7 +143,7 @@ const InlineFilterDialog = ({
         setIsLoadingVendors(true);
         try {
           const response = await fetch(
-            `${baseURL}vendor_pq_dashboard/vendors_slicer.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&company_ids=${companyName}`,
+            `${baseURL}vendor_pq_dashboard/vendors_slicer.json?token=${token}&company_ids=${companyName}`,
           );
           const data = await response.json();
           let arr = [];
@@ -577,6 +578,9 @@ const APPROVED_VENDORS_COLUMNS = [
 // MAIN COMPONENT
 // =========================================================================
 function VendorManagementDashboard() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const tokenFromUrl = urlParams.get("token") || "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414";
+
   const [visibleSections, setVisibleSections] = useState([
     "departmentPreQual",
     "departmentDistribution",
@@ -744,7 +748,7 @@ function VendorManagementDashboard() {
     const fetchStatCards = async () => {
       try {
         const queryParams = new URLSearchParams();
-        queryParams.append("token", "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414");
+        queryParams.append("token", tokenFromUrl);
         queryParams.append("status", "approved,rejected,invited,verification_pending,details_submitted_by_vendor,request_for_resubmission,onboarding");
         queryParams.append("pq_type", "without_pq,with_pq");
         
@@ -799,7 +803,7 @@ function VendorManagementDashboard() {
       setIsDeptDistributionLoading(true);
       try {
         const queryParams = new URLSearchParams();
-        queryParams.append("token", "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414");
+        queryParams.append("token", tokenFromUrl);
         
         if (activeFilters.companyName) queryParams.append("company_ids", activeFilters.companyName);
         if (activeFilters.departmentName) queryParams.append("department_ids", activeFilters.departmentName);
@@ -846,7 +850,7 @@ function VendorManagementDashboard() {
       setIsQuarterWiseLoading(true);
       try {
         const queryParams = new URLSearchParams();
-        queryParams.append("token", "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414");
+        queryParams.append("token", tokenFromUrl);
         queryParams.append("status", "approved");
         queryParams.append("pq_type", "without_pq,with_pq");
         queryParams.append("group_by", "quarter");
@@ -890,7 +894,7 @@ function VendorManagementDashboard() {
       setIsMonthWiseLoading(true);
       try {
         const queryParams = new URLSearchParams();
-        queryParams.append("token", "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414");
+        queryParams.append("token", tokenFromUrl);
         queryParams.append("status", "approved");
         queryParams.append("pq_type", "without_pq,with_pq");
         queryParams.append("group_by", "month");
@@ -933,7 +937,7 @@ function VendorManagementDashboard() {
       setIsDeptPreQualLoading(true);
       try {
         const queryParams = new URLSearchParams();
-        queryParams.append("token", "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414");
+        queryParams.append("token", tokenFromUrl);
         
         if (activeFilters.companyName) queryParams.append("company_ids", activeFilters.companyName);
         if (activeFilters.departmentName) queryParams.append("department_ids", activeFilters.departmentName);
@@ -964,7 +968,7 @@ function VendorManagementDashboard() {
       setIsPendingApprovalsLoading(true);
       try {
         const queryParams = new URLSearchParams();
-        queryParams.append("token", "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414");
+        queryParams.append("token", tokenFromUrl);
         queryParams.append("status", "approved");
         
         if (activeFilters.companyName) queryParams.append("company_ids", activeFilters.companyName);
@@ -998,7 +1002,7 @@ function VendorManagementDashboard() {
       setIsSupplierPerformanceLoading(true);
       try {
         const queryParams = new URLSearchParams();
-        queryParams.append("token", "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414");
+        queryParams.append("token", tokenFromUrl);
         
         if (activeFilters.companyName) queryParams.append("company_ids", activeFilters.companyName);
         if (activeFilters.departmentName) queryParams.append("department_ids", activeFilters.departmentName);
@@ -1033,7 +1037,7 @@ function VendorManagementDashboard() {
       setIsApprovedVendorsLoading(true);
       try {
         const queryParams = new URLSearchParams();
-        queryParams.append("token", "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414");
+        queryParams.append("token", tokenFromUrl);
         queryParams.append("status", "approved");
         
         if (activeFilters.companyName) queryParams.append("company_ids", activeFilters.companyName);
@@ -1073,7 +1077,7 @@ function VendorManagementDashboard() {
       setIsPqVendorsLoading(true);
       try {
         const queryParams = new URLSearchParams();
-        queryParams.append("token", "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414");
+        queryParams.append("token", tokenFromUrl);
         queryParams.append("status", "approved");
         queryParams.append("pq_type", "with_pq");
         
@@ -1099,7 +1103,7 @@ function VendorManagementDashboard() {
       setIsNonPqVendorsLoading(true);
       try {
         const queryParams = new URLSearchParams();
-        queryParams.append("token", "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414");
+        queryParams.append("token", tokenFromUrl);
         queryParams.append("status", "approved");
         queryParams.append("pq_type", "without_pq");
         
@@ -1125,7 +1129,7 @@ function VendorManagementDashboard() {
       setIsResubmissionRequestsLoading(true);
       try {
         const queryParams = new URLSearchParams();
-        queryParams.append("token", "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414");
+        queryParams.append("token", tokenFromUrl);
         queryParams.append("status", "request_for_resubmission");
         
         if (activeFilters.companyName) queryParams.append("company_ids", activeFilters.companyName);
@@ -1165,7 +1169,7 @@ function VendorManagementDashboard() {
       setIsOnboardingInProcessLoading(true);
       try {
         const queryParams = new URLSearchParams();
-        queryParams.append("token", "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414");
+        queryParams.append("token", tokenFromUrl);
         queryParams.append("status", "onboarding");
         
         if (activeFilters.companyName) queryParams.append("company_ids", activeFilters.companyName);
@@ -1205,7 +1209,7 @@ function VendorManagementDashboard() {
       setIsInvitedVendorsLoading(true);
       try {
         const queryParams = new URLSearchParams();
-        queryParams.append("token", "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414");
+        queryParams.append("token", tokenFromUrl);
         queryParams.append("status", "invited");
         
         if (activeFilters.companyName) queryParams.append("company_ids", activeFilters.companyName);
@@ -1245,7 +1249,7 @@ function VendorManagementDashboard() {
       setIsDetailsSubmittedLoading(true);
       try {
         const queryParams = new URLSearchParams();
-        queryParams.append("token", "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414");
+        queryParams.append("token", tokenFromUrl);
         queryParams.append("status", "details_submitted_by_vendor");
         
         if (activeFilters.companyName) queryParams.append("company_ids", activeFilters.companyName);
@@ -1375,6 +1379,7 @@ function VendorManagementDashboard() {
                   currentStartDate={activeFilters.startDate}
                   currentEndDate={activeFilters.endDate}
                   currentPqType={activeFilters.pqType}
+                  token={tokenFromUrl}
                 />
 
                 <div className="row g-3 mb-4">

@@ -103,6 +103,7 @@ export const VendorFilterCard = ({
   onApplyFilters,
   currentStartDate,
   currentEndDate,
+  token, // Added token prop
   currentPqType = "with_pq",
 }) => {
   const [startDate, setStartDate] = useState("");
@@ -141,7 +142,7 @@ export const VendorFilterCard = ({
         setIsLoadingCompanies(true);
         try {
           const response = await fetch(
-            `${baseURL}vendor_pq_dashboard/company_slicer.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`
+            `${baseURL}vendor_pq_dashboard/company_slicer.json?token=${token}`
           );
           const data = await response.json();
           let arr = [];
@@ -168,7 +169,7 @@ export const VendorFilterCard = ({
         setIsLoadingDepartments(true);
         try {
           const response = await fetch(
-            `${baseURL}vendor_pq_dashboard/department_slicer.json?company=${companyName || ""}&token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`
+            `${baseURL}vendor_pq_dashboard/department_slicer.json?company=${companyName || ""}&token=${token}`
           );
           const data = await response.json();
           let arr = [];
@@ -191,7 +192,7 @@ export const VendorFilterCard = ({
         setIsLoadingDepartments(true);
         try {
           const response = await fetch(
-            `${baseURL}vendor_pq_dashboard/department_slicer.json?company=${companyName}&token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`
+            `${baseURL}vendor_pq_dashboard/department_slicer.json?company=${companyName}&token=${token}`
           );
           const data = await response.json();
           let arr = [];
@@ -220,7 +221,7 @@ export const VendorFilterCard = ({
       setIsLoadingVendors(true);
       try {
         const queryParams = new URLSearchParams();
-        queryParams.append("token", "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414");
+        queryParams.append("token", token);
         if (companyName) queryParams.append("company_ids", companyName);
         if (departmentName) queryParams.append("department_ids", departmentName);
 

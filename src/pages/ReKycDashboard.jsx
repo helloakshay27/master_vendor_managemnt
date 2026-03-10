@@ -310,6 +310,9 @@ const getDefaultDateRange = () => {
 // =============================================================================
 
 const KYCManagementDashboard = () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const tokenFromUrl = urlParams.get("token") || "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414";
+
   // State Management
   const [activeFilters, setActiveFilters] = useState({
     ...getDefaultDateRange(),
@@ -395,7 +398,7 @@ const KYCManagementDashboard = () => {
     try {
       const queryParams = new URLSearchParams();
       // Using hardcoded token as requested
-      const hardcodedToken = "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414";
+      const hardcodedToken = tokenFromUrl;
       queryParams.append("token", hardcodedToken);
       
       if (activeFilters.startDate)
@@ -434,7 +437,7 @@ const KYCManagementDashboard = () => {
     setIsChartLoading(true);
     try {
       const queryParams = new URLSearchParams();
-      const hardcodedToken = "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414";
+      const hardcodedToken = tokenFromUrl;
       queryParams.append("token", hardcodedToken);
       
       if (activeFilters.startDate)
@@ -488,7 +491,7 @@ const KYCManagementDashboard = () => {
     setIsApprovedNoReKycLoading(true);
     try {
       const queryParams = new URLSearchParams();
-      const hardcodedToken = "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414";
+      const hardcodedToken = tokenFromUrl;
       queryParams.append("token", hardcodedToken);
       queryParams.append("page", page);
       
@@ -545,7 +548,7 @@ const KYCManagementDashboard = () => {
     setIsOrgWiseStatusLoading(true);
     try {
       const queryParams = new URLSearchParams();
-      const hardcodedToken = "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414";
+      const hardcodedToken = tokenFromUrl;
       queryParams.append("token", hardcodedToken);
       queryParams.append("page", page);
       
@@ -598,7 +601,7 @@ const KYCManagementDashboard = () => {
     loadingSetter(true);
     try {
       const queryParams = new URLSearchParams();
-      const hardcodedToken = "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414";
+      const hardcodedToken = tokenFromUrl;
       queryParams.append("token", hardcodedToken);
       queryParams.append("page", page);
       if (status) queryParams.append("status", status);
@@ -761,6 +764,7 @@ const KYCManagementDashboard = () => {
                   currentStartDate={activeFilters.startDate}
                   currentEndDate={activeFilters.endDate}
                   currentPqType={activeFilters.pqType}
+                  token={tokenFromUrl}
                 />
 
                 {/* ========================================================= */}

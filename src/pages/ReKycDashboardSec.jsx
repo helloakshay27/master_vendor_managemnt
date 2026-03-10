@@ -250,6 +250,9 @@ const KYC_MANAGEMENT_CONFIG = {
 // =============================================================================
 
 const ReKYCDashboard = () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const tokenFromUrl = urlParams.get("token") || "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414";
+  
   // State management
   const [activeFilters, setActiveFilters] = useState({
     ...getDefaultDateRange(),
@@ -304,7 +307,7 @@ const ReKYCDashboard = () => {
     setIsKpiLoading(true);
     try {
       const queryParams = new URLSearchParams();
-      queryParams.append("token", "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414");
+      queryParams.append("token", tokenFromUrl);
       queryParams.append("status", "details_submitted_by_vendor,approved,rejected,pending");
       queryParams.append("error", "sap");
 
@@ -335,7 +338,7 @@ const ReKYCDashboard = () => {
     setIsTypeWiseLoading(true);
     try {
       const queryParams = new URLSearchParams();
-      queryParams.append("token", "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414");
+      queryParams.append("token", tokenFromUrl);
       
       if (activeFilters.startDate) {
         const parts = activeFilters.startDate.split("/");
@@ -368,7 +371,7 @@ const ReKYCDashboard = () => {
     setIsMonthWiseLoading(true);
     try {
       const queryParams = new URLSearchParams();
-      queryParams.append("token", "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414");
+      queryParams.append("token", tokenFromUrl);
       queryParams.append("error", "");
       
       if (activeFilters.startDate) {
@@ -409,7 +412,7 @@ const ReKYCDashboard = () => {
     setIsYearWiseLoading(true);
     try {
       const queryParams = new URLSearchParams();
-      queryParams.append("token", "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414");
+      queryParams.append("token", tokenFromUrl);
       queryParams.append("error", "");
       
       if (activeFilters.startDate) {
@@ -443,7 +446,7 @@ const ReKYCDashboard = () => {
     setIsDeptLoading(true);
     try {
       const queryParams = new URLSearchParams();
-      queryParams.append("token", "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414");
+      queryParams.append("token", tokenFromUrl);
       queryParams.append("error", "");
       
       if (activeFilters.startDate) {
@@ -497,7 +500,7 @@ const ReKYCDashboard = () => {
     setLoading(true);
     try {
       const queryParams = new URLSearchParams();
-      queryParams.append("token", "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414");
+      queryParams.append("token", tokenFromUrl);
       queryParams.append("status", status);
       queryParams.append("error", errorType);
       queryParams.append("page", page);
@@ -671,6 +674,7 @@ const ReKYCDashboard = () => {
                   currentStartDate={activeFilters.startDate}
                   currentEndDate={activeFilters.endDate}
                   currentPqType={activeFilters.pqType}
+                  token={tokenFromUrl}
                 />
 
                 {/* ===== STATISTICS CARDS SECTION ===== */}

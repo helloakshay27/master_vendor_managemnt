@@ -5,6 +5,9 @@ import { Link } from "react-router-dom";
 import React from "react";
 
 function Members() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const token = urlParams.get("token") || "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414";
+
   return (
     <>
       <Header />
@@ -18,7 +21,7 @@ function Members() {
                 <Link to="/create-event">create_event</Link>
               </li>
               <li>
-                <Link to="/event-list?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414">
+                <Link to={`/event-list?token=${token}`}>
                   event_list
                 </Link>
               </li>
@@ -29,7 +32,7 @@ function Members() {
               </li>
 
               <li>
-                <Link to="/vendor-list?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414">
+                <Link to={`/vendor-list?token=${token}`}>
                   vendor_list
                 </Link>
               </li>
@@ -56,7 +59,7 @@ function Members() {
                 <Link to="/approval-matrix">Approval matrix</Link>
               </li>
               <li>
-                <Link to="/approval-list?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414">
+                <Link to={`/approval-list?token=${token}`}>
                   Approval List
                 </Link>
               </li>
@@ -90,23 +93,23 @@ function Members() {
                 <Link to="/rekyc-detail">Rekyc Detail</Link>
               </li>
               <li>
-                <Link to="/vendor-assesment-livedata-dashboard">
+                <Link to={`/vendor-assesment-livedata-dashboard?token=${token}`}>
                   Vendor Assesment live Data
                 </Link>
               </li>
               <li>
-                <Link to="/vendor-management-dashboard">
+                <Link to={`/vendor-management-dashboard?token=${token}`}>
                   Vendor Management (PQ) Dashboard
                 </Link>
               </li>
 
               <div className="d-flex gap-3">
                 <li className="list-unstyled">
-                  <Link to="/re-kyc-dashboard">Re Kyc Dashboard</Link>
+                  <Link to={`/re-kyc-dashboard?token=${token}`}>Re Kyc Dashboard</Link>
                 </li>
 
                 <li className="list-unstyled">
-                  <Link to="/re-kyc-dashboard-sec">Re Kyc Dashboard 2</Link>
+                  <Link to={`/re-kyc-dashboard-sec?token=${token}`}>Re Kyc Dashboard 2</Link>
                 </li>
               </div>
               {/* <li>
