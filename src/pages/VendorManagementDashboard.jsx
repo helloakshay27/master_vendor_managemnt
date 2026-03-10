@@ -218,10 +218,10 @@ const InlineFilterDialog = ({
       return `${day}/${month}/${year}`;
     };
 
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(today.getDate() - 7);
+    const oneYearAgo = new Date();
+    oneYearAgo.setFullYear(today.getFullYear() - 1);
 
-    setStartDate(formatDt(sevenDaysAgo));
+    setStartDate(formatDt(oneYearAgo));
     setEndDate(formatDt(today));
     setCompanyName("");
     setFiscalYear("");
@@ -232,7 +232,7 @@ const InlineFilterDialog = ({
     setPqType("with_pq");
 
     onApplyFilters({
-      startDate: formatOut(sevenDaysAgo),
+      startDate: formatOut(oneYearAgo),
       endDate: formatOut(today),
       companyName: "",
       departmentName: "",
@@ -690,8 +690,8 @@ function VendorManagementDashboard() {
   // Default start date is last 7 days
   const getDefaultDateRange = () => {
     const today = new Date();
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(today.getDate() - 7);
+    const oneYearAgo = new Date();
+    oneYearAgo.setFullYear(today.getFullYear() - 1);
 
     const formatDate = (date) => {
       const day = String(date.getDate()).padStart(2, "0");
@@ -700,7 +700,7 @@ function VendorManagementDashboard() {
       return `${day}/${month}/${year}`;
     };
     return {
-      startDate: formatDate(sevenDaysAgo),
+      startDate: formatDate(oneYearAgo),
       endDate: formatDate(today),
     };
   };

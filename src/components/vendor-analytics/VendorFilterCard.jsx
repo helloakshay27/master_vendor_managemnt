@@ -290,10 +290,10 @@ export const VendorFilterCard = ({
       return `${day}/${month}/${year}`;
     };
 
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(today.getDate() - 7);
+    const oneYearAgo = new Date();
+    oneYearAgo.setFullYear(today.getFullYear() - 1);
 
-    setStartDate(formatDt(sevenDaysAgo));
+    setStartDate(formatDt(oneYearAgo));
     setEndDate(formatDt(today));
     setCompanyName("");
     setDepartmentName("");
@@ -301,7 +301,7 @@ export const VendorFilterCard = ({
     setPqType("with_pq");
 
     onApplyFilters({
-      startDate: formatOut(sevenDaysAgo),
+      startDate: formatOut(oneYearAgo),
       endDate: formatOut(today),
       companyName: "",
       departmentName: "",
