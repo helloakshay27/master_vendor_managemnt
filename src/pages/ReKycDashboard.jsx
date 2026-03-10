@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   DndContext,
   closestCenter,
@@ -23,36 +23,27 @@ import {
   UserX,
   Clock,
   AlertCircle,
+  Layers,
+  FileText,
+  CheckCircle,
+  XCircle,
+  AlertTriangle,
 } from "lucide-react";
+
+// Config
+import { baseURL, token } from "../confi/apiDomain";
 
 // Components
 import { SortableChartItem } from "@/components/SortableChartItem";
 import { VendorStatCard } from "@/components/vendor-analytics/VendorStatCard";
 import { VendorSectionSelector } from "@/components/vendor-analytics/VendorSectionSelector";
-import { VendorAnalyticsFilterDialog } from "@/components/vendor-analytics/VendorAnalyticsFilterDialog";
+import { VendorFilterCard } from "@/components/vendor-analytics/VendorFilterCard";
 import { VendorDataTable } from "@/components/vendor-analytics/VendorDataTable";
 import { GradeAssessmentBar } from "@/components/vendor-analytics/GradeAssessmentBar";
 import ReKycBarchart from "@/components/vendor-analytics/ReKycBarchart";
 import { DepartmentReKYCChart } from "@/components/vendor-analytics/DepartmentReKYCTable";
 
-// =============================================================================
-// MOCK DATA - Statistics Cards
-// =============================================================================
-
-const MOCK_KYC_STATS = {
-  ActiveVendors: 5234,
-  TotalReKYCInitiated: 3892,
-  GeneralReKYC: 892,
-  OtherReKYC: 450,
-  ReKYCNotInitiated: 3678,
-  OpenInvites: 214,
-  Approved: 678,
-  Rejected: 892,
-  LinkExpired: 2599,
-  ErrorsinSAPfromApprovedList: 2,
-  kycInProgress: 678,
-  DocumentsPending: 892,
-};
+// Statistics data will be fetched from API
 
 // =============================================================================
 // MOCK DATA - Charts Data
@@ -86,22 +77,7 @@ const MOCK_DEPT_REKYC_DATA = [
 ];
 
 // Month Wise Re-KYC Data
-const monthWiseData = [
-  { month: "May", rekycCount: 50.0, statuses: 50.0 },
-  { month: "June", rekycCount: 100.0, statuses: 100.0 },
-  { month: "July", rekycCount: 100.0, statuses: 100.5 },
-  { month: "October", rekycCount: 73.54, statuses: 19.31 },
-  { month: "November", rekycCount: 54.55, statuses: 9.09 },
-  { month: "December", rekycCount: 16.2, statuses: 36.36 },
-  { month: "January", rekycCount: 33.33, statuses: 44.44 },
-  { month: "February 2026", rekycCount: 64.29, statuses: 28.57 },
-];
-
-// Year Wise Re-KYC Data
-const yearWiseData = [
-  { year: "2025", totalReKYC: 3470 },
-  { year: "2026", totalReKYC: 23 },
-];
+// Chart data will be fetched from API
 
 // =============================================================================
 // MOCK DATA - Tables Data
@@ -216,227 +192,9 @@ const MOCK_EXPIRED_KYC_DATA = [
   },
 ];
 
-// 4. Rejected Vendor Records
-const MOCK_REJECTED_VENDORS_COLUMNS = [
-  { key: "organizationName", label: "Organization Name" },
-  { key: "rekycType", label: "ReKYC Type" },
-  { key: "rejectedSuppliers", label: "Rejected Suppliers" },
-  { key: "comment", label: "Comment" },
-];
+// Table data will be fetched from API
 
-const MOCK_REJECTED_VENDORS_DATA = [
-  {
-    organizationName: "Aryan Flooring Products Private Limited",
-    rekycType: "General Rekyc",
-    rejectedSuppliers: 1,
-    comment: "",
-  },
-  {
-    isTotal: true,
-    organizationName: "Total",
-    rekycType: "",
-    rejectedSuppliers: 30,
-    comment: "",
-  },
-];
-
-// 5. Details Submitted Vendor Records
-const MOCK_DETAILS_SUBMITTED_COLUMNS = [
-  { key: "organizationName", label: "Organization Name" },
-  { key: "rekycType", label: "ReKYC Type" },
-  { key: "fullName", label: "Full Name" },
-  { key: "updatedAt", label: "Updated at" },
-  { key: "ageingInMonth", label: "Ageing in Month" },
-  { key: "detailsSubmittedSuppliers", label: "Details Submitted Suppliers" },
-];
-
-const MOCK_DETAILS_SUBMITTED_DATA = [
-  {
-    organizationName: "Asmita Electric Enterprises",
-    rekycType: "General Rekcy",
-    fullName: "Jitendra Surana",
-    updatedAt: "11-02-26",
-    ageingInMonth: 0,
-    detailsSubmittedSuppliers: 1,
-  },
-  {
-    isTotal: true,
-    organizationName: "Total",
-    rekycType: "",
-    fullName: "",
-    updatedAt: "",
-    ageingInMonth: "",
-    detailsSubmittedSuppliers: 15,
-  },
-];
-
-// 6. Approved Vendor Records
-const MOCK_APPROVED_VENDORS_COLUMNS = [
-  { key: "organizationName", label: "Organization Name" },
-  { key: "rekycType", label: "ReKYC Type" },
-  { key: "approvedSuppliers", label: "Approved Suppliers" },
-];
-
-const MOCK_APPROVED_VENDORS_DATA = [
-  {
-    organizationName: "3 D Enterprises",
-    rekycType: "General Rekcy",
-    approvedSuppliers: 1,
-  },
-  {
-    isTotal: true,
-    organizationName: "Total",
-    rekycType: "",
-    approvedSuppliers: 8599,
-  },
-];
-
-// 7. Expired Vendor Records
-const MOCK_EXPIRED_VENDORS_COLUMNS = [
-  { key: "organizationName", label: "Organization Name" },
-  { key: "rekycType", label: "ReKYC Type" },
-  { key: "expiredSuppliers", label: "Expired Suppliers" },
-];
-
-const MOCK_EXPIRED_VENDORS_DATA = [
-  {
-    organizationName: "MANISH WATER PUMP SERVICE",
-    rekycType: "General Rekcy",
-    expiredSuppliers: 1,
-  },
-  {
-    isTotal: true,
-    organizationName: "Total",
-    rekycType: "",
-    expiredSuppliers: 8599,
-  },
-];
-
-// 8. SAP Error Records
-const MOCK_SAP_ERROR_COLUMNS = [
-  { key: "organizationName", label: "Organization Name" },
-  { key: "pushToSAP", label: "Push to SAP" },
-  { key: "rekycType", label: "ReKYC Type" },
-  { key: "count", label: "Count" },
-];
-
-const MOCK_SAP_ERROR_DATA = [
-  {
-    organizationName: "Arka Enercon Pvt. Ltd.",
-    pushToSAP: "FALSE",
-    rekycType: "General Rekyc",
-    count: 1,
-  },
-  {
-    isTotal: true,
-    organizationName: "Total",
-    pushToSAP: "",
-    rekycType: "",
-    count: 2,
-  },
-];
-
-// 9. Organisation Wise Vendor ReKyc Status
-const MOCK_ORG_WISE_STATUS_COLUMNS = [
-  { key: "organizationName", label: "Organization Name" },
-  { key: "initiatedBy", label: "Initiated By" },
-  { key: "statuses", label: "Statuses" },
-  { key: "count", label: "Count" },
-];
-
-const MOCK_ORG_WISE_STATUS_DATA = [
-  {
-    organizationName: "MANISH WATER PUMP SERVICE",
-    initiatedBy: "Jitendra Surana",
-    statuses: "Expired",
-    count: 1,
-  },
-  {
-    isTotal: true,
-    organizationName: "Total",
-    initiatedBy: "",
-    statuses: "",
-    count: 3493,
-  },
-];
-
-// 10. Open Invites Vendor Records (Updated as per screenshot)
-const MOCK_OPEN_INVITES_COLUMNS = [
-  { key: "organizationName", label: "Organization Name" },
-  { key: "rekycType", label: "ReKYC Type" },
-  { key: "updatedAt", label: "Updated at" },
-  { key: "ageingInMonth", label: "Ageing in Month" },
-  { key: "pendingSuppliers", label: "Pending Suppliers" },
-];
-
-const MOCK_OPEN_INVITES_DATA = [
-  {
-    organizationName: "Executive Engineer, MIDC, IT Division, Pune-03",
-    rekycType: "General Rekyc",
-    updatedAt: "11-02-26",
-    ageingInMonth: 0,
-    pendingSuppliers: 1,
-  },
-  {
-    organizationName: "Iceage Texture And Paints",
-    rekycType: "General Rekyc",
-    updatedAt: "17-02-26",
-    ageingInMonth: 0,
-    pendingSuppliers: 1,
-  },
-  {
-    organizationName: "Sachidanand Sharad Galande",
-    rekycType: "General Rekyc",
-    updatedAt: "17-02-26",
-    ageingInMonth: 0,
-    pendingSuppliers: "-", // Changed to dash as per screenshot
-  },
-  {
-    organizationName: "SATNAM SIMRAN CRANES",
-    rekycType: "General Rekyc",
-    updatedAt: "11-02-26",
-    ageingInMonth: 0,
-    pendingSuppliers: 1,
-  },
-  {
-    isTotal: true,
-    organizationName: "Total",
-    rekycType: "",
-    updatedAt: "",
-    ageingInMonth: 0,
-    pendingSuppliers: 4,
-  },
-];
-
-// 11. Approved Vendors but ReKYC not Initiated
-const MOCK_APPROVED_NO_REKYC_COLUMNS = [
-  { key: "organizationName", label: "Organization Name" },
-  { key: "departmentName", label: "Department Name" },
-  { key: "createdAt", label: "Created at" },
-  { key: "updatedAt", label: "Updated at" },
-  { key: "ageingInMonth", label: "Ageing in Month" },
-  { key: "rowCount", label: "Row Count" },
-];
-
-const MOCK_APPROVED_NO_REKYC_DATA = [
-  {
-    organizationName: "Abhijit Borase",
-    departmentName: "Admin",
-    createdAt: "02-04-25",
-    updatedAt: "04-04-25",
-    ageingInMonth: 10,
-    rowCount: 1,
-  },
-  {
-    isTotal: true,
-    organizationName: "Total",
-    departmentName: "",
-    createdAt: "",
-    updatedAt: "",
-    ageingInMonth: "",
-    rowCount: 1264,
-  },
-];
+// Table data will be fetched from API
 
 // =============================================================================
 // CONFIGURATION
@@ -484,14 +242,17 @@ const KYC_MANAGEMENT_CONFIG = {
     label: "Statistics Cards",
     color: "#10b981",
     options: [
-      { id: "totalVendors", label: "Total Vendors" },
-      { id: "kycCompleted", label: "KYC Completed" },
-      { id: "kycPending", label: "KYC Pending" },
-      { id: "kycExpired", label: "KYC Expired" },
-      { id: "kycVerified", label: "KYC Verified" },
-      { id: "kycRejected", label: "KYC Rejected" },
-      { id: "kycInProgress", label: "KYC In Progress" },
-      { id: "kycDocsPending", label: "Documents Pending" },
+      { id: "Active Vendors", label: "Active Vendors" },
+      { id: "Active Initiated Suppliers", label: "Active Initiated Suppliers" },
+      { id: "Latest Unique Suppliers", label: "Latest Unique Suppliers" },
+      { id: "Other Rekycs", label: "Other Rekycs" },
+      { id: "Active Not Initiated Suppliers", label: "Active Not Initiated Suppliers" },
+      { id: "Pending Suppliers", label: "Pending Suppliers" },
+      { id: "Details Submitted Suppliers", label: "Details Submitted Suppliers" },
+      { id: "Approved Suppliers", label: "Approved Suppliers" },
+      { id: "Rejected Suppliers", label: "Rejected Suppliers" },
+      { id: "Expired Row Count", label: "Expired Row Count" },
+      { id: "SAP Errors", label: "SAP Errors" },
     ],
   },
 };
@@ -515,14 +276,17 @@ const ALL_CHART_IDS = [
 
 // Stat IDs
 const ALL_STAT_IDS = [
-  "totalVendors",
-  "kycCompleted",
-  "kycPending",
-  "kycExpired",
-  "kycVerified",
-  "kycRejected",
-  "kycInProgress",
-  "kycDocsPending",
+  "Active Vendors",
+  "Active Initiated Suppliers",
+  "Latest Unique Suppliers",
+  "Other Rekycs",
+  "Active Not Initiated Suppliers",
+  "Pending Suppliers",
+  "Details Submitted Suppliers",
+  "Approved Suppliers",
+  "Rejected Suppliers",
+  "Expired Row Count",
+  "SAP Errors",
 ];
 
 // =============================================================================
@@ -547,13 +311,58 @@ const getDefaultDateRange = () => {
 
 const KYCManagementDashboard = () => {
   // State Management
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [dateRange, setDateRange] = useState(getDefaultDateRange);
+  const [activeFilters, setActiveFilters] = useState({
+    ...getDefaultDateRange(),
+    companyName: "",
+    departmentName: "",
+    vendors: "",
+    pqType: "with_pq",
+  });
   const [chartOrder, setChartOrder] = useState(ALL_CHART_IDS);
   const [visibleSections, setVisibleSections] = useState([
     ...ALL_STAT_IDS,
     ...ALL_CHART_IDS,
   ]);
+  
+  // Initialize with zero counts for all predefined stats
+  const [kpiData, setKpiData] = useState(
+    ALL_STAT_IDS.map(id => ({ status: id, count: 0 }))
+  );
+  const [isKpiLoading, setIsKpiLoading] = useState(false);
+  const [monthData, setMonthData] = useState([]);
+  const [yearData, setYearData] = useState([]);
+  const [isChartLoading, setIsChartLoading] = useState(false);
+  const [approvedNoReKycData, setApprovedNoReKycData] = useState([]);
+  const [approvedNoReKycPagination, setApprovedNoReKycPagination] = useState(null);
+  const [isApprovedNoReKycLoading, setIsApprovedNoReKycLoading] = useState(false);
+  const [orgWiseStatusData, setOrgWiseStatusData] = useState([]);
+  const [orgWiseStatusPagination, setOrgWiseStatusPagination] = useState(null);
+  const [isOrgWiseStatusLoading, setIsOrgWiseStatusLoading] = useState(false);
+
+  // States for Summary Filtered Tables
+  const [sapErrorData, setSapErrorData] = useState([]);
+  const [sapErrorPagination, setSapErrorPagination] = useState(null);
+  const [isSapErrorLoading, setIsSapErrorLoading] = useState(false);
+
+  const [rejectedData, setRejectedData] = useState([]);
+  const [rejectedPagination, setRejectedPagination] = useState(null);
+  const [isRejectedLoading, setIsRejectedLoading] = useState(false);
+
+  const [openInvitesData, setOpenInvitesData] = useState([]);
+  const [openInvitesPagination, setOpenInvitesPagination] = useState(null);
+  const [isOpenInvitesLoading, setIsOpenInvitesLoading] = useState(false);
+
+  const [expiredRecordsData, setExpiredRecordsData] = useState([]);
+  const [expiredRecordsPagination, setExpiredRecordsPagination] = useState(null);
+  const [isExpiredRecordsLoading, setIsExpiredRecordsLoading] = useState(false);
+
+  const [detailsSubData, setDetailsSubData] = useState([]);
+  const [detailsSubPagination, setDetailsSubPagination] = useState(null);
+  const [isDetailsSubLoading, setIsDetailsSubLoading] = useState(false);
+
+  const [approvedRecordsData, setApprovedRecordsData] = useState([]);
+  const [approvedRecordsPagination, setApprovedRecordsPagination] = useState(null);
+  const [isApprovedRecordsLoading, setIsApprovedRecordsLoading] = useState(false);
 
   // Drag and Drop Sensors
   const sensors = useSensors(
@@ -576,6 +385,337 @@ const KYCManagementDashboard = () => {
 
   // Check if section is visible
   const show = (id) => visibleSections.includes(id);
+
+  const handleAnalyticsFilterApply = (filters) => {
+    setActiveFilters(filters);
+  };
+
+  const fetchKpiCards = useCallback(async () => {
+    setIsKpiLoading(true);
+    try {
+      const queryParams = new URLSearchParams();
+      // Using hardcoded token as requested
+      const hardcodedToken = "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414";
+      queryParams.append("token", hardcodedToken);
+      
+      if (activeFilters.startDate)
+        queryParams.append("from_date", activeFilters.startDate.split("/").join("-"));
+      if (activeFilters.endDate)
+        queryParams.append("end_date", activeFilters.endDate.split("/").join("-"));
+      if (activeFilters.companyName)
+        queryParams.append("company_ids", activeFilters.companyName);
+      if (activeFilters.departmentName)
+        queryParams.append("department_ids", activeFilters.departmentName);
+      if (activeFilters.vendors)
+        queryParams.append("vendor_ids", activeFilters.vendors);
+
+      const response = await fetch(
+        `${baseURL}vendor_re_kyc_dashboard/general_rekyc_kpi_cards.json?${queryParams}`
+      );
+      const data = await response.json();
+      
+      if (data.status === "success" && Array.isArray(data.data)) {
+        // Map API data and ensure all predefined stats are present (even if zero)
+        const apiStats = data.data;
+        const updatedKpiData = ALL_STAT_IDS.map(id => {
+          const apiMatch = apiStats.find(s => s.status === id);
+          return { status: id, count: apiMatch ? apiMatch.count : 0 };
+        });
+        setKpiData(updatedKpiData);
+      }
+    } catch (error) {
+      console.error("Error fetching KPI cards:", error);
+    } finally {
+      setIsKpiLoading(false);
+    }
+  }, [activeFilters]);
+
+  const fetchTimeWiseData = useCallback(async () => {
+    setIsChartLoading(true);
+    try {
+      const queryParams = new URLSearchParams();
+      const hardcodedToken = "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414";
+      queryParams.append("token", hardcodedToken);
+      
+      if (activeFilters.startDate)
+        queryParams.append("from_date", activeFilters.startDate.split("/").join("-"));
+      if (activeFilters.endDate)
+        queryParams.append("end_date", activeFilters.endDate.split("/").join("-"));
+      if (activeFilters.companyName)
+        queryParams.append("company_ids", activeFilters.companyName);
+      if (activeFilters.departmentName)
+        queryParams.append("department_ids", activeFilters.departmentName);
+      if (activeFilters.vendors)
+        queryParams.append("vendor_ids", activeFilters.vendors);
+
+      const response = await fetch(
+        `${baseURL}vendor_re_kyc_dashboard/time_wise_general_rekyc.json?${queryParams}`
+      );
+      const data = await response.json();
+      
+      if (data) {
+        // Transform month-wise data
+        if (Array.isArray(data.month_wise)) {
+          const transformedMonth = data.month_wise.map(item => {
+            const flatObj = { month: item.month };
+            if (Array.isArray(item.statuses)) {
+              item.statuses.forEach(s => {
+                flatObj[s.status] = s.count;
+              });
+            }
+            return flatObj;
+          });
+          setMonthData(transformedMonth);
+        }
+
+        // Transform year-wise data
+        if (Array.isArray(data.year_wise)) {
+          const transformedYear = data.year_wise.map(item => ({
+            year: item.year.toString(),
+            "Total Re-KYC": item.total_rekyc_vendors
+          }));
+          setYearData(transformedYear);
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching time-wise data:", error);
+    } finally {
+      setIsChartLoading(false);
+    }
+  }, [activeFilters]);
+
+  const fetchApprovedNoReKycData = useCallback(async (page = 1) => {
+    setIsApprovedNoReKycLoading(true);
+    try {
+      const queryParams = new URLSearchParams();
+      const hardcodedToken = "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414";
+      queryParams.append("token", hardcodedToken);
+      queryParams.append("page", page);
+      
+      if (activeFilters.startDate)
+        queryParams.append("from_date", activeFilters.startDate.split("/").join("-"));
+      if (activeFilters.endDate)
+        queryParams.append("end_date", activeFilters.endDate.split("/").join("-"));
+      if (activeFilters.companyName)
+        queryParams.append("company_ids", activeFilters.companyName);
+      if (activeFilters.departmentName)
+        queryParams.append("department_ids", activeFilters.departmentName);
+      if (activeFilters.vendors)
+        queryParams.append("vendor_ids", activeFilters.vendors);
+
+      const response = await fetch(
+        `${baseURL}vendor_re_kyc_dashboard/approved_vendor_but_rekyc_not_initiated.json?${queryParams}`
+      );
+      const data = await response.json();
+      
+      if (data.status === "success" && Array.isArray(data.data)) {
+        const transformedData = data.data.map(item => ({
+          organizationName: item.organization_name,
+          departmentName: item.department_name,
+          createdAt: item.created_at,
+          updatedAt: item.updated_at,
+          ageingInMonth: item.ageing_in_month,
+          rowCount: item.row_flag
+        }));
+
+        // Add total row at the end
+        if (data.pagination && data.pagination.current_page === 1) {
+           transformedData.push({
+             isTotal: true,
+             organizationName: "Total",
+             departmentName: "",
+             createdAt: "",
+             updatedAt: "",
+             ageingInMonth: "",
+             rowCount: data.pagination.total_records
+           });
+        }
+        
+        setApprovedNoReKycData(transformedData);
+        setApprovedNoReKycPagination(data.pagination);
+      }
+    } catch (error) {
+      console.error("Error fetching Approved No ReKyc data:", error);
+    } finally {
+      setIsApprovedNoReKycLoading(false);
+    }
+  }, [activeFilters]);
+
+  const fetchOrgWiseStatusData = useCallback(async (page = 1) => {
+    setIsOrgWiseStatusLoading(true);
+    try {
+      const queryParams = new URLSearchParams();
+      const hardcodedToken = "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414";
+      queryParams.append("token", hardcodedToken);
+      queryParams.append("page", page);
+      
+      if (activeFilters.startDate)
+        queryParams.append("from_date", activeFilters.startDate.split("/").join("-"));
+      if (activeFilters.endDate)
+        queryParams.append("end_date", activeFilters.endDate.split("/").join("-"));
+      if (activeFilters.companyName)
+        queryParams.append("company_ids", activeFilters.companyName);
+      if (activeFilters.departmentName)
+        queryParams.append("department_ids", activeFilters.departmentName);
+      if (activeFilters.vendors)
+        queryParams.append("vendor_ids", activeFilters.vendors);
+
+      const response = await fetch(
+        `${baseURL}vendor_re_kyc_dashboard/organization_wise_vendor_rekyc_status.json?${queryParams}`
+      );
+      const data = await response.json();
+      
+      if (data.status === "success" && Array.isArray(data.data)) {
+        const transformedData = data.data.map(item => ({
+          organizationName: item.organization_name || "N/A",
+          initiatedBy: item.initiated_by,
+          statuses: item.rekyc_status,
+          count: item.row_count
+        }));
+
+        // Add total row at the end of first page
+        if (data.pagination && data.pagination.current_page === 1) {
+           transformedData.push({
+             isTotal: true,
+             organizationName: "Total",
+             initiatedBy: "",
+             statuses: "",
+             count: data.pagination.total_records
+           });
+        }
+        
+        setOrgWiseStatusData(transformedData);
+        setOrgWiseStatusPagination(data.pagination);
+      }
+    } catch (error) {
+      console.error("Error fetching Org Wise Status data:", error);
+    } finally {
+      setIsOrgWiseStatusLoading(false);
+    }
+  }, [activeFilters]);
+
+  const fetchSummaryData = useCallback(async (status, errorType = null, page = 1, setter, paginationSetter, loadingSetter) => {
+    loadingSetter(true);
+    try {
+      const queryParams = new URLSearchParams();
+      const hardcodedToken = "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414";
+      queryParams.append("token", hardcodedToken);
+      queryParams.append("page", page);
+      if (status) queryParams.append("status", status);
+      if (errorType) queryParams.append("error", errorType);
+      
+      if (activeFilters.startDate)
+        queryParams.append("from_date", activeFilters.startDate.split("/").join("-"));
+      if (activeFilters.endDate)
+        queryParams.append("end_date", activeFilters.endDate.split("/").join("-"));
+      if (activeFilters.companyName)
+        queryParams.append("company_ids", activeFilters.companyName);
+      if (activeFilters.departmentName)
+        queryParams.append("department_ids", activeFilters.departmentName);
+      if (activeFilters.vendors)
+        queryParams.append("vendor_ids", activeFilters.vendors);
+
+      const response = await fetch(
+        `${baseURL}vendor_re_kyc_dashboard/general_rekyc_summary_filtered.json?${queryParams}`
+      );
+      const data = await response.json();
+      
+      if (data.status === "success" && Array.isArray(data.data)) {
+        const transformedData = data.data.map(item => ({
+          organizationName: item.organization_name || "N/A",
+          rekycType: item.rekyc_type || "General Rekyc",
+          pushToSAP: item.push_to_sap || "FALSE",
+          updatedAt: item.updated_at || "N/A",
+          ageingInMonth: item.ageing_in_month || 0,
+          count: item.row_count || 1,
+          rejectedSuppliers: item.row_count || 1,
+          approvedSuppliers: item.row_count || 1,
+          expiredSuppliers: item.row_count || 1,
+          pendingSuppliers: item.row_count || 1,
+          detailsSubmittedSuppliers: item.row_count || 1,
+          fullName: item.initiated_by || "N/A",
+          comment: ""
+        }));
+
+        if (data.pagination && data.pagination.current_page === 1) {
+           transformedData.push({
+             isTotal: true,
+             organizationName: "Total",
+             rekycType: "",
+             pushToSAP: "",
+             updatedAt: "",
+             ageingInMonth: 0,
+             count: data.pagination.total_records,
+             rejectedSuppliers: data.pagination.total_records,
+             approvedSuppliers: data.pagination.total_records,
+             expiredSuppliers: data.pagination.total_records,
+             pendingSuppliers: data.pagination.total_records,
+             detailsSubmittedSuppliers: data.pagination.total_records,
+             fullName: "",
+             comment: ""
+           });
+        }
+        
+        setter(transformedData);
+        paginationSetter(data.pagination);
+      }
+    } catch (error) {
+      console.error(`Error fetching summary data for ${status}:`, error);
+    } finally {
+      loadingSetter(false);
+    }
+  }, [activeFilters]);
+
+  useEffect(() => {
+    fetchKpiCards();
+    fetchTimeWiseData();
+    fetchApprovedNoReKycData();
+    fetchOrgWiseStatusData();
+    
+    // Status wise tables
+    fetchSummaryData("approved", "sap", 1, setSapErrorData, setSapErrorPagination, setIsSapErrorLoading);
+    fetchSummaryData("rejected", null, 1, setRejectedData, setRejectedPagination, setIsRejectedLoading);
+    fetchSummaryData("pending", null, 1, setOpenInvitesData, setOpenInvitesPagination, setIsOpenInvitesLoading);
+    fetchSummaryData("expired", null, 1, setExpiredRecordsData, setExpiredRecordsPagination, setIsExpiredRecordsLoading);
+    fetchSummaryData("details_submitted_by_vendor", null, 1, setDetailsSubData, setDetailsSubPagination, setIsDetailsSubLoading);
+    fetchSummaryData("approved", null, 1, setApprovedRecordsData, setApprovedRecordsPagination, setIsApprovedRecordsLoading);
+
+  }, [
+    fetchKpiCards, 
+    fetchTimeWiseData, 
+    fetchApprovedNoReKycData, 
+    fetchOrgWiseStatusData,
+    fetchSummaryData
+  ]);
+
+  const getStatIcon = (status) => {
+    switch (status) {
+      case "Active Vendors":
+        return <Users size={20} />;
+      case "Active Initiated Suppliers":
+        return <UserCheck size={20} />;
+      case "Latest Unique Suppliers":
+        return <Users size={20} />;
+      case "Other Rekycs":
+        return <Layers size={20} />;
+      case "Active Not Initiated Suppliers":
+        return <UserX size={20} />;
+      case "Pending Suppliers":
+        return <Clock size={20} />;
+      case "Details Submitted Suppliers":
+        return <FileText size={20} />;
+      case "Approved Suppliers":
+        return <CheckCircle size={20} />;
+      case "Rejected Suppliers":
+        return <XCircle size={20} />;
+      case "Expired Row Count":
+        return <AlertTriangle size={20} />;
+      case "SAP Errors":
+        return <AlertCircle size={20} />;
+      default:
+        return <TrendingUp size={20} />;
+    }
+  };
 
   return (
     <div className="site-content">
@@ -605,28 +745,6 @@ const KYCManagementDashboard = () => {
 
                       {/* Actions */}
                       <div className="d-flex align-items-center gap-3">
-                        {/* Date Filter Button */}
-                        <button
-                          onClick={() => setIsFilterOpen(true)}
-                          className="btn d-flex align-items-center gap-2"
-                          style={{
-                            backgroundColor: "white",
-                            border: "1px solid #ddd",
-                            color: "#333",
-                            padding: "8px 16px",
-                            borderRadius: "6px",
-                            fontSize: "14px",
-                          }}
-                        >
-                          <CalendarIcon
-                            style={{ width: "16px", height: "16px" }}
-                          />
-                          <span style={{ fontWeight: 500 }}>
-                            {dateRange.startDate} – {dateRange.endDate}
-                          </span>
-                          <Filter style={{ width: "16px", height: "16px" }} />
-                        </button>
-
                         {/* Section Selector */}
                         <VendorSectionSelector
                           data={KYC_MANAGEMENT_CONFIG}
@@ -638,82 +756,30 @@ const KYCManagementDashboard = () => {
                   </div>
                 </div>
 
+                <VendorFilterCard
+                  onApplyFilters={handleAnalyticsFilterApply}
+                  currentStartDate={activeFilters.startDate}
+                  currentEndDate={activeFilters.endDate}
+                  currentPqType={activeFilters.pqType}
+                />
+
                 {/* ========================================================= */}
                 {/* Statistics Cards Section */}
                 {/* ========================================================= */}
                 <div className="row g-3 mb-4">
-                  {show("totalVendors") && (
-                    <div className="col-lg-3 col-md-6 col-sm-12">
-                      <VendorStatCard
-                        title="Total Vendors"
-                        value={MOCK_KYC_STATS.ActiveVendors}
-                        icon={<Users size={20} />}
-                      />
-                    </div>
-                  )}
-                  {show("kycCompleted") && (
-                    <div className="col-lg-3 col-md-6 col-sm-12">
-                      <VendorStatCard
-                        title="KYC Completed"
-                        value={MOCK_KYC_STATS.TotalReKYCInitiated}
-                        icon={<UserCheck size={20} />}
-                      />
-                    </div>
-                  )}
-                  {show("kycPending") && (
-                    <div className="col-lg-3 col-md-6 col-sm-12">
-                      <VendorStatCard
-                        title="KYC Pending"
-                        value={MOCK_KYC_STATS.GeneralReKYC}
-                        icon={<Clock size={20} />}
-                      />
-                    </div>
-                  )}
-                  {show("kycExpired") && (
-                    <div className="col-lg-3 col-md-6 col-sm-12">
-                      <VendorStatCard
-                        title="KYC Expired"
-                        value={MOCK_KYC_STATS.OtherReKYC}
-                        icon={<AlertCircle size={20} />}
-                      />
-                    </div>
-                  )}
-                  {show("kycVerified") && (
-                    <div className="col-lg-3 col-md-6 col-sm-12">
-                      <VendorStatCard
-                        title="KYC Verified"
-                        value={MOCK_KYC_STATS.ReKYCNotInitiated}
-                        icon={<UserCheck size={20} />}
-                      />
-                    </div>
-                  )}
-                  {show("kycRejected") && (
-                    <div className="col-lg-3 col-md-6 col-sm-12">
-                      <VendorStatCard
-                        title="KYC Rejected"
-                        value={MOCK_KYC_STATS.OpenInvites}
-                        icon={<UserX size={20} />}
-                      />
-                    </div>
-                  )}
-                  {show("kycInProgress") && (
-                    <div className="col-lg-3 col-md-6 col-sm-12">
-                      <VendorStatCard
-                        title="KYC In Progress"
-                        value={MOCK_KYC_STATS.kycInProgress}
-                        icon={<Clock size={20} />}
-                      />
-                    </div>
-                  )}
-                  {show("kycDocsPending") && (
-                    <div className="col-lg-3 col-md-6 col-sm-12">
-                      <VendorStatCard
-                        title="Documents Pending"
-                        value={MOCK_KYC_STATS.DocumentsPending}
-                        icon={<AlertCircle size={20} />}
-                      />
-                    </div>
-                  )}
+                  {kpiData.map((stat, index) => {
+                    const isVisible = show(stat.status);
+                    if (!isVisible) return null;
+                    return (
+                      <div key={index} className="col-lg-3 col-md-6 col-sm-12">
+                        <VendorStatCard
+                          title={stat.status}
+                          value={stat.count || 0}
+                          icon={getStatIcon(stat.status)}
+                        />
+                      </div>
+                    );
+                  })}
                 </div>
 
                 {/* ========================================================= */}
@@ -744,8 +810,20 @@ const KYCManagementDashboard = () => {
                               <div key={chartId} className="col-12">
                                 <SortableChartItem id={chartId}>
                                   <GradeAssessmentBar
-                                    data={MOCK_KYC_DATA}
-                                    title="Grade Total Approved Suppliers"
+                                    data={[
+                                      { 
+                                        label: "Initiated Suppliers", 
+                                        value: kpiData.find(d => d.status === "Active Initiated Suppliers")?.count || 0,
+                                        color: "#7a5a45" 
+                                      },
+                                      { 
+                                        label: "Not Initiated Suppliers", 
+                                        value: kpiData.find(d => d.status === "Active Not Initiated Suppliers")?.count || 0,
+                                        color: "#d6bfa9"
+                                      }
+                                    ]}
+                                    title="Total Approved Suppliers"
+                                    legendLabel="Suppliers"
                                     onDownload={() => {}}
                                   />
                                 </SortableChartItem>
@@ -762,8 +840,35 @@ const KYCManagementDashboard = () => {
                               <div key={chartId} className="col-12">
                                 <SortableChartItem id={chartId}>
                                   <GradeAssessmentBar
-                                    data={MOCK_KYC_DATA}
-                                    title="Status wise vender Chart"
+                                    data={[
+                                      { 
+                                        label: "Approved", 
+                                        value: kpiData.find(d => d.status === "Approved Suppliers")?.count || 0,
+                                        color: "#5c4033" 
+                                      },
+                                      { 
+                                        label: "Details Submitted By Vendor", 
+                                        value: kpiData.find(d => d.status === "Details Submitted Suppliers")?.count || 0,
+                                        color: "#7a5a45"
+                                      },
+                                      { 
+                                        label: "Expired", 
+                                        value: kpiData.find(d => d.status === "Expired Row Count")?.count || 0,
+                                        color: "#b08968"
+                                      },
+                                      { 
+                                        label: "Pending", 
+                                        value: kpiData.find(d => d.status === "Pending Suppliers")?.count || 0,
+                                        color: "#d6bfa9"
+                                      },
+                                      { 
+                                        label: "Rejected", 
+                                        value: kpiData.find(d => d.status === "Rejected Suppliers")?.count || 0,
+                                        color: "#a52a2a"
+                                      }
+                                    ]}
+                                    title="Status Wise Vendor Count"
+                                    legendLabel="Statuses"
                                     onDownload={() => {}}
                                   />
                                 </SortableChartItem>
@@ -781,8 +886,16 @@ const KYCManagementDashboard = () => {
                                 <SortableChartItem id={chartId}>
                                   <VendorDataTable
                                     title="Rejected Vendor Records"
-                                    columns={MOCK_REJECTED_VENDORS_COLUMNS}
-                                    data={MOCK_REJECTED_VENDORS_DATA}
+                                    columns={[
+                                      { key: "organizationName", label: "Organization Name" },
+                                      { key: "rekycType", label: "ReKYC Type" },
+                                      { key: "rejectedSuppliers", label: "Rejected Suppliers" },
+                                      { key: "comment", label: "Comment" },
+                                    ]}
+                                    data={rejectedData}
+                                    isLoading={isRejectedLoading}
+                                    pagination={rejectedPagination}
+                                    onPageChange={(page) => fetchSummaryData("rejected", null, page, setRejectedData, setRejectedPagination, setIsRejectedLoading)}
                                     onDownload={() => {}}
                                   />
                                 </SortableChartItem>
@@ -800,8 +913,18 @@ const KYCManagementDashboard = () => {
                                 <SortableChartItem id={chartId}>
                                   <VendorDataTable
                                     title="Details Submitted Vendor Records"
-                                    columns={MOCK_DETAILS_SUBMITTED_COLUMNS}
-                                    data={MOCK_DETAILS_SUBMITTED_DATA}
+                                    columns={[
+                                      { key: "organizationName", label: "Organization Name" },
+                                      { key: "rekycType", label: "ReKYC Type" },
+                                      { key: "fullName", label: "Full Name" },
+                                      { key: "updatedAt", label: "Updated at" },
+                                      { key: "ageingInMonth", label: "Ageing in Month" },
+                                      { key: "detailsSubmittedSuppliers", label: "Details Submitted Suppliers" },
+                                    ]}
+                                    data={detailsSubData}
+                                    isLoading={isDetailsSubLoading}
+                                    pagination={detailsSubPagination}
+                                    onPageChange={(page) => fetchSummaryData("details_submitted_by_vendor", null, page, setDetailsSubData, setDetailsSubPagination, setIsDetailsSubLoading)}
                                     onDownload={() => {}}
                                   />
                                 </SortableChartItem>
@@ -837,8 +960,18 @@ const KYCManagementDashboard = () => {
                                 <SortableChartItem id={chartId}>
                                   <VendorDataTable
                                     title="Approved Vendors but ReKYC not Initiated"
-                                    columns={MOCK_APPROVED_NO_REKYC_COLUMNS}
-                                    data={MOCK_APPROVED_NO_REKYC_DATA}
+                                    columns={[
+                                      { key: "organizationName", label: "Organization Name" },
+                                      { key: "departmentName", label: "Department Name" },
+                                      { key: "createdAt", label: "Created at" },
+                                      { key: "updatedAt", label: "Updated at" },
+                                      { key: "ageingInMonth", label: "Ageing in Month" },
+                                      { key: "rowCount", label: "Row Count" },
+                                    ]}
+                                    data={approvedNoReKycData}
+                                    isLoading={isApprovedNoReKycLoading}
+                                    pagination={approvedNoReKycPagination}
+                                    onPageChange={fetchApprovedNoReKycData}
                                     onDownload={() => {}}
                                   />
                                 </SortableChartItem>
@@ -860,8 +993,15 @@ const KYCManagementDashboard = () => {
                                 <SortableChartItem id={chartId}>
                                   <VendorDataTable
                                     title="Approved Vendor Records"
-                                    columns={MOCK_APPROVED_VENDORS_COLUMNS}
-                                    data={MOCK_APPROVED_VENDORS_DATA}
+                                    columns={[
+                                      { key: "organizationName", label: "Organization Name" },
+                                      { key: "rekycType", label: "ReKYC Type" },
+                                      { key: "approvedSuppliers", label: "Approved Suppliers" },
+                                    ]}
+                                    data={approvedRecordsData}
+                                    isLoading={isApprovedRecordsLoading}
+                                    pagination={approvedRecordsPagination}
+                                    onPageChange={(page) => fetchSummaryData("approved", null, page, setApprovedRecordsData, setApprovedRecordsPagination, setIsApprovedRecordsLoading)}
                                     onDownload={() => {}}
                                   />
                                 </SortableChartItem>
@@ -879,8 +1019,15 @@ const KYCManagementDashboard = () => {
                                 <SortableChartItem id={chartId}>
                                   <VendorDataTable
                                     title="Expired Vendor Records"
-                                    columns={MOCK_EXPIRED_VENDORS_COLUMNS}
-                                    data={MOCK_EXPIRED_VENDORS_DATA}
+                                    columns={[
+                                      { key: "organizationName", label: "Organization Name" },
+                                      { key: "rekycType", label: "ReKYC Type" },
+                                      { key: "expiredSuppliers", label: "Expired Suppliers" },
+                                    ]}
+                                    data={expiredRecordsData}
+                                    isLoading={isExpiredRecordsLoading}
+                                    pagination={expiredRecordsPagination}
+                                    onPageChange={(page) => fetchSummaryData("expired", null, page, setExpiredRecordsData, setExpiredRecordsPagination, setIsExpiredRecordsLoading)}
                                     onDownload={() => {}}
                                   />
                                 </SortableChartItem>
@@ -894,13 +1041,12 @@ const KYCManagementDashboard = () => {
                             show("MonthWiseReKYCType")
                           ) {
                             return (
-                              <div key={chartId} className="col-12 col-lg-6">
+                              <div key={chartId} className="col-lg-6 col-md-12">
                                 <SortableChartItem id={chartId}>
                                   <ReKycBarchart
-                                    data={monthWiseData}
+                                    data={monthData}
                                     title="Month Wise Re-KYC Type"
-                                    height={500}
-                                    onDownload={() => {}}
+                                    isLoading={isChartLoading}
                                   />
                                 </SortableChartItem>
                               </div>
@@ -913,13 +1059,13 @@ const KYCManagementDashboard = () => {
                             show("yearWiseReKYCChart")
                           ) {
                             return (
-                              <div key={chartId} className="col-12 col-lg-6">
+                              <div key={chartId} className="col-lg-6 col-md-12">
                                 <SortableChartItem id={chartId}>
                                   <ReKycBarchart
-                                    data={yearWiseData}
+                                    data={yearData}
                                     title="Year Wise Re-KYC Count"
-                                    height={500}
-                                    onDownload={() => {}}
+                                    type="year"
+                                    isLoading={isChartLoading}
                                   />
                                 </SortableChartItem>
                               </div>
@@ -936,8 +1082,16 @@ const KYCManagementDashboard = () => {
                                 <SortableChartItem id={chartId}>
                                   <VendorDataTable
                                     title="SAP Error"
-                                    columns={MOCK_SAP_ERROR_COLUMNS}
-                                    data={MOCK_SAP_ERROR_DATA}
+                                    columns={[
+                                      { key: "organizationName", label: "Organization Name" },
+                                      { key: "pushToSAP", label: "Push to SAP" },
+                                      { key: "rekycType", label: "ReKYC Type" },
+                                      { key: "count", label: "Count" },
+                                    ]}
+                                    data={sapErrorData}
+                                    isLoading={isSapErrorLoading}
+                                    pagination={sapErrorPagination}
+                                    onPageChange={(page) => fetchSummaryData("approved", "sap", page, setSapErrorData, setSapErrorPagination, setIsSapErrorLoading)}
                                     onDownload={() => {}}
                                   />
                                 </SortableChartItem>
@@ -951,12 +1105,23 @@ const KYCManagementDashboard = () => {
                             show("orgWiseStatusTable")
                           ) {
                             return (
-                              <div key={chartId} className="col-12 col-lg-6">
+                              <div key={chartId} className="col-12">
                                 <SortableChartItem id={chartId}>
                                   <VendorDataTable
-                                    title="Organisation Wise Vendor ReKyc Status [General ReKYC]"
-                                    columns={MOCK_ORG_WISE_STATUS_COLUMNS}
-                                    data={MOCK_ORG_WISE_STATUS_DATA}
+                                    title="Organisation Wise Vendor ReKyc Status"
+                                    columns={[
+                                      {
+                                        key: "organizationName",
+                                        label: "Organization Name",
+                                      },
+                                      { key: "initiatedBy", label: "Initiated By" },
+                                      { key: "statuses", label: "Statuses" },
+                                      { key: "count", label: "Count" },
+                                    ]}
+                                    data={orgWiseStatusData}
+                                    isLoading={isOrgWiseStatusLoading}
+                                    pagination={orgWiseStatusPagination}
+                                    onPageChange={fetchOrgWiseStatusData}
                                     onDownload={() => {}}
                                   />
                                 </SortableChartItem>
@@ -974,8 +1139,17 @@ const KYCManagementDashboard = () => {
                                 <SortableChartItem id={chartId}>
                                   <VendorDataTable
                                     title="Open Invites Vendor Records"
-                                    columns={MOCK_OPEN_INVITES_COLUMNS}
-                                    data={MOCK_OPEN_INVITES_DATA}
+                                    columns={[
+                                      { key: "organizationName", label: "Organization Name" },
+                                      { key: "rekycType", label: "ReKYC Type" },
+                                      { key: "updatedAt", label: "Updated at" },
+                                      { key: "ageingInMonth", label: "Ageing in Month" },
+                                      { key: "pendingSuppliers", label: "Pending Suppliers" },
+                                    ]}
+                                    data={openInvitesData}
+                                    isLoading={isOpenInvitesLoading}
+                                    pagination={openInvitesPagination}
+                                    onPageChange={(page) => fetchSummaryData("pending", null, page, setOpenInvitesData, setOpenInvitesPagination, setIsOpenInvitesLoading)}
                                     onDownload={() => {}}
                                   />
                                 </SortableChartItem>
@@ -990,19 +1164,7 @@ const KYCManagementDashboard = () => {
                   </SortableContext>
                 </DndContext>
 
-                {/* ========================================================= */}
-                {/* Filter Dialog */}
-                {/* ========================================================= */}
-                <VendorAnalyticsFilterDialog
-                  isOpen={isFilterOpen}
-                  onClose={() => setIsFilterOpen(false)}
-                  onApplyFilters={(filters) => {
-                    setDateRange(filters);
-                    setIsFilterOpen(false);
-                  }}
-                  currentStartDate={dateRange.startDate}
-                  currentEndDate={dateRange.endDate}
-                />
+                {/* Filter Dialog removed and replaced by Filter Card */}
               </div>
             </div>
           </div>

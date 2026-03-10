@@ -12,7 +12,13 @@ import {
 } from "recharts";
 import { Download } from "lucide-react";
 
-const DEFAULT_COLORS = ["#c4b99d", "#8b7355"];
+const DEFAULT_COLORS = [
+  "#c4b99d", // Warm Stone
+  "#8b7355", // Deep Sand
+  "#a68d71", // Soft Taupe
+  "#5d4037", // Coffee Brown
+  "#d7ccc8", // Pale Sand
+];
 
 const ReKycBarchart = ({
   data = [],
@@ -38,25 +44,26 @@ const ReKycBarchart = ({
     );
   }
 
-  // Get all keys except 'month'/'year' for bars
-  const barKeys = Object.keys(data[0]).filter(
-    (key) => key !== "month" && key !== "year",
+  // Get all status keys
+  const barKeys = Object.keys(data[0] || {}).filter(
+    (key) => key !== "month" && key !== "year" && key !== "total",
   );
 
-  // Custom label renderer to position labels lower
+  const processedData = data;
+
   const renderCustomizedLabel = (props) => {
     const { x, y, width, height, value } = props;
 
-    // Only show label if bar is tall enough
-    if (height < 15) return null;
+    // Only show if segment is big enough
+    if (height < 20 || value === undefined || value === null || value === 0) return null;
 
     return (
       <text
         x={x + width / 2}
-        y={y + height - 8} // 8 pixels up from the bottom
+        y={y + height / 2}
         fill="#ffffff"
         fontSize={11}
-        fontWeight={500}
+        fontWeight={700}
         textAnchor="middle"
         dominantBaseline="middle"
       >
@@ -93,36 +100,51 @@ const ReKycBarchart = ({
       <div className="card-body" style={{ padding: "20px", flex: 1 }}>
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
-            data={data}
+            data={processedData}
             margin={{ top: 20, right: 30, left: 20, bottom: 80 }}
           >
-            <CartesianGrid strokeDasharray="3 3" stroke="#e0e4e7" />
+            <CartesianGrid strokeDasharray="3 3" stroke="#e0e4e7" vertical={false} />
 
-            {/* Labels ko niche shift karne ke liye yahan changes hain */}
             <XAxis
               dataKey={data[0]?.month ? "month" : "year"}
               fontSize={12}
-              tick={{ dy: 20 }} // Labels ko 20px niche laane ke liye
-              tickMargin={15} // Line se gap badhane ke liye
+              tick={{ dy: 10 }}
+              tickMargin={10}
               angle={-45}
               textAnchor="end"
-              height={130} // Height badhai hai taaki angle wale labels katein nahi
-              interval={0} // Ensure karta hai ki saare labels dikhein
+              height={100}
+              interval={0}
             />
 
-            <YAxis fontSize={12} />
-            <Tooltip />
-            <Legend wrapperStyle={{ paddingTop: "15px" }} />
+            <YAxis 
+              fontSize={12} 
+            />
+            
+            <Tooltip 
+              formatter={(value, name) => {
+                return [value, name.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')];
+              }}
+            />
+            
+            <Legend 
+              wrapperStyle={{ paddingTop: "15px" }} 
+              formatter={(value) => value.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+            />
 
             {barKeys.map((key, index) => (
               <Bar
                 key={key}
                 dataKey={key}
+                name={key}
+                stackId="a"
                 fill={DEFAULT_COLORS[index % DEFAULT_COLORS.length]}
-                radius={[4, 4, 0, 0]}
                 isAnimationActive={false}
+                minPointSize={2}
               >
-                <LabelList dataKey={key} content={renderCustomizedLabel} />
+                <LabelList 
+                  dataKey={key} 
+                  content={renderCustomizedLabel} 
+                />
               </Bar>
             ))}
           </BarChart>

@@ -82,7 +82,7 @@ const InlineFilterDialog = ({
         setIsLoadingCompanies(true);
         try {
           const response = await fetch(
-            "https://vendors.lockated.com/vendor_pq_dashboard/company_slicer.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414",
+            `${baseURL}vendor_pq_dashboard/company_slicer.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`,
           );
           const data = await response.json();
           let arr = [];
@@ -109,7 +109,7 @@ const InlineFilterDialog = ({
         setIsLoadingDepartments(true);
         try {
           const response = await fetch(
-            `https://vendors.lockated.com/vendor_pq_dashboard/department_slicer.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&company_ids=${companyName}`,
+            `${baseURL}vendor_pq_dashboard/department_slicer.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&company_ids=${companyName}`,
           );
           const data = await response.json();
           let arr = [];
@@ -142,7 +142,7 @@ const InlineFilterDialog = ({
         setIsLoadingVendors(true);
         try {
           const response = await fetch(
-            `https://vendors.lockated.com/vendor_pq_dashboard/vendors_slicer.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&company_ids=${companyName}`,
+            `${baseURL}vendor_pq_dashboard/vendors_slicer.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&company_ids=${companyName}`,
           );
           const data = await response.json();
           let arr = [];

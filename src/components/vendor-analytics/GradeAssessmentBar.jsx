@@ -1,11 +1,35 @@
 import React, { useState } from "react";
+import { Download } from "lucide-react";
 
-export const GradeAssessmentBar = ({ title, data, className = "" }) => {
+/**
+ * Helper to determine if a color is light or dark
+ */
+const getContrastColor = (hexColor) => {
+  if (!hexColor) return "#ffffff";
+  const hex = hexColor.replace("#", "");
+  const r = parseInt(hex.substr(0, 2), 16);
+  const g = parseInt(hex.substr(2, 2), 16);
+  const b = parseInt(hex.substr(4, 2), 16);
+  const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+  return brightness > 155 ? "#5c4033" : "#ffffff";
+};
+
+/**
+ * GradeAssessmentBar - A horizontal stacked bar chart component
+ * Updated to match the style of a specific vendor management dashboard
+ */
+export const GradeAssessmentBar = ({ 
+  title, 
+  data = [], 
+  legendLabel = "Grade",
+  onDownload,
+  className = "" 
+}) => {
   const [tooltip, setTooltip] = useState(null);
 
   const total = data.reduce((acc, item) => acc + item.value, 0);
 
-  // Brown theme palette (same as other charts)
+  // Brown theme palette (fallback)
   const brownShades = [
     "#5c4033", // dark
     "#7a5a45",
@@ -21,49 +45,78 @@ export const GradeAssessmentBar = ({ title, data, className = "" }) => {
         background: "#ffffff",
         borderRadius: "14px",
         border: "1px solid #e6d5c3",
-        boxShadow: "0 2px 8px rgba(176,137,104,0.15)",
+        boxShadow: "0 4px 12px rgba(176,137,104,0.1)",
+        overflow: "hidden",
+        marginBottom: "24px"
       }}
     >
-      {/* Header */}
+      {/* Header - Styled like Image 1 (Orange banner) */}
       <div
         style={{
-          padding: "18px 25px",
-          borderBottom: "1px solid #e6d5c3",
-          background: "#faf6f1",
+          padding: "12px 25px",
+          background: "#d97938",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          position: "relative"
         }}
       >
         <h5
           style={{
             margin: 0,
             fontWeight: 600,
-            color: "#5c4033",
+            color: "#ffffff",
+            fontSize: "16px"
           }}
         >
           {title}
         </h5>
+        
+        {onDownload && (
+          <button
+            onClick={onDownload}
+            style={{
+              position: "absolute",
+              right: "15px",
+              background: "transparent",
+              border: "none",
+              cursor: "pointer",
+              color: "#ffffff",
+              display: "flex",
+              alignItems: "center",
+              opacity: 0.8,
+              transition: "opacity 0.2s"
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.opacity = "1"}
+            onMouseLeave={(e) => e.currentTarget.style.opacity = "0.8"}
+          >
+            <Download size={18} />
+          </button>
+        )}
       </div>
 
       {/* Body */}
-      <div style={{ padding: "30px" }}>
-        {/* Legend */}
-        <div className="text-center mb-4">
-          <strong className="me-2" style={{ color: "#7a5a45" }}>
-            Grade
-          </strong>
+      <div style={{ padding: "20px 30px 40px" }}>
+        {/* Legend - Above bar as in Image 1 */}
+        <div className="text-center mb-4" style={{ fontSize: "12px" }}>
+          <span style={{ fontWeight: 700, color: "#7a5a45", marginRight: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+            {legendLabel}:
+          </span>
           {data.map((item, index) => (
-            <span key={item.grade} className="me-3">
+            <span key={item.label || item.grade} className="me-3" style={{ display: "inline-block", marginBottom: "5px" }}>
               <span
                 style={{
                   display: "inline-block",
                   width: "10px",
                   height: "10px",
-                  background: brownShades[index % brownShades.length],
+                  background: item.color || brownShades[index % brownShades.length],
                   marginRight: "6px",
-                  borderRadius: "2px",
+                  borderRadius: "50%",
+                  verticalAlign: "middle"
                 }}
               ></span>
-              <span style={{ color: "#6b4f3a", fontWeight: 500 }}>
-                {item.grade}
+              <span style={{ color: "#6b4f3a", fontWeight: 600 }}>
+                {item.label || item.grade}
               </span>
             </span>
           ))}
@@ -73,47 +126,56 @@ export const GradeAssessmentBar = ({ title, data, className = "" }) => {
         <div
           style={{
             display: "flex",
-            height: "55px",
+            height: "40px",
             width: "100%",
             overflow: "hidden",
-            borderRadius: "8px",
+            borderRadius: "4px",
             position: "relative",
+            boxShadow: "inset 0 1px 3px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.05)"
           }}
         >
           {data.map((item, index) => {
-            const percentage =
-              total > 0 ? ((item.value / total) * 100).toFixed(1) : 0;
-
-            const isLight = index >= 3; // light shades for text contrast control
+            if (item.value === 0 && total > 0) return null;
+            
+            // Handle if total is 0 to avoid NaN width
+            const percentage = total > 0 ? (item.value / total) * 100 : 0;
+            const barWidth = total > 0 ? `${percentage}%` : (index === 0 ? "100%" : "0%");
+            const bgColor = item.color || brownShades[index % brownShades.length];
+            const textColor = getContrastColor(bgColor);
 
             return (
               <div
-                key={item.grade}
+                key={item.label || item.grade}
                 style={{
-                  width: `${percentage}%`,
-                  background: brownShades[index % brownShades.length],
+                  width: barWidth,
+                  background: bgColor,
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  fontWeight: 600,
-                  color: isLight ? "#5c4033" : "#ffffff",
-                  fontSize: "14px",
+                  fontWeight: 700,
+                  color: textColor,
+                  fontSize: "13px",
                   cursor: "pointer",
-                  transition: "all 0.2s ease",
+                  transition: "all 0.3s ease",
+                  borderRight: index < data.length - 1 && percentage > 0 ? "1px solid rgba(255,255,255,0.3)" : "none"
                 }}
                 onMouseEnter={(e) => {
                   const rect = e.target.getBoundingClientRect();
                   setTooltip({
-                    grade: item.grade,
+                    label: item.label || item.grade,
                     value: item.value,
-                    percent: percentage,
+                    percent: percentage.toFixed(1),
                     x: rect.left + rect.width / 2,
                     y: rect.top,
                   });
                 }}
                 onMouseLeave={() => setTooltip(null)}
               >
-                {item.value > 0 && item.value}
+                {percentage > 4 && (
+                  <span style={{ textShadow: textColor === "#ffffff" ? "0 1px 2px rgba(0,0,0,0.2)" : "none" }}>
+                    {item.value}
+                  </span>
+                )}
               </div>
             );
           })}
@@ -128,24 +190,24 @@ export const GradeAssessmentBar = ({ title, data, className = "" }) => {
             top: tooltip.y - 65,
             left: tooltip.x,
             transform: "translateX(-50%)",
-            background: "#5c4033",
+            background: "rgba(92, 64, 51, 0.95)",
+            backdropFilter: "blur(4px)",
             color: "#fff",
             padding: "10px 14px",
             borderRadius: "8px",
             fontSize: "13px",
-            boxShadow: "0 6px 16px rgba(92,64,51,0.25)",
+            boxShadow: "0 6px 16px rgba(0,0,0,0.3)",
             zIndex: 1000,
             whiteSpace: "nowrap",
+            border: "1px solid rgba(255,255,255,0.1)"
           }}
         >
-          <div>
-            <strong>Grade:</strong> {tooltip.grade}
+          <div style={{ borderBottom: "1px solid rgba(255,255,255,0.2)", marginBottom: "5px", paddingBottom: "2px", textAlign: "center" }}>
+            <strong>{tooltip.label}</strong>
           </div>
-          <div>
-            <strong>Count:</strong> {tooltip.value}
-          </div>
-          <div>
-            <strong>Percentage:</strong> {tooltip.percent}%
+          <div style={{ display: "flex", justifyContent: "space-between", gap: "20px" }}>
+            <span>Count: <strong>{tooltip.value}</strong></span>
+            <span>Share: <strong>{tooltip.percent}%</strong></span>
           </div>
         </div>
       )}

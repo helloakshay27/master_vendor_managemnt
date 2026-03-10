@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { RotateCcw, Building2, Layers, Users, Calendar } from "lucide-react";
+import { baseURL } from "../../confi/apiDomain";
 
 const FilterCardItem = ({ icon: Icon, label, value, onChange, isLoading, options, disabled, hasDropdown = true }) => {
   return (
@@ -107,7 +108,6 @@ export const VendorFilterCard = ({
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [companyName, setCompanyName] = useState("");
-  const [fiscalYear, setFiscalYear] = useState("");
   const [departmentName, setDepartmentName] = useState("");
   const [vendors, setVendors] = useState("");
   const [pqType, setPqType] = useState("with_pq");
@@ -141,7 +141,7 @@ export const VendorFilterCard = ({
         setIsLoadingCompanies(true);
         try {
           const response = await fetch(
-            "https://vendors.lockated.com/vendor_pq_dashboard/company_slicer.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414"
+            `${baseURL}vendor_pq_dashboard/company_slicer.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`
           );
           const data = await response.json();
           let arr = [];
@@ -168,7 +168,7 @@ export const VendorFilterCard = ({
         setIsLoadingDepartments(true);
         try {
           const response = await fetch(
-            `https://vendors.lockated.com/vendor_pq_dashboard/department_slicer.json?company=${companyName || ""}&token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`
+            `${baseURL}vendor_pq_dashboard/department_slicer.json?company=${companyName || ""}&token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`
           );
           const data = await response.json();
           let arr = [];
@@ -191,7 +191,7 @@ export const VendorFilterCard = ({
         setIsLoadingDepartments(true);
         try {
           const response = await fetch(
-            `https://vendors.lockated.com/vendor_pq_dashboard/department_slicer.json?company=${companyName}&token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`
+            `${baseURL}vendor_pq_dashboard/department_slicer.json?company=${companyName}&token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`
           );
           const data = await response.json();
           let arr = [];
@@ -219,7 +219,7 @@ export const VendorFilterCard = ({
         setIsLoadingVendors(true);
         try {
           const response = await fetch(
-            `https://vendors.lockated.com/vendor_pq_dashboard/vendor_slicer.json?company=${companyName || ""}&department=${departmentName || ""}&token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`
+            `${baseURL}vendor_pq_dashboard/vendor_slicer.json?company=${companyName || ""}&department=${departmentName || ""}&token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`
           );
           const data = await response.json();
           let arr = [];
@@ -240,7 +240,7 @@ export const VendorFilterCard = ({
         setIsLoadingVendors(true);
         try {
           const response = await fetch(
-            `https://vendors.lockated.com/vendor_pq_dashboard/vendor_slicer.json?company=${companyName}&department=${departmentName}&token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`
+            `${baseURL}vendor_pq_dashboard/vendor_slicer.json?company=${companyName}&department=${departmentName}&token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`
           );
           const data = await response.json();
           let arr = [];
@@ -303,7 +303,6 @@ export const VendorFilterCard = ({
     setStartDate(formatDt(sevenDaysAgo));
     setEndDate(formatDt(today));
     setCompanyName("");
-    setFiscalYear("");
     setDepartmentName("");
     setVendors("");
     setPqType("with_pq");
@@ -346,14 +345,6 @@ export const VendorFilterCard = ({
     })),
   ];
 
-  const fiscalYearOptions = [
-    { value: "", label: "All" },
-    { value: "2023-24", label: "2023-24" },
-    { value: "2024-25", label: "2024-25" },
-    { value: "2025-26", label: "2025-26" },
-    { value: "2026-27", label: "2026-27" },
-    { value: "2027-28", label: "2027-28" },
-  ];
 
   return (
     <div style={{ marginBottom: "24px" }}>
@@ -423,16 +414,6 @@ export const VendorFilterCard = ({
           hasDropdown={true}
         />
 
-        <FilterCardItem
-          icon={Layers}
-          label="Fiscal Year"
-          value={fiscalYear}
-          onChange={(e) => setFiscalYear(e.target.value)}
-          isLoading={false}
-          options={fiscalYearOptions}
-          disabled={false}
-          hasDropdown={true}
-        />
 
         <FilterCardItem
           icon={Users}
