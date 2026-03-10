@@ -3,6 +3,9 @@ import { useParams, useSearchParams } from "react-router-dom";
 import axios from "axios";
 import { baseURL } from "../confi/apiDomain";
 import DynamicModalBox from "../components/base/Modal/DynamicModalBox";
+import TooltipIcon from "../components/common/Icon/TooltipIcon";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import "../styles/mor.css";
 
 const RekycDetail = () => {
@@ -23,6 +26,7 @@ const RekycDetail = () => {
   const [gstr1Details, setGstr1Details] = useState([]);
   const [gstr3bDetails, setGstr3bDetails] = useState([]);
   const [refreshingFiling, setRefreshingFiling] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [dropdowns, setDropdowns] = useState(null);
   const [editModal, setEditModal] = useState({
     show: false,
@@ -81,12 +85,31 @@ const RekycDetail = () => {
         config
       );
       console.log("SAP Logs:", response.data);
-      setSapLogs(response.data || []);
+      // Update: Access sap_logs array from response.data according to user JSON structure
+      setSapLogs(response.data.sap_logs || []);
     } catch (error) {
       console.error("Error fetching SAP logs:", error);
       setSapLogs([]); // Ensure logs are empty to show "No SAP logs available"
     } finally {
       setShowSapModal(true); // Always show modal even if API fails
+    }
+  };
+
+  // Helper function to format timestamp
+  const formatDateTime = (dateString) => {
+    if (!dateString) return "-";
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return dateString;
+      const dd = String(date.getDate()).padStart(2, "0");
+      const mm = String(date.getMonth() + 1).padStart(2, "0");
+      const yyyy = date.getFullYear();
+      const hh = String(date.getHours()).padStart(2, "0");
+      const min = String(date.getMinutes()).padStart(2, "0");
+      const ss = String(date.getSeconds()).padStart(2, "0");
+      return `${dd}-${mm}-${yyyy} ${hh}:${min}:${ss}`;
+    } catch (e) {
+      return dateString;
     }
   };
 
@@ -127,8 +150,14 @@ const RekycDetail = () => {
       "schema group": "schema_group",
       "purchasing organization": "purchasing_organization",
       "gst classification": "gst_classification",
+      "gstin applicable": "gstin_applicable_hardcoded",
       msme: "msme_hardcoded",
+      "valid from": "date_input",
+      "valid till": "date_input",
+      "udyam registration date": "date_input",
       enterprise: "enterprise_hardcoded",
+      "classification year": "classification_year_hardcoded",
+      "major activity": "major_activity_hardcoded",
     };
 
     return fieldMapping[name] || null;
@@ -138,7 +167,7 @@ const RekycDetail = () => {
   const handleRefreshFilingDetails = async () => {
     const gstin = rekycData?.gstin || rekycData?.supplier_gstin;
     if (!gstin) {
-      alert("GSTIN not found in REKYC details.");
+      toast.error("GSTIN not found in REKYC details.");
       return;
     }
 
@@ -174,16 +203,16 @@ const RekycDetail = () => {
 
         setGstr1Details(g1);
         setGstr3bDetails(g3b);
-        alert(data.message || "Return filing data refreshed successfully!");
+        toast.success(data.message || "Return filing data refreshed successfully!");
       } else {
-        alert("No return filing records found or error retrieving details.");
+        toast.warn("No return filing records found or error retrieving details.");
       }
     } catch (error) {
       console.error("Error fetching return filing details:", error);
       const errorMessage =
         error.response?.data?.message ||
         "An error occurred while fetching return filing details.";
-      alert(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setRefreshingFiling(false);
     }
@@ -361,7 +390,7 @@ const RekycDetail = () => {
       );
 
       if (response.status === 200 || response.status === 204) {
-        alert("Value updated successfully");
+        toast.success("Value updated successfully");
         setEditModal({
           show: false,
           request: null,
@@ -373,7 +402,7 @@ const RekycDetail = () => {
       }
     } catch (error) {
       console.error("Error updating value:", error);
-      alert("Failed to update value");
+      toast.error("Failed to update value");
     }
   };
 
@@ -381,11 +410,12 @@ const RekycDetail = () => {
     e.preventDefault();
 
     if (!comments.trim()) {
-      alert("Please enter comments");
+      toast.warn("Please enter comments");
       return;
     }
 
     try {
+      setSubmitting(true);
       // Add token to request if available
       const config = {};
       if (token) {
@@ -409,13 +439,15 @@ const RekycDetail = () => {
       );
 
       if (response.status === 200 || response.status === 204) {
-        alert("Approvals submitted successfully");
+        toast.success("Approvals submitted successfully");
         // Optionally reload the page to show updated data
         // window.location.reload();
       }
     } catch (error) {
       console.error("Error submitting approvals:", error);
-      alert("Failed to submit approvals");
+      toast.error("Failed to submit approvals");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -2620,10 +2652,8 @@ const RekycDetail = () => {
                     ) : (
                       <div className="px-2">
                         <div
-                          className="rekyc-row row align-items-center text-center fw-bold bg-light py-2 mb-2 sticky-top"
+                          className="rekyc-row row align-items-center text-center fw-bold bg-light py-2 mb-2"
                           style={{
-                            top: "55px",
-                            zIndex: 10,
                             borderBottom: "2px solid #ddd",
                           }}
                         >
@@ -2702,22 +2732,23 @@ const RekycDetail = () => {
                                         "GSTIN Information",
                                         "Msme Information",
                                       ].includes(sectionName) && (
-                                        <button
-                                          type="button"
-                                          className="edit-icon-btn ms-2"
-                                          onClick={() => handleEditClick(req)}
-                                          title="Edit"
-                                        >
-                                          <span
-                                            className="material-symbols-outlined"
-                                            style={{
-                                              fontSize: "18px",
-                                              color: "#007bff",
-                                            }}
+                                          <button
+                                            type="button"
+                                            className="edit-icon-btn ms-2"
+                                            onClick={() => handleEditClick(req)}
+                                            title="Edit"
+                                            disabled={req.status === "approved" || req.status === "rejected"}
                                           >
-                                            edit
-                                          </span>
-                                        </button>
+                                            <span
+                                              className="material-symbols-outlined"
+                                              style={{
+                                                fontSize: "18px",
+                                                color: req.status === "approved" || req.status === "rejected" ? "#ccc" : "#007bff",
+                                              }}
+                                            >
+                                              edit
+                                            </span>
+                                          </button>
                                       )}
                                     </div>
                                   ) : (
@@ -2739,6 +2770,8 @@ const RekycDetail = () => {
                                             type="button"
                                             className="edit-btn-blue ms-2"
                                             onClick={() => handleEditClick(req)}
+                                            disabled={req.status === "approved" || req.status === "rejected"}
+                                            style={req.status === "approved" || req.status === "rejected" ? { borderColor: "#ccc", color: "#ccc", cursor: "not-allowed" } : {}}
                                           >
                                             Edit
                                           </button>
@@ -2767,29 +2800,41 @@ const RekycDetail = () => {
                                     <div className="checkbox-item me-2 d-flex align-items-center justify-content-center">
                                       <input
                                         type="checkbox"
-                                        checked={approvals.approved.includes(
-                                          req.id?.toString()
-                                        )}
+                                        checked={
+                                          approvals.approved.includes(
+                                            req.id?.toString()
+                                          ) || req.status === "approved"
+                                        }
                                         onChange={() =>
                                           handleApprovalChange(
                                             req.id,
                                             "approve"
                                           )
                                         }
-                                        disabled={!req.id}
+                                        disabled={
+                                          !req.id ||
+                                          req.status === "approved" ||
+                                          req.status === "rejected"
+                                        }
                                       />
                                       <label>Approve</label>
                                     </div>
                                     <div className="checkbox-item d-flex align-items-center justify-content-center">
                                       <input
                                         type="checkbox"
-                                        checked={approvals.rejected.includes(
-                                          req.id?.toString()
-                                        )}
+                                        checked={
+                                          approvals.rejected.includes(
+                                            req.id?.toString()
+                                          ) || req.status === "rejected"
+                                        }
                                         onChange={() =>
                                           handleApprovalChange(req.id, "reject")
                                         }
-                                        disabled={!req.id}
+                                        disabled={
+                                          !req.id ||
+                                          req.status === "approved" ||
+                                          req.status === "rejected"
+                                        }
                                       />
                                       <label>Reject</label>
                                     </div>
@@ -2926,27 +2971,41 @@ const RekycDetail = () => {
             </div>
           </div>
 
-          {/* Submit Button */}
           <div className="d-flex justify-content-center mt-3 mb-3">
             <button
               type="submit"
               className="purple-btn2 btn-sm"
               id="rekycSubmitButton"
+              disabled={submitting}
             >
-              Submit
+              {submitting ? (
+                <>
+                  <span
+                    className="spinner-border spinner-border-sm me-2"
+                    role="status"
+                    aria-hidden="true"
+                  />
+                  Submitting...
+                </>
+              ) : (
+                "Submit"
+              )}
             </button>
           </div>
 
-          {/* Current Approvers */}
-          <div className="text-center mt-2">
+          <div className="text-center mt-2 d-flex align-items-center justify-content-center">
             <span className="fw-bold">Current Approvers</span>
-            <i
-              className="fa fa-info-circle ms-2 text-primary"
-              data-bs-toggle="tooltip"
-              data-bs-placement="top"
-              title={
-                getValue("current_approvers") || getValue("currentApprovers")
-              }
+            <TooltipIcon
+              color="#007bff"
+              message={(() => {
+                const approvers = rekycData?.current_approvers || rekycData?.currentApprovers;
+                if (Array.isArray(approvers) && approvers.length > 0) {
+                  return approvers
+                    .map((app) => app.name)
+                    .join(", ");
+                }
+                return typeof approvers === "string" ? approvers : "No approvers assigned";
+              })()}
             />
           </div>
         </div>
@@ -3107,6 +3166,18 @@ const RekycDetail = () => {
               <option value="Yes">Yes</option>
               <option value="No">No</option>
             </select>
+          ) : editModal.dropdownKey === "gstin_applicable_hardcoded" ? (
+            <select
+              className="form-control"
+              value={editModal.newValue}
+              onChange={(e) =>
+                setEditModal((prev) => ({ ...prev, newValue: e.target.value }))
+              }
+            >
+              <option value="">Select GSTIN</option>
+              <option value="Yes">Yes</option>
+              <option value="No">No</option>
+            </select>
           ) : editModal.dropdownKey === "enterprise_hardcoded" ? (
             <select
               className="form-control"
@@ -3121,6 +3192,44 @@ const RekycDetail = () => {
               <option value="Medium">Medium</option>
               <option value="Not Applicable">Not Applicable</option>
             </select>
+          ) : editModal.dropdownKey === "classification_year_hardcoded" ? (
+            <select
+              className="form-control"
+              value={editModal.newValue}
+              onChange={(e) =>
+                setEditModal((prev) => ({ ...prev, newValue: e.target.value }))
+              }
+            >
+              <option value="">Select Classification Year</option>
+              <option value="2021-22">2021-22</option>
+              <option value="2022-23">2022-23</option>
+              <option value="2023-24">2023-24</option>
+              <option value="2024-25">2024-25</option>
+              <option value="2025-26">2025-26</option>
+            </select>
+          ) : editModal.dropdownKey === "major_activity_hardcoded" ? (
+            <select
+              className="form-control"
+              value={editModal.newValue}
+              onChange={(e) =>
+                setEditModal((prev) => ({ ...prev, newValue: e.target.value }))
+              }
+            >
+              <option value="">Select Major Activity</option>
+              <option value="Services">Services</option>
+              <option value="Trader">Trader</option>
+              <option value="Manufacture">Manufacture</option>
+              <option value="Others">Others</option>
+            </select>
+          ) : editModal.dropdownKey === "date_input" ? (
+            <input
+              className="form-control"
+              type="date"
+              value={editModal.newValue}
+              onChange={(e) =>
+                setEditModal((prev) => ({ ...prev, newValue: e.target.value }))
+              }
+            />
           ) : editModal.dropdownKey && dropdowns?.[editModal.dropdownKey] ? (
             <select
               className="form-control"
@@ -3330,7 +3439,7 @@ const RekycDetail = () => {
           <div className="modal-dialog modal-xl modal-dialog-centered">
             <div className="modal-content">
               <div className="modal-header">
-                <h5 className="modal-title">SAP Logs</h5>
+                <h5 className="modal-title" style={{ color: "#de7008", fontWeight: "bold" }}>SAP Log</h5>
                 <button
                   type="button"
                   className="btn-close"
@@ -3339,54 +3448,28 @@ const RekycDetail = () => {
               </div>
               <div className="modal-body">
                 <div className="tbl-container table-responsive">
-                  <table className="table w-100 mb-0">
-                    <thead>
+                  <table className="table table-bordered w-100 mb-0">
+                    <thead style={{ backgroundColor: "#de7008", color: "#fff" }}>
                       <tr>
-                        <th className="text-start">S.No.</th>
-                        <th className="text-start">Timestamp</th>
-                        <th className="text-start">Action</th>
-                        <th className="text-start">Status</th>
-                        <th className="text-start">Message</th>
-                        <th className="text-start">Response</th>
+                        <th className="text-start" style={{ color: "#fff" }}>Date</th>
+                        <th className="text-start" style={{ color: "#fff" }}>Response</th>
                       </tr>
                     </thead>
                     <tbody>
                       {sapLogs && sapLogs.length > 0 ? (
                         sapLogs.map((log, index) => (
                           <tr key={index}>
-                            <td className="text-start">{index + 1}</td>
-                            <td className="text-start">
-                              {log.timestamp || log.created_at || "-"}
+                            <td className="text-start" style={{ width: "250px" }}>
+                              {formatDateTime(log.created_at)}
                             </td>
-                            <td className="text-start">{log.action || "-"}</td>
                             <td className="text-start">
-                              <span
-                                className={`badge ${
-                                  log.status === "success"
-                                    ? "bg-success"
-                                    : "bg-danger"
-                                }`}
-                              >
-                                {log.status || "-"}
-                              </span>
-                            </td>
-                            <td className="text-start">{log.message || "-"}</td>
-                            <td className="text-start">
-                              <small
-                                style={{
-                                  maxWidth: "300px",
-                                  display: "block",
-                                  overflow: "auto",
-                                }}
-                              >
-                                {log.response || "-"}
-                              </small>
+                               {log.message || "-"}
                             </td>
                           </tr>
                         ))
                       ) : (
                         <tr>
-                          <td colSpan="6" className="text-center py-4">
+                          <td colSpan="2" className="text-center py-4">
                             No SAP logs available
                           </td>
                         </tr>
@@ -3528,6 +3611,7 @@ const RekycDetail = () => {
           </div>
         </DynamicModalBox>
       )}
+      <ToastContainer position="top-right" autoClose={3000} />
     </div>
   );
 };

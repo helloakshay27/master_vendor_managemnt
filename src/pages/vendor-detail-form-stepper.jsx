@@ -203,13 +203,13 @@ const VendorDetailFormStepper = () => {
   // Prequalification (dummy, UI-focused)
   const [qualificationStatus, setQualificationStatus] = useState("Approved");
   const [invitationRemark, setInvitationRemark] = useState(
-    "as per mail received from Rajkumar karpe"
+    ""
   );
   const [approverRemark, setApproverRemark] = useState("");
   const [markAllNaFinancial, setMarkAllNaFinancial] = useState(false);
   const [markAllNaTechnical, setMarkAllNaTechnical] = useState(false);
 
- 
+
   const [organizationStatus, setOrganizationStatus] = useState("Approved");
   const [higherRateApplicable, setHigherRateApplicable] = useState(false);
   const [panAadharNotLinked, setPanAadharNotLinked] = useState(false);
@@ -445,8 +445,8 @@ const VendorDetailFormStepper = () => {
       });
     });
   }, [checklistConfig]);
-  
-console.log("Financial Sections:", checklistConfig);
+
+  console.log("Financial Sections:", checklistConfig);
   const technicalPreQualSections = useMemo(() => {
     const techCats = checklistConfig.filter((cat) =>
       normalize(cat.snag_cat_name).includes("technical")
@@ -874,7 +874,7 @@ console.log("Financial Sections:", checklistConfig);
       explanation: decl.explanation || "",
     }));
   }, [vendorData]);
- // When Mark All NA toggled, set all Remark by Approver to 'NA' for editable rows
+  // When Mark All NA toggled, set all Remark by Approver to 'NA' for editable rows
   useEffect(() => {
     if (markAllNaFinancial) {
       setRemarkByApprover((prev) => {
@@ -918,8 +918,8 @@ console.log("Financial Sections:", checklistConfig);
       // Validate Financial Mandatory
       if (isFinancialEditable) {
         for (const q of financialQuestions) {
-           // ✅ Skip if question is not editable
-    if (!q.editable) continue;
+          // ✅ Skip if question is not editable
+          if (!q.editable) continue;
           const score = scoreByApprover[q.id];
           if (score === undefined || score === "" || score === null) {
             toast.error(
@@ -933,8 +933,8 @@ console.log("Financial Sections:", checklistConfig);
       // Validate Technical Mandatory
       if (isTechnicalEditable) {
         for (const q of technicalQuestions) {
-           // ✅ Skip non-editable questions
-    if (!q.editable) continue;
+          // ✅ Skip non-editable questions
+          if (!q.editable) continue;
           const score = scoreByApprover[q.id];
           if (score === undefined || score === "" || score === null) {
             toast.error(
@@ -1706,6 +1706,31 @@ console.log("Financial Sections:", checklistConfig);
                               </span>
                               {organizationData.cinAttachments && organizationData.cinAttachments.length > 0
                                 ? organizationData.cinAttachments.map((file, index) => (
+                                  <a
+                                    key={index}
+                                    href={`${baseURL}${file.file_url}`}
+                                    download
+                                    className="text-primary d-flex align-items-center mb-1"
+                                    style={{ textDecoration: "none" }}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                  >
+                                    <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      width={18}
+                                      height={18}
+                                      fill="#DE7008"
+                                      className="bi bi-download me-2"
+                                      viewBox="0 0 16 16"
+                                    >
+                                      <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                                      <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                                    </svg>
+                                    {file.document_name || "CIN Document"}
+                                  </a>
+                                ))
+                                : organizationData.llpAttachments && organizationData.llpAttachments.length > 0
+                                  ? organizationData.llpAttachments.map((file, index) => (
                                     <a
                                       key={index}
                                       href={`${baseURL}${file.file_url}`}
@@ -1726,34 +1751,9 @@ console.log("Financial Sections:", checklistConfig);
                                         <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
                                         <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
                                       </svg>
-                                      {file.document_name || "CIN Document"}
+                                      {file.document_name || "LLP Document"}
                                     </a>
                                   ))
-                                : organizationData.llpAttachments && organizationData.llpAttachments.length > 0
-                                  ? organizationData.llpAttachments.map((file, index) => (
-                                      <a
-                                        key={index}
-                                        href={`${baseURL}${file.file_url}`}
-                                        download
-                                        className="text-primary d-flex align-items-center mb-1"
-                                        style={{ textDecoration: "none" }}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                      >
-                                        <svg
-                                          xmlns="http://www.w3.org/2000/svg"
-                                          width={18}
-                                          height={18}
-                                          fill="#DE7008"
-                                          className="bi bi-download me-2"
-                                          viewBox="0 0 16 16"
-                                        >
-                                          <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
-                                          <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
-                                        </svg>
-                                        {file.document_name || "LLP Document"}
-                                      </a>
-                                    ))
                                   : "-"}
                             </label>
                           </div>
@@ -2802,7 +2802,7 @@ console.log("Financial Sections:", checklistConfig);
                                 <span className="me-3">
                                   <span className="text-dark">:</span>
                                 </span>
-                                  {bank.virtualAccount || "-"}
+                                {bank.virtualAccount || "-"}
                               </label>
                             </div>
                           </div>
@@ -4007,7 +4007,7 @@ console.log("Financial Sections:", checklistConfig);
                                   </td>
                                   <td>
                                     {/* {row.remarkByVendor} */}
-                                    </td>
+                                  </td>
                                   <td>{row.totalScore}</td>
                                   <td></td>
                                   <td>
@@ -4289,7 +4289,7 @@ console.log("Financial Sections:", checklistConfig);
                                   </td>
                                   <td>
                                     {/* {row.remarkByVendor} */}
-                                    </td>
+                                  </td>
                                   <td>{row.totalScore}</td>
                                   <td></td>
                                   <td>
