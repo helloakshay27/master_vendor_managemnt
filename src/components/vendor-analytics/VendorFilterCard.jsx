@@ -214,53 +214,45 @@ export const VendorFilterCard = ({
   }, [companyName, companiesList, hasInitialFetch]);
 
   useEffect(() => {
-    if (hasInitialFetch && departmentsList.length > 0 && vendorsList.length === 0) {
-      const fetchVendors = async () => {
-        setIsLoadingVendors(true);
-        try {
-          const response = await fetch(
-            `${baseURL}vendor_pq_dashboard/vendor_slicer.json?company=${companyName || ""}&department=${departmentName || ""}&token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`
-          );
-          const data = await response.json();
-          let arr = [];
-          if (Array.isArray(data)) arr = data;
-          else if (data?.data && Array.isArray(data.data)) arr = data.data;
-          else if (data && typeof data === "object")
-            arr = Object.values(data).find((v) => Array.isArray(v)) || [];
-          setVendorsList(arr);
-        } catch (error) {
-          console.error("Error fetching vendors:", error);
-        } finally {
-          setIsLoadingVendors(false);
+    // We re-fetch vendors if the initial fetch is done, OR if company/department selection changes
+    // This ensures we always have the relevant vendors list.
+    const fetchVendors = async () => {
+      setIsLoadingVendors(true);
+      try {
+        const queryParams = new URLSearchParams();
+        queryParams.append("token", "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414");
+        if (companyName) queryParams.append("company_ids", companyName);
+        if (departmentName) queryParams.append("department_ids", departmentName);
+
+        const response = await fetch(
+          `${baseURL}vendor_pq_dashboard/vendors_slicer.json?${queryParams.toString()}`
+        );
+        const result = await response.json();
+        
+        let arr = [];
+        if (result.status === "success" && Array.isArray(result.data)) {
+          arr = result.data;
+        } else if (Array.isArray(result)) {
+          arr = result;
+        } else if (result?.data && Array.isArray(result.data)) {
+          arr = result.data;
+        } else if (result && typeof result === "object") {
+          arr = Object.values(result).find((v) => Array.isArray(v)) || [];
         }
-      };
+        
+        setVendorsList(arr);
+      } catch (error) {
+        console.error("Error fetching vendors:", error);
+        setVendorsList([]);
+      } finally {
+        setIsLoadingVendors(false);
+      }
+    };
+
+    if (hasInitialFetch) {
       fetchVendors();
-    } else if (departmentName && vendorsList.length === 0) {
-      const fetchVendors = async () => {
-        setIsLoadingVendors(true);
-        try {
-          const response = await fetch(
-            `${baseURL}vendor_pq_dashboard/vendor_slicer.json?company=${companyName}&department=${departmentName}&token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414`
-          );
-          const data = await response.json();
-          let arr = [];
-          if (Array.isArray(data)) arr = data;
-          else if (data?.data && Array.isArray(data.data)) arr = data.data;
-          else if (data && typeof data === "object")
-            arr = Object.values(data).find((v) => Array.isArray(v)) || [];
-          setVendorsList(arr);
-        } catch (error) {
-          console.error("Error fetching vendors:", error);
-        } finally {
-          setIsLoadingVendors(false);
-        }
-      };
-      fetchVendors();
-    } else if (!companyName || !departmentName) {
-      setVendorsList([]);
-      setVendors("");
     }
-  }, [departmentName, companyName, departmentsList, hasInitialFetch]);
+  }, [departmentName, companyName, hasInitialFetch]);
 
   const handleApply = () => {
     if (startDate && endDate) {
