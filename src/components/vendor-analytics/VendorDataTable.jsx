@@ -7,6 +7,7 @@ export const VendorDataTable = ({
   columns,
   onDownload,
   className = "",
+  loading = false, // Added loading prop
   pagination: externalPagination,
   onPageChange: externalOnPageChange,
   itemsPerPage = 10,
@@ -94,8 +95,32 @@ export const VendorDataTable = ({
           overflow: "hidden",
           display: "flex",
           flexDirection: "column",
+          position: "relative", // Ensure relative for overlay
         }}
       >
+        {/* Loading Overlay */}
+        {loading && (
+          <div 
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: "rgba(255, 255, 255, 0.7)",
+              zIndex: 10,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              borderRadius: "0 0 8px 8px"
+            }}
+          >
+            <div className="flex flex-col items-center gap-2">
+              <div className="w-8 h-8 border-4 border-[#d97938] border-t-transparent rounded-full animate-spin"></div>
+              <span className="text-sm font-medium text-gray-600">Loading...</span>
+            </div>
+          </div>
+        )}
         <div style={{ overflowY: "auto", overflowX: "auto", flex: 1 }}>
           <table
             style={{

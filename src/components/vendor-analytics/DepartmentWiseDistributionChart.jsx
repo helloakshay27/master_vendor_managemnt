@@ -20,17 +20,23 @@ const DUMMY_DATA = [
   { name: 'Consultant', value: 7 },
 ];
 
-export const DepartmentWiseDistributionChart = ({ data, onDownload, className = "" }) => {
+export const DepartmentWiseDistributionChart = ({ 
+  data, 
+  onDownload, 
+  title = "Department-Wise Vendor Distribution",
+  noDataText = "No department data available",
+  className = "" 
+}) => {
   const chartData = (data && data.length > 0 ? data : DUMMY_DATA).filter(item => item.value > 0);
 
   const hasData = chartData && chartData.length > 0;
 
   return (
-    <div className={`card go-shadow bg-white rounded-lg ${className}`} style={{ height: '500px', display: 'flex', flexDirection: 'column' }}>
-      <div className="vendor-card-header">
+    <div className={`card shadow-sm bg-white rounded-lg ${className}`} style={{ height: '500px', display: 'flex', flexDirection: 'column' }}>
+      <div className="card-header border-b px-4 py-3">
         <div className="flex items-center justify-between">
-          <h3 className="vendor-card-title">
-            Department-Wise Vendor Distribution
+          <h3 className="text-lg font-semibold text-gray-800">
+            {title}
           </h3>
         </div>
       </div>
@@ -94,7 +100,7 @@ export const DepartmentWiseDistributionChart = ({ data, onDownload, className = 
           </div>
         ) : (
           <div className="flex items-center justify-center" style={{ height: '400px' }}>
-            <p className="text-gray-500">No department data available</p>
+            <p className="text-gray-500">{noDataText}</p>
           </div>
         )}
       </div>
