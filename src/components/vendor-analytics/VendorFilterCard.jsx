@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { RotateCcw, Building2, Layers, Users, Calendar } from "lucide-react";
 import Select, { components } from "react-select";
 import { baseURL } from "../../confi/apiDomain";
@@ -199,7 +199,9 @@ export const VendorFilterCard = ({
   const [isLoadingVendors, setIsLoadingVendors] = useState(false);
   
   const [hasInitialFetch, setHasInitialFetch] = useState(false);
-  const [hasInitialVendorsSelected, setHasInitialVendorsSelected] = useState(false);
+  // Use a ref so the initial-apply guard survives re-renders without triggering effects
+  const initialApplied = useRef(false);
+  const companiesLoadedRef = useRef(false);
 
   useEffect(() => {
     const formatForInput = (dateStr) => {
@@ -224,6 +226,7 @@ export const VendorFilterCard = ({
         setCompaniesList(arr);
         const allCompanies = arr.map(c => ({ value: c.id || c.name || c, label: c.name || c.company_name || c }));
         setCompanyName(allCompanies);
+        companiesLoadedRef.current = true;
       } catch (err) { console.error("Error fetching companies:", err); }
       finally { setIsLoadingCompanies(false); }
     };
@@ -236,7 +239,6 @@ export const VendorFilterCard = ({
         const data = await response.json();
         const arr = data.data || (Array.isArray(data) ? data : []);
         setDepartmentsList(arr);
-        // Removed auto-selection for departments
       } catch (err) { console.error("Error fetching departments:", err); }
       finally { setIsLoadingDepartments(false); }
     };
@@ -246,6 +248,10 @@ export const VendorFilterCard = ({
   }, []);
 
   useEffect(() => {
+    // Only run vendor fetch once companies have been loaded initially
+    // companyName will be set by the companies fetch above
+    if (companyName.length === 0 && !companiesLoadedRef.current) return;
+
     const fetchVendors = async () => {
       setIsLoadingVendors(true);
       try {
@@ -254,8 +260,6 @@ export const VendorFilterCard = ({
         if (companyName && companyName.length > 0) {
           queryParams.append("company_ids", companyName.map(c => c.value).join(","));
         }
-        // User requested only to pass company ID when company selected, 
-        // but typically department is also filtered. I'll include it if it has selections.
         if (departmentName && departmentName.length > 0) {
           queryParams.append("department_ids", departmentName.map(d => d.value).join(","));
         }
@@ -263,19 +267,17 @@ export const VendorFilterCard = ({
         const response = await fetch(`${baseURL}vendor_pq_dashboard/vendors_slicer.json?${queryParams.toString()}`);
         const result = await response.json();
         const arr = result.data || (Array.isArray(result) ? result : []);
-        
         setVendorsList(arr);
 
-        if (!hasInitialVendorsSelected) {
-          // Removed auto-selection for vendors
-          setHasInitialVendorsSelected(true);
-          
+        // Fire onApplyFilters only once on initial load — never again from this effect
+        if (!initialApplied.current) {
+          initialApplied.current = true;
           onApplyFilters({
             startDate: currentStartDate,
             endDate: currentEndDate,
             companyName: companyName.map(c => c.value).join(","),
-            departmentName: "", 
-            vendors: "", 
+            departmentName: "",
+            vendors: "",
             pqType: currentPqType || "with_pq",
           });
         }
@@ -283,11 +285,10 @@ export const VendorFilterCard = ({
       finally { setIsLoadingVendors(false); }
     };
 
-    // Re-fetch vendors if company or department changes
-    if (companiesList.length > 0 || departmentsList.length > 0) {
-      fetchVendors();
-    }
-  }, [companyName, departmentName, companiesList, departmentsList]);
+    fetchVendors();
+    // Only re-fetch vendors when user manually changes company or department selection
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [companyName, departmentName]);
 
   const handleApply = () => {
     if (startDate && endDate) {

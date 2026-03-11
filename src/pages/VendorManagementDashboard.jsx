@@ -567,7 +567,7 @@ const APPROVED_VENDORS_COLUMNS = [
   { key: "vendorTat", label: "Vendor TAT" },
   { key: "internalTat", label: "Internal TAT" },
   { key: "cumulativeTat", label: "Cumulative TAT" },
-  { key: "approvalvendor", label: "Approved Vendor" },
+  // { key: "approvalvendor", label: "Approved Vendor" },
 
 ];
 
@@ -685,6 +685,7 @@ function VendorManagementDashboard() {
   const [bottomVendorsData, setBottomVendorsData] = useState([]);
   const [isTopBottomVendorsLoading, setIsTopBottomVendorsLoading] = useState(false);
   const [verificationPendingData, setVerificationPendingData] = useState([]);
+  const [isVerificationPendingLoading, setIsVerificationPendingLoading] = useState(false);
 
   // Default start date is last 7 days
   const getDefaultDateRange = () => {
@@ -1323,6 +1324,41 @@ function VendorManagementDashboard() {
       }
     };
 
+    const fetchVerificationPending = async () => {
+      setIsVerificationPendingLoading(true);
+      try {
+        const queryParams = new URLSearchParams();
+        queryParams.append("token", tokenFromUrl);
+        queryParams.append("status", "verification_pending");
+
+        if (activeFilters.companyName) queryParams.append("company_ids", activeFilters.companyName);
+        if (activeFilters.departmentName) queryParams.append("department_ids", activeFilters.departmentName);
+        if (activeFilters.vendors) queryParams.append("vendor_ids", activeFilters.vendors);
+        if (activeFilters.startDate) queryParams.append("from_date", formatDtForAPI(activeFilters.startDate));
+        if (activeFilters.endDate) queryParams.append("end_date", formatDtForAPI(activeFilters.endDate));
+
+        const response = await fetch(
+          `${baseURL}vendor_pq_dashboard/pq_vendor_stats.json?${queryParams}`,
+        );
+        const json = await response.json();
+        let rawData = json?.data?.suppliers || [];
+        setVerificationPendingData(
+          rawData.map((item) => ({
+            organization: item.organization_name || "-",
+            department: item.department_name || "-",
+            status: item.status || "Verification Pending",
+            overallTatDays: item.cumulative_tat_days ?? item.overall_tat_days ?? "-",
+            approvalLevel: item.approval_level || "-",
+          }))
+        );
+      } catch (error) {
+        console.error("Error fetching Verification Pending:", error);
+        setVerificationPendingData([]);
+      } finally {
+        setIsVerificationPendingLoading(false);
+      }
+    };
+
     const fetchTopVendors = async () => {
       setIsTopBottomVendorsLoading(true);
       try {
@@ -1429,6 +1465,7 @@ function VendorManagementDashboard() {
     fetchOnboardingInProcess();
     fetchInvitedVendors();
     fetchDetailsSubmitted();
+    fetchVerificationPending();
     fetchTopVendors();
     fetchBottomVendors();
   }, [activeFilters]);
@@ -2040,51 +2077,44 @@ function VendorManagementDashboard() {
                             return (
                               <div key={chartId} className="mt-4">
                                 <SortableChartItem id={chartId}>
-                                  <VendorDataTable
-                                    title="Verification Pending Vendors"
-                                    data={verificationPendingData}
-                                    columns={[
-                                      {
-                                        key: "organization",
-                                        label: "Organization Name",
-                                      },
-                                      { key: "status", label: "Status" },
-                                      {
-                                        key: "department",
-                                        label: "Department Name",
-                                      },
-                                      {
-                                        key: "overallTatDays",
-                                        label: "Overall TAT Days",
-                                      },
-                                      {
-                                        key: "approvalLevel",
-                                        label: "Approval Level",
-                                      },
-                                      // {
-                                      //   key: "submittedDate",
-                                      //   label: "Submitted Date",
-                                      // },
-                                      // {
-                                      //   key: "assignedTo",
-                                      //   label: "Assigned To",
-                                      // },
-                                      // { key: "priority", label: "Priority" },
-                                      // {
-                                      //   key: "documentsRequired",
-                                      //   label: "Documents Required",
-                                      // },
-                                      // {
-                                      //   key: "lastFollowUp",
-                                      //   label: "Last Follow Up",
-                                      // },
-                                      // {
-                                      //   key: "expectedCompletion",
-                                      //   label: "Expected Completion",
-                                      // },
-                                    ]}
-                                    onDownload={() => {}}
-                                  />
+                                  {isVerificationPendingLoading ? (
+                                    <div className="card go-shadow bg-white rounded-lg w-100">
+                                      <div className="vendor-card-header">
+                                        <h3 className="vendor-card-title">Verification Pending Vendors</h3>
+                                      </div>
+                                      <div className="card-body" style={{ height: "300px", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center" }}>
+                                        <div className="spinner-border text-primary mb-2" role="status">
+                                          <span className="visually-hidden">Loading...</span>
+                                        </div>
+                                        <span className="text-muted fw-medium">Loading Verification Pending Vendors...</span>
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <VendorDataTable
+                                      title="Verification Pending Vendors"
+                                      data={verificationPendingData}
+                                      columns={[
+                                        {
+                                          key: "organization",
+                                          label: "Organization Name",
+                                        },
+                                        { key: "status", label: "Status" },
+                                        {
+                                          key: "department",
+                                          label: "Department Name",
+                                        },
+                                        {
+                                          key: "overallTatDays",
+                                          label: "Overall TAT Days",
+                                        },
+                                        {
+                                          key: "approvalLevel",
+                                          label: "Approval Level",
+                                        },
+                                      ]}
+                                      onDownload={() => {}}
+                                    />
+                                  )}
                                 </SortableChartItem>
                               </div>
                             );
@@ -2185,38 +2215,38 @@ function VendorManagementDashboard() {
                                           label: "Department Name",
                                         },
                                         { key: "status", label: "Status" },
-                                        {
-                                          key: "vendorTat",
-                                          label: "Vendor TAT (Days)",
-                                        },
-                                        {
-                                          key: "internalTat",
-                                          label: "Internal TAT (Days)",
-                                        },
-                                        {
-                                          key: "cumulativeTat",
-                                          label: "Cumulative TAT (Days)",
-                                        },
-                                        {
-                                          key: "startDate",
-                                          label: "Start Date",
-                                        },
-                                        {
-                                          key: "currentStage",
-                                          label: "Current Stage",
-                                        },
-                                        {
-                                          key: "daysInProcess",
-                                          label: "Days In Process",
-                                        },
-                                        {
-                                          key: "assignedTo",
-                                          label: "Assigned To",
-                                        },
-                                        {
-                                          key: "progressPercentage",
-                                          label: "Progress %",
-                                        },
+                                        // {
+                                        //   key: "vendorTat",
+                                        //   label: "Vendor TAT (Days)",
+                                        // },
+                                        // {
+                                        //   key: "internalTat",
+                                        //   label: "Internal TAT (Days)",
+                                        // },
+                                        // {
+                                        //   key: "cumulativeTat",
+                                        //   label: "Cumulative TAT (Days)",
+                                        // },
+                                        // {
+                                        //   key: "startDate",
+                                        //   label: "Start Date",
+                                        // },
+                                        // {
+                                        //   key: "currentStage",
+                                        //   label: "Current Stage",
+                                        // },
+                                        // {
+                                        //   key: "daysInProcess",
+                                        //   label: "Days In Process",
+                                        // },
+                                        // {
+                                        //   key: "assignedTo",
+                                        //   label: "Assigned To",
+                                        // },
+                                        // {
+                                        //   key: "progressPercentage",
+                                        //   label: "Progress %",
+                                        // },
                                       ]}
                                       onDownload={() => {}}
                                     />
@@ -2259,35 +2289,35 @@ function VendorManagementDashboard() {
                                           label: "Department Name",
                                         },
                                         { key: "status", label: "Status" },
-                                        {
-                                          key: "vendorTat",
-                                          label: "Vendor TAT (Days)",
-                                        },
-                                        {
-                                          key: "internalTat",
-                                          label: "Internal TAT (Days)",
-                                        },
-                                        {
-                                          key: "cumulativeTat",
-                                          label: "Cumulative TAT (Days)",
-                                        },
-                                        {
-                                          key: "requestDate",
-                                          label: "Request Date",
-                                        },
-                                        { key: "reason", label: "Reason" },
-                                        {
-                                          key: "requestedBy",
-                                          label: "Requested By",
-                                        },
-                                        {
-                                          key: "resubmittedOn",
-                                          label: "Resubmitted On",
-                                        },
-                                        {
-                                          key: "currentStatus",
-                                          label: "Current Status",
-                                        },
+                                        // {
+                                        //   key: "vendorTat",
+                                        //   label: "Vendor TAT (Days)",
+                                        // },
+                                        // {
+                                        //   key: "internalTat",
+                                        //   label: "Internal TAT (Days)",
+                                        // },
+                                        // {
+                                        //   key: "cumulativeTat",
+                                        //   label: "Cumulative TAT (Days)",
+                                        // },
+                                        // {
+                                        //   key: "requestDate",
+                                        //   label: "Request Date",
+                                        // },
+                                        // { key: "reason", label: "Reason" },
+                                        // {
+                                        //   key: "requestedBy",
+                                        //   label: "Requested By",
+                                        // },
+                                        // {
+                                        //   key: "resubmittedOn",
+                                        //   label: "Resubmitted On",
+                                        // },
+                                        // {
+                                        //   key: "currentStatus",
+                                        //   label: "Current Status",
+                                        // },
                                       ]}
                                       onDownload={() => {}}
                                     />
