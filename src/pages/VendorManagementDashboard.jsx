@@ -567,11 +567,8 @@ const APPROVED_VENDORS_COLUMNS = [
   { key: "vendorTat", label: "Vendor TAT" },
   { key: "internalTat", label: "Internal TAT" },
   { key: "cumulativeTat", label: "Cumulative TAT" },
-  { key: "approvalDate", label: "Approval Date" },
-  { key: "vendorCode", label: "Vendor Code" },
-  { key: "category", label: "Category" },
-  { key: "contactPerson", label: "Contact Person" },
-  { key: "contactEmail", label: "Contact Email" },
+  { key: "approvalvendor", label: "Approved Vendor" },
+
 ];
 
 // =========================================================================
@@ -906,27 +903,24 @@ function VendorManagementDashboard() {
         if (activeFilters.endDate) queryParams.append("end_date", formatDtForAPI(activeFilters.endDate));
         
         const response = await fetch(
-          `${baseURL}vendor_pq_dashboard/yearwsie_onboarding.json?${queryParams}`,
+          `${baseURL}vendor_pq_dashboard/yearwise_onboarding.json?${queryParams}`,
         );
         const json = await response.json();
         
-        // Handle different response structures for year-wise data
-        let rawData = 
-          json?.data?.years || 
-          json?.data?.year_wise_onboarding ||
-          json?.data ||
-          [];
-
-        if (!Array.isArray(rawData) && typeof rawData === 'object') {
-          rawData = Object.values(rawData).find(val => Array.isArray(val)) || [];
-        }
+        // API returns: { status, data: [ { year, pq, non_pq }, ... ] }
+        let rawData = Array.isArray(json?.data)
+          ? json.data
+          : json?.data?.years ||
+            json?.data?.year_wise_onboarding ||
+            Object.values(json?.data || {}).find((val) => Array.isArray(val)) ||
+            [];
 
         setYearWiseData(
           rawData.map((item) => ({
-            year: item.year || item.label || item.period || "Unknown",
-            pqApproved: Number(item.with_pq || item.pqApproved || 0),
-            nonPqApproved: Number(item.without_pq || item.nonPqApproved || 0),
-            total: Number(item.total || 0),
+            year: String(item.year || item.label || item.period || "Unknown"),
+            pqApproved: Number(item.pq ?? item.with_pq ?? item.pqApproved ?? 0),
+            nonPqApproved: Number(item.non_pq ?? item.without_pq ?? item.nonPqApproved ?? 0),
+            total: Number(item.total || (item.pq ?? 0) + (item.non_pq ?? 0) || 0),
           })),
         );
       } catch (error) {
@@ -1552,7 +1546,12 @@ function VendorManagementDashboard() {
                     <div className="col-lg-3 col-md-6 col-sm-12">
                       <VendorStatCard
                         title="Onboarding In Process"
-                        value={vendorStats.onboarding}
+                        value={
+                          (vendorStats.invited || 0) +
+                          (vendorStats.details_submitted_by_vendor || 0) +
+                          (vendorStats.verification_pending || 0) +
+                          (vendorStats.request_for_resubmission || 0)
+                        }
                       />
                     </div>
                   )}
@@ -1802,17 +1801,16 @@ function VendorManagementDashboard() {
                               <div key={chartId} className="mt-4">
                                 <SortableChartItem id={chartId}>
                                   {isDeptPreQualLoading ? (
-                                    <div
-                                      style={{
-                                        height: "300px",
-                                        display: "flex",
-                                        justifyContent: "center",
-                                        alignItems: "center",
-                                        background: "#fff",
-                                        borderRadius: "8px",
-                                      }}
-                                    >
-                                      Loading...
+                                    <div className="card go-shadow bg-white rounded-lg w-100">
+                                      <div className="vendor-card-header">
+                                        <h3 className="vendor-card-title">Department Pre-Qualification Split</h3>
+                                      </div>
+                                      <div className="card-body" style={{ height: "300px", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center" }}>
+                                        <div className="spinner-border text-primary mb-2" role="status">
+                                          <span className="visually-hidden">Loading...</span>
+                                        </div>
+                                        <span className="text-muted fw-medium">Loading Department Pre-Qualification Split...</span>
+                                      </div>
                                     </div>
                                   ) : (
                                     <DepartmentPreQualificationChart
@@ -1833,17 +1831,16 @@ function VendorManagementDashboard() {
                               <div key={chartId} className="mt-4">
                                 <SortableChartItem id={chartId}>
                                   {isTopBottomVendorsLoading ? (
-                                    <div
-                                      style={{
-                                        height: "300px",
-                                        display: "flex",
-                                        justifyContent: "center",
-                                        alignItems: "center",
-                                        background: "#fff",
-                                        borderRadius: "8px",
-                                      }}
-                                    >
-                                      Loading...
+                                    <div className="card go-shadow bg-white rounded-lg w-100">
+                                      <div className="vendor-card-header">
+                                        <h3 className="vendor-card-title">Top/Bottom Vendors by Avg TAT</h3>
+                                      </div>
+                                      <div className="card-body" style={{ height: "300px", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center" }}>
+                                        <div className="spinner-border text-primary mb-2" role="status">
+                                          <span className="visually-hidden">Loading...</span>
+                                        </div>
+                                        <span className="text-muted fw-medium">Loading Top/Bottom Vendors by Avg TAT...</span>
+                                      </div>
                                     </div>
                                   ) : (
                                     <TopBottomVendorsChart
@@ -1865,17 +1862,16 @@ function VendorManagementDashboard() {
                               <div key={chartId} className="mt-4">
                                 <SortableChartItem id={chartId}>
                                   {isApprovedVendorsLoading ? (
-                                    <div
-                                      style={{
-                                        height: "300px",
-                                        display: "flex",
-                                        justifyContent: "center",
-                                        alignItems: "center",
-                                        background: "#fff",
-                                        borderRadius: "8px",
-                                      }}
-                                    >
-                                      Loading...
+                                    <div className="card go-shadow bg-white rounded-lg w-100">
+                                      <div className="vendor-card-header">
+                                        <h3 className="vendor-card-title">Approved Vendors</h3>
+                                      </div>
+                                      <div className="card-body" style={{ height: "300px", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center" }}>
+                                        <div className="spinner-border text-primary mb-2" role="status">
+                                          <span className="visually-hidden">Loading...</span>
+                                        </div>
+                                        <span className="text-muted fw-medium">Loading Approved Vendors...</span>
+                                      </div>
                                     </div>
                                   ) : (
                                     <VendorDataTable
@@ -1918,9 +1914,9 @@ function VendorManagementDashboard() {
                                         { key: "organization_name", label: "Organization Name" },
                                         { key: "department_name", label: "Department Name" },
                                         { key: "status", label: "Status" },
-                                        { key: "vendor_tat_days", label: "Vendor TAT (Days)" },
-                                        { key: "internal_tat_days", label: "Internal TAT (Days)" },
-                                        { key: "cumulative_tat_days", label: "Cumulative TAT (Days)" },
+                                        // { key: "vendor_tat_days", label: "Vendor TAT (Days)" },
+                                        // { key: "internal_tat_days", label: "Internal TAT (Days)" },
+                                        // { key: "cumulative_tat_days", label: "Cumulative TAT (Days)" },
                                       ]}
                                       onDownload={() => {}}
                                     />
@@ -1938,17 +1934,16 @@ function VendorManagementDashboard() {
                               <div key={chartId} className="mt-4">
                                 <SortableChartItem id={chartId}>
                                   {isNonPqVendorsLoading ? (
-                                    <div
-                                      style={{
-                                        height: "300px",
-                                        display: "flex",
-                                        justifyContent: "center",
-                                        alignItems: "center",
-                                        background: "#fff",
-                                        borderRadius: "8px",
-                                      }}
-                                    >
-                                      Loading...
+                                    <div className="card go-shadow bg-white rounded-lg w-100">
+                                      <div className="vendor-card-header">
+                                        <h3 className="vendor-card-title">Non PQ Vendors</h3>
+                                      </div>
+                                      <div className="card-body" style={{ height: "300px", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center" }}>
+                                        <div className="spinner-border text-primary mb-2" role="status">
+                                          <span className="visually-hidden">Loading...</span>
+                                        </div>
+                                        <span className="text-muted fw-medium">Loading Non PQ Vendors...</span>
+                                      </div>
                                     </div>
                                   ) : (
                                     <VendorDataTable
@@ -1958,9 +1953,9 @@ function VendorManagementDashboard() {
                                         { key: "organization_name", label: "Organization Name" },
                                         { key: "department_name", label: "Department Name" },
                                         { key: "status", label: "Status" },
-                                        { key: "vendor_tat_days", label: "Vendor TAT (Days)" },
-                                        { key: "internal_tat_days", label: "Internal TAT (Days)" },
-                                        { key: "cumulative_tat_days", label: "Cumulative TAT (Days)" },
+                                        // { key: "vendor_tat_days", label: "Vendor TAT (Days)" },
+                                        // { key: "internal_tat_days", label: "Internal TAT (Days)" },
+                                        // { key: "cumulative_tat_days", label: "Cumulative TAT (Days)" },
                                       ]}
                                       onDownload={() => {}}
                                     />
@@ -1978,17 +1973,16 @@ function VendorManagementDashboard() {
                               <div key={chartId} className="mt-4">
                                 <SortableChartItem id={chartId}>
                                   {isInvitedVendorsLoading ? (
-                                    <div
-                                      style={{
-                                        height: "300px",
-                                        display: "flex",
-                                        justifyContent: "center",
-                                        alignItems: "center",
-                                        background: "#fff",
-                                        borderRadius: "8px",
-                                      }}
-                                    >
-                                      Loading...
+                                    <div className="card go-shadow bg-white rounded-lg w-100">
+                                      <div className="vendor-card-header">
+                                        <h3 className="vendor-card-title">Invited Vendors</h3>
+                                      </div>
+                                      <div className="card-body" style={{ height: "300px", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center" }}>
+                                        <div className="spinner-border text-primary mb-2" role="status">
+                                          <span className="visually-hidden">Loading...</span>
+                                        </div>
+                                        <span className="text-muted fw-medium">Loading Invited Vendors...</span>
+                                      </div>
                                     </div>
                                   ) : (
                                     <VendorDataTable
@@ -2004,32 +1998,32 @@ function VendorManagementDashboard() {
                                           label: "Department Name",
                                         },
                                         { key: "status", label: "Status" },
-                                        {
-                                          key: "vendorTat",
-                                          label: "Vendor TAT (Days)",
-                                        },
-                                        {
-                                          key: "internalTat",
-                                          label: "Internal TAT (Days)",
-                                        },
-                                        {
-                                          key: "cumulativeTat",
-                                          label: "Cumulative TAT (Days)",
-                                        },
-                                        {
-                                          key: "invitationDate",
-                                          label: "Invitation Date",
-                                        },
-                                        {
-                                          key: "invitedBy",
-                                          label: "Invited By",
-                                        },
-                                        { key: "category", label: "Category" },
-                                        { key: "email", label: "Email" },
-                                        {
-                                          key: "responseStatus",
-                                          label: "Response Status",
-                                        },
+                                        // {
+                                        //   key: "vendorTat",
+                                        //   label: "Vendor TAT (Days)",
+                                        // },
+                                        // {
+                                        //   key: "internalTat",
+                                        //   label: "Internal TAT (Days)",
+                                        // },
+                                        // {
+                                        //   key: "cumulativeTat",
+                                        //   label: "Cumulative TAT (Days)",
+                                        // },
+                                        // {
+                                        //   key: "invitationDate",
+                                        //   label: "Invitation Date",
+                                        // },
+                                        // {
+                                        //   key: "invitedBy",
+                                        //   label: "Invited By",
+                                        // },
+                                        // { key: "category", label: "Category" },
+                                        // { key: "email", label: "Email" },
+                                        // {
+                                        //   key: "responseStatus",
+                                        //   label: "Response Status",
+                                        // },
                                       ]}
                                       onDownload={() => {}}
                                     />
@@ -2067,27 +2061,27 @@ function VendorManagementDashboard() {
                                         key: "approvalLevel",
                                         label: "Approval Level",
                                       },
-                                      {
-                                        key: "submittedDate",
-                                        label: "Submitted Date",
-                                      },
-                                      {
-                                        key: "assignedTo",
-                                        label: "Assigned To",
-                                      },
-                                      { key: "priority", label: "Priority" },
-                                      {
-                                        key: "documentsRequired",
-                                        label: "Documents Required",
-                                      },
-                                      {
-                                        key: "lastFollowUp",
-                                        label: "Last Follow Up",
-                                      },
-                                      {
-                                        key: "expectedCompletion",
-                                        label: "Expected Completion",
-                                      },
+                                      // {
+                                      //   key: "submittedDate",
+                                      //   label: "Submitted Date",
+                                      // },
+                                      // {
+                                      //   key: "assignedTo",
+                                      //   label: "Assigned To",
+                                      // },
+                                      // { key: "priority", label: "Priority" },
+                                      // {
+                                      //   key: "documentsRequired",
+                                      //   label: "Documents Required",
+                                      // },
+                                      // {
+                                      //   key: "lastFollowUp",
+                                      //   label: "Last Follow Up",
+                                      // },
+                                      // {
+                                      //   key: "expectedCompletion",
+                                      //   label: "Expected Completion",
+                                      // },
                                     ]}
                                     onDownload={() => {}}
                                   />
@@ -2104,17 +2098,16 @@ function VendorManagementDashboard() {
                               <div key={chartId} className="mt-4">
                                 <SortableChartItem id={chartId}>
                                   {isDetailsSubmittedLoading ? (
-                                    <div
-                                      style={{
-                                        height: "300px",
-                                        display: "flex",
-                                        justifyContent: "center",
-                                        alignItems: "center",
-                                        background: "#fff",
-                                        borderRadius: "8px",
-                                      }}
-                                    >
-                                      Loading...
+                                    <div className="card go-shadow bg-white rounded-lg w-100">
+                                      <div className="vendor-card-header">
+                                        <h3 className="vendor-card-title">Details Submitted Vendors</h3>
+                                      </div>
+                                      <div className="card-body" style={{ height: "300px", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center" }}>
+                                        <div className="spinner-border text-primary mb-2" role="status">
+                                          <span className="visually-hidden">Loading...</span>
+                                        </div>
+                                        <span className="text-muted fw-medium">Loading Details Submitted Vendors...</span>
+                                      </div>
                                     </div>
                                   ) : (
                                     <VendorDataTable
@@ -2130,26 +2123,26 @@ function VendorManagementDashboard() {
                                           label: "Department Name",
                                         },
                                         { key: "status", label: "Status" },
-                                        {
-                                          key: "submissionDate",
-                                          label: "Submission Date",
-                                        },
-                                        {
-                                          key: "completionPercentage",
-                                          label: "Completion %",
-                                        },
-                                        {
-                                          key: "documentsUploaded",
-                                          label: "Documents Uploaded",
-                                        },
-                                        {
-                                          key: "lastUpdated",
-                                          label: "Last Updated",
-                                        },
-                                        {
-                                          key: "reviewStatus",
-                                          label: "Review Status",
-                                        },
+                                        // {
+                                        //   key: "submissionDate",
+                                        //   label: "Submission Date",
+                                        // },
+                                        // {
+                                        //   key: "completionPercentage",
+                                        //   label: "Completion %",
+                                        // },
+                                        // {
+                                        //   key: "documentsUploaded",
+                                        //   label: "Documents Uploaded",
+                                        // },
+                                        // {
+                                        //   key: "lastUpdated",
+                                        //   label: "Last Updated",
+                                        // },
+                                        // {
+                                        //   key: "reviewStatus",
+                                        //   label: "Review Status",
+                                        // },
                                       ]}
                                       onDownload={() => {}}
                                     />
@@ -2167,17 +2160,16 @@ function VendorManagementDashboard() {
                               <div key={chartId} className="mt-4">
                                 <SortableChartItem id={chartId}>
                                   {isOnboardingInProcessLoading ? (
-                                    <div
-                                      style={{
-                                        height: "300px",
-                                        display: "flex",
-                                        justifyContent: "center",
-                                        alignItems: "center",
-                                        background: "#fff",
-                                        borderRadius: "8px",
-                                      }}
-                                    >
-                                      Loading...
+                                    <div className="card go-shadow bg-white rounded-lg w-100">
+                                      <div className="vendor-card-header">
+                                        <h3 className="vendor-card-title">Onboarding In Process</h3>
+                                      </div>
+                                      <div className="card-body" style={{ height: "300px", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center" }}>
+                                        <div className="spinner-border text-primary mb-2" role="status">
+                                          <span className="visually-hidden">Loading...</span>
+                                        </div>
+                                        <span className="text-muted fw-medium">Loading Onboarding In Process...</span>
+                                      </div>
                                     </div>
                                   ) : (
                                     <VendorDataTable
@@ -2242,17 +2234,16 @@ function VendorManagementDashboard() {
                               <div key={chartId} className="mt-4">
                                 <SortableChartItem id={chartId}>
                                   {isResubmissionRequestsLoading ? (
-                                    <div
-                                      style={{
-                                        height: "300px",
-                                        display: "flex",
-                                        justifyContent: "center",
-                                        alignItems: "center",
-                                        background: "#fff",
-                                        borderRadius: "8px",
-                                      }}
-                                    >
-                                      Loading...
+                                    <div className="card go-shadow bg-white rounded-lg w-100">
+                                      <div className="vendor-card-header">
+                                        <h3 className="vendor-card-title">Request for Resubmission Vendors</h3>
+                                      </div>
+                                      <div className="card-body" style={{ height: "300px", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center" }}>
+                                        <div className="spinner-border text-primary mb-2" role="status">
+                                          <span className="visually-hidden">Loading...</span>
+                                        </div>
+                                        <span className="text-muted fw-medium">Loading Request for Resubmission Vendors...</span>
+                                      </div>
                                     </div>
                                   ) : (
                                     <VendorDataTable

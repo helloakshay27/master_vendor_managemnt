@@ -7,12 +7,35 @@ export const VendorDataTable = ({
   columns,
   onDownload,
   className = "",
-  loading = false, // Added loading prop
+  loading = false,      // internal prop
+  isLoading = false,    // alias used by ReKyc Dashboard
   pagination: externalPagination,
   onPageChange: externalOnPageChange,
   itemsPerPage = 10,
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
+
+  const isActuallyLoading = loading || isLoading;
+
+  // Show styled spinner card while loading (no data yet)
+  if (isActuallyLoading && (!data || data.length === 0)) {
+    return (
+      <div className={`card go-shadow bg-white rounded-lg ${className}`}>
+        <div className="vendor-card-header">
+          <h3 className="vendor-card-title">{title}</h3>
+        </div>
+        <div
+          className="card-body"
+          style={{ height: "300px", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center" }}
+        >
+          <div className="spinner-border text-primary mb-2" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
+          <span className="text-muted fw-medium">Loading {title}...</span>
+        </div>
+      </div>
+    );
+  }
 
   if (!data || data.length === 0) {
     return (

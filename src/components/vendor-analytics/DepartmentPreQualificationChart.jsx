@@ -9,11 +9,33 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
-import { Download } from "lucide-react";
 
 const CHART_COLORS = {
   pqApproved: "#c4b99d",
   nonPqApproved: "#8b7355",
+};
+
+// Custom tick: truncates long department names and shows full text via SVG <title> on hover
+const TruncatedTick = ({ x, y, payload, maxChars = 10 }) => {
+  const full = String(payload?.value || "");
+  const display = full.length > maxChars ? full.slice(0, maxChars) + "…" : full;
+  return (
+    <g transform={`translate(${x},${y})`}>
+      <title>{full}</title>
+      <text
+        x={0}
+        y={0}
+        dy={4}
+        textAnchor="end"
+        fill="#374151"
+        fontSize={10}
+        transform="rotate(-45)"
+        style={{ cursor: "default" }}
+      >
+        {display}
+      </text>
+    </g>
+  );
 };
 
 export const DepartmentPreQualificationChart = ({
@@ -33,16 +55,14 @@ export const DepartmentPreQualificationChart = ({
       }))
     : [];
 
-  // Each bar gets ~40px for department names; minimum 600px
-  const minChartWidth = Math.max(chartData.length * 40 + 80, 600);
+  // Each bar gets ~50px for department names; minimum 600px
+  const minChartWidth = Math.max(chartData.length * 50 + 80, 600);
 
   return (
     <div className={`card go-shadow bg-white rounded-lg ${className}`}>
       <div className="vendor-card-header">
         <div className="flex items-center justify-between">
-          <h3 className="vendor-card-title">
-            Department Pre-Qualification Split
-          </h3>
+          <h3 className="vendor-card-title">Department Pre-Qualification Split</h3>
         </div>
       </div>
       <div className="card-body" style={{ padding: "20px" }}>
@@ -53,16 +73,14 @@ export const DepartmentPreQualificationChart = ({
                 <BarChart
                   data={chartData}
                   margin={{ top: 20, right: 30, left: 20, bottom: 130 }}
+                  barCategoryGap="10%"
                 >
                   <CartesianGrid strokeDasharray="3 3" stroke="#e0e4e7" />
                   <XAxis
                     dataKey="department"
-                    angle={-45}
-                    textAnchor="end"
                     height={150}
                     interval={0}
-                    fontSize={10}
-                    tick={{ fill: "#374151" }}
+                    tick={<TruncatedTick maxChars={10} />}
                   />
                   <YAxis
                     fontSize={12}
@@ -74,44 +92,31 @@ export const DepartmentPreQualificationChart = ({
                         ? Math.max(
                             3,
                             Math.ceil(
-                              Math.max(...chartData.map((d) => d.total || 0)) *
-                                1.2,
+                              Math.max(...chartData.map((d) => d.total || 0)) * 1.2,
                             ),
                           )
                         : 3,
                     ]}
                   />
                   <Tooltip
-                    content={({ active, payload, label }) => {
+                    content={({ active, payload }) => {
                       if (active && payload && payload.length) {
                         const d = payload[0].payload;
                         return (
                           <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
-                            <p className="font-semibold text-gray-800 mb-2">
-                              {label}
-                            </p>
+                            <p className="font-semibold text-gray-800 mb-2">{d.department}</p>
                             <div className="space-y-1">
                               <div className="flex justify-between items-center gap-4">
-                                <span
-                                  className="font-medium"
-                                  style={{ color: CHART_COLORS.pqApproved }}
-                                >
+                                <span className="font-medium" style={{ color: CHART_COLORS.pqApproved }}>
                                   PQ Approved:
                                 </span>
-                                <span className="text-gray-700">
-                                  {d.pqApproved}
-                                </span>
+                                <span className="text-gray-700">{d.pqApproved}</span>
                               </div>
                               <div className="flex justify-between items-center gap-4">
-                                <span
-                                  className="font-medium"
-                                  style={{ color: CHART_COLORS.nonPqApproved }}
-                                >
+                                <span className="font-medium" style={{ color: CHART_COLORS.nonPqApproved }}>
                                   Non PQ Approved:
                                 </span>
-                                <span className="text-gray-700">
-                                  {d.nonPqApproved}
-                                </span>
+                                <span className="text-gray-700">{d.nonPqApproved}</span>
                               </div>
                               <div className="pt-1 border-t border-gray-200">
                                 <div className="flex justify-between items-center font-semibold gap-4">
@@ -126,22 +131,9 @@ export const DepartmentPreQualificationChart = ({
                       return null;
                     }}
                   />
-                  <Legend
-                    wrapperStyle={{ paddingTop: "20px" }}
-                    iconType="circle"
-                  />
-                  <Bar
-                    dataKey="pqApproved"
-                    stackId="a"
-                    fill={CHART_COLORS.pqApproved}
-                    name="PQ Approved Vendors"
-                  />
-                  <Bar
-                    dataKey="nonPqApproved"
-                    stackId="a"
-                    fill={CHART_COLORS.nonPqApproved}
-                    name="Non PQ Approved Vendors"
-                  />
+                  <Legend wrapperStyle={{ paddingTop: "20px" }} iconType="circle" />
+                  <Bar dataKey="pqApproved" stackId="a" fill={CHART_COLORS.pqApproved} name="PQ Approved Vendors" />
+                  <Bar dataKey="nonPqApproved" stackId="a" fill={CHART_COLORS.nonPqApproved} name="Non PQ Approved Vendors" />
                 </BarChart>
               </ResponsiveContainer>
             </div>

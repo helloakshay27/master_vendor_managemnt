@@ -1,10 +1,32 @@
 import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { Download } from 'lucide-react';
 
 const CHART_COLORS = {
   pqApproved: '#c4b99d',
   nonPqApproved: '#8b7355',
+};
+
+// Custom tick: truncates long labels and shows full text via SVG <title> on hover
+const TruncatedTick = ({ x, y, payload, maxChars = 8 }) => {
+  const full = String(payload?.value || '');
+  const display = full.length > maxChars ? full.slice(0, maxChars) + '…' : full;
+  return (
+    <g transform={`translate(${x},${y})`}>
+      <title>{full}</title>
+      <text
+        x={0}
+        y={0}
+        dy={4}
+        textAnchor="end"
+        fill="#374151"
+        fontSize={10}
+        transform="rotate(-45)"
+        style={{ cursor: 'default' }}
+      >
+        {display}
+      </text>
+    </g>
+  );
 };
 
 export const MonthWiseRegistrationChart = ({ data, onDownload, className = "" }) => {
@@ -15,16 +37,14 @@ export const MonthWiseRegistrationChart = ({ data, onDownload, className = "" })
     total: item.total || (item.pqApproved || 0) + (item.nonPqApproved || 0),
   }));
 
-  // Each bar gets ~22px so all months are readable; minimum 600px
-  const minChartWidth = Math.max(chartData.length * 22 + 80, 600);
+  // Each bar gets ~44px wide so bars are visible and readable; minimum 600px
+  const minChartWidth = Math.max(chartData.length * 44 + 80, 600);
 
   return (
     <div className={`card go-shadow bg-white rounded-lg ${className}`}>
       <div className="vendor-card-header">
         <div className="flex items-center justify-between">
-          <h3 className="vendor-card-title">
-            Month-Wise Vendor Registration
-          </h3>
+          <h3 className="vendor-card-title">Month-Wise Vendor Registration</h3>
         </div>
       </div>
       <div className="card-body" style={{ padding: '20px' }}>
@@ -35,16 +55,14 @@ export const MonthWiseRegistrationChart = ({ data, onDownload, className = "" })
                 <BarChart
                   data={chartData}
                   margin={{ top: 20, right: 30, left: 20, bottom: 100 }}
+                  barCategoryGap="10%"
                 >
                   <CartesianGrid strokeDasharray="3 3" stroke="#e0e4e7" />
                   <XAxis
                     dataKey="month"
-                    fontSize={10}
-                    tick={{ fill: '#374151' }}
-                    angle={-45}
-                    textAnchor="end"
                     height={120}
                     interval={0}
+                    tick={<TruncatedTick maxChars={8} />}
                   />
                   <YAxis
                     fontSize={12}
@@ -53,23 +71,19 @@ export const MonthWiseRegistrationChart = ({ data, onDownload, className = "" })
                     domain={[0, chartData.length > 0 ? Math.max(3, Math.ceil(Math.max(...chartData.map(d => d.total || 0)) * 1.2)) : 3]}
                   />
                   <Tooltip
-                    content={({ active, payload, label }) => {
+                    content={({ active, payload }) => {
                       if (active && payload && payload.length) {
                         const d = payload[0].payload;
                         return (
                           <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
-                            <p className="font-semibold text-gray-800 mb-2">{label}</p>
+                            <p className="font-semibold text-gray-800 mb-2">{d.month}</p>
                             <div className="space-y-1">
                               <div className="flex justify-between items-center gap-4">
-                                <span className="font-medium" style={{ color: CHART_COLORS.pqApproved }}>
-                                  With PQ:
-                                </span>
+                                <span className="font-medium" style={{ color: CHART_COLORS.pqApproved }}>With PQ:</span>
                                 <span className="text-gray-700">{d.pqApproved}</span>
                               </div>
                               <div className="flex justify-between items-center gap-4">
-                                <span className="font-medium" style={{ color: CHART_COLORS.nonPqApproved }}>
-                                  Without PQ:
-                                </span>
+                                <span className="font-medium" style={{ color: CHART_COLORS.nonPqApproved }}>Without PQ:</span>
                                 <span className="text-gray-700">{d.nonPqApproved}</span>
                               </div>
                               <div className="pt-1 border-t border-gray-200">
@@ -85,10 +99,7 @@ export const MonthWiseRegistrationChart = ({ data, onDownload, className = "" })
                       return null;
                     }}
                   />
-                  <Legend
-                    wrapperStyle={{ paddingTop: '20px' }}
-                    iconType="circle"
-                  />
+                  <Legend wrapperStyle={{ paddingTop: '20px' }} iconType="circle" />
                   <Bar dataKey="pqApproved" stackId="a" fill={CHART_COLORS.pqApproved} name="With PQ" />
                   <Bar dataKey="nonPqApproved" stackId="a" fill={CHART_COLORS.nonPqApproved} name="Without PQ" />
                 </BarChart>
@@ -96,9 +107,7 @@ export const MonthWiseRegistrationChart = ({ data, onDownload, className = "" })
             </div>
           </div>
         ) : (
-          <div className="text-center py-8 text-gray-500">
-            No month-wise data available
-          </div>
+          <div className="text-center py-8 text-gray-500">No month-wise data available</div>
         )}
       </div>
     </div>

@@ -155,14 +155,13 @@ const ALL_STAT_IDS = [
 
 const getDefaultDateRange = () => {
   const today = new Date();
-  const lastYear = new Date();
-  lastYear.setFullYear(today.getFullYear() - 1);
+  const startDate = new Date(2024, 0, 1); // January 1, 2024 (fixed)
   const fmt = (d) => {
     const dd = d.getDate().toString().padStart(2, "0");
     const mm = (d.getMonth() + 1).toString().padStart(2, "0");
     return `${dd}/${mm}/${d.getFullYear()}`;
   };
-  return { startDate: fmt(lastYear), endDate: fmt(today) };
+  return { startDate: fmt(startDate), endDate: fmt(today) };
 };
 
 // =============================================================================
@@ -673,23 +672,37 @@ const KYCManagementDashboard = () => {
                             return (
                               <div key={chartId} className="col-12">
                                 <SortableChartItem id={chartId}>
-                                  <GradeAssessmentBar
-                                    data={[
-                                      { 
-                                        label: "Initiated Suppliers", 
-                                        value: kpiData.find(d => d.status === "Active Initiated Suppliers")?.count || 0,
-                                        color: "#7a5a45" 
-                                      },
-                                      { 
-                                        label: "Not Initiated Suppliers", 
-                                        value: kpiData.find(d => d.status === "Active Not Initiated Suppliers")?.count || 0,
-                                        color: "#d6bfa9"
-                                      }
-                                    ]}
-                                    title="Total Approved Suppliers"
-                                    legendLabel="Suppliers"
-                                    onDownload={() => {}}
-                                  />
+                                  {isKpiLoading ? (
+                                    <div className="card go-shadow bg-white rounded-lg w-100">
+                                      <div className="vendor-card-header">
+                                        <h3 className="vendor-card-title">Total Approved Suppliers</h3>
+                                      </div>
+                                      <div className="card-body" style={{ height: "200px", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center" }}>
+                                        <div className="spinner-border text-primary mb-2" role="status">
+                                          <span className="visually-hidden">Loading...</span>
+                                        </div>
+                                        <span className="text-muted fw-medium">Loading Total Approved Suppliers...</span>
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <GradeAssessmentBar
+                                      data={[
+                                        { 
+                                          label: "Initiated Suppliers", 
+                                          value: kpiData.find(d => d.status === "Active Initiated Suppliers")?.count || 0,
+                                          color: "#7a5a45" 
+                                        },
+                                        { 
+                                          label: "Not Initiated Suppliers", 
+                                          value: kpiData.find(d => d.status === "Active Not Initiated Suppliers")?.count || 0,
+                                          color: "#d6bfa9"
+                                        }
+                                      ]}
+                                      title="Total Approved Suppliers"
+                                      legendLabel="Suppliers"
+                                      onDownload={() => {}}
+                                    />
+                                  )}
                                 </SortableChartItem>
                               </div>
                             );
@@ -703,38 +716,52 @@ const KYCManagementDashboard = () => {
                             return (
                               <div key={chartId} className="col-12">
                                 <SortableChartItem id={chartId}>
-                                  <GradeAssessmentBar
-                                    data={[
-                                      { 
-                                        label: "Approved", 
-                                        value: kpiData.find(d => d.status === "Approved Suppliers")?.count || 0,
-                                        color: "#5c4033" 
-                                      },
-                                      { 
-                                        label: "Details Submitted By Vendor", 
-                                        value: kpiData.find(d => d.status === "Details Submitted Suppliers")?.count || 0,
-                                        color: "#7a5a45"
-                                      },
-                                      { 
-                                        label: "Expired", 
-                                        value: kpiData.find(d => d.status === "Expired Row Count")?.count || 0,
-                                        color: "#b08968"
-                                      },
-                                      { 
-                                        label: "Pending", 
-                                        value: kpiData.find(d => d.status === "Pending Suppliers")?.count || 0,
-                                        color: "#d6bfa9"
-                                      },
-                                      { 
-                                        label: "Rejected", 
-                                        value: kpiData.find(d => d.status === "Rejected Suppliers")?.count || 0,
-                                        color: "#a52a2a"
-                                      }
-                                    ]}
-                                    title="Status Wise Vendor Count"
-                                    legendLabel="Statuses"
-                                    onDownload={() => {}}
-                                  />
+                                  {isKpiLoading ? (
+                                    <div className="card go-shadow bg-white rounded-lg w-100">
+                                      <div className="vendor-card-header">
+                                        <h3 className="vendor-card-title">Status Wise Vendor Count</h3>
+                                      </div>
+                                      <div className="card-body" style={{ height: "200px", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center" }}>
+                                        <div className="spinner-border text-primary mb-2" role="status">
+                                          <span className="visually-hidden">Loading...</span>
+                                        </div>
+                                        <span className="text-muted fw-medium">Loading Status Wise Vendor Count...</span>
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <GradeAssessmentBar
+                                      data={[
+                                        { 
+                                          label: "Approved", 
+                                          value: kpiData.find(d => d.status === "Approved Suppliers")?.count || 0,
+                                          color: "#5c4033" 
+                                        },
+                                        { 
+                                          label: "Details Submitted By Vendor", 
+                                          value: kpiData.find(d => d.status === "Details Submitted Suppliers")?.count || 0,
+                                          color: "#7a5a45"
+                                        },
+                                        { 
+                                          label: "Expired", 
+                                          value: kpiData.find(d => d.status === "Expired Row Count")?.count || 0,
+                                          color: "#b08968"
+                                        },
+                                        { 
+                                          label: "Pending", 
+                                          value: kpiData.find(d => d.status === "Pending Suppliers")?.count || 0,
+                                          color: "#d6bfa9"
+                                        },
+                                        { 
+                                          label: "Rejected", 
+                                          value: kpiData.find(d => d.status === "Rejected Suppliers")?.count || 0,
+                                          color: "#a52a2a"
+                                        }
+                                      ]}
+                                      title="Status Wise Vendor Count"
+                                      legendLabel="Statuses"
+                                      onDownload={() => {}}
+                                    />
+                                  )}
                                 </SortableChartItem>
                               </div>
                             );
@@ -804,11 +831,25 @@ const KYCManagementDashboard = () => {
                             return (
                               <div key={chartId} className="col-12">
                                 <SortableChartItem id={chartId}>
-                                  <DepartmentReKYCChart
-                                    title="Department ReKYC Status"
-                                    data={MOCK_DEPT_REKYC_DATA}
-                                    onDownload={() => {}}
-                                  />
+                                  {isKpiLoading ? (
+                                    <div className="card go-shadow bg-white rounded-lg w-100">
+                                      <div className="vendor-card-header">
+                                        <h3 className="vendor-card-title">Department ReKYC Status</h3>
+                                      </div>
+                                      <div className="card-body" style={{ height: "300px", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center" }}>
+                                        <div className="spinner-border text-primary mb-2" role="status">
+                                          <span className="visually-hidden">Loading...</span>
+                                        </div>
+                                        <span className="text-muted fw-medium">Loading Department ReKYC Status...</span>
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <DepartmentReKYCChart
+                                      title="Department ReKYC Status"
+                                      data={[]}
+                                      onDownload={() => {}}
+                                    />
+                                  )}
                                 </SortableChartItem>
                               </div>
                             );
@@ -907,11 +948,25 @@ const KYCManagementDashboard = () => {
                             return (
                               <div key={chartId} className="col-lg-6 col-md-12">
                                 <SortableChartItem id={chartId}>
-                                  <ReKycBarchart
-                                    data={monthData}
-                                    title="Month Wise Re-KYC Type"
-                                    isLoading={isChartLoading}
-                                  />
+                                  {isChartLoading ? (
+                                    <div className="card go-shadow bg-white rounded-lg w-100">
+                                      <div className="vendor-card-header">
+                                        <h3 className="vendor-card-title">Month Wise Re-KYC Type</h3>
+                                      </div>
+                                      <div className="card-body" style={{ height: "300px", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center" }}>
+                                        <div className="spinner-border text-primary mb-2" role="status">
+                                          <span className="visually-hidden">Loading...</span>
+                                        </div>
+                                        <span className="text-muted fw-medium">Loading Month Wise Re-KYC Type...</span>
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <ReKycBarchart
+                                      data={monthData}
+                                      title="Month Wise Re-KYC Type"
+                                      isLoading={isChartLoading}
+                                    />
+                                  )}
                                 </SortableChartItem>
                               </div>
                             );
@@ -925,12 +980,26 @@ const KYCManagementDashboard = () => {
                             return (
                               <div key={chartId} className="col-lg-6 col-md-12">
                                 <SortableChartItem id={chartId}>
-                                  <ReKycBarchart
-                                    data={yearData}
-                                    title="Year Wise Re-KYC Count"
-                                    type="year"
-                                    isLoading={isChartLoading}
-                                  />
+                                  {isChartLoading ? (
+                                    <div className="card go-shadow bg-white rounded-lg w-100">
+                                      <div className="vendor-card-header">
+                                        <h3 className="vendor-card-title">Year Wise Re-KYC Count</h3>
+                                      </div>
+                                      <div className="card-body" style={{ height: "300px", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center" }}>
+                                        <div className="spinner-border text-primary mb-2" role="status">
+                                          <span className="visually-hidden">Loading...</span>
+                                        </div>
+                                        <span className="text-muted fw-medium">Loading Year Wise Re-KYC Count...</span>
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <ReKycBarchart
+                                      data={yearData}
+                                      title="Year Wise Re-KYC Count"
+                                      type="year"
+                                      isLoading={isChartLoading}
+                                    />
+                                  )}
                                 </SortableChartItem>
                               </div>
                             );
