@@ -28,11 +28,12 @@ export const DepartmentWiseDistributionChart = ({
   className = "" 
 }) => {
   const chartData = (data && data.length > 0 ? data : DUMMY_DATA).filter(item => item.value > 0);
+  const totalValue = chartData.reduce((sum, item) => sum + item.value, 0);
 
   const hasData = chartData && chartData.length > 0;
 
   return (
-    <div className={`card shadow-sm bg-white rounded-lg ${className}`} style={{ height: '500px', display: 'flex', flexDirection: 'column' }}>
+    <div className={`card shadow-sm bg-white rounded-lg ${className}`} style={{ height: '650px', display: 'flex', flexDirection: 'column' }}>
       <div className="card-header border-b px-4 py-3">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold text-gray-800">
@@ -43,18 +44,18 @@ export const DepartmentWiseDistributionChart = ({
       <div className="card-body" style={{ padding: '20px', flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
         {hasData ? (
           <div style={{ width: '100%', flex: 1, minHeight: 0 }}>
-            <ResponsiveContainer width="100%" height={400}>
+            <ResponsiveContainer width="100%" height={550}>
               <PieChart>
                 <Pie
                   data={chartData}
                   cx="50%"
                   cy="50%"
                   innerRadius={60}
-                  outerRadius={120}
+                  outerRadius={200}
                   paddingAngle={2}
                   dataKey="value"
-                  label={({ name, percent }) => `${(percent * 100).toFixed(2)}%`}
-                  labelLine={true}
+                  label={false}
+                  labelLine={false}
                 >
                   {chartData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -74,7 +75,7 @@ export const DepartmentWiseDistributionChart = ({
                           <div className="flex justify-between items-center gap-4">
                             <span className="text-gray-600">Percentage:</span>
                             <span className="font-bold" style={{ color: data.payload.fill }}>
-                              {data.payload.percent ? `${(data.payload.percent * 100).toFixed(2)}%` : ''}
+                              {((data.value / totalValue) * 100).toFixed(2)}%
                             </span>
                           </div>
                         </div>
@@ -89,17 +90,21 @@ export const DepartmentWiseDistributionChart = ({
                   verticalAlign="middle"
                   wrapperStyle={{ 
                     fontSize: '12px', 
-                    maxHeight: '380px', 
-                    overflowY: 'auto',
-                    paddingLeft: '10px'
+                    paddingLeft: '10px',
+                    width: '300px'
                   }}
                   iconType="circle"
+                  formatter={(value, entry) => {
+                    const payload = entry.payload;
+                    const percent = ((payload.value / totalValue) * 100).toFixed(2);
+                    return <span style={{ color: '#4b5563' }}>{value} - {percent}%</span>;
+                  }}
                 />
               </PieChart>
             </ResponsiveContainer>
           </div>
         ) : (
-          <div className="flex items-center justify-center" style={{ height: '400px' }}>
+          <div className="flex items-center justify-center" style={{ height: '550px' }}>
             <p className="text-gray-500">{noDataText}</p>
           </div>
         )}

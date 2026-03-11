@@ -1,6 +1,44 @@
 import React, { useState, useEffect } from "react";
 import { RotateCcw, Building2, Layers, Users, Calendar } from "lucide-react";
+import Select, { components } from "react-select";
 import { baseURL } from "../../confi/apiDomain";
+
+const CustomOption = (props) => {
+  return (
+    <components.Option {...props}>
+      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+        <input
+          type="checkbox"
+          checked={props.isSelected || (props.value === "all" && props.selectProps.value.length === props.selectProps.options.length - 1 && props.selectProps.options.length > 1)}
+          onChange={() => null}
+          style={{ cursor: "pointer" }}
+        />
+        <span>{props.label}</span>
+      </div>
+    </components.Option>
+  );
+};
+
+const ValueContainer = ({ children, ...props }) => {
+  const { getValue, hasValue, selectProps } = props;
+  const selected = getValue();
+  const options = selectProps.options || [];
+  
+  // Find if all regular options are selected (excluding "all" option if it exists)
+  const regularOptions = options.filter(opt => opt.value !== 'all');
+  const isAllSelected = selected.length >= regularOptions.length && regularOptions.length > 0;
+
+  return (
+    <components.ValueContainer {...props}>
+      {hasValue && !selectProps.inputValue && (
+        <span style={{ position: 'absolute', left: '10px', fontWeight: '600', color: '#1A1A1A', pointerEvents: 'none', whiteSpace: 'nowrap' }}>
+          {isAllSelected ? "All" : `${selected.length} Selected`}
+        </span>
+      )}
+      {children}
+    </components.ValueContainer>
+  );
+};
 
 const FilterCardItem = ({ icon: Icon, label, value, onChange, isLoading, options, disabled, hasDropdown = true }) => {
   return (
@@ -47,35 +85,73 @@ const FilterCardItem = ({ icon: Icon, label, value, onChange, isLoading, options
           {label}
         </label>
         {hasDropdown ? (
-          <select
+          <Select
+            isMulti
+            options={[{ value: "all", label: "Select All" }, ...options]}
             value={value}
-            onChange={onChange}
-            disabled={disabled || isLoading}
-            style={{
-              width: "100%",
-              padding: "8px",
-              borderRadius: "6px",
-              border: "1px solid #d1d5db",
-              fontSize: "14px",
-              fontWeight: "600",
-              color: "#1A1A1A",
-              backgroundColor: disabled ? "#f3f4f6" : "white",
-              cursor: disabled ? "not-allowed" : "pointer",
-              outline: "none",
+            onChange={(selected, actionMeta) => {
+              if (actionMeta.action === "select-option" && actionMeta.option.value === "all") {
+                onChange(options);
+              } else if (actionMeta.action === "deselect-option" && actionMeta.option.value === "all") {
+                onChange([]);
+              } else {
+                onChange(selected || []);
+              }
             }}
-          >
-            {options && options.length > 0 ? (
-              options.map((opt, idx) => (
-                <option key={idx} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))
-            ) : (
-              <option value="">
-                {isLoading ? "Loading..." : disabled ? "Select first" : "Select"}
-              </option>
-            )}
-          </select>
+            disabled={disabled || isLoading}
+            placeholder={isLoading ? "Loading..." : ""}
+            isSearchable={true}
+            components={{ Option: CustomOption, ValueContainer }}
+            hideSelectedOptions={false}
+            closeMenuOnSelect={false}
+            styles={{
+              control: (base) => ({
+                ...base,
+                backgroundColor: disabled ? "#f3f4f6" : "white",
+                borderColor: "#d1d5db",
+                minHeight: "40px",
+                fontSize: "14px",
+                fontWeight: "600",
+                cursor: disabled ? "not-allowed" : "pointer",
+                boxShadow: "none",
+                "&:hover": {
+                  borderColor: "#d1d5db",
+                }
+              }),
+              option: (base, state) => ({
+                ...base,
+                backgroundColor: "transparent",
+                color: "#1A1A1A",
+                cursor: "pointer",
+                "&:active": {
+                  backgroundColor: "#f3f4f6",
+                },
+                "&:hover": {
+                  backgroundColor: "#f3f4f6",
+                }
+              }),
+              menu: (base) => ({
+                ...base,
+                zIndex: 9999,
+              }),
+              placeholder: (base) => ({
+                ...base,
+                color: "#9ca3af",
+              }),
+              multiValue: (base) => ({
+                display: "none",
+              }),
+              valueContainer: (base) => ({
+                ...base,
+                paddingLeft: "10px",
+              }),
+              input: (base) => ({
+                ...base,
+                fontWeight: "600",
+                color: "#1A1A1A",
+              }),
+            }}
+          />
         ) : (
           <input
             type="date"
@@ -108,9 +184,9 @@ export const VendorFilterCard = ({
 }) => {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-  const [companyName, setCompanyName] = useState("");
-  const [departmentName, setDepartmentName] = useState("");
-  const [vendors, setVendors] = useState("");
+  const [companyName, setCompanyName] = useState([]);
+  const [departmentName, setDepartmentName] = useState([]);
+  const [vendors, setVendors] = useState([]);
   const [pqType, setPqType] = useState("with_pq");
 
   const [companiesList, setCompaniesList] = useState([]);
@@ -123,6 +199,7 @@ export const VendorFilterCard = ({
   const [isLoadingVendors, setIsLoadingVendors] = useState(false);
   
   const [hasInitialFetch, setHasInitialFetch] = useState(false);
+  const [hasInitialVendorsSelected, setHasInitialVendorsSelected] = useState(false);
 
   useEffect(() => {
     const formatForInput = (dateStr) => {
@@ -137,123 +214,80 @@ export const VendorFilterCard = ({
   }, [currentStartDate, currentEndDate, currentPqType]);
 
   useEffect(() => {
-    if (companiesList.length === 0) {
-      const fetchCompanies = async () => {
-        setIsLoadingCompanies(true);
-        try {
-          const response = await fetch(
-            `${baseURL}vendor_pq_dashboard/company_slicer.json?token=${token}`
-          );
-          const data = await response.json();
-          let arr = [];
-          if (Array.isArray(data)) arr = data;
-          else if (data?.data && Array.isArray(data.data)) arr = data.data;
-          else if (data?.data?.companies && Array.isArray(data.data.companies))
-            arr = data.data.companies;
-          else if (data && typeof data === "object")
-            arr = Object.values(data).find((v) => Array.isArray(v)) || [];
-          setCompaniesList(arr);
-        } catch (error) {
-          console.error("Error fetching companies:", error);
-        } finally {
-          setIsLoadingCompanies(false);
-        }
-      };
-      fetchCompanies();
-    }
+    // 1. Fetch Companies
+    const fetchCompanies = async () => {
+      setIsLoadingCompanies(true);
+      try {
+        const response = await fetch(`${baseURL}vendor_pq_dashboard/company_slicer.json?token=${token}`);
+        const data = await response.json();
+        const arr = data.data || (Array.isArray(data) ? data : []);
+        setCompaniesList(arr);
+        const allCompanies = arr.map(c => ({ value: c.id || c.name || c, label: c.name || c.company_name || c }));
+        setCompanyName(allCompanies);
+      } catch (err) { console.error("Error fetching companies:", err); }
+      finally { setIsLoadingCompanies(false); }
+    };
+
+    // 2. Fetch Departments (Independent of Company)
+    const fetchDepartments = async () => {
+      setIsLoadingDepartments(true);
+      try {
+        const response = await fetch(`${baseURL}vendor_pq_dashboard/department_slicer.json?token=${token}`);
+        const data = await response.json();
+        const arr = data.data || (Array.isArray(data) ? data : []);
+        setDepartmentsList(arr);
+        // Removed auto-selection for departments
+      } catch (err) { console.error("Error fetching departments:", err); }
+      finally { setIsLoadingDepartments(false); }
+    };
+
+    fetchCompanies();
+    fetchDepartments();
   }, []);
 
   useEffect(() => {
-    if (!hasInitialFetch && companiesList.length > 0) {
-      const fetchDepartments = async () => {
-        setIsLoadingDepartments(true);
-        try {
-          const response = await fetch(
-            `${baseURL}vendor_pq_dashboard/department_slicer.json?company=${companyName || ""}&token=${token}`
-          );
-          const data = await response.json();
-          let arr = [];
-          if (Array.isArray(data)) arr = data;
-          else if (data?.data && Array.isArray(data.data)) arr = data.data;
-          else if (data && typeof data === "object")
-            arr = Object.values(data).find((v) => Array.isArray(v)) || [];
-          setDepartmentsList(arr);
-          setHasInitialFetch(true);
-        } catch (error) {
-          console.error("Error fetching departments:", error);
-        } finally {
-          setIsLoadingDepartments(false);
-        }
-      };
-      fetchDepartments();
-    } else if (companyName && hasInitialFetch && departmentsList.length === 0) {
-      // Re-fetch when user selects a specific company
-      const fetchDepartments = async () => {
-        setIsLoadingDepartments(true);
-        try {
-          const response = await fetch(
-            `${baseURL}vendor_pq_dashboard/department_slicer.json?company=${companyName}&token=${token}`
-          );
-          const data = await response.json();
-          let arr = [];
-          if (Array.isArray(data)) arr = data;
-          else if (data?.data && Array.isArray(data.data)) arr = data.data;
-          else if (data && typeof data === "object")
-            arr = Object.values(data).find((v) => Array.isArray(v)) || [];
-          setDepartmentsList(arr);
-        } catch (error) {
-          console.error("Error fetching departments:", error);
-        } finally {
-          setIsLoadingDepartments(false);
-        }
-      };
-      fetchDepartments();
-    } else if (!companyName && hasInitialFetch) {
-      setDepartmentsList([]);
-      setDepartmentName("");
-    }
-  }, [companyName, companiesList, hasInitialFetch]);
-
-  useEffect(() => {
-    // We re-fetch vendors if the initial fetch is done, OR if company/department selection changes
-    // This ensures we always have the relevant vendors list.
     const fetchVendors = async () => {
       setIsLoadingVendors(true);
       try {
         const queryParams = new URLSearchParams();
         queryParams.append("token", token);
-        if (companyName) queryParams.append("company_ids", companyName);
-        if (departmentName) queryParams.append("department_ids", departmentName);
-
-        const response = await fetch(
-          `${baseURL}vendor_pq_dashboard/vendors_slicer.json?${queryParams.toString()}`
-        );
-        const result = await response.json();
-        
-        let arr = [];
-        if (result.status === "success" && Array.isArray(result.data)) {
-          arr = result.data;
-        } else if (Array.isArray(result)) {
-          arr = result;
-        } else if (result?.data && Array.isArray(result.data)) {
-          arr = result.data;
-        } else if (result && typeof result === "object") {
-          arr = Object.values(result).find((v) => Array.isArray(v)) || [];
+        if (companyName && companyName.length > 0) {
+          queryParams.append("company_ids", companyName.map(c => c.value).join(","));
         }
+        // User requested only to pass company ID when company selected, 
+        // but typically department is also filtered. I'll include it if it has selections.
+        if (departmentName && departmentName.length > 0) {
+          queryParams.append("department_ids", departmentName.map(d => d.value).join(","));
+        }
+
+        const response = await fetch(`${baseURL}vendor_pq_dashboard/vendors_slicer.json?${queryParams.toString()}`);
+        const result = await response.json();
+        const arr = result.data || (Array.isArray(result) ? result : []);
         
         setVendorsList(arr);
-      } catch (error) {
-        console.error("Error fetching vendors:", error);
-        setVendorsList([]);
-      } finally {
-        setIsLoadingVendors(false);
-      }
+
+        if (!hasInitialVendorsSelected) {
+          // Removed auto-selection for vendors
+          setHasInitialVendorsSelected(true);
+          
+          onApplyFilters({
+            startDate: currentStartDate,
+            endDate: currentEndDate,
+            companyName: companyName.map(c => c.value).join(","),
+            departmentName: "", 
+            vendors: "", 
+            pqType: currentPqType || "with_pq",
+          });
+        }
+      } catch (err) { console.error("Error fetching vendors:", err); setVendorsList([]); }
+      finally { setIsLoadingVendors(false); }
     };
 
-    if (hasInitialFetch) {
+    // Re-fetch vendors if company or department changes
+    if (companiesList.length > 0 || departmentsList.length > 0) {
       fetchVendors();
     }
-  }, [departmentName, companyName, hasInitialFetch]);
+  }, [companyName, departmentName, companiesList, departmentsList]);
 
   const handleApply = () => {
     if (startDate && endDate) {
@@ -266,9 +300,9 @@ export const VendorFilterCard = ({
       onApplyFilters({
         startDate: formatOutput(startDate),
         endDate: formatOutput(endDate),
-        companyName,
-        departmentName,
-        vendors,
+        companyName: companyName.map(c => c.value).join(","),
+        departmentName: departmentName.map(d => d.value).join(","),
+        vendors: vendors.map(v => v.value).join(","),
         pqType,
       });
     }
@@ -290,22 +324,34 @@ export const VendorFilterCard = ({
       return `${day}/${month}/${year}`;
     };
 
-    const oneYearAgo = new Date();
-    oneYearAgo.setFullYear(today.getFullYear() - 1);
+    const startDate2024 = new Date(2024, 0, 1); // 1 Jan 2024
 
-    setStartDate(formatDt(oneYearAgo));
+    const allCos = companiesList.map(c => ({
+      value: c.id || c.name || c,
+      label: c.name || c.company_name || c,
+    }));
+    const allDepts = departmentsList.map(d => ({
+      value: d.id || d.name || d,
+      label: d.name || d.department_name || d,
+    }));
+    const allVs = vendorsList.map(v => ({
+      value: v.id || v.name || v,
+      label: v.name || v.vendor_name || v,
+    }));
+
+    setStartDate(formatDt(startDate2024));
     setEndDate(formatDt(today));
-    setCompanyName("");
-    setDepartmentName("");
-    setVendors("");
+    setCompanyName(allCos);
+    setDepartmentName([]); // Start with empty selection
+    setVendors([]); // Start with empty selection
     setPqType("with_pq");
 
     onApplyFilters({
-      startDate: formatOut(oneYearAgo),
+      startDate: formatOut(startDate2024),
       endDate: formatOut(today),
-      companyName: "",
-      departmentName: "",
-      vendors: "",
+      companyName: allCos.map(c => c.value).join(","),
+      departmentName: "", // Passing empty as per requirement
+      vendors: "", // Passing empty as per requirement
       pqType: "with_pq",
     });
   };
@@ -314,29 +360,20 @@ export const VendorFilterCard = ({
   const safeDepartments = Array.isArray(departmentsList) ? departmentsList : [];
   const safeVendors = Array.isArray(vendorsList) ? vendorsList : [];
 
-  const companyOptions = [
-    { value: "", label: "All" },
-    ...safeCompanies.map((company) => ({
-      value: company.id || company.name || company,
-      label: company.name || company.company_name || company,
-    })),
-  ];
+  const companyOptions = safeCompanies.map((company) => ({
+    value: company.id || company.name || company,
+    label: company.name || company.company_name || company,
+  }));
 
-  const departmentOptions = [
-    { value: "", label: "All" },
-    ...safeDepartments.map((dept) => ({
-      value: dept.id || dept.name || dept,
-      label: dept.name || dept.department_name || dept,
-    })),
-  ];
+  const departmentOptions = safeDepartments.map((dept) => ({
+    value: dept.id || dept.name || dept,
+    label: dept.name || dept.department_name || dept,
+  }));
 
-  const vendorOptions = [
-    { value: "", label: "All" },
-    ...safeVendors.map((vendor) => ({
-      value: vendor.id || vendor.name || vendor,
-      label: vendor.name || vendor.vendor_name || vendor,
-    })),
-  ];
+  const vendorOptions = safeVendors.map((vendor) => ({
+    value: vendor.id || vendor.name || vendor,
+    label: vendor.name || vendor.vendor_name || vendor,
+  }));
 
 
   return (
@@ -400,19 +437,18 @@ export const VendorFilterCard = ({
           icon={Building2}
           label="Company Name"
           value={companyName}
-          onChange={(e) => setCompanyName(e.target.value)}
+          onChange={(selected) => setCompanyName(selected || [])}
           isLoading={isLoadingCompanies}
           options={companyOptions}
           disabled={false}
           hasDropdown={true}
         />
 
-
         <FilterCardItem
           icon={Users}
           label="Department Name"
           value={departmentName}
-          onChange={(e) => setDepartmentName(e.target.value)}
+          onChange={(selected) => setDepartmentName(selected || [])}
           isLoading={isLoadingDepartments}
           options={departmentOptions}
           disabled={false}
@@ -443,7 +479,7 @@ export const VendorFilterCard = ({
           icon={Users}
           label="Vendors"
           value={vendors}
-          onChange={(e) => setVendors(e.target.value)}
+          onChange={(selected) => setVendors(selected || [])}
           isLoading={isLoadingVendors}
           options={vendorOptions}
           disabled={false}

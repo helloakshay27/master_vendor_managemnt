@@ -690,8 +690,7 @@ function VendorManagementDashboard() {
   // Default start date is last 7 days
   const getDefaultDateRange = () => {
     const today = new Date();
-    const oneYearAgo = new Date();
-    oneYearAgo.setFullYear(today.getFullYear() - 1);
+    const startDate2024 = new Date(2024, 0, 1); // 1 Jan 2024
 
     const formatDate = (date) => {
       const day = String(date.getDate()).padStart(2, "0");
@@ -700,7 +699,7 @@ function VendorManagementDashboard() {
       return `${day}/${month}/${year}`;
     };
     return {
-      startDate: formatDate(oneYearAgo),
+      startDate: formatDate(startDate2024),
       endDate: formatDate(today),
     };
   };
@@ -1469,7 +1468,7 @@ function VendorManagementDashboard() {
                               return (
                                 <div
                                   key={chartId}
-                                  className="col-12 col-lg-6"
+                                  className="col-12"
                                   style={{ position: "relative" }}
                                 >
                                   <SortableChartItem id={chartId}>
