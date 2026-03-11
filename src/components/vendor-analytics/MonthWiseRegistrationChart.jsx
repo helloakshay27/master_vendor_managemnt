@@ -7,24 +7,8 @@ const CHART_COLORS = {
   nonPqApproved: '#8b7355',
 };
 
-// Dummy data for demonstration
-const DUMMY_DATA = [
-  { month: 'Jan 2025', pqApproved: 23, nonPqApproved: 89 },
-  { month: 'Feb 2025', pqApproved: 34, nonPqApproved: 102 },
-  { month: 'Mar 2025', pqApproved: 45, nonPqApproved: 123 },
-  { month: 'Apr 2025', pqApproved: 38, nonPqApproved: 98 },
-  { month: 'May 2025', pqApproved: 52, nonPqApproved: 134 },
-  { month: 'Jun 2025', pqApproved: 61, nonPqApproved: 156 },
-  { month: 'Jul 2025', pqApproved: 48, nonPqApproved: 128 },
-  { month: 'Aug 2025', pqApproved: 55, nonPqApproved: 142 },
-  { month: 'Sep 2025', pqApproved: 67, nonPqApproved: 167 },
-  { month: 'Oct 2025', pqApproved: 73, nonPqApproved: 189 },
-  { month: 'Nov 2025', pqApproved: 81, nonPqApproved: 201 },
-  { month: 'Dec 2025', pqApproved: 89, nonPqApproved: 223 },
-];
-
 export const MonthWiseRegistrationChart = ({ data, onDownload, className = "" }) => {
-  const chartData = (data && data.length > 0 ? data : DUMMY_DATA).map(item => ({
+  const chartData = (data && data.length > 0 ? data : []).map(item => ({
     month: item.month || 'Unknown',
     pqApproved: item.pqApproved || 0,
     nonPqApproved: item.nonPqApproved || 0,

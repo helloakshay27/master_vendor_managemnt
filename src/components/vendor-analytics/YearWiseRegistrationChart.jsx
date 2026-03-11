@@ -16,23 +16,13 @@ const CHART_COLORS = {
   nonPqApproved: "#8b7355",
 };
 
-// Dummy data for demonstration
-const DUMMY_DATA = [
-  { year: "2020", pqApproved: 45, nonPqApproved: 120 },
-  { year: "2021", pqApproved: 78, nonPqApproved: 245 },
-  { year: "2022", pqApproved: 123, nonPqApproved: 456 },
-  { year: "2023", pqApproved: 189, nonPqApproved: 678 },
-  { year: "2024", pqApproved: 234, nonPqApproved: 892 },
-  { year: "2025", pqApproved: 298, nonPqApproved: 1123 },
-];
-
 export const YearWiseRegistrationChart = ({
   data,
   onDownload,
   className = "",
 }) => {
-  // Use provided data or fallback to dummy data
-  const chartData = (data && data.length > 0 ? data : DUMMY_DATA).map(
+  // Use provided data or return empty array
+  const chartData = (data && data.length > 0 ? data : []).map(
     (item) => ({
       year: item.year || "Unknown",
       pqApproved: item.pqApproved || 0,

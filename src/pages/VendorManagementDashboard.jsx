@@ -683,8 +683,10 @@ function VendorManagementDashboard() {
 
   // Default Empty States
   const [yearWiseData, setYearWiseData] = useState([]);
+  const [isYearWiseLoading, setIsYearWiseLoading] = useState(false);
   const [topVendorsData, setTopVendorsData] = useState([]);
   const [bottomVendorsData, setBottomVendorsData] = useState([]);
+  const [isTopBottomVendorsLoading, setIsTopBottomVendorsLoading] = useState(false);
   const [verificationPendingData, setVerificationPendingData] = useState([]);
 
   // Default start date is last 7 days
@@ -886,6 +888,52 @@ function VendorManagementDashboard() {
         setQuarterWiseData([]);
       } finally {
         setIsQuarterWiseLoading(false);
+      }
+    };
+
+    const fetchYearWiseData = async () => {
+      setIsYearWiseLoading(true);
+      try {
+        const queryParams = new URLSearchParams();
+        queryParams.append("token", tokenFromUrl);
+        queryParams.append("status", "approved");
+        queryParams.append("pq_type", "without_pq,with_pq");
+        
+        if (activeFilters.companyName) queryParams.append("company_ids", activeFilters.companyName);
+        if (activeFilters.departmentName) queryParams.append("department_ids", activeFilters.departmentName);
+        if (activeFilters.vendors) queryParams.append("vendor_ids", activeFilters.vendors);
+        if (activeFilters.startDate) queryParams.append("from_date", formatDtForAPI(activeFilters.startDate));
+        if (activeFilters.endDate) queryParams.append("end_date", formatDtForAPI(activeFilters.endDate));
+        
+        const response = await fetch(
+          `${baseURL}vendor_pq_dashboard/yearwsie_onboarding.json?${queryParams}`,
+        );
+        const json = await response.json();
+        
+        // Handle different response structures for year-wise data
+        let rawData = 
+          json?.data?.years || 
+          json?.data?.year_wise_onboarding ||
+          json?.data ||
+          [];
+
+        if (!Array.isArray(rawData) && typeof rawData === 'object') {
+          rawData = Object.values(rawData).find(val => Array.isArray(val)) || [];
+        }
+
+        setYearWiseData(
+          rawData.map((item) => ({
+            year: item.year || item.label || item.period || "Unknown",
+            pqApproved: Number(item.with_pq || item.pqApproved || 0),
+            nonPqApproved: Number(item.without_pq || item.nonPqApproved || 0),
+            total: Number(item.total || 0),
+          })),
+        );
+      } catch (error) {
+        console.error("Error fetching YearWiseData:", error);
+        setYearWiseData([]);
+      } finally {
+        setIsYearWiseLoading(false);
       }
     };
 
@@ -1281,8 +1329,100 @@ function VendorManagementDashboard() {
       }
     };
 
+    const fetchTopVendors = async () => {
+      setIsTopBottomVendorsLoading(true);
+      try {
+        const queryParams = new URLSearchParams();
+        queryParams.append("token", tokenFromUrl);
+        if (activeFilters.companyName)
+          queryParams.append("company_id", activeFilters.companyName);
+
+        const response = await fetch(
+          `${baseURL}vendor_pq_dashboard/top_10_vendors_by_avg_tat.json?${queryParams}`,
+        );
+        const json = await response.json();
+
+        let rawData =
+          json?.data?.vendors ||
+          json?.data?.top_vendors ||
+          json?.data ||
+          [];
+
+        if (!Array.isArray(rawData) && typeof rawData === "object") {
+          rawData =
+            Object.values(rawData).find((val) => Array.isArray(val)) || [];
+        }
+
+        setTopVendorsData(
+          rawData.map((item) => ({
+            name:
+              item.organization_name ||
+              item.vendor_name ||
+              item.name ||
+              "Unknown",
+            avgTat: Number(
+              item.avg_tat ||
+              item.average_tat ||
+              item.avg_tat_days ||
+              0
+            ),
+          }))
+        );
+      } catch (error) {
+        console.error("Error fetching top vendors:", error);
+        setTopVendorsData([]);
+      } finally {
+        setIsTopBottomVendorsLoading(false);
+      }
+    };
+
+    const fetchBottomVendors = async () => {
+      try {
+        const queryParams = new URLSearchParams();
+        queryParams.append("token", tokenFromUrl);
+        if (activeFilters.companyName)
+          queryParams.append("company_id", activeFilters.companyName);
+
+        const response = await fetch(
+          `${baseURL}vendor_pq_dashboard/bottom_10_vendors_by_avg_tat.json?${queryParams}`,
+        );
+        const json = await response.json();
+
+        let rawData =
+          json?.data?.vendors ||
+          json?.data?.bottom_vendors ||
+          json?.data ||
+          [];
+
+        if (!Array.isArray(rawData) && typeof rawData === "object") {
+          rawData =
+            Object.values(rawData).find((val) => Array.isArray(val)) || [];
+        }
+
+        setBottomVendorsData(
+          rawData.map((item) => ({
+            name:
+              item.organization_name ||
+              item.vendor_name ||
+              item.name ||
+              "Unknown",
+            avgTat: Number(
+              item.avg_tat ||
+              item.average_tat ||
+              item.avg_tat_days ||
+              0
+            ),
+          }))
+        );
+      } catch (error) {
+        console.error("Error fetching bottom vendors:", error);
+        setBottomVendorsData([]);
+      }
+    };
+
     fetchStatCards();
     fetchDeptDistribution();
+    fetchYearWiseData();
     fetchQuarterWiseData();
     fetchMonthWiseData();
     fetchDeptPreQual();
@@ -1295,6 +1435,8 @@ function VendorManagementDashboard() {
     fetchOnboardingInProcess();
     fetchInvitedVendors();
     fetchDetailsSubmitted();
+    fetchTopVendors();
+    fetchBottomVendors();
   }, [activeFilters]);
 
   const VENDOR_MANGEMENT = {
@@ -1473,15 +1615,16 @@ function VendorManagementDashboard() {
                                 >
                                   <SortableChartItem id={chartId}>
                                     {isDeptDistributionLoading ? (
-                                      <div
-                                        style={{
-                                          height: "300px",
-                                          display: "flex",
-                                          justifyContent: "center",
-                                          alignItems: "center",
-                                        }}
-                                      >
-                                        Loading...
+                                      <div className="card go-shadow bg-white rounded-lg w-100">
+                                        <div className="vendor-card-header">
+                                          <h3 className="vendor-card-title">Department-Wise Vendor Distribution</h3>
+                                        </div>
+                                        <div className="card-body" style={{ height: "300px", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center" }}>
+                                          <div className="spinner-border text-primary mb-2" role="status">
+                                            <span className="visually-hidden">Loading...</span>
+                                          </div>
+                                          <span className="text-muted fw-medium">Loading Department-Wise Vendor Distribution...</span>
+                                        </div>
                                       </div>
                                     ) : (
                                       <DepartmentWiseDistributionChart
@@ -1499,12 +1642,26 @@ function VendorManagementDashboard() {
                               visibleSections.includes("yearWise")
                             ) {
                               return (
-                                <div key={chartId} className="col-12 col-lg-6">
+                                <div key={chartId} className="col-12">
                                   <SortableChartItem id={chartId}>
-                                    <YearWiseRegistrationChart
-                                      data={yearWiseData}
-                                      onDownload={() => {}}
-                                    />
+                                    {isYearWiseLoading ? (
+                                      <div className="card go-shadow bg-white rounded-lg w-100">
+                                        <div className="vendor-card-header">
+                                          <h3 className="vendor-card-title">Year-Wise Vendor Registration</h3>
+                                        </div>
+                                        <div className="card-body" style={{ height: "300px", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center" }}>
+                                          <div className="spinner-border text-primary mb-2" role="status">
+                                            <span className="visually-hidden">Loading...</span>
+                                          </div>
+                                          <span className="text-muted fw-medium">Loading Year-Wise Vendor Registration...</span>
+                                        </div>
+                                      </div>
+                                    ) : (
+                                      <YearWiseRegistrationChart
+                                        data={yearWiseData}
+                                        onDownload={() => {}}
+                                      />
+                                    )}
                                   </SortableChartItem>
                                 </div>
                               );
@@ -1518,15 +1675,16 @@ function VendorManagementDashboard() {
                                 <div key={chartId} className="col-12">
                                   <SortableChartItem id={chartId}>
                                     {isQuarterWiseLoading ? (
-                                      <div
-                                        style={{
-                                          height: "300px",
-                                          display: "flex",
-                                          justifyContent: "center",
-                                          alignItems: "center",
-                                        }}
-                                      >
-                                        Loading...
+                                      <div className="card go-shadow bg-white rounded-lg w-100">
+                                        <div className="vendor-card-header">
+                                          <h3 className="vendor-card-title">Quarter-Wise Vendor Registration</h3>
+                                        </div>
+                                        <div className="card-body" style={{ height: "300px", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center" }}>
+                                          <div className="spinner-border text-primary mb-2" role="status">
+                                            <span className="visually-hidden">Loading...</span>
+                                          </div>
+                                          <span className="text-muted fw-medium">Loading Quarter-Wise Vendor Registration...</span>
+                                        </div>
                                       </div>
                                     ) : (
                                       <QuarterWiseRegistrationChart
@@ -1547,15 +1705,16 @@ function VendorManagementDashboard() {
                                 <div key={chartId} className="col-12">
                                   <SortableChartItem id={chartId}>
                                     {isMonthWiseLoading ? (
-                                      <div
-                                        style={{
-                                          height: "300px",
-                                          display: "flex",
-                                          justifyContent: "center",
-                                          alignItems: "center",
-                                        }}
-                                      >
-                                        Loading...
+                                      <div className="card go-shadow bg-white rounded-lg w-100">
+                                        <div className="vendor-card-header">
+                                          <h3 className="vendor-card-title">Month-Wise Vendor Registration</h3>
+                                        </div>
+                                        <div className="card-body" style={{ height: "300px", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center" }}>
+                                          <div className="spinner-border text-primary mb-2" role="status">
+                                            <span className="visually-hidden">Loading...</span>
+                                          </div>
+                                          <span className="text-muted fw-medium">Loading Month-Wise Vendor Registration...</span>
+                                        </div>
                                       </div>
                                     ) : (
                                       <MonthWiseRegistrationChart
@@ -1576,15 +1735,16 @@ function VendorManagementDashboard() {
                                 <div key={chartId} className="col-12 col-lg-6">
                                   <SortableChartItem id={chartId}>
                                     {isPendingApprovalsLoading ? (
-                                      <div
-                                        style={{
-                                          height: "300px",
-                                          display: "flex",
-                                          justifyContent: "center",
-                                          alignItems: "center",
-                                        }}
-                                      >
-                                        Loading...
+                                      <div className="card go-shadow bg-white rounded-lg w-100">
+                                        <div className="vendor-card-header">
+                                          <h3 className="vendor-card-title">Pending Approvals by Level</h3>
+                                        </div>
+                                        <div className="card-body" style={{ height: "300px", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center" }}>
+                                          <div className="spinner-border text-primary mb-2" role="status">
+                                            <span className="visually-hidden">Loading...</span>
+                                          </div>
+                                          <span className="text-muted fw-medium">Loading Pending Approvals by Level...</span>
+                                        </div>
                                       </div>
                                     ) : (
                                       <PendingApprovalsByLevelChart
@@ -1605,15 +1765,16 @@ function VendorManagementDashboard() {
                                 <div key={chartId} className="col-12 col-lg-6">
                                   <SortableChartItem id={chartId}>
                                     {isSupplierPerformanceLoading ? (
-                                      <div
-                                        style={{
-                                          height: "300px",
-                                          display: "flex",
-                                          justifyContent: "center",
-                                          alignItems: "center",
-                                        }}
-                                      >
-                                        Loading...
+                                      <div className="card go-shadow bg-white rounded-lg w-100">
+                                        <div className="vendor-card-header">
+                                          <h3 className="vendor-card-title">Department-Wise Supplier Performance</h3>
+                                        </div>
+                                        <div className="card-body" style={{ height: "300px", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center" }}>
+                                          <div className="spinner-border text-primary mb-2" role="status">
+                                            <span className="visually-hidden">Loading...</span>
+                                          </div>
+                                          <span className="text-muted fw-medium">Loading Department-Wise Supplier Performance...</span>
+                                        </div>
                                       </div>
                                     ) : (
                                       <VendorDataTable
@@ -1671,11 +1832,26 @@ function VendorManagementDashboard() {
                             return (
                               <div key={chartId} className="mt-4">
                                 <SortableChartItem id={chartId}>
-                                  <TopBottomVendorsChart
-                                    topData={topVendorsData}
-                                    bottomData={bottomVendorsData}
-                                    onDownload={() => {}}
-                                  />
+                                  {isTopBottomVendorsLoading ? (
+                                    <div
+                                      style={{
+                                        height: "300px",
+                                        display: "flex",
+                                        justifyContent: "center",
+                                        alignItems: "center",
+                                        background: "#fff",
+                                        borderRadius: "8px",
+                                      }}
+                                    >
+                                      Loading...
+                                    </div>
+                                  ) : (
+                                    <TopBottomVendorsChart
+                                      topData={topVendorsData}
+                                      bottomData={bottomVendorsData}
+                                      onDownload={() => {}}
+                                    />
+                                  )}
                                 </SortableChartItem>
                               </div>
                             );

@@ -7,45 +7,10 @@ const CHART_COLORS = {
   bottom: '#8b7355',
 };
 
-// Dummy data for demonstration
-const DUMMY_TOP_DATA = [
-  { name: 'FABRICASTO PRIVATE LIMIT...', avgTat: 2 },
-  { name: 'M/S POKARNA ENGINEERE...', avgTat: 2 },
-  { name: 'Om Sai Enterprises', avgTat: 2 },
-  { name: 'Envirotech', avgTat: 3 },
-  { name: 'THE SHINE REFLECTO', avgTat: 3 },
-  { name: 'RAMJI VITHAL JAGTAP', avgTat: 4 },
-  { name: 'TOR.AI LIMITED', avgTat: 5 },
-  { name: 'RSB INFOTECH', avgTat: 8 },
-  { name: 'R. A. CONTRACTOR\'S', avgTat: 8 },
-  { name: 'Snehal Fiber Products', avgTat: 9 },
-  { name: 'Royal Stone Solution', avgTat: 10 },
-  { name: 'DECKO FLOOR PRIVATE LIM...', avgTat: 18 },
-  { name: 'R S Consultants', avgTat: 20 },
-  { name: 'BALAJI MANAGEMENT SOL...', avgTat: 29 },
-];
-
-const DUMMY_BOTTOM_DATA = [
-  { name: 'Urban Solutions', avgTat: 49 },
-  { name: 'PRACHI ENTERPRISES', avgTat: 37 },
-  { name: 'BALAJI MANAGEMENT SOL...', avgTat: 29 },
-  { name: 'R S Consultants', avgTat: 20 },
-  { name: 'DECKO FLOOR PRIVATE LIM...', avgTat: 18 },
-  { name: 'Royal Stone Solution', avgTat: 10 },
-  { name: 'Snehal Fiber Products', avgTat: 9 },
-  { name: 'R. A. CONTRACTOR\'S', avgTat: 8 },
-  { name: 'RSB INFOTECH', avgTat: 8 },
-  { name: 'TOR.AI LIMITED', avgTat: 5 },
-  { name: 'RAMJI VITHAL JAGTAP', avgTat: 4 },
-  { name: 'KELLEY MATERIAL HANDLI...', avgTat: 4 },
-  { name: 'THE SHINE REFLECTO', avgTat: 3 },
-  { name: 'Avighna Associates', avgTat: 3 },
-];
-
 export const TopBottomVendorsChart = ({ topData, bottomData, onDownload, className = "" }) => {
-  // Use provided data or fallback to dummy data
-  const topChartData = (topData && topData.length > 0 ? topData : DUMMY_TOP_DATA);
-  const bottomChartData = (bottomData && bottomData.length > 0 ? bottomData : DUMMY_BOTTOM_DATA);
+  // Use provided data or fallback to empty array
+  const topChartData = (topData && topData.length > 0 ? topData : []);
+  const bottomChartData = (bottomData && bottomData.length > 0 ? bottomData : []);
 
   console.log('TopBottomVendorsChart - topData:', topChartData);
   console.log('TopBottomVendorsChart - bottomData:', bottomChartData);

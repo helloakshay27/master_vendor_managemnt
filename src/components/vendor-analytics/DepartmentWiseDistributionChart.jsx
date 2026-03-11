@@ -4,22 +4,6 @@ import { Download } from 'lucide-react';
 
 const COLORS = ['#c4b99d', '#dad6ca', '#8b7355', '#b5a992', '#d4cfc3', '#a89985', '#c9c0b3', '#9d8f7f', '#e0ddd5', '#b8ad9e', '#cec5b8', '#a39689'];
 
-// Dummy data for demonstration
-const DUMMY_DATA = [
-  { name: 'Accounts', value: 1118 },
-  { name: 'Admin', value: 20 },
-  { name: 'ARCHITECTURE', value: 559 },
-  { name: 'Architecture-1', value: 27 },
-  { name: 'Aviation', value: 103 },
-  { name: 'Billing', value: 735 },
-  { name: 'Business - Concepts and Des...', value: 1 },
-  { name: 'Business Development', value: 8 },
-  { name: 'Civil Work', value: 121 },
-  { name: 'CLIENT FITOUT', value: 11 },
-  { name: 'construction', value: 3 },
-  { name: 'Consultant', value: 7 },
-];
-
 export const DepartmentWiseDistributionChart = ({ 
   data, 
   onDownload, 
@@ -27,7 +11,7 @@ export const DepartmentWiseDistributionChart = ({
   noDataText = "No department data available",
   className = "" 
 }) => {
-  const chartData = (data && data.length > 0 ? data : DUMMY_DATA).filter(item => item.value > 0);
+  const chartData = (data && data.length > 0 ? data : []).filter(item => item.value > 0);
   const totalValue = chartData.reduce((sum, item) => sum + item.value, 0);
 
   const hasData = chartData && chartData.length > 0;

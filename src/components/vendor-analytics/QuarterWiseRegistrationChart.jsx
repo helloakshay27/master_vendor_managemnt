@@ -7,18 +7,8 @@ const CHART_COLORS = {
   nonPqApproved: '#8b7355',
 };
 
-// Dummy data for demonstration
-const DUMMY_DATA = [
-  { quarter: 'Q1 2024', pqApproved: 56, nonPqApproved: 178 },
-  { quarter: 'Q2 2024', pqApproved: 67, nonPqApproved: 203 },
-  { quarter: 'Q3 2024', pqApproved: 89, nonPqApproved: 267 },
-  { quarter: 'Q4 2024', pqApproved: 102, nonPqApproved: 312 },
-  { quarter: 'Q1 2025', pqApproved: 118, nonPqApproved: 356 },
-  { quarter: 'Q2 2025', pqApproved: 134, nonPqApproved: 398 },
-];
-
 export const QuarterWiseRegistrationChart = ({ data, onDownload, className = "" }) => {
-  const chartData = (data && data.length > 0 ? data : DUMMY_DATA).map(item => ({
+  const chartData = (data && data.length > 0 ? data : []).map(item => ({
     quarter: item.quarter || 'Unknown',
     label: item.label || item.quarter || 'Unknown',
     pqApproved: item.pqApproved || 0,
