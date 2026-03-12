@@ -12,19 +12,31 @@ import {
 } from "recharts";
 import { Download } from "lucide-react";
 
-const DEFAULT_COLORS = [
-  "#c4b99d", // Warm Stone
-  "#8b7355", // Deep Sand
-  "#a68d71", // Soft Taupe
-  "#5d4037", // Coffee Brown
-  "#d7ccc8", // Pale Sand
-];
+const DEFAULT_COLORS = ["#c4b99d", "#8b7355", "#a68d71", "#5d4037", "#d7ccc8"];
+
+// Use the same brown theme colors as the main dashboard
+// (see Status Wise Vendor Count chart in ReKycDashboard)
+const STATUS_META = {
+  approved: { label: "Approved", color: "#5c4033" },
+  details_submitted_by_vendor: { label: "Details Submitted By Vendor", color: "#7a5a45" },
+  expired: { label: "Expired", color: "#b08968" },
+  pending: { label: "Pending", color: "#d6bfa9" },
+  rejected: { label: "Rejected", color: "#a52a2a" },
+};
+
+const TITLE_CASE_FALLBACK = (value = "") =>
+  value
+    .toString()
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
 
 const ReKycBarchart = ({
   data = [],
   title = "Chart",
   height = 500,
   onDownload,
+  type,
 }) => {
   if (!data || data.length === 0) {
     return (
@@ -44,12 +56,44 @@ const ReKycBarchart = ({
     );
   }
 
-  // Get all status keys
-  const barKeys = Object.keys(data[0] || {}).filter(
-    (key) => key !== "month" && key !== "year" && key !== "total",
-  );
+  // Get all unique status keys across all data points
+  const barKeys = React.useMemo(() => {
+    const keys = new Set();
+    data.forEach((item) => {
+      Object.keys(item).forEach((key) => {
+        if (key !== "month" && key !== "year" && key !== "total") {
+          keys.add(key);
+        }
+      });
+    });
+    const arr = Array.from(keys);
+    const preferredOrder = Object.keys(STATUS_META);
+    arr.sort((a, b) => {
+      const ai = preferredOrder.indexOf(a);
+      const bi = preferredOrder.indexOf(b);
+      if (ai === -1 && bi === -1) return a.localeCompare(b);
+      if (ai === -1) return 1;
+      if (bi === -1) return -1;
+      return ai - bi;
+    });
+    return arr;
+  }, [data]);
 
-  const processedData = data;
+  const showPercentage = type !== "year" && barKeys.length > 1;
+
+  const processedData = React.useMemo(() => {
+    if (!showPercentage) return data;
+    return data.map((item) => {
+      const total = barKeys.reduce((sum, k) => sum + (Number(item?.[k]) || 0), 0);
+      const next = { ...item, __total: total };
+      barKeys.forEach((k) => {
+        const count = Number(item?.[k]) || 0;
+        next[`${k}__count`] = count;
+        next[k] = total > 0 ? (count / total) * 100 : 0;
+      });
+      return next;
+    });
+  }, [data, barKeys, showPercentage]);
 
   const renderCustomizedLabel = (props) => {
     const { x, y, width, height, value } = props;
@@ -67,7 +111,7 @@ const ReKycBarchart = ({
         textAnchor="middle"
         dominantBaseline="middle"
       >
-        {value}
+        {showPercentage ? `${Number(value).toFixed(2)}%` : value}
       </text>
     );
   };
@@ -118,17 +162,24 @@ const ReKycBarchart = ({
 
             <YAxis 
               fontSize={12} 
+              domain={showPercentage ? [0, 100] : undefined}
+              tickFormatter={showPercentage ? (v) => `${v}%` : undefined}
             />
             
             <Tooltip 
-              formatter={(value, name) => {
-                return [value, name.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')];
+              formatter={(value, name, props) => {
+                const label = STATUS_META?.[name]?.label || TITLE_CASE_FALLBACK(name);
+                if (!showPercentage) return [value, label];
+                const count = props?.payload?.[`${name}__count`];
+                const pct = Number(value) || 0;
+                const display = Number.isFinite(count) ? `${pct.toFixed(2)}% (${count})` : `${pct.toFixed(2)}%`;
+                return [display, label];
               }}
             />
             
             <Legend 
               wrapperStyle={{ paddingTop: "15px" }} 
-              formatter={(value) => value.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+              formatter={(value) => STATUS_META?.[value]?.label || TITLE_CASE_FALLBACK(value)}
             />
 
             {barKeys.map((key, index) => (
@@ -137,7 +188,7 @@ const ReKycBarchart = ({
                 dataKey={key}
                 name={key}
                 stackId="a"
-                fill={DEFAULT_COLORS[index % DEFAULT_COLORS.length]}
+                fill={STATUS_META?.[key]?.color || DEFAULT_COLORS[index % DEFAULT_COLORS.length]}
                 isAnimationActive={false}
                 minPointSize={2}
               >

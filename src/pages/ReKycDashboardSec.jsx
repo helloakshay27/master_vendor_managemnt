@@ -100,7 +100,6 @@ const TYPE_WISE_COLUMNS = [
   { key: "createdAt", label: "Created at" },
   { key: "updatedAt", label: "Updated at" },
   { key: "ageingInMonth", label: "Ageing in Month" },
-  { key: "rowCount", label: "Row Count" },
 ];
 
 const TYPE_WISE_DATA = [];
@@ -291,6 +290,9 @@ const ReKYCDashboard = () => {
   const [isOpenInvitesLoading, setIsOpenInvitesLoading] = useState(false);
   const [openInvitesPagination, setOpenInvitesPagination] = useState(null);
 
+  // Type-wise table data (for "Type wise ReKYC Distribution")
+  const [typeWiseTableData, setTypeWiseTableData] = useState([]);
+
   const [expiredData, setExpiredData] = useState([]);
   const [isExpiredLoading, setIsExpiredLoading] = useState(false);
   const [expiredPagination, setExpiredPagination] = useState(null);
@@ -339,26 +341,57 @@ const ReKYCDashboard = () => {
     try {
       const queryParams = new URLSearchParams();
       queryParams.append("token", tokenFromUrl);
+      queryParams.append("status", "approved");
+      queryParams.append("error", "");
       
       if (activeFilters.startDate) {
         const parts = activeFilters.startDate.split("/");
-        queryParams.append("from_date", `${parts[2]}-${parts[1]}-${parts[0]}`);
+        // API expects dd-mm-yyyy
+        queryParams.append("from_date", `${parts[0]}-${parts[1]}-${parts[2]}`);
       }
       if (activeFilters.endDate) {
         const parts = activeFilters.endDate.split("/");
-        queryParams.append("end_date", `${parts[2]}-${parts[1]}-${parts[0]}`);
+        queryParams.append("end_date", `${parts[0]}-${parts[1]}-${parts[2]}`);
       }
       if (activeFilters.departmentName) queryParams.append("department_ids", activeFilters.departmentName);
       if (activeFilters.vendors) queryParams.append("vendor_ids", activeFilters.vendors);
 
-      const response = await fetch(`${baseURL}vendor_re_kyc_dashboard/type_wise_rekyc.json?${queryParams}`);
+      const response = await fetch(
+        `${baseURL}vendor_re_kyc_dashboard/type_wise_rekyc_distribution.json?${queryParams}`,
+      );
       const data = await response.json();
-      if (data.status === "success" && Array.isArray(data.data)) {
-        const transformed = data.data.map(item => ({
-          name: item.rekyc_type,
-          value: item.rekyc_count
+
+      // Handle both wrapped { data: [...] } and raw [] forms
+      const rows = Array.isArray(data?.data)
+        ? data.data
+        : Array.isArray(data)
+        ? data
+        : [];
+
+      if (rows.length > 0) {
+        // 1) Table rows directly from API
+        const tableRows = rows.map((item) => ({
+          organizationName: item.organization_name || "-",
+          rekycType: item.rekyc_type || "",
+          status: item.status || "",
+          createdAt: item.created_at || "",
+          updatedAt: item.updated_at || "",
+          ageingInMonth: item.ageing_in_month ?? "",
+          rowCount: item.row_count ?? 0,
         }));
-        setTypeChartData(transformed);
+        setTypeWiseTableData(tableRows);
+
+        // 2) Aggregate by type for chart
+        const byType = new Map();
+        tableRows.forEach((row) => {
+          const key = row.rekycType || "Unknown";
+          const prev = byType.get(key) || 0;
+          byType.set(key, prev + (row.rowCount || 0));
+        });
+        const chartTransformed = Array.from(byType.entries()).map(
+          ([name, value]) => ({ name, value }),
+        );
+        setTypeChartData(chartTransformed);
       }
     } catch (error) {
       console.error("Error fetching type-wise data:", error);
@@ -719,8 +752,34 @@ const ReKYCDashboard = () => {
                               <div key={chartId} className="col-12 col-lg-6">
                                 <SortableChartItem id={chartId}>
                                   {isKpiLoading ? (
-                                    <div className="flex items-center justify-center h-[500px] bg-white rounded-lg border">
-                                      <div className="animate-pulse text-gray-400">Loading Status Data...</div>
+                                    <div className="card go-shadow bg-white rounded-lg w-100">
+                                      <div className="vendor-card-header">
+                                        <h3 className="vendor-card-title">
+                                          StatusWise Re-KYC Distributions
+                                        </h3>
+                                      </div>
+                                      <div
+                                        className="card-body"
+                                        style={{
+                                          height: "300px",
+                                          display: "flex",
+                                          flexDirection: "column",
+                                          justifyContent: "center",
+                                          alignItems: "center",
+                                        }}
+                                      >
+                                        <div
+                                          className="spinner-border text-primary mb-2"
+                                          role="status"
+                                        >
+                                          <span className="visually-hidden">
+                                            Loading...
+                                          </span>
+                                        </div>
+                                        <span className="text-muted fw-medium">
+                                          Loading Status Data...
+                                        </span>
+                                      </div>
                                     </div>
                                   ) : (
                                     <DepartmentWiseDistributionChart
@@ -740,8 +799,34 @@ const ReKYCDashboard = () => {
                               <div key={chartId} className="col-12 col-lg-6">
                                 <SortableChartItem id={chartId}>
                                   {isTypeWiseLoading ? (
-                                    <div className="flex items-center justify-center h-[500px] bg-white rounded-lg border">
-                                      <div className="animate-pulse text-gray-400">Loading Type Data...</div>
+                                    <div className="card go-shadow bg-white rounded-lg w-100">
+                                      <div className="vendor-card-header">
+                                        <h3 className="vendor-card-title">
+                                          TypeWise Re-KYC Distributions
+                                        </h3>
+                                      </div>
+                                      <div
+                                        className="card-body"
+                                        style={{
+                                          height: "300px",
+                                          display: "flex",
+                                          flexDirection: "column",
+                                          justifyContent: "center",
+                                          alignItems: "center",
+                                        }}
+                                      >
+                                        <div
+                                          className="spinner-border text-primary mb-2"
+                                          role="status"
+                                        >
+                                          <span className="visually-hidden">
+                                            Loading...
+                                          </span>
+                                        </div>
+                                        <span className="text-muted fw-medium">
+                                          Loading Type Data...
+                                        </span>
+                                      </div>
                                     </div>
                                   ) : (
                                     <DepartmentWiseDistributionChart
@@ -761,8 +846,34 @@ const ReKYCDashboard = () => {
                               <div key={chartId} className="col-12">
                                 <SortableChartItem id={chartId}>
                                   {isDeptLoading ? (
-                                    <div className="flex items-center justify-center h-[650px] bg-white rounded-lg border">
-                                      <div className="animate-pulse text-gray-400">Loading Department Data...</div>
+                                    <div className="card go-shadow bg-white rounded-lg w-100">
+                                      <div className="vendor-card-header">
+                                        <h3 className="vendor-card-title">
+                                          Department Wise Re-KYC
+                                        </h3>
+                                      </div>
+                                      <div
+                                        className="card-body"
+                                        style={{
+                                          height: "400px",
+                                          display: "flex",
+                                          flexDirection: "column",
+                                          justifyContent: "center",
+                                          alignItems: "center",
+                                        }}
+                                      >
+                                        <div
+                                          className="spinner-border text-primary mb-2"
+                                          role="status"
+                                        >
+                                          <span className="visually-hidden">
+                                            Loading...
+                                          </span>
+                                        </div>
+                                        <span className="text-muted fw-medium">
+                                          Loading Department Data...
+                                        </span>
+                                      </div>
                                     </div>
                                   ) : (
                                     <DepartmentReKYCChart
@@ -780,15 +891,40 @@ const ReKYCDashboard = () => {
                               <div key={chartId} className="col-12 col-lg-6">
                                 <SortableChartItem id={chartId}>
                                   {isMonthWiseLoading ? (
-                                    <div className="flex items-center justify-center h-[500px] bg-white rounded-lg border">
-                                      <div className="animate-pulse text-gray-400">Loading Month-wise Data...</div>
+                                    <div className="card go-shadow bg-white rounded-lg w-100">
+                                      <div className="vendor-card-header">
+                                        <h3 className="vendor-card-title">
+                                          Month Wise Re-KYC Type
+                                        </h3>
+                                      </div>
+                                      <div
+                                        className="card-body"
+                                        style={{
+                                          height: "300px",
+                                          display: "flex",
+                                          flexDirection: "column",
+                                          justifyContent: "center",
+                                          alignItems: "center",
+                                        }}
+                                      >
+                                        <div
+                                          className="spinner-border text-primary mb-2"
+                                          role="status"
+                                        >
+                                          <span className="visually-hidden">
+                                            Loading...
+                                          </span>
+                                        </div>
+                                        <span className="text-muted fw-medium">
+                                          Loading Month-wise Data...
+                                        </span>
+                                      </div>
                                     </div>
                                   ) : (
                                     <ReKycBarchart
                                       data={monthWiseData}
                                       title="Month Wise Re-KYC Type"
                                       height={500}
-                                      onDownload={() => {}}
                                     />
                                   )}
                                 </SortableChartItem>
@@ -801,15 +937,40 @@ const ReKYCDashboard = () => {
                               <div key={chartId} className="col-12 col-lg-6">
                                 <SortableChartItem id={chartId}>
                                   {isYearWiseLoading ? (
-                                    <div className="flex items-center justify-center h-[500px] bg-white rounded-lg border">
-                                      <div className="animate-pulse text-gray-400">Loading Year-wise Data...</div>
+                                    <div className="card go-shadow bg-white rounded-lg w-100">
+                                      <div className="vendor-card-header">
+                                        <h3 className="vendor-card-title">
+                                          Year Wise Re-KYC Type
+                                        </h3>
+                                      </div>
+                                      <div
+                                        className="card-body"
+                                        style={{
+                                          height: "300px",
+                                          display: "flex",
+                                          flexDirection: "column",
+                                          justifyContent: "center",
+                                          alignItems: "center",
+                                        }}
+                                      >
+                                        <div
+                                          className="spinner-border text-primary mb-2"
+                                          role="status"
+                                        >
+                                          <span className="visually-hidden">
+                                            Loading...
+                                          </span>
+                                        </div>
+                                        <span className="text-muted fw-medium">
+                                          Loading Year-wise Data...
+                                        </span>
+                                      </div>
                                     </div>
                                   ) : (
                                     <ReKycBarchart
                                       data={yearWiseData}
                                       title="Year Wise Re-KYC Type"
                                       height={500}
-                                      onDownload={() => {}}
                                     />
                                   )}
                                 </SortableChartItem>
@@ -863,7 +1024,7 @@ const ReKYCDashboard = () => {
                                   <VendorDataTable
                                     title="Type wise ReKYC Distribution"
                                     columns={TYPE_WISE_COLUMNS}
-                                    data={TYPE_WISE_DATA}
+                                    data={typeWiseTableData}
                                     onDownload={() => {}}
                                   />
                                 </SortableChartItem>

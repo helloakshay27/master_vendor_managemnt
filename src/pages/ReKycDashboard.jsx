@@ -104,7 +104,7 @@ const KYC_MANAGEMENT_CONFIG = {
     options: [
       { id: "Active Vendors", label: "Active Vendors" },
       { id: "Active Initiated Suppliers", label: "Active Initiated Suppliers" },
-      { id: "Latest Unique Suppliers", label: "Latest Unique Suppliers" },
+      // { id: "Latest Unique Suppliers", label: "Latest Unique Suppliers" },
       { id: "Other Rekycs", label: "Other Rekycs" },
       { id: "Active Not Initiated Suppliers", label: "Active Not Initiated Suppliers" },
       { id: "Pending Suppliers", label: "Pending Suppliers" },
@@ -138,7 +138,7 @@ const ALL_CHART_IDS = [
 const ALL_STAT_IDS = [
   "Active Vendors",
   "Active Initiated Suppliers",
-  "Latest Unique Suppliers",
+  // "Latest Unique Suppliers",
   "Other Rekycs",
   "Active Not Initiated Suppliers",
   "Pending Suppliers",
@@ -180,6 +180,7 @@ const KYCManagementDashboard = () => {
     vendors: "",
     pqType: "with_pq",
   });
+  const [filtersInitialized, setFiltersInitialized] = useState(false);
   const [chartOrder, setChartOrder] = useState(ALL_CHART_IDS);
   const [visibleSections, setVisibleSections] = useState([
     ...ALL_STAT_IDS,
@@ -250,6 +251,7 @@ const KYCManagementDashboard = () => {
 
   const handleAnalyticsFilterApply = (filters) => {
     setActiveFilters(filters);
+    setFiltersInitialized(true);
   };
 
   const fetchKpiCards = useCallback(async () => {
@@ -313,12 +315,13 @@ const KYCManagementDashboard = () => {
       const response = await fetch(
         `${baseURL}vendor_re_kyc_dashboard/time_wise_general_rekyc.json?${queryParams}`
       );
-      const data = await response.json();
+      const json = await response.json();
+      const apiData = json?.data || json;
       
-      if (data) {
+      if (apiData) {
         // Transform month-wise data
-        if (Array.isArray(data.month_wise)) {
-          const transformedMonth = data.month_wise.map(item => {
+        if (Array.isArray(apiData.month_wise)) {
+          const transformedMonth = apiData.month_wise.map(item => {
             const flatObj = { month: item.month };
             if (Array.isArray(item.statuses)) {
               item.statuses.forEach(s => {
@@ -331,8 +334,8 @@ const KYCManagementDashboard = () => {
         }
 
         // Transform year-wise data
-        if (Array.isArray(data.year_wise)) {
-          const transformedYear = data.year_wise.map(item => ({
+        if (Array.isArray(apiData.year_wise)) {
+          const transformedYear = apiData.year_wise.map(item => ({
             year: item.year.toString(),
             "Total Re-KYC": item.total_rekyc_vendors
           }));
@@ -529,6 +532,8 @@ const KYCManagementDashboard = () => {
   }, [activeFilters]);
 
   useEffect(() => {
+    if (!filtersInitialized) return;
+
     fetchKpiCards();
     fetchTimeWiseData();
     fetchApprovedNoReKycData();
@@ -543,6 +548,7 @@ const KYCManagementDashboard = () => {
     fetchSummaryData("approved", null, 1, setApprovedRecordsData, setApprovedRecordsPagination, setIsApprovedRecordsLoading);
 
   }, [
+    filtersInitialized,
     fetchKpiCards, 
     fetchTimeWiseData, 
     fetchApprovedNoReKycData, 
@@ -556,8 +562,8 @@ const KYCManagementDashboard = () => {
         return <Users size={20} />;
       case "Active Initiated Suppliers":
         return <UserCheck size={20} />;
-      case "Latest Unique Suppliers":
-        return <Users size={20} />;
+      // case "Latest Unique Suppliers":
+      //   return <Users size={20} />;
       case "Other Rekycs":
         return <Layers size={20} />;
       case "Active Not Initiated Suppliers":
@@ -700,7 +706,7 @@ const KYCManagementDashboard = () => {
                                       ]}
                                       title="Total Approved Suppliers"
                                       legendLabel="Suppliers"
-                                      onDownload={() => {}}
+                                      // onDownload={() => {}}
                                     />
                                   )}
                                 </SortableChartItem>
@@ -759,7 +765,7 @@ const KYCManagementDashboard = () => {
                                       ]}
                                       title="Status Wise Vendor Count"
                                       legendLabel="Statuses"
-                                      onDownload={() => {}}
+                                      // onDownload={() => {}}
                                     />
                                   )}
                                 </SortableChartItem>
@@ -862,7 +868,7 @@ const KYCManagementDashboard = () => {
                               <div key={chartId} className="col-12">
                                 <SortableChartItem id={chartId}>
                                   <VendorDataTable
-                                    title="Approved Vendors but ReKYC not Initiated"
+                                    title="Approved Vendors but Genaral ReKYC not Initiated"
                                     columns={[
                                       { key: "organizationName", label: "Organization Name" },
                                       { key: "departmentName", label: "Department Name" },
@@ -1035,7 +1041,7 @@ const KYCManagementDashboard = () => {
                               <div key={chartId} className="col-12">
                                 <SortableChartItem id={chartId}>
                                   <VendorDataTable
-                                    title="Organisation Wise Vendor ReKyc Status"
+                                    title="Organisation Wise Vendor General ReKyc Status"
                                     columns={[
                                       {
                                         key: "organizationName",

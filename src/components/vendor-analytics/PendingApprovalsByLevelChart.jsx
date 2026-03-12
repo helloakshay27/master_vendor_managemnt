@@ -6,6 +6,29 @@ const CHART_COLORS = {
   approvals: '#c4b99d',
 };
 
+// Truncated tick similar to MonthWiseRegistrationChart
+const TruncatedTick = ({ x, y, payload, maxChars = 8 }) => {
+  const full = String(payload?.value || '');
+  const display = full.length > maxChars ? full.slice(0, maxChars) + '…' : full;
+  return (
+    <g transform={`translate(${x},${y})`}>
+      <title>{full}</title>
+      <text
+        x={0}
+        y={0}
+        dy={4}
+        textAnchor="end"
+        fill="#374151"
+        fontSize={10}
+        transform="rotate(-45)"
+        style={{ cursor: 'default' }}
+      >
+        {display}
+      </text>
+    </g>
+  );
+};
+
 export const PendingApprovalsByLevelChart = ({ data, onDownload, className = "" }) => {
   
   // 1. Safely extract array from API response (Handles both direct array and { data: [...] } format)
@@ -22,8 +45,11 @@ export const PendingApprovalsByLevelChart = ({ data, onDownload, className = "" 
     count: item.pending_count !== undefined ? Number(item.pending_count) : Number(item.count || 0)
   }));
 
+  // Match month-wise chart behavior: wide chart with horizontal scroll
+  const minChartWidth = Math.max(chartData.length * 44 + 80, 600);
+
   return (
-    <div className={`card go-shadow bg-white rounded-lg ${className}`} style={{ height: '500px', display: 'flex', flexDirection: 'column' }}>
+    <div className={`card go-shadow bg-white rounded-lg ${className}`}>
       <div className="vendor-card-header">
         <div className="flex items-center justify-between">
           <h3 className="vendor-card-title">
@@ -32,58 +58,58 @@ export const PendingApprovalsByLevelChart = ({ data, onDownload, className = "" 
         </div>
       </div>
       
-      <div className="card-body" style={{ padding: '20px', flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+      <div className="card-body" style={{ padding: '20px' }}>
         {chartData.length > 0 ? (
-          <div style={{ width: '100%', flex: 1, minHeight: 0 }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={chartData}
-                margin={{ top: 20, right: 30, left: 20, bottom: 100 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke="#e0e4e7" vertical={false} />
-                <XAxis
-                  dataKey="level"
-                  fontSize={11}
-                  tick={{ fill: '#374151' }}
-                  angle={-45}
-                  textAnchor="end"
-                  height={120}
-                  interval={0}
-                />
-                <YAxis
-                  fontSize={12}
-                  tick={{ fill: '#374151' }}
-                  allowDecimals={false}
-                />
-                <Tooltip
-                  cursor={{ fill: 'transparent', opacity: 0.1 }}
-                  content={({ active, payload, label }) => {
-                    if (active && payload && payload.length) {
-                      const rowData = payload[0].payload;
-                      return (
-                        <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
-                          <p className="font-semibold text-gray-800 mb-2">{label}</p>
-                          <div className="flex justify-between items-center gap-4">
-                            <span className="font-medium" style={{ color: CHART_COLORS.approvals }}>
-                              Pending:
-                            </span>
-                            <span className="text-gray-700 font-bold">{rowData.count}</span>
+          <div style={{ width: '100%', overflowX: 'auto' }}>
+            <div style={{ minWidth: `${minChartWidth}px`, height: '420px' }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={chartData}
+                  margin={{ top: 20, right: 30, left: 20, bottom: 100 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e0e4e7" vertical={false} />
+                  <XAxis
+                    dataKey="level"
+                    height={120}
+                    interval={0}
+                    tick={<TruncatedTick maxChars={8} />}
+                  />
+                  <YAxis
+                    fontSize={12}
+                    tick={{ fill: '#374151' }}
+                    allowDecimals={false}
+                  />
+                  <Tooltip
+                    cursor={{ fill: 'transparent', opacity: 0.1 }}
+                    content={({ active, payload, label }) => {
+                      if (active && payload && payload.length) {
+                        const rowData = payload[0].payload;
+                        return (
+                          <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
+                            <p className="font-semibold text-gray-800 mb-2">{label}</p>
+                            <div className="flex justify-between items-center gap-4">
+                              <span className="font-medium" style={{ color: CHART_COLORS.approvals }}>
+                                Pending:
+                              </span>
+                              <span className="text-gray-700 font-bold">{rowData.count}</span>
+                            </div>
                           </div>
-                        </div>
-                      );
-                    }
-                    return null;
-                  }}
-                />
-                <Bar 
-                  dataKey="count" 
-                  fill={CHART_COLORS.approvals} 
-                  name="Pending Approvals" 
-                  radius={[4, 4, 0, 0]}
-                  barSize={40}
-                />
-              </BarChart>
-            </ResponsiveContainer>
+                        );
+                      }
+                      return null;
+                    }}
+                  />
+                  <Bar
+                    dataKey="count"
+                    fill={CHART_COLORS.approvals}
+                    name="Pending Approvals"
+                    radius={[4, 4, 0, 0]}
+                    barSize={40}
+                    isAnimationActive={false}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           </div>
         ) : (
           <div className="text-center text-gray-500 h-full flex items-center justify-center">

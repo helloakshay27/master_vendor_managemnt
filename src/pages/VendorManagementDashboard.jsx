@@ -555,9 +555,10 @@ const InlineFilterDialog = ({
 // Table Columns Constants
 const SUPPLIER_PERFORMANCE_COLUMNS = [
   { key: "department", label: "Department Name" },
+  { key: "totalSuppliers", label: "Total Suppliers" },
   { key: "approvedVendors", label: "Approved Vendors" },
+  { key: "invitedVendors", label: "Invited Vendors" },
   { key: "avgTat", label: "Avg TAT (Dept)" },
-  { key: "invitedToApproved", label: "Invited to Approved Vendors" },
 ];
 
 const APPROVED_VENDORS_COLUMNS = [
@@ -578,6 +579,8 @@ function VendorManagementDashboard() {
   const urlParams = new URLSearchParams(window.location.search);
   const tokenFromUrl = urlParams.get("token") || "bfa5004e7b0175622be8f7e69b37d01290b737f82e078414";
 
+  // Track when filters from VendorFilterCard are fully initialized
+  const [filtersInitialized, setFiltersInitialized] = useState(false);
   const [visibleSections, setVisibleSections] = useState([
     "departmentPreQual",
     "departmentDistribution",
@@ -734,6 +737,7 @@ function VendorManagementDashboard() {
 
   const handleAnalyticsFilterApply = (filters) => {
     setActiveFilters(filters);
+    setFiltersInitialized(true);
     setApprovedVendorsPage(1);
     setPqVendorsPage(1);
     setNonPqVendorsPage(1);
@@ -751,9 +755,11 @@ function VendorManagementDashboard() {
   const formatDtForAPI = (dt) => (dt ? dt.split("/").join("-") : "");
 
   // =========================================================================
-  // API CALLS
+  // API CALLS - initial load + filter changes
   // =========================================================================
   useEffect(() => {
+    // Avoid firing APIs until VendorFilterCard has provided full filters (including company ids)
+    if (!filtersInitialized) return;
     const fetchStatCards = async () => {
       try {
         const queryParams = new URLSearchParams();
@@ -1070,11 +1076,14 @@ function VendorManagementDashboard() {
           json?.data?.supplier_performance ||
           Object.values(json).find((val) => Array.isArray(val)) ||
           [];
+
         setSupplierPerformanceData(
           rawData.map((item) => ({
             department: item.department_name || item.department || "Unknown",
-            approvedVendors: item.approved_vendor_count || 0,
-            avgTat: item.avg_tat_days || "0.00",
+            totalSuppliers: item.total_suppliers ?? 0,
+            approvedVendors: item.approved_vendor_count ?? 0,
+            invitedVendors: item.invited_vendor_count ?? 0,
+            avgTat: item.avg_tat_days ?? "0.00",
           })),
         );
       } catch (error) {
@@ -1504,7 +1513,421 @@ function VendorManagementDashboard() {
     fetchVerificationPending();
     fetchTopVendors();
     fetchBottomVendors();
-  }, [activeFilters]);
+  }, [activeFilters, filtersInitialized]);
+
+  // =========================================================================
+  // Pagination-only effects for tables
+  // =========================================================================
+
+  // Approved Vendors table
+  useEffect(() => {
+    if (approvedVendorsPage === 1) return;
+
+    const run = async () => {
+      setIsApprovedVendorsLoading(true);
+      try {
+        const queryParams = new URLSearchParams();
+        queryParams.append("token", tokenFromUrl);
+        queryParams.append("status", "approved");
+        queryParams.append("page", approvedVendorsPage);
+
+        if (activeFilters.companyName)
+          queryParams.append("company_ids", activeFilters.companyName);
+        if (activeFilters.departmentName)
+          queryParams.append("department_ids", activeFilters.departmentName);
+        if (activeFilters.vendors)
+          queryParams.append("vendor_ids", activeFilters.vendors);
+        if (activeFilters.startDate)
+          queryParams.append(
+            "from_date",
+            formatDtForAPI(activeFilters.startDate),
+          );
+        if (activeFilters.endDate)
+          queryParams.append(
+            "end_date",
+            formatDtForAPI(activeFilters.endDate),
+          );
+
+        const response = await fetch(
+          `${baseURL}vendor_pq_dashboard/pq_vendor_stats.json?${queryParams}`,
+        );
+        const json = await response.json();
+        let rawData = json?.data?.suppliers || [];
+        setApprovedVendorsData(
+          rawData.map((item) => ({
+            organization: item.organization_name || "-",
+            department: item.department_name || "-",
+            status: item.status || "Approved",
+            vendorTat: item.vendor_tat_days ?? "-",
+            internalTat: item.internal_tat_days ?? "-",
+            cumulativeTat: item.cumulative_tat_days ?? "-",
+            approvalDate: item.approval_date || "-",
+            vendorCode: item.vendor_code || "-",
+            category: item.category || "-",
+            contactPerson: item.contact_person || "-",
+            contactEmail: item.contact_email || "-",
+          })),
+        );
+        setApprovedVendorsPagination(json?.data?.pagination || null);
+      } catch (error) {
+        setApprovedVendorsData([]);
+        setApprovedVendorsPagination(null);
+      } finally {
+        setIsApprovedVendorsLoading(false);
+      }
+    };
+
+    run();
+  }, [approvedVendorsPage, activeFilters, tokenFromUrl]);
+
+  // PQ Vendors table
+  useEffect(() => {
+    if (pqVendorsPage === 1) return;
+
+    const run = async () => {
+      setIsPqVendorsLoading(true);
+      try {
+        const queryParams = new URLSearchParams();
+        queryParams.append("token", tokenFromUrl);
+        queryParams.append("status", "approved");
+        queryParams.append("pq_type", "with_pq");
+        queryParams.append("page", pqVendorsPage);
+
+        if (activeFilters.companyName)
+          queryParams.append("company_ids", activeFilters.companyName);
+        if (activeFilters.departmentName)
+          queryParams.append("department_ids", activeFilters.departmentName);
+        if (activeFilters.vendors)
+          queryParams.append("vendor_ids", activeFilters.vendors);
+        if (activeFilters.startDate)
+          queryParams.append(
+            "from_date",
+            formatDtForAPI(activeFilters.startDate),
+          );
+        if (activeFilters.endDate)
+          queryParams.append(
+            "end_date",
+            formatDtForAPI(activeFilters.endDate),
+          );
+
+        const response = await fetch(
+          `${baseURL}vendor_pq_dashboard/pq_vendor_stats.json?${queryParams}`,
+        );
+        const json = await response.json();
+        setPqVendorsData(json?.data?.suppliers || []);
+        setPqVendorsPagination(json?.data?.pagination || null);
+      } catch (error) {
+        setPqVendorsData([]);
+        setPqVendorsPagination(null);
+      } finally {
+        setIsPqVendorsLoading(false);
+      }
+    };
+
+    run();
+  }, [pqVendorsPage, activeFilters, tokenFromUrl]);
+
+  // Non-PQ Vendors table
+  useEffect(() => {
+    if (nonPqVendorsPage === 1) return;
+
+    const run = async () => {
+      setIsNonPqVendorsLoading(true);
+      try {
+        const queryParams = new URLSearchParams();
+        queryParams.append("token", tokenFromUrl);
+        queryParams.append("status", "approved");
+        queryParams.append("pq_type", "without_pq");
+        queryParams.append("page", nonPqVendorsPage);
+
+        if (activeFilters.companyName)
+          queryParams.append("company_ids", activeFilters.companyName);
+        if (activeFilters.departmentName)
+          queryParams.append("department_ids", activeFilters.departmentName);
+        if (activeFilters.vendors)
+          queryParams.append("vendor_ids", activeFilters.vendors);
+        if (activeFilters.startDate)
+          queryParams.append(
+            "from_date",
+            formatDtForAPI(activeFilters.startDate),
+          );
+        if (activeFilters.endDate)
+          queryParams.append(
+            "end_date",
+            formatDtForAPI(activeFilters.endDate),
+          );
+
+        const response = await fetch(
+          `${baseURL}vendor_pq_dashboard/pq_vendor_stats.json?${queryParams}`,
+        );
+        const json = await response.json();
+        setNonPqVendorsData(json?.data?.suppliers || []);
+        setNonPqVendorsPagination(json?.data?.pagination || null);
+      } catch (error) {
+        setNonPqVendorsData([]);
+        setNonPqVendorsPagination(null);
+      } finally {
+        setIsNonPqVendorsLoading(false);
+      }
+    };
+
+    run();
+  }, [nonPqVendorsPage, activeFilters, tokenFromUrl]);
+
+  // Resubmission Requests table
+  useEffect(() => {
+    if (resubmissionRequestsPage === 1) return;
+
+    const run = async () => {
+      setIsResubmissionRequestsLoading(true);
+      try {
+        const queryParams = new URLSearchParams();
+        queryParams.append("token", tokenFromUrl);
+        queryParams.append("status", "request_for_resubmission");
+        queryParams.append("page", resubmissionRequestsPage);
+
+        if (activeFilters.companyName)
+          queryParams.append("company_ids", activeFilters.companyName);
+        if (activeFilters.departmentName)
+          queryParams.append("department_ids", activeFilters.departmentName);
+        if (activeFilters.vendors)
+          queryParams.append("vendor_ids", activeFilters.vendors);
+        if (activeFilters.startDate)
+          queryParams.append(
+            "from_date",
+            formatDtForAPI(activeFilters.startDate),
+          );
+        if (activeFilters.endDate)
+          queryParams.append(
+            "end_date",
+            formatDtForAPI(activeFilters.endDate),
+          );
+
+        const response = await fetch(
+          `${baseURL}vendor_pq_dashboard/pq_vendor_stats.json?${queryParams}`,
+        );
+        const json = await response.json();
+        let rawData = json?.data?.suppliers || [];
+        setResubmissionRequestsData(
+          rawData.map((item) => ({
+            organization: item.organization_name || "-",
+            department: item.department_name || "-",
+            status: item.status || "Request for Resubmission",
+            vendorTat: item.vendor_tat_days ?? "-",
+            internalTat: item.internal_tat_days ?? "-",
+            cumulativeTat: item.cumulative_tat_days ?? "-",
+            requestDate: item.request_date || "-",
+            reason: item.reason || "-",
+            requestedBy: item.requested_by || "-",
+            resubmittedOn: item.resubmitted_on || "-",
+            currentStatus: item.current_status || "-",
+          })),
+        );
+        setResubmissionRequestsPagination(json?.data?.pagination || null);
+      } catch (error) {
+        setResubmissionRequestsData([]);
+        setResubmissionRequestsPagination(null);
+      } finally {
+        setIsResubmissionRequestsLoading(false);
+      }
+    };
+
+    run();
+  }, [resubmissionRequestsPage, activeFilters, tokenFromUrl]);
+
+  // Onboarding In Process table
+  useEffect(() => {
+    if (onboardingInProcessPage === 1) return;
+
+    const run = async () => {
+      setIsOnboardingInProcessLoading(true);
+      try {
+        const queryParams = new URLSearchParams();
+        queryParams.append("token", tokenFromUrl);
+        queryParams.append("status", "onboarding");
+        queryParams.append("page", onboardingInProcessPage);
+
+        if (activeFilters.companyName)
+          queryParams.append("company_ids", activeFilters.companyName);
+        if (activeFilters.departmentName)
+          queryParams.append("department_ids", activeFilters.departmentName);
+        if (activeFilters.vendors)
+          queryParams.append("vendor_ids", activeFilters.vendors);
+        if (activeFilters.startDate)
+          queryParams.append(
+            "from_date",
+            formatDtForAPI(activeFilters.startDate),
+          );
+        if (activeFilters.endDate)
+          queryParams.append(
+            "end_date",
+            formatDtForAPI(activeFilters.endDate),
+          );
+
+        const response = await fetch(
+          `${baseURL}vendor_pq_dashboard/pq_vendor_stats.json?${queryParams}`,
+        );
+        const json = await response.json();
+        let rawData = json?.data?.suppliers || [];
+        setOnboardingInProcessData(
+          rawData.map((item) => ({
+            organization: item.organization_name || "-",
+            department: item.department_name || "-",
+            status: item.status || "Onboarding",
+            vendorTat: item.vendor_tat_days ?? "-",
+            internalTat: item.internal_tat_days ?? "-",
+            cumulativeTat: item.cumulative_tat_days ?? "-",
+          })),
+        );
+        setOnboardingInProcessPagination(json?.data?.pagination || null);
+      } catch (error) {
+        setOnboardingInProcessData([]);
+        setOnboardingInProcessPagination(null);
+      } finally {
+        setIsOnboardingInProcessLoading(false);
+      }
+    };
+
+    run();
+  }, [onboardingInProcessPage, activeFilters, tokenFromUrl]);
+
+  // Invited Vendors table
+  useEffect(() => {
+    if (invitedVendorsPage === 1) return;
+
+    const run = async () => {
+      setIsInvitedVendorsLoading(true);
+      try {
+        const queryParams = new URLSearchParams();
+        queryParams.append("token", tokenFromUrl);
+        queryParams.append("status", "invited");
+        queryParams.append("page", invitedVendorsPage);
+
+        if (activeFilters.companyName)
+          queryParams.append("company_ids", activeFilters.companyName);
+        if (activeFilters.departmentName)
+          queryParams.append("department_ids", activeFilters.departmentName);
+        if (activeFilters.vendors)
+          queryParams.append("vendor_ids", activeFilters.vendors);
+        if (activeFilters.startDate)
+          queryParams.append(
+            "from_date",
+            formatDtForAPI(activeFilters.startDate),
+          );
+        if (activeFilters.endDate)
+          queryParams.append(
+            "end_date",
+            formatDtForAPI(activeFilters.endDate),
+          );
+
+        const response = await fetch(
+          `${baseURL}vendor_pq_dashboard/pq_vendor_stats.json?${queryParams}`,
+        );
+        const json = await response.json();
+        setInvitedVendorsData(json?.data?.suppliers || []);
+        setInvitedVendorsPagination(json?.data?.pagination || null);
+      } catch (error) {
+        setInvitedVendorsData([]);
+        setInvitedVendorsPagination(null);
+      } finally {
+        setIsInvitedVendorsLoading(false);
+      }
+    };
+
+    run();
+  }, [invitedVendorsPage, activeFilters, tokenFromUrl]);
+
+  // Details Submitted table
+  useEffect(() => {
+    if (detailsSubmittedPage === 1) return;
+
+    const run = async () => {
+      setIsDetailsSubmittedLoading(true);
+      try {
+        const queryParams = new URLSearchParams();
+        queryParams.append("token", tokenFromUrl);
+        queryParams.append("status", "details_submitted_by_vendor");
+        queryParams.append("page", detailsSubmittedPage);
+
+        if (activeFilters.companyName)
+          queryParams.append("company_ids", activeFilters.companyName);
+        if (activeFilters.departmentName)
+          queryParams.append("department_ids", activeFilters.departmentName);
+        if (activeFilters.vendors)
+          queryParams.append("vendor_ids", activeFilters.vendors);
+        if (activeFilters.startDate)
+          queryParams.append(
+            "from_date",
+            formatDtForAPI(activeFilters.startDate),
+          );
+        if (activeFilters.endDate)
+          queryParams.append(
+            "end_date",
+            formatDtForAPI(activeFilters.endDate),
+          );
+
+        const response = await fetch(
+          `${baseURL}vendor_pq_dashboard/pq_vendor_stats.json?${queryParams}`,
+        );
+        const json = await response.json();
+        setDetailsSubmittedData(json?.data?.suppliers || []);
+        setDetailsSubmittedPagination(json?.data?.pagination || null);
+      } catch (error) {
+        setDetailsSubmittedData([]);
+        setDetailsSubmittedPagination(null);
+      } finally {
+        setIsDetailsSubmittedLoading(false);
+      }
+    };
+
+    run();
+  }, [detailsSubmittedPage, activeFilters, tokenFromUrl]);
+
+  // Verification Pending table
+  useEffect(() => {
+    if (verificationPendingPage === 1) return;
+
+    const run = async () => {
+      setIsVerificationPendingLoading(true);
+      try {
+        const queryParams = new URLSearchParams();
+        queryParams.append("token", tokenFromUrl);
+        queryParams.append("status", "verification_pending");
+        queryParams.append("page", verificationPendingPage);
+
+        if (activeFilters.companyName)
+          queryParams.append("company_ids", activeFilters.companyName);
+        if (activeFilters.departmentName)
+          queryParams.append("department_ids", activeFilters.departmentName);
+        if (activeFilters.vendors)
+          queryParams.append("vendor_ids", activeFilters.vendors);
+        if (activeFilters.startDate)
+          queryParams.append(
+            "from_date",
+            formatDtForAPI(activeFilters.startDate),
+          );
+        if (activeFilters.endDate)
+          queryParams.append(
+            "end_date",
+            formatDtForAPI(activeFilters.endDate),
+          );
+
+        const response = await fetch(
+          `${baseURL}vendor_pq_dashboard/pq_vendor_stats.json?${queryParams}`,
+        );
+        const json = await response.json();
+        setVerificationPendingData(json?.data?.suppliers || []);
+        setVerificationPendingPagination(json?.data?.pagination || null);
+      } catch (error) {
+        setVerificationPendingData([]);
+        setVerificationPendingPagination(null);
+      } finally {
+        setIsVerificationPendingLoading(false);
+      }
+    };
+
+    run();
+  }, [verificationPendingPage, activeFilters, tokenFromUrl]);
 
   const VENDOR_MANGEMENT = {
     charts: {
@@ -1602,7 +2025,7 @@ function VendorManagementDashboard() {
                   {visibleSections.includes("pqVendors") && (
                     <div className="col-lg-3 col-md-6 col-sm-12">
                       <VendorStatCard
-                        title="PQ Vendors"
+                        title="PQ Vendors "
                         value={vendorStats.with_pq}
                       />
                     </div>
@@ -1983,7 +2406,7 @@ function VendorManagementDashboard() {
                                     </div>
                                   ) : (
                                     <VendorDataTable
-                                      title="PQ Vendors"
+                                      title="PQ Vendors (Active & Approved)"
                                       data={pqVendorsData}
                                       columns={[
                                         { key: "organization_name", label: "Organization Name" },
@@ -2024,7 +2447,7 @@ function VendorManagementDashboard() {
                                     </div>
                                   ) : (
                                     <VendorDataTable
-                                      title="Non PQ Vendors"
+                                      title="Non PQ Vendors (Active & Approved)"
                                       data={nonPqVendorsData}
                                       columns={[
                                         { key: "organization_name", label: "Organization Name" },

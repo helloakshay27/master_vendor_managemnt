@@ -71,10 +71,10 @@ export const DepartmentReKYCChart = ({ data, onDownload, className = "" }) => {
       <div className="vendor-card-header">
         <div className="flex items-center justify-between">
           <h3 className="vendor-card-title">
-            Department Wise Successful Re-KYC
+            Department Wise Successful  General Re-KYC
           </h3>
 
-          {onDownload && (
+          {/* {onDownload && (
             <Download
               data-no-drag="true"
               className="w-5 h-5 cursor-pointer transition-colors z-50"
@@ -87,7 +87,7 @@ export const DepartmentReKYCChart = ({ data, onDownload, className = "" }) => {
               onPointerDown={(e) => e.stopPropagation()}
               onMouseDown={(e) => e.stopPropagation()}
             />
-          )}
+          )} */}
         </div>
       </div>
 
