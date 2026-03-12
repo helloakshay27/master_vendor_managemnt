@@ -714,7 +714,7 @@ function VendorManagementDashboard() {
     companyName: "",
     departmentName: "",
     vendors: "",
-    pqType: "with_pq",
+    pqType: "with_pq,without_pq"
   });
 
   const sensors = useSensors(
@@ -873,6 +873,8 @@ function VendorManagementDashboard() {
         if (activeFilters.companyName) queryParams.append("company_ids", activeFilters.companyName);
         if (activeFilters.departmentName) queryParams.append("department_ids", activeFilters.departmentName);
         if (activeFilters.vendors) queryParams.append("vendor_ids", activeFilters.vendors);
+        if(activeFilters.pqType)queryParams.append("pq_type",activeFilters.pqType);
+        if(activeFilters.status)queryParams.append("status",activeFilters.status)
         if (activeFilters.startDate) queryParams.append("from_date", formatDtForAPI(activeFilters.startDate));
         if (activeFilters.endDate) queryParams.append("end_date", formatDtForAPI(activeFilters.endDate));
         
@@ -996,6 +998,9 @@ function VendorManagementDashboard() {
       try {
         const queryParams = new URLSearchParams();
         queryParams.append("token", tokenFromUrl);
+        // For this API, status is always "approved"
+        queryParams.append("status", "approved");
+        if (activeFilters.pqType) queryParams.append("pq_type", activeFilters.pqType);
         
         if (activeFilters.companyName) queryParams.append("company_ids", activeFilters.companyName);
         if (activeFilters.departmentName) queryParams.append("department_ids", activeFilters.departmentName);

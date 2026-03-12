@@ -227,6 +227,10 @@ const KYCManagementDashboard = () => {
   const [approvedRecordsPagination, setApprovedRecordsPagination] = useState(null);
   const [isApprovedRecordsLoading, setIsApprovedRecordsLoading] = useState(false);
 
+  // Department-wise successful General Re-KYC
+  const [deptGeneralRekycData, setDeptGeneralRekycData] = useState([]);
+  const [isDeptGeneralRekycLoading, setIsDeptGeneralRekycLoading] = useState(false);
+
   // Drag and Drop Sensors
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -531,11 +535,61 @@ const KYCManagementDashboard = () => {
     }
   }, [activeFilters]);
 
+  const fetchDeptGeneralRekyc = useCallback(async () => {
+    setIsDeptGeneralRekycLoading(true);
+    try {
+      const queryParams = new URLSearchParams();
+      const hardcodedToken = tokenFromUrl;
+      queryParams.append("token", hardcodedToken);
+      queryParams.append("status", "approved");
+      queryParams.append("error", "");
+      queryParams.append("general","true")
+
+      if (activeFilters.startDate) {
+        const parts = activeFilters.startDate.split("/");
+        // API expects dd-mm-yyyy
+        queryParams.append("from_date", `${parts[0]}-${parts[1]}-${parts[2]}`);
+      }
+      if (activeFilters.endDate) {
+        const parts = activeFilters.endDate.split("/");
+        queryParams.append("end_date", `${parts[0]}-${parts[1]}-${parts[2]}`);
+      }
+      if (activeFilters.departmentName)
+        queryParams.append("department_ids", activeFilters.departmentName);
+      if (activeFilters.vendors)
+        queryParams.append("vendor_ids", activeFilters.vendors);
+
+      const response = await fetch(
+        `${baseURL}vendor_re_kyc_dashboard/dept_wise_general_rekyc.json?${queryParams}`,
+      );
+      const json = await response.json();
+      const rows = Array.isArray(json?.data)
+        ? json.data
+        : Array.isArray(json)
+        ? json
+        : [];
+
+      const transformed = rows.map((item) => ({
+        department: item.department_name || "Unknown",
+        rekycInitiated: item.rekyc_initiated_suppliers || 0,
+        totalApproved: item.total_approved_suppliers || 0,
+        successRate: item.success_rate_percent ?? null,
+      }));
+      setDeptGeneralRekycData(transformed);
+    } catch (error) {
+      console.error("Error fetching dept_wise_general_rekyc:", error);
+      setDeptGeneralRekycData([]);
+    } finally {
+      setIsDeptGeneralRekycLoading(false);
+    }
+  }, [activeFilters]);
+
   useEffect(() => {
     if (!filtersInitialized) return;
 
     fetchKpiCards();
     fetchTimeWiseData();
+    fetchDeptGeneralRekyc();
     fetchApprovedNoReKycData();
     fetchOrgWiseStatusData();
     
@@ -551,6 +605,7 @@ const KYCManagementDashboard = () => {
     filtersInitialized,
     fetchKpiCards, 
     fetchTimeWiseData, 
+    fetchDeptGeneralRekyc,
     fetchApprovedNoReKycData, 
     fetchOrgWiseStatusData,
     fetchSummaryData
@@ -835,23 +890,22 @@ const KYCManagementDashboard = () => {
                             return (
                               <div key={chartId} className="col-12">
                                 <SortableChartItem id={chartId}>
-                                  {isKpiLoading ? (
+                                  {isDeptGeneralRekycLoading ? (
                                     <div className="card go-shadow bg-white rounded-lg w-100">
                                       <div className="vendor-card-header">
-                                        <h3 className="vendor-card-title">Department ReKYC Status</h3>
+                                        <h3 className="vendor-card-title">Department Wise Successful General Re-KYC</h3>
                                       </div>
                                       <div className="card-body" style={{ height: "300px", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center" }}>
                                         <div className="spinner-border text-primary mb-2" role="status">
                                           <span className="visually-hidden">Loading...</span>
                                         </div>
-                                        <span className="text-muted fw-medium">Loading Department ReKYC Status...</span>
+                                        <span className="text-muted fw-medium">Loading Department Wise Successful General Re-KYC...</span>
                                       </div>
                                     </div>
                                   ) : (
                                     <DepartmentReKYCChart
-                                      title="Department ReKYC Status"
-                                      data={[]}
-                                      onDownload={() => {}}
+                                      data={deptGeneralRekycData}
+                                      onDownload={undefined}
                                     />
                                   )}
                                 </SortableChartItem>

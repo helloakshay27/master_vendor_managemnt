@@ -479,29 +479,36 @@ const ReKYCDashboard = () => {
     try {
       const queryParams = new URLSearchParams();
       queryParams.append("token", tokenFromUrl);
+      queryParams.append("status", "approved");
       queryParams.append("error", "");
       
       if (activeFilters.startDate) {
         const parts = activeFilters.startDate.split("/");
-        queryParams.append("from_date", `${parts[2]}-${parts[1]}-${parts[0]}`);
+        queryParams.append("from_date", `${parts[0]}-${parts[1]}-${parts[2]}`);
       }
       if (activeFilters.endDate) {
         const parts = activeFilters.endDate.split("/");
-        queryParams.append("end_date", `${parts[2]}-${parts[1]}-${parts[0]}`);
+        queryParams.append("end_date", `${parts[0]}-${parts[1]}-${parts[2]}`);
       }
       if (activeFilters.departmentName) queryParams.append("department_ids", activeFilters.departmentName);
       if (activeFilters.vendors) queryParams.append("vendor_ids", activeFilters.vendors);
 
-      const response = await fetch(`${baseURL}vendor_re_kyc_dashboard/department_wise_approved_suppliers.json?${queryParams}`);
-      const data = await response.json();
-      if (data && Array.isArray(data.department_wise_suppliers)) {
-        const transformed = data.department_wise_suppliers.map(item => ({
-          department: item.department_name,
-          rekycInitiated: item.active_initiated_suppliers,
-          totalApproved: item.total_approved_suppliers
-        }));
-        setDeptChartData(transformed);
-      }
+      const response = await fetch(
+        `${baseURL}vendor_re_kyc_dashboard/dept_wise_general_rekyc.json?${queryParams}`,
+      );
+      const json = await response.json();
+      const rows = Array.isArray(json?.data)
+        ? json.data
+        : Array.isArray(json)
+        ? json
+        : [];
+      const transformed = rows.map((item) => ({
+        department: item.department_name || "Unknown",
+        rekycInitiated: item.rekyc_initiated_suppliers || 0,
+        totalApproved: item.total_approved_suppliers || 0,
+        successRate: item.success_rate_percent ?? null,
+      }));
+      setDeptChartData(transformed);
     } catch (error) {
       console.error("Error fetching department-wise data:", error);
     } finally {
