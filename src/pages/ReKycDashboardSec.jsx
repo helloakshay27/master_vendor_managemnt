@@ -41,18 +41,17 @@ import { VendorFilterCard } from "@/components/vendor-analytics/VendorFilterCard
 // 1. CONSTANTS & CONFIGURATION
 // =============================================================================
 
-// Date range helper
+// Date range helper - fixed from 1 Jan 2024 to today
 const getDefaultDateRange = () => {
   const today = new Date();
-  const lastYear = new Date();
-  lastYear.setFullYear(today.getFullYear() - 1);
+  const startDate = new Date(2024, 0, 1); // 1 Jan 2024
   const fmt = (d) => {
     const dd = d.getDate().toString().padStart(2, "0");
     const mm = (d.getMonth() + 1).toString().padStart(2, "0");
     const yyyy = d.getFullYear();
     return `${dd}/${mm}/${yyyy}`;
   };
-  return { startDate: fmt(lastYear), endDate: fmt(today) };
+  return { startDate: fmt(startDate), endDate: fmt(today) };
 };
 
 // =============================================================================
