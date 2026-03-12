@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   BarChart,
   Bar,
@@ -10,7 +10,7 @@ import {
   Cell,
   LabelList,
 } from "recharts";
-import { Download } from "lucide-react";
+import { Download, Loader2 } from "lucide-react";
 
 const getBarColor = () => "#b08968"; // uniform light brown bars
 
@@ -40,6 +40,7 @@ const CustomTooltip = ({ active, payload, label }) => {
 };
 
 const PercentageCompletionChart = ({ data = [], onDownload }) => {
+  const [isDownloading, setIsDownloading] = useState(false);
   return (
     <div
       style={{
@@ -51,45 +52,30 @@ const PercentageCompletionChart = ({ data = [], onDownload }) => {
         height: "100%",
       }}
     >
-      {/* Header */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: "20px",
-        }}
-      >
-        <h2
-          style={{
-            fontSize: "15px",
-            fontWeight: 600,
-            color: "#5c4033",
-            margin: 0,
-          }}
-        >
-          Percentage of Completed Assessment by Category
-        </h2>
-
-        {onDownload && (
-          <button
-            onClick={onDownload}
-            style={{
-              background: "#f6f1eb",
-              border: "1px solid #e6d5c3",
-              borderRadius: "6px",
-              padding: "5px 10px",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              gap: "5px",
-              fontSize: "12px",
-              color: "#5c4033",
-            }}
-          >
-            <Download size={13} /> Export
-          </button>
-        )}
+      <div className="vendor-card-header">
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
+          <h3 className="vendor-card-title">Percentage of Completed Assessment by Category</h3>
+          {onDownload && (
+            isDownloading ? (
+              <Loader2 className="w-5 h-5 animate-spin" style={{ color: "#d97938" }} />
+            ) : (
+              <Download
+                className="w-5 h-5 cursor-pointer"
+                style={{ color: "#6b7280" }}
+                onClick={async (e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsDownloading(true);
+                  try {
+                    await onDownload();
+                  } finally {
+                    setIsDownloading(false);
+                  }
+                }}
+              />
+            )
+          )}
+        </div>
       </div>
 
       {/* Chart */}

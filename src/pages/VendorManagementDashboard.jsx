@@ -572,6 +572,53 @@ const APPROVED_VENDORS_COLUMNS = [
 
 ];
 
+const PQ_VENDORS_COLUMNS = [
+  { key: "organization_name", label: "Organization Name" },
+  { key: "department_name", label: "Department Name" },
+  { key: "status", label: "Status" },
+];
+
+const NON_PQ_VENDORS_COLUMNS = [
+  { key: "organization_name", label: "Organization Name" },
+  { key: "department_name", label: "Department Name" },
+  { key: "status", label: "Status" },
+];
+
+const INVITED_VENDORS_COLUMNS = [
+  { key: "organization", label: "Organization Name" },
+  { key: "department", label: "Department Name" },
+  { key: "status", label: "Status" },
+];
+
+const VERIFICATION_PENDING_COLUMNS = [
+  { key: "organization", label: "Organization Name" },
+  { key: "department", label: "Department Name" },
+  { key: "status", label: "Status" },
+  { key: "vendorTat", label: "Vendor TAT (Days)" },
+  { key: "internalTat", label: "Internal TAT (Days)" },
+  { key: "cumulativeTat", label: "Cumulative TAT (Days)" },
+  { key: "pendingLevel", label: "Pending Level" },
+  { key: "approverName", label: "Approver Name" },
+];
+
+const DETAILS_SUBMITTED_COLUMNS = [
+  { key: "organization", label: "Organization Name" },
+  { key: "department", label: "Department Name" },
+  { key: "status", label: "Status" },
+];
+
+const ONBOARDING_IN_PROCESS_COLUMNS = [
+  { key: "organization", label: "Organization Name" },
+  { key: "department", label: "Department Name" },
+  { key: "status", label: "Status" },
+];
+
+const RESUBMISSION_REQUESTS_COLUMNS = [
+  { key: "organization", label: "Organization Name" },
+  { key: "department", label: "Department Name" },
+  { key: "status", label: "Status" },
+];
+
 // =========================================================================
 // MAIN COMPONENT
 // =========================================================================
@@ -691,6 +738,102 @@ function VendorManagementDashboard() {
   const [verificationPendingPagination, setVerificationPendingPagination] = useState(null);
   const [verificationPendingPage, setVerificationPendingPage] = useState(1);
   const [isVerificationPendingLoading, setIsVerificationPendingLoading] = useState(false);
+
+  const exportTableToCsv = (rows, columns, filename) => {
+    if (!rows || rows.length === 0) return;
+    const safeColumns = columns || [];
+    const header = safeColumns
+      .map((c) => `"${String(c.label || "").replace(/"/g, '""')}"`)
+      .join(",");
+    const body = rows
+      .map((row) =>
+        safeColumns
+          .map((c) => {
+            const raw = row[c.key];
+            const value =
+              raw === null || raw === undefined ? "" : String(raw);
+            return `"${value.replace(/"/g, '""')}"`;
+          })
+          .join(","),
+      )
+      .join("\n");
+    const csv = `${header}\n${body}`;
+    const blob = new Blob([csv], {
+      type: "text/csv;charset=utf-8;",
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${filename || "export"}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const exportChartData = (data, filename) => {
+    if (!data || data.length === 0) {
+      alert("No data available to download!");
+      return;
+    }
+    let exportData = Array.isArray(data) ? data : [data];
+    if (exportData.length === 0) return;
+    const keys = Object.keys(exportData[0]).filter(k => !['color','fill','icon','component'].includes(k));
+    const columns = keys.map(k => ({ key: k, label: k.replace(/_/g, ' ').toUpperCase() }));
+    exportTableToCsv(exportData, columns, filename);
+  };
+
+  const fetchAllPqVendorStats = async (extraParams = {}, mapItem) => {
+    const all = [];
+    let page = 1;
+    let totalPages = 1;
+
+    const buildQuery = (pageNum) => {
+      const queryParams = new URLSearchParams();
+      const hardcodedToken = tokenFromUrl;
+      queryParams.append("token", hardcodedToken);
+      queryParams.append("page", pageNum);
+
+      Object.entries(extraParams).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== "") {
+          queryParams.append(key, value);
+        }
+      });
+
+      if (activeFilters.companyName)
+        queryParams.append("company_ids", activeFilters.companyName);
+      if (activeFilters.departmentName)
+        queryParams.append("department_ids", activeFilters.departmentName);
+      if (activeFilters.vendors)
+        queryParams.append("vendor_ids", activeFilters.vendors);
+      if (activeFilters.startDate)
+        queryParams.append("from_date", formatDtForAPI(activeFilters.startDate));
+      if (activeFilters.endDate)
+        queryParams.append("end_date", formatDtForAPI(activeFilters.endDate));
+
+      return queryParams.toString();
+    };
+
+    do {
+      const response = await fetch(
+        `${baseURL}vendor_pq_dashboard/pq_vendor_stats.json?${buildQuery(
+          page,
+        )}`,
+      );
+      const json = await response.json();
+      const suppliers = json?.data?.suppliers || [];
+
+      suppliers.forEach((item) => {
+        all.push(mapItem ? mapItem(item) : item);
+      });
+
+      const pagination = json?.data?.pagination || json?.pagination;
+      totalPages = pagination?.total_pages || 1;
+      page += 1;
+    } while (page <= totalPages);
+
+    return all;
+  };
 
   // Default start date is last 7 days
   const getDefaultDateRange = () => {
@@ -2129,7 +2272,7 @@ function VendorManagementDashboard() {
                                     ) : (
                                       <DepartmentWiseDistributionChart
                                         data={deptDistributionData}
-                                        onDownload={() => {}}
+                                        onDownload={() => exportChartData(deptDistributionData, "department_wise_distribution")}
                                       />
                                     )}
                                   </SortableChartItem>
@@ -2159,7 +2302,7 @@ function VendorManagementDashboard() {
                                     ) : (
                                       <YearWiseRegistrationChart
                                         data={yearWiseData}
-                                        onDownload={() => {}}
+                                        onDownload={() => exportChartData(yearWiseData, "year_wise_registration")}
                                       />
                                     )}
                                   </SortableChartItem>
@@ -2189,7 +2332,7 @@ function VendorManagementDashboard() {
                                     ) : (
                                       <QuarterWiseRegistrationChart
                                         data={quarterWiseData}
-                                        onDownload={() => {}}
+                                        onDownload={() => exportChartData(quarterWiseData, "quarter_wise_registration")}
                                       />
                                     )}
                                   </SortableChartItem>
@@ -2219,7 +2362,7 @@ function VendorManagementDashboard() {
                                     ) : (
                                       <MonthWiseRegistrationChart
                                         data={monthWiseData}
-                                        onDownload={() => {}}
+                                        onDownload={() => exportChartData(monthWiseData, "month_wise_registration")}
                                       />
                                     )}
                                   </SortableChartItem>
@@ -2249,7 +2392,7 @@ function VendorManagementDashboard() {
                                     ) : (
                                       <PendingApprovalsByLevelChart
                                         data={pendingApprovalsData}
-                                        onDownload={() => {}}
+                                        onDownload={() => exportChartData(pendingApprovalsData, "pending_approvals")}
                                       />
                                     )}
                                   </SortableChartItem>
@@ -2281,7 +2424,13 @@ function VendorManagementDashboard() {
                                         title="Department-Wise Supplier Performance"
                                         data={supplierPerformanceData}
                                         columns={SUPPLIER_PERFORMANCE_COLUMNS}
-                                        onDownload={() => {}}
+                                        onDownload={() =>
+                                          exportTableToCsv(
+                                            supplierPerformanceData,
+                                            SUPPLIER_PERFORMANCE_COLUMNS,
+                                            "department_wise_supplier_performance",
+                                          )
+                                        }
                                       />
                                     )}
                                   </SortableChartItem>
@@ -2316,7 +2465,7 @@ function VendorManagementDashboard() {
                                   ) : (
                                     <DepartmentPreQualificationChart
                                       data={deptPreQualData}
-                                      onDownload={() => {}}
+                                      onDownload={() => exportChartData(deptPreQualData, "department_pre_qual")}
                                     />
                                   )}
                                 </SortableChartItem>
@@ -2347,7 +2496,7 @@ function VendorManagementDashboard() {
                                     <TopBottomVendorsChart
                                       topData={topVendorsData}
                                       bottomData={bottomVendorsData}
-                                      onDownload={() => {}}
+                                      onDownload={() => exportChartData([...(topVendorsData || []).map(x => ({...x, category: "Top"})), ...(bottomVendorsData || []).map(x => ({...x, category: "Bottom"}))], "top_bottom_vendors")}
                                     />
                                   )}
                                 </SortableChartItem>
@@ -2379,7 +2528,29 @@ function VendorManagementDashboard() {
                                       title="Approved Vendors"
                                       data={approvedVendorsData}
                                       columns={APPROVED_VENDORS_COLUMNS}
-                                      onDownload={() => {}}
+                                      onDownload={async () => {
+                                        const rows = await fetchAllPqVendorStats(
+                                          { status: "approved" },
+                                          (item) => ({
+                                            organization: item.organization_name || "-",
+                                            department: item.department_name || "-",
+                                            status: item.status || "Approved",
+                                            vendorTat: item.vendor_tat_days ?? "-",
+                                            internalTat: item.internal_tat_days ?? "-",
+                                            cumulativeTat: item.cumulative_tat_days ?? "-",
+                                            approvalDate: item.approval_date || "-",
+                                            vendorCode: item.vendor_code || "-",
+                                            category: item.category || "-",
+                                            contactPerson: item.contact_person || "-",
+                                            contactEmail: item.contact_email || "-",
+                                          }),
+                                        );
+                                        exportTableToCsv(
+                                          rows,
+                                          APPROVED_VENDORS_COLUMNS,
+                                          "approved_vendors",
+                                        );
+                                      }}
                                       pagination={approvedVendorsPagination}
                                       onPageChange={setApprovedVendorsPage}
                                     />
@@ -2413,15 +2584,18 @@ function VendorManagementDashboard() {
                                     <VendorDataTable
                                       title="PQ Vendors (Active & Approved)"
                                       data={pqVendorsData}
-                                      columns={[
-                                        { key: "organization_name", label: "Organization Name" },
-                                        { key: "department_name", label: "Department Name" },
-                                        { key: "status", label: "Status" },
-                                        // { key: "vendor_tat_days", label: "Vendor TAT (Days)" },
-                                        // { key: "internal_tat_days", label: "Internal TAT (Days)" },
-                                        // { key: "cumulative_tat_days", label: "Cumulative TAT (Days)" },
-                                      ]}
-                                      onDownload={() => {}}
+                                      columns={PQ_VENDORS_COLUMNS}
+                                      onDownload={async () => {
+                                        const rows = await fetchAllPqVendorStats(
+                                          { status: "approved", pq_type: "with_pq" },
+                                          null,
+                                        );
+                                        exportTableToCsv(
+                                          rows,
+                                          PQ_VENDORS_COLUMNS,
+                                          "pq_vendors",
+                                        );
+                                      }}
                                       pagination={pqVendorsPagination}
                                       onPageChange={setPqVendorsPage}
                                     />
@@ -2454,15 +2628,18 @@ function VendorManagementDashboard() {
                                     <VendorDataTable
                                       title="Non PQ Vendors (Active & Approved)"
                                       data={nonPqVendorsData}
-                                      columns={[
-                                        { key: "organization_name", label: "Organization Name" },
-                                        { key: "department_name", label: "Department Name" },
-                                        { key: "status", label: "Status" },
-                                        // { key: "vendor_tat_days", label: "Vendor TAT (Days)" },
-                                        // { key: "internal_tat_days", label: "Internal TAT (Days)" },
-                                        // { key: "cumulative_tat_days", label: "Cumulative TAT (Days)" },
-                                      ]}
-                                      onDownload={() => {}}
+                                      columns={NON_PQ_VENDORS_COLUMNS}
+                                      onDownload={async () => {
+                                        const rows = await fetchAllPqVendorStats(
+                                          { status: "approved", pq_type: "without_pq" },
+                                          null,
+                                        );
+                                        exportTableToCsv(
+                                          rows,
+                                          NON_PQ_VENDORS_COLUMNS,
+                                          "non_pq_vendors",
+                                        );
+                                      }}
                                       pagination={nonPqVendorsPagination}
                                       onPageChange={setNonPqVendorsPage}
                                     />
@@ -2495,44 +2672,18 @@ function VendorManagementDashboard() {
                                     <VendorDataTable
                                       title="Invited Vendors"
                                       data={invitedVendorsData}
-                                      columns={[
-                                        {
-                                          key: "organization",
-                                          label: "Organization Name",
-                                        },
-                                        {
-                                          key: "department",
-                                          label: "Department Name",
-                                        },
-                                        { key: "status", label: "Status" },
-                                        // {
-                                        //   key: "vendorTat",
-                                        //   label: "Vendor TAT (Days)",
-                                        // },
-                                        // {
-                                        //   key: "internalTat",
-                                        //   label: "Internal TAT (Days)",
-                                        // },
-                                        // {
-                                        //   key: "cumulativeTat",
-                                        //   label: "Cumulative TAT (Days)",
-                                        // },
-                                        // {
-                                        //   key: "invitationDate",
-                                        //   label: "Invitation Date",
-                                        // },
-                                        // {
-                                        //   key: "invitedBy",
-                                        //   label: "Invited By",
-                                        // },
-                                        // { key: "category", label: "Category" },
-                                        // { key: "email", label: "Email" },
-                                        // {
-                                        //   key: "responseStatus",
-                                        //   label: "Response Status",
-                                        // },
-                                      ]}
-                                      onDownload={() => {}}
+                                      columns={INVITED_VENDORS_COLUMNS}
+                                      onDownload={async () => {
+                                        const rows = await fetchAllPqVendorStats(
+                                          { status: "invited" },
+                                          null,
+                                        );
+                                        exportTableToCsv(
+                                          rows,
+                                          INVITED_VENDORS_COLUMNS,
+                                          "invited_vendors",
+                                        );
+                                      }}
                                       pagination={invitedVendorsPagination}
                                       onPageChange={setInvitedVendorsPage}
                                     />
@@ -2565,38 +2716,27 @@ function VendorManagementDashboard() {
                                     <VendorDataTable
                                       title="Verification Pending Vendors"
                                       data={verificationPendingData}
-                                      columns={[
-                                        {
-                                          key: "organization",
-                                          label: "Organization Name",
-                                        },
-                                        {
-                                          key: "department",
-                                          label: "Department Name",
-                                        },
-                                        { key: "status", label: "Status" },
-                                        {
-                                          key: "vendorTat",
-                                          label: "Vendor TAT (Days)",
-                                        },
-                                        {
-                                          key: "internalTat",
-                                          label: "Internal TAT (Days)",
-                                        },
-                                        {
-                                          key: "cumulativeTat",
-                                          label: "Cumulative TAT (Days)",
-                                        },
-                                        {
-                                          key: "pendingLevel",
-                                          label: "Pending Level",
-                                        },
-                                        {
-                                          key: "approverName",
-                                          label: "Approver Name",
-                                        },
-                                      ]}
-                                      onDownload={() => {}}
+                                      columns={VERIFICATION_PENDING_COLUMNS}
+                                      onDownload={async () => {
+                                        const rows = await fetchAllPqVendorStats(
+                                          { status: "verification_pending" },
+                                          (item) => ({
+                                            organization: item.organization_name || "-",
+                                            department: item.department_name || "-",
+                                            status: item.status || "",
+                                            vendorTat: item.vendor_tat_days ?? "-",
+                                            internalTat: item.internal_tat_days ?? "-",
+                                            cumulativeTat: item.cumulative_tat_days ?? "-",
+                                            pendingLevel: item.pending_level || "",
+                                            approverName: item.approver_name || "",
+                                          }),
+                                        );
+                                        exportTableToCsv(
+                                          rows,
+                                          VERIFICATION_PENDING_COLUMNS,
+                                          "verification_pending_vendors",
+                                        );
+                                      }}
                                       pagination={verificationPendingPagination}
                                       onPageChange={setVerificationPendingPage}
                                     />
@@ -2629,38 +2769,22 @@ function VendorManagementDashboard() {
                                     <VendorDataTable
                                       title="Details Submitted Vendors"
                                       data={detailsSubmittedData}
-                                      columns={[
-                                        {
-                                          key: "organization",
-                                          label: "Organization Name",
-                                        },
-                                        {
-                                          key: "department",
-                                          label: "Department Name",
-                                        },
-                                        { key: "status", label: "Status" },
-                                        // {
-                                        //   key: "submissionDate",
-                                        //   label: "Submission Date",
-                                        // },
-                                        // {
-                                        //   key: "completionPercentage",
-                                        //   label: "Completion %",
-                                        // },
-                                        // {
-                                        //   key: "documentsUploaded",
-                                        //   label: "Documents Uploaded",
-                                        // },
-                                        // {
-                                        //   key: "lastUpdated",
-                                        //   label: "Last Updated",
-                                        // },
-                                        // {
-                                        //   key: "reviewStatus",
-                                        //   label: "Review Status",
-                                        // },
-                                      ]}
-                                      onDownload={() => {}}
+                                      columns={DETAILS_SUBMITTED_COLUMNS}
+                                      onDownload={async () => {
+                                        const rows = await fetchAllPqVendorStats(
+                                          { status: "details_submitted_by_vendor" },
+                                          (item) => ({
+                                            organization: item.organization_name || "-",
+                                            department: item.department_name || "-",
+                                            status: item.status || "",
+                                          }),
+                                        );
+                                        exportTableToCsv(
+                                          rows,
+                                          DETAILS_SUBMITTED_COLUMNS,
+                                          "details_submitted_vendors",
+                                        );
+                                      }}
                                       pagination={detailsSubmittedPagination}
                                       onPageChange={setDetailsSubmittedPage}
                                     />
@@ -2693,50 +2817,22 @@ function VendorManagementDashboard() {
                                     <VendorDataTable
                                       title="Onboarding In Process"
                                       data={onboardingInProcessData}
-                                      columns={[
-                                        {
-                                          key: "organization",
-                                          label: "Organization Name",
-                                        },
-                                        {
-                                          key: "department",
-                                          label: "Department Name",
-                                        },
-                                        { key: "status", label: "Status" },
-                                        // {
-                                        //   key: "vendorTat",
-                                        //   label: "Vendor TAT (Days)",
-                                        // },
-                                        // {
-                                        //   key: "internalTat",
-                                        //   label: "Internal TAT (Days)",
-                                        // },
-                                        // {
-                                        //   key: "cumulativeTat",
-                                        //   label: "Cumulative TAT (Days)",
-                                        // },
-                                        // {
-                                        //   key: "startDate",
-                                        //   label: "Start Date",
-                                        // },
-                                        // {
-                                        //   key: "currentStage",
-                                        //   label: "Current Stage",
-                                        // },
-                                        // {
-                                        //   key: "daysInProcess",
-                                        //   label: "Days In Process",
-                                        // },
-                                        // {
-                                        //   key: "assignedTo",
-                                        //   label: "Assigned To",
-                                        // },
-                                        // {
-                                        //   key: "progressPercentage",
-                                        //   label: "Progress %",
-                                        // },
-                                      ]}
-                                      onDownload={() => {}}
+                                      columns={ONBOARDING_IN_PROCESS_COLUMNS}
+                                      onDownload={async () => {
+                                        const rows = await fetchAllPqVendorStats(
+                                          { status: "onboarding" },
+                                          (item) => ({
+                                            organization: item.organization_name || "-",
+                                            department: item.department_name || "-",
+                                            status: item.status || "",
+                                          }),
+                                        );
+                                        exportTableToCsv(
+                                          rows,
+                                          ONBOARDING_IN_PROCESS_COLUMNS,
+                                          "onboarding_in_process_vendors",
+                                        );
+                                      }}
                                       pagination={onboardingInProcessPagination}
                                       onPageChange={setOnboardingInProcessPage}
                                     />
@@ -2769,47 +2865,22 @@ function VendorManagementDashboard() {
                                     <VendorDataTable
                                       title="Request for Resubmission Vendors"
                                       data={resubmissionRequestsData}
-                                      columns={[
-                                        {
-                                          key: "organization",
-                                          label: "Organization Name",
-                                        },
-                                        {
-                                          key: "department",
-                                          label: "Department Name",
-                                        },
-                                        { key: "status", label: "Status" },
-                                        // {
-                                        //   key: "vendorTat",
-                                        //   label: "Vendor TAT (Days)",
-                                        // },
-                                        // {
-                                        //   key: "internalTat",
-                                        //   label: "Internal TAT (Days)",
-                                        // },
-                                        // {
-                                        //   key: "cumulativeTat",
-                                        //   label: "Cumulative TAT (Days)",
-                                        // },
-                                        // {
-                                        //   key: "requestDate",
-                                        //   label: "Request Date",
-                                        // },
-                                        // { key: "reason", label: "Reason" },
-                                        // {
-                                        //   key: "requestedBy",
-                                        //   label: "Requested By",
-                                        // },
-                                        // {
-                                        //   key: "resubmittedOn",
-                                        //   label: "Resubmitted On",
-                                        // },
-                                        // {
-                                        //   key: "currentStatus",
-                                        //   label: "Current Status",
-                                        // },
-                                      ]}
-                                      onDownload={() => {}}
+                                      columns={RESUBMISSION_REQUESTS_COLUMNS}
+                                      onDownload={async () => {
+                                        const rows = await fetchAllPqVendorStats(
+                                          { status: "request_for_resubmission" },
+                                          (item) => ({
+                                            organization: item.organization_name || "-",
+                                            department: item.department_name || "-",
+                                            status: item.status || "",
+                                          }),
+                                        );
+                                        exportTableToCsv(
+                                          rows,
+                                          RESUBMISSION_REQUESTS_COLUMNS,
+                                          "request_for_resubmission_vendors",
+                                        );
+                                      }}
                                       pagination={resubmissionRequestsPagination}
                                       onPageChange={setResubmissionRequestsPage}
                                     />

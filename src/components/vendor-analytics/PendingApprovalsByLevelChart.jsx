@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Download } from 'lucide-react';
+import { Download, Loader2 } from 'lucide-react';
 
 const CHART_COLORS = {
   approvals: '#c4b99d',
@@ -30,6 +30,7 @@ const TruncatedTick = ({ x, y, payload, maxChars = 8 }) => {
 };
 
 export const PendingApprovalsByLevelChart = ({ data, onDownload, className = "" }) => {
+  const [isDownloading, setIsDownloading] = useState(false);
   
   // 1. Safely extract array from API response (Handles both direct array and { data: [...] } format)
   let safeData = [];
@@ -51,10 +52,30 @@ export const PendingApprovalsByLevelChart = ({ data, onDownload, className = "" 
   return (
     <div className={`card go-shadow bg-white rounded-lg ${className}`}>
       <div className="vendor-card-header">
-        <div className="flex items-center justify-between">
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
           <h3 className="vendor-card-title">
             Pending Approvals by Level
           </h3>
+          {onDownload && (
+            isDownloading ? (
+              <Loader2 className="w-5 h-5 animate-spin" style={{ color: "#d97938" }} />
+            ) : (
+              <Download
+                className="w-5 h-5 cursor-pointer"
+                style={{ color: "#6b7280" }}
+                onClick={async (e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsDownloading(true);
+                  try {
+                    await onDownload();
+                  } finally {
+                    setIsDownloading(false);
+                  }
+                }}
+              />
+            )
+          )}
         </div>
       </div>
       

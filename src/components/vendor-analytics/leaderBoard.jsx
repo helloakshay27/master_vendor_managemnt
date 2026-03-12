@@ -1,5 +1,5 @@
-import React from "react";
-import { Download, Trophy } from "lucide-react";
+import React, { useState } from "react";
+import { Download, Trophy, Loader2 } from "lucide-react";
 
 /**
  * LeaderBoard
@@ -11,6 +11,7 @@ import { Download, Trophy } from "lucide-react";
 const MEDAL = { 0: "🥇", 1: "🥈", 2: "🥉" };
 
 const LeaderBoard = ({ data = [], onDownload }) => {
+  const [isDownloading, setIsDownloading] = useState(false);
   const sorted = [...data].sort((a, b) => b.bestSiteScore - a.bestSiteScore);
 
   const thStyle = {
@@ -34,16 +35,33 @@ const LeaderBoard = ({ data = [], onDownload }) => {
 
   return (
     <div style={{ background: "#fff", borderRadius: "10px", border: "1px solid #e5e7eb", padding: "20px 24px", boxShadow: "0 1px 4px rgba(0,0,0,0.06)", height: "100%" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <Trophy size={17} color="#f59e0b" />
-          <h2 style={{ fontSize: "15px", fontWeight: 600, color: "#1a1a1a", margin: 0 }}>Leader Board</h2>
+      <div className="vendor-card-header">
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <Trophy size={17} color="#f59e0b" />
+            <h2 className="vendor-card-title" style={{ margin: 0 }}>Leader Board</h2>
+          </div>
+          {onDownload && (
+            isDownloading ? (
+              <Loader2 className="w-5 h-5 animate-spin" style={{ color: "#d97938" }} />
+            ) : (
+              <Download
+                className="w-5 h-5 cursor-pointer"
+                style={{ color: "#6b7280" }}
+                onClick={async (e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsDownloading(true);
+                  try {
+                    await onDownload();
+                  } finally {
+                    setIsDownloading(false);
+                  }
+                }}
+              />
+            )
+          )}
         </div>
-        {onDownload && (
-          <button onClick={onDownload} style={{ background: "none", border: "1px solid #d1d5db", borderRadius: "6px", padding: "5px 10px", cursor: "pointer", display: "flex", alignItems: "center", gap: "5px", fontSize: "12px", color: "#6b7280" }}>
-            <Download size={13} /> Export
-          </button>
-        )}
       </div>
 
       <div style={{ overflowX: "auto" }}>

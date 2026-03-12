@@ -1,27 +1,37 @@
-import React from 'react';
-import { Download } from 'lucide-react';
+import React, { useState } from 'react';
+import { Download, Loader2 } from 'lucide-react';
 
 export const ChartCard = ({ title, onDownload, children, className = "" }) => {
+  const [isDownloading, setIsDownloading] = useState(false);
   return (
     <div className={`card go-shadow bg-white rounded-lg ${className}`}>
       <div className="vendor-card-header">
-        <div className="flex items-center justify-between">
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
           <h3 className="vendor-card-title">
             {title}
           </h3>
           {onDownload && (
-            <Download
-              data-no-drag="true"
-              className="w-5 h-5 cursor-pointer transition-colors z-50 hover:opacity-80"
-              style={{ color: '#6b7280' }}
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                onDownload();
-              }}
-              onPointerDown={(e) => e.stopPropagation()}
-              onMouseDown={(e) => e.stopPropagation()}
-            />
+            isDownloading ? (
+              <Loader2 className="w-5 h-5 animate-spin" style={{ color: "#d97938" }} />
+            ) : (
+              <Download
+                data-no-drag="true"
+                className="w-5 h-5 cursor-pointer transition-colors z-50 hover:opacity-80"
+                style={{ color: '#6b7280' }}
+                onClick={async (e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsDownloading(true);
+                  try {
+                    await onDownload();
+                  } finally {
+                    setIsDownloading(false);
+                  }
+                }}
+                onPointerDown={(e) => e.stopPropagation()}
+                onMouseDown={(e) => e.stopPropagation()}
+              />
+            )
           )}
         </div>
       </div>

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   BarChart,
   Bar,
@@ -10,7 +10,7 @@ import {
   Legend,
   LabelList,
 } from "recharts";
-import { Download } from "lucide-react";
+import { Download, Loader2 } from "lucide-react";
 
 const DEFAULT_COLORS = ["#c4b99d", "#8b7355", "#a68d71", "#5d4037", "#d7ccc8"];
 
@@ -38,6 +38,7 @@ const ReKycBarchart = ({
   onDownload,
   type,
 }) => {
+  const [isDownloading, setIsDownloading] = useState(false);
   if (!data || data.length === 0) {
     return (
       <div className="card go-shadow bg-white rounded-lg">
@@ -126,18 +127,27 @@ const ReKycBarchart = ({
       }}
     >
       <div className="vendor-card-header">
-        <div className="flex items-center justify-between">
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
           <h3 className="vendor-card-title">{title}</h3>
           {onDownload && (
-            <Download
-              className="w-5 h-5 cursor-pointer"
-              style={{ color: "#6b7280" }}
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                onDownload();
-              }}
-            />
+            isDownloading ? (
+              <Loader2 className="w-5 h-5 animate-spin" style={{ color: "#d97938" }} />
+            ) : (
+              <Download
+                className="w-5 h-5 cursor-pointer"
+                style={{ color: "#6b7280" }}
+                onClick={async (e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsDownloading(true);
+                  try {
+                    await onDownload();
+                  } finally {
+                    setIsDownloading(false);
+                  }
+                }}
+              />
+            )
           )}
         </div>
       </div>

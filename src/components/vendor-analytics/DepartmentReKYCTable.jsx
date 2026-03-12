@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import {
   BarChart,
   Bar,
@@ -10,7 +10,7 @@ import {
   Legend,
   LabelList,
 } from "recharts";
-import { Download } from "lucide-react";
+import { Download, Loader2 } from "lucide-react";
 
 const CHART_COLORS = {
   rekyc: "#c4b99d",
@@ -18,6 +18,7 @@ const CHART_COLORS = {
 };
 
 export const DepartmentReKYCChart = ({ data, onDownload, className = "" }) => {
+  const [isDownloading, setIsDownloading] = useState(false);
   // Convert to 100% stacked format
   const chartData = useMemo(() => {
     if (!data || data.length === 0) return [];
@@ -69,25 +70,30 @@ export const DepartmentReKYCChart = ({ data, onDownload, className = "" }) => {
     >
       {/* Header */}
       <div className="vendor-card-header">
-        <div className="flex items-center justify-between">
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
           <h3 className="vendor-card-title">
-            Department Wise Successful  General Re-KYC
+            Department Wise Successful General Re-KYC
           </h3>
-
-          {/* {onDownload && (
-            <Download
-              data-no-drag="true"
-              className="w-5 h-5 cursor-pointer transition-colors z-50"
-              style={{ color: "#6b7280", pointerEvents: "auto" }}
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                onDownload();
-              }}
-              onPointerDown={(e) => e.stopPropagation()}
-              onMouseDown={(e) => e.stopPropagation()}
-            />
-          )} */}
+          {onDownload && (
+            isDownloading ? (
+              <Loader2 className="w-5 h-5 animate-spin" style={{ color: "#d97938" }} />
+            ) : (
+              <Download
+                className="w-5 h-5 cursor-pointer"
+                style={{ color: "#6b7280" }}
+                onClick={async (e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsDownloading(true);
+                  try {
+                    await onDownload();
+                  } finally {
+                    setIsDownloading(false);
+                  }
+                }}
+              />
+            )
+          )}
         </div>
       </div>
 

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   BarChart,
   Bar,
@@ -9,6 +9,7 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
+import { Download, Loader2 } from "lucide-react";
 
 const CHART_COLORS = {
   pqApproved: "#c4b99d",
@@ -43,6 +44,7 @@ export const DepartmentPreQualificationChart = ({
   onDownload,
   className = "",
 }) => {
+  const [isDownloading, setIsDownloading] = useState(false);
   // Map incoming raw API data – fields: department_name, with_pq_count, without_pq_count
   const chartData = Array.isArray(data)
     ? data.map((item) => ({
@@ -61,8 +63,28 @@ export const DepartmentPreQualificationChart = ({
   return (
     <div className={`card go-shadow bg-white rounded-lg ${className}`}>
       <div className="vendor-card-header">
-        <div className="flex items-center justify-between">
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
           <h3 className="vendor-card-title">Department Pre-Qualification Split</h3>
+          {onDownload && (
+            isDownloading ? (
+              <Loader2 className="w-5 h-5 animate-spin" style={{ color: "#d97938" }} />
+            ) : (
+              <Download
+                className="w-5 h-5 cursor-pointer"
+                style={{ color: "#6b7280" }}
+                onClick={async (e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsDownloading(true);
+                  try {
+                    await onDownload();
+                  } finally {
+                    setIsDownloading(false);
+                  }
+                }}
+              />
+            )
+          )}
         </div>
       </div>
       <div className="card-body" style={{ padding: "20px" }}>

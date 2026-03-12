@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   BarChart,
   Bar,
@@ -9,7 +9,7 @@ import {
   ResponsiveContainer,
   LabelList,
 } from "recharts";
-import { Download } from "lucide-react";
+import { Download, Loader2 } from "lucide-react";
 
 const COLORS = {
   HIGH: "#5c4033",
@@ -18,6 +18,7 @@ const COLORS = {
 };
 
 export const CategoryWiseRiskFlag = ({ data = [], onDownload }) => {
+  const [isDownloading, setIsDownloading] = useState(false);
   const chartData = data.map((item) => ({
     name: item.name,
     HIGH: item.HIGH || 0,
@@ -35,22 +36,32 @@ export const CategoryWiseRiskFlag = ({ data = [], onDownload }) => {
         boxShadow: "0 2px 8px rgba(176,137,104,0.15)",
       }}
     >
-      {/* ✅ Header (White Background Now) */}
-      <div
-        style={{
-          background: "#ffffff",
-          color: "#5c4033",
-          textAlign: "center",
-          padding: "14px",
-          fontWeight: "600",
-          fontSize: "16px",
-          borderBottom: "1px solid #f1e6da",
-        }}
-      >
-        Category Wise Risk Flag
+      <div className="vendor-card-header">
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
+          <h3 className="vendor-card-title">Category Wise Risk Flag</h3>
+          {onDownload && (
+            isDownloading ? (
+              <Loader2 className="w-5 h-5 animate-spin" style={{ color: "#d97938" }} />
+            ) : (
+              <Download
+                className="w-5 h-5 cursor-pointer"
+                style={{ color: "#6b7280" }}
+                onClick={async (e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsDownloading(true);
+                  try {
+                    await onDownload();
+                  } finally {
+                    setIsDownloading(false);
+                  }
+                }}
+              />
+            )
+          )}
+        </div>
       </div>
 
-      {/* Legend */}
       <div
         style={{
           display: "flex",
@@ -82,18 +93,6 @@ export const CategoryWiseRiskFlag = ({ data = [], onDownload }) => {
             {key} RISK
           </span>
         ))}
-
-        {onDownload && (
-          <Download
-            size={16}
-            style={{
-              marginLeft: "auto",
-              cursor: "pointer",
-              color: "#5c4033",
-            }}
-            onClick={onDownload}
-          />
-        )}
       </div>
 
       {/* Chart */}

@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
-import { Download } from 'lucide-react';
+import { Download, Loader2 } from 'lucide-react';
 
 const COLORS = ['#c4b99d', '#dad6ca', '#8b7355', '#b5a992', '#d4cfc3', '#a89985', '#c9c0b3', '#9d8f7f', '#e0ddd5', '#b8ad9e', '#cec5b8', '#a39689'];
 
@@ -11,6 +11,7 @@ export const DepartmentWiseDistributionChart = ({
   noDataText = "No department data available",
   className = "" 
 }) => {
+  const [isDownloading, setIsDownloading] = useState(false);
   const chartData = (data && data.length > 0 ? data : []).filter(item => item.value > 0);
   const totalValue = chartData.reduce((sum, item) => sum + item.value, 0);
 
@@ -19,10 +20,30 @@ export const DepartmentWiseDistributionChart = ({
   return (
     <div className={`card shadow-sm bg-white rounded-lg ${className}`} style={{ height: '650px', display: 'flex', flexDirection: 'column' }}>
       <div className="card-header border-b px-4 py-3">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-gray-800">
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
+          <h3 className="vendor-card-title">
             {title}
           </h3>
+          {onDownload && (
+            isDownloading ? (
+              <Loader2 className="w-5 h-5 animate-spin" style={{ color: "#d97938" }} />
+            ) : (
+              <Download
+                className="w-5 h-5 cursor-pointer"
+                style={{ color: "#6b7280" }}
+                onClick={async (e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsDownloading(true);
+                  try {
+                    await onDownload();
+                  } finally {
+                    setIsDownloading(false);
+                  }
+                }}
+              />
+            )
+          )}
         </div>
       </div>
       <div className="card-body" style={{ padding: '20px', flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Download, ChevronLeft, ChevronRight } from "lucide-react";
+import { Download, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 
 export const VendorDataTable = ({
   title,
@@ -14,6 +14,7 @@ export const VendorDataTable = ({
   itemsPerPage = 10,
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   const isActuallyLoading = loading || isLoading;
 
@@ -108,6 +109,26 @@ export const VendorDataTable = ({
           }}
         >
           <h3 className="vendor-card-title">{title}</h3>
+          {onDownload && (
+            isDownloading ? (
+              <Loader2 className="w-5 h-5 animate-spin" style={{ color: "#d97938" }} />
+            ) : (
+              <Download
+                className="w-5 h-5 cursor-pointer"
+                style={{ color: "#6b7280" }}
+                onClick={async (e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsDownloading(true);
+                  try {
+                    await onDownload({ columns, data });
+                  } finally {
+                    setIsDownloading(false);
+                  }
+                }}
+              />
+            )
+          )}
         </div>
       </div>
       <div

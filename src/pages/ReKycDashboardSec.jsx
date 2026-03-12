@@ -54,6 +54,50 @@ const getDefaultDateRange = () => {
   return { startDate: fmt(startDate), endDate: fmt(today) };
 };
 
+const exportTableToCsv = (rows, columns, filename) => {
+  if (!rows || rows.length === 0) {
+    alert("No data available to download!");
+    return;
+  }
+  const safeColumns = columns || [];
+  const header = safeColumns
+    .map((c) => `"${String(c.label || "").replace(/"/g, '""')}"`)
+    .join(",");
+  const body = rows
+    .map((row) =>
+      safeColumns
+        .map((c) => {
+          const raw = row[c.key];
+          let value = raw === null || raw === undefined ? "" : String(raw);
+          return `"${value.replace(/"/g, '""')}"`;
+        })
+        .join(",")
+    )
+    .join("\n");
+  const csv = `${header}\n${body}`;
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `${filename || "export"}.csv`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+};
+
+const exportChartData = (data, filename) => {
+  if (!data || data.length === 0) {
+    alert("No data available to download!");
+    return;
+  }
+  let exportData = Array.isArray(data) ? data : [data];
+  if (exportData.length === 0) return;
+  const keys = Object.keys(exportData[0]).filter(k => !['color','fill','icon','component'].includes(k));
+  const columns = keys.map(k => ({ key: k, label: k.replace(/_/g, ' ').toUpperCase() }));
+  exportTableToCsv(exportData, columns, filename);
+};
+
 // =============================================================================
 // 4. CHART 3: DEPARTMENT WISE RE-KYC CHART (BAR CHART)
 // =============================================================================
@@ -303,6 +347,46 @@ const ReKYCDashboard = () => {
   const [approvedRecordsData, setApprovedRecordsData] = useState([]);
   const [isApprovedLoading, setIsApprovedLoading] = useState(false);
   const [approvedPagination, setApprovedPagination] = useState(null);
+
+  const fetchAllReKycData = async (endpoint, transformer, queryKeyValues = {}) => {
+    let page = 1;
+    let totalPages = 1;
+    const allRows = [];
+    do {
+      const queryParams = new URLSearchParams();
+      queryParams.append("token", tokenFromUrl);
+      queryParams.append("page", page.toString());
+      Object.entries(queryKeyValues).forEach(([k, v]) => {
+        if (v !== undefined && v !== null && v !== "") queryParams.append(k, String(v));
+      });
+      if (activeFilters.startDate) {
+        const parts = activeFilters.startDate.split("/");
+        queryParams.append("from_date", `${parts[2]}-${parts[1]}-${parts[0]}`);
+      }
+      if (activeFilters.endDate) {
+        const parts = activeFilters.endDate.split("/");
+        queryParams.append("end_date", `${parts[2]}-${parts[1]}-${parts[0]}`);
+      }
+      if (activeFilters.companyName) queryParams.append("company_ids", activeFilters.companyName);
+      if (activeFilters.departmentName) queryParams.append("department_ids", activeFilters.departmentName);
+      if (activeFilters.vendors) queryParams.append("vendor_ids", activeFilters.vendors);
+
+      try {
+        const response = await fetch(`${baseURL}${endpoint}?${queryParams}`);
+        const result = await response.json();
+        if (result.status === "success" && Array.isArray(result.data)) {
+          allRows.push(...result.data.map(transformer));
+          totalPages = result.pagination ? result.pagination.total_pages : 1;
+        } else { break; }
+      } catch (err) { 
+        console.error(err); 
+        alert("Failed to fetch data for download: " + err.message);
+        break; 
+      }
+      page++;
+    } while (page <= totalPages);
+    return allRows;
+  };
 
   const fetchKpiCards = useCallback(async () => {
     setIsKpiLoading(true);
@@ -791,7 +875,7 @@ const ReKYCDashboard = () => {
                                     <DepartmentWiseDistributionChart
                                       title="StatusWise Re-KYC Distributions"
                                       data={statusChartData}
-                                      onDownload={() => {}}
+                                      onDownload={() => exportChartData(statusChartData, "status_wise_rekyc")}
                                     />
                                   )}
                                 </SortableChartItem>
@@ -838,7 +922,7 @@ const ReKYCDashboard = () => {
                                     <DepartmentWiseDistributionChart
                                       title="TypeWise Re-KYC Distributions"
                                       data={typeChartData}
-                                      onDownload={() => {}}
+                                      onDownload={() => exportChartData(typeChartData, "type_wise_rekyc")}
                                     />
                                   )}
                                 </SortableChartItem>
@@ -884,7 +968,7 @@ const ReKYCDashboard = () => {
                                   ) : (
                                     <DepartmentReKYCChart
                                       data={deptChartData}
-                                      onDownload={() => {}}
+                                      onDownload={() => exportChartData(deptChartData, "department_rekyc")}
                                     />
                                   )}
                                 </SortableChartItem>
@@ -931,6 +1015,7 @@ const ReKYCDashboard = () => {
                                       data={monthWiseData}
                                       title="Month Wise Re-KYC Type"
                                       height={500}
+                                      onDownload={() => exportChartData(monthWiseData, "month_wise_rekyc")}
                                     />
                                   )}
                                 </SortableChartItem>
@@ -977,6 +1062,7 @@ const ReKYCDashboard = () => {
                                       data={yearWiseData}
                                       title="Year Wise Re-KYC Type"
                                       height={500}
+                                      onDownload={() => exportChartData(yearWiseData, "year_wise_rekyc")}
                                     />
                                   )}
                                 </SortableChartItem>
@@ -996,7 +1082,28 @@ const ReKYCDashboard = () => {
                                       data={rejectedRecordsData}
                                       pagination={rejectedPagination}
                                       onPageChange={(page) => fetchTableData("rejected", "", page)}
-                                      onDownload={() => {}}
+                                      onDownload={async () => {
+                                        const rows = await fetchAllReKycData(
+                                          "vendor_re_kyc_dashboard/status_wise.json",
+                                          (item) => {
+                                            let rekycType = "";
+                                            try {
+                                              if (typeof item.rekyc_type === 'string' && item.rekyc_type.startsWith('[')) rekycType = JSON.parse(item.rekyc_type).join(", ");
+                                              else if (Array.isArray(item.rekyc_type)) rekycType = item.rekyc_type.join(", ");
+                                              else rekycType = item.rekyc_type || "";
+                                            } catch (e) {
+                                              rekycType = item.rekyc_type || "";
+                                            }
+                                            return {
+                                              organizationName: item.organization_name,
+                                              rekycType,
+                                              rejectedCount: 1
+                                            };
+                                          },
+                                          { status: "rejected" }
+                                        );
+                                        exportTableToCsv(rows, REJECTED_COLUMNS, "rejected_records");
+                                      }}
                                     />
                                 </SortableChartItem>
                               </div>
@@ -1015,7 +1122,28 @@ const ReKYCDashboard = () => {
                                       data={openInvitesData}
                                       pagination={openInvitesPagination}
                                       onPageChange={(page) => fetchTableData("pending", "", page)}
-                                      onDownload={() => {}}
+                                      onDownload={async () => {
+                                        const rows = await fetchAllReKycData(
+                                          "vendor_re_kyc_dashboard/status_wise.json",
+                                          (item) => {
+                                            let rekycType = "";
+                                            try {
+                                              if (typeof item.rekyc_type === 'string' && item.rekyc_type.startsWith('[')) rekycType = JSON.parse(item.rekyc_type).join(", ");
+                                              else if (Array.isArray(item.rekyc_type)) rekycType = item.rekyc_type.join(", ");
+                                              else rekycType = item.rekyc_type || "";
+                                            } catch (e) { rekycType = item.rekyc_type || ""; }
+                                            return {
+                                              organizationName: item.organization_name,
+                                              rekycType,
+                                              updatedAt: item.updated_at,
+                                              ageingInMonth: item.ageing_in_month,
+                                              openInvitesCount: 1
+                                            };
+                                          },
+                                          { status: "pending" }
+                                        );
+                                        exportTableToCsv(rows, OPEN_INVITES_COLUMNS, "open_invites");
+                                      }}
                                     />
                                 </SortableChartItem>
                               </div>
@@ -1031,7 +1159,7 @@ const ReKYCDashboard = () => {
                                     title="Type wise ReKYC Distribution"
                                     columns={TYPE_WISE_COLUMNS}
                                     data={typeWiseTableData}
-                                    onDownload={() => {}}
+                                    onDownload={() => exportTableToCsv(typeWiseTableData, TYPE_WISE_COLUMNS, "type_wise_rekyc")}
                                   />
                                 </SortableChartItem>
                               </div>
@@ -1049,7 +1177,26 @@ const ReKYCDashboard = () => {
                                       data={approvedRecordsData}
                                       pagination={approvedPagination}
                                       onPageChange={(page) => fetchTableData("approved", "", page)}
-                                      onDownload={() => {}}
+                                      onDownload={async () => {
+                                        const rows = await fetchAllReKycData(
+                                          "vendor_re_kyc_dashboard/status_wise.json",
+                                          (item) => {
+                                            let rekycType = "";
+                                            try {
+                                              if (typeof item.rekyc_type === 'string' && item.rekyc_type.startsWith('[')) rekycType = JSON.parse(item.rekyc_type).join(", ");
+                                              else if (Array.isArray(item.rekyc_type)) rekycType = item.rekyc_type.join(", ");
+                                              else rekycType = item.rekyc_type || "";
+                                            } catch (e) { rekycType = item.rekyc_type || ""; }
+                                            return {
+                                              organizationName: item.organization_name,
+                                              rekycType,
+                                              approvedCount: 1
+                                            };
+                                          },
+                                          { status: "approved" }
+                                        );
+                                        exportTableToCsv(rows, APPROVED_RECORD_COLUMNS, "approved_records");
+                                      }}
                                     />
                                 </SortableChartItem>
                               </div>
@@ -1067,7 +1214,26 @@ const ReKYCDashboard = () => {
                                       data={detailsSubData}
                                       pagination={detailsSubPagination}
                                       onPageChange={(page) => fetchTableData("details_submitted_by_vendor", "", page)}
-                                      onDownload={() => {}}
+                                      onDownload={async () => {
+                                        const rows = await fetchAllReKycData(
+                                          "vendor_re_kyc_dashboard/status_wise.json",
+                                          (item) => {
+                                            let rekycType = "";
+                                            try {
+                                              if (typeof item.rekyc_type === 'string' && item.rekyc_type.startsWith('[')) rekycType = JSON.parse(item.rekyc_type).join(", ");
+                                              else if (Array.isArray(item.rekyc_type)) rekycType = item.rekyc_type.join(", ");
+                                              else rekycType = item.rekyc_type || "";
+                                            } catch (e) { rekycType = item.rekyc_type || ""; }
+                                            return {
+                                              organizationName: item.organization_name,
+                                              rekycType,
+                                              detailsCount: 1
+                                            };
+                                          },
+                                          { status: "details_submitted_by_vendor" }
+                                        );
+                                        exportTableToCsv(rows, DETAILS_SUB_COLUMNS, "details_submitted");
+                                      }}
                                     />
                                 </SortableChartItem>
                               </div>
@@ -1085,7 +1251,26 @@ const ReKYCDashboard = () => {
                                       data={expiredData}
                                       pagination={expiredPagination}
                                       onPageChange={(page) => fetchTableData("expired", "", page)}
-                                      onDownload={() => {}}
+                                      onDownload={async () => {
+                                        const rows = await fetchAllReKycData(
+                                          "vendor_re_kyc_dashboard/status_wise.json",
+                                          (item) => {
+                                            let rekycType = "";
+                                            try {
+                                              if (typeof item.rekyc_type === 'string' && item.rekyc_type.startsWith('[')) rekycType = JSON.parse(item.rekyc_type).join(", ");
+                                              else if (Array.isArray(item.rekyc_type)) rekycType = item.rekyc_type.join(", ");
+                                              else rekycType = item.rekyc_type || "";
+                                            } catch (e) { rekycType = item.rekyc_type || ""; }
+                                            return {
+                                              organizationName: item.organization_name,
+                                              rekycType,
+                                              expiredCount: 1
+                                            };
+                                          },
+                                          { status: "expired" }
+                                        );
+                                        exportTableToCsv(rows, EXPIRED_COLUMNS, "expired_records");
+                                      }}
                                     />
                                 </SortableChartItem>
                               </div>
@@ -1103,7 +1288,27 @@ const ReKYCDashboard = () => {
                                       data={sapErrorData}
                                       pagination={sapErrorPagination}
                                       onPageChange={(page) => fetchTableData("approved", "sap", page)}
-                                      onDownload={() => {}}
+                                      onDownload={async () => {
+                                        const rows = await fetchAllReKycData(
+                                          "vendor_re_kyc_dashboard/status_wise.json",
+                                          (item) => {
+                                            let rekycType = "";
+                                            try {
+                                              if (typeof item.rekyc_type === 'string' && item.rekyc_type.startsWith('[')) rekycType = JSON.parse(item.rekyc_type).join(", ");
+                                              else if (Array.isArray(item.rekyc_type)) rekycType = item.rekyc_type.join(", ");
+                                              else rekycType = item.rekyc_type || "";
+                                            } catch (e) { rekycType = item.rekyc_type || ""; }
+                                            return {
+                                              organizationName: item.organization_name,
+                                              rekycType,
+                                              count: 1,
+                                              pushToSAP: "FALSE"
+                                            };
+                                          },
+                                          { status: "approved", error: "sap" }
+                                        );
+                                        exportTableToCsv(rows, SAP_ERROR_COLUMNS, "sap_errors");
+                                      }}
                                     />
                                 </SortableChartItem>
                               </div>

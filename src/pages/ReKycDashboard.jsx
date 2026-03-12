@@ -164,6 +164,50 @@ const getDefaultDateRange = () => {
   return { startDate: fmt(startDate), endDate: fmt(today) };
 };
 
+const exportTableToCsv = (rows, columns, filename) => {
+  if (!rows || rows.length === 0) {
+    alert("No data available to download!");
+    return;
+  }
+  const safeColumns = columns || [];
+  const header = safeColumns
+    .map((c) => `"${String(c.label || "").replace(/"/g, '""')}"`)
+    .join(",");
+  const body = rows
+    .map((row) =>
+      safeColumns
+        .map((c) => {
+          const raw = row[c.key];
+          let value = raw === null || raw === undefined ? "" : String(raw);
+          return `"${value.replace(/"/g, '""')}"`;
+        })
+        .join(",")
+    )
+    .join("\n");
+  const csv = `${header}\n${body}`;
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `${filename || "export"}.csv`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+};
+
+const exportChartData = (data, filename) => {
+  if (!data || data.length === 0) {
+    alert("No data available to download!");
+    return;
+  }
+  let exportData = Array.isArray(data) ? data : [data];
+  if (exportData.length === 0) return;
+  const keys = Object.keys(exportData[0]).filter(k => !['color','fill','icon','component'].includes(k));
+  const columns = keys.map(k => ({ key: k, label: k.replace(/_/g, ' ').toUpperCase() }));
+  exportTableToCsv(exportData, columns, filename);
+};
+
 // =============================================================================
 // MAIN COMPONENT
 // =============================================================================
@@ -230,6 +274,56 @@ const KYCManagementDashboard = () => {
   // Department-wise successful General Re-KYC
   const [deptGeneralRekycData, setDeptGeneralRekycData] = useState([]);
   const [isDeptGeneralRekycLoading, setIsDeptGeneralRekycLoading] = useState(false);
+
+  const fetchAllReKycData = async (endpoint, transformer, queryKeyValues = {}) => {
+    let page = 1;
+    let totalPages = 1;
+    const allRows = [];
+    do {
+      const queryParams = new URLSearchParams();
+      queryParams.append("token", tokenFromUrl);
+      queryParams.append("page", page.toString());
+      Object.entries(queryKeyValues).forEach(([k, v]) => {
+        if (v !== undefined && v !== null && v !== "") queryParams.append(k, String(v));
+      });
+      if (activeFilters.startDate) queryParams.append("from_date", activeFilters.startDate.split("/").join("-"));
+      if (activeFilters.endDate) queryParams.append("end_date", activeFilters.endDate.split("/").join("-"));
+      if (activeFilters.companyName) queryParams.append("company_ids", activeFilters.companyName);
+      if (activeFilters.departmentName) queryParams.append("department_ids", activeFilters.departmentName);
+      if (activeFilters.vendors) queryParams.append("vendor_ids", activeFilters.vendors);
+
+      try {
+        const response = await fetch(`${baseURL}${endpoint}?${queryParams}`);
+        const result = await response.json();
+        if (result.status === "success" && Array.isArray(result.data)) {
+          allRows.push(...result.data.map(transformer));
+          totalPages = result.pagination ? result.pagination.total_pages : 1;
+        } else { break; }
+      } catch (err) { 
+        console.error(err); 
+        alert("Failed to fetch data for download: " + err.message);
+        break; 
+      }
+      page++;
+    } while (page <= totalPages);
+    return allRows;
+  };
+
+  const getSummaryTransformer = () => (item => ({
+    organizationName: item.organization_name || "N/A",
+    rekycType: item.rekyc_type || "General Rekyc",
+    pushToSAP: item.push_to_sap || "FALSE",
+    updatedAt: item.updated_at || "N/A",
+    ageingInMonth: item.ageing_in_month || 0,
+    count: item.row_count || 1,
+    rejectedSuppliers: item.row_count || 1,
+    approvedSuppliers: item.row_count || 1,
+    expiredSuppliers: item.row_count || 1,
+    pendingSuppliers: item.row_count || 1,
+    detailsSubmittedSuppliers: item.row_count || 1,
+    fullName: item.initiated_by || "N/A",
+    comment: ""
+  }));
 
   // Drag and Drop Sensors
   const sensors = useSensors(
@@ -761,7 +855,16 @@ const KYCManagementDashboard = () => {
                                       ]}
                                       title="Total Approved Suppliers"
                                       legendLabel="Suppliers"
-                                      // onDownload={() => {}}
+                                      onDownload={() => exportChartData([
+                                        { 
+                                          label: "Initiated Suppliers", 
+                                          value: kpiData.find(d => d.status === "Active Initiated Suppliers")?.count || 0,
+                                        },
+                                        { 
+                                          label: "Not Initiated Suppliers", 
+                                          value: kpiData.find(d => d.status === "Active Not Initiated Suppliers")?.count || 0,
+                                        }
+                                      ], "total_approved_suppliers")}
                                     />
                                   )}
                                 </SortableChartItem>
@@ -820,7 +923,28 @@ const KYCManagementDashboard = () => {
                                       ]}
                                       title="Status Wise Vendor Count"
                                       legendLabel="Statuses"
-                                      // onDownload={() => {}}
+                                      onDownload={() => exportChartData([
+                                        { 
+                                          label: "Approved", 
+                                          value: kpiData.find(d => d.status === "Approved Suppliers")?.count || 0,
+                                        },
+                                        { 
+                                          label: "Details Submitted By Vendor", 
+                                          value: kpiData.find(d => d.status === "Details Submitted Suppliers")?.count || 0,
+                                        },
+                                        { 
+                                          label: "Expired", 
+                                          value: kpiData.find(d => d.status === "Expired Row Count")?.count || 0,
+                                        },
+                                        { 
+                                          label: "Pending", 
+                                          value: kpiData.find(d => d.status === "Pending Suppliers")?.count || 0,
+                                        },
+                                        { 
+                                          label: "Rejected", 
+                                          value: kpiData.find(d => d.status === "Rejected Suppliers")?.count || 0,
+                                        }
+                                      ], "status_wise_vendor_count")}
                                     />
                                   )}
                                 </SortableChartItem>
@@ -847,7 +971,22 @@ const KYCManagementDashboard = () => {
                                     isLoading={isRejectedLoading}
                                     pagination={rejectedPagination}
                                     onPageChange={(page) => fetchSummaryData("rejected", null, page, setRejectedData, setRejectedPagination, setIsRejectedLoading)}
-                                    onDownload={() => {}}
+                                    onDownload={async () => {
+                                      const rows = await fetchAllReKycData(
+                                        "vendor_re_kyc_dashboard/general_rekyc_summary_filtered.json",
+                                        getSummaryTransformer(),
+                                        { status: "rejected" }
+                                      );
+                                      exportTableToCsv(
+                                        rows,
+                                        [
+                                          { key: "organizationName", label: "Organization Name" },
+                                          { key: "rekycType", label: "ReKYC Type" },
+                                          { key: "comment", label: "Comment" }
+                                        ],
+                                        "rejected_vendors"
+                                      );
+                                    }}
                                   />
                                 </SortableChartItem>
                               </div>
@@ -875,7 +1014,24 @@ const KYCManagementDashboard = () => {
                                     isLoading={isDetailsSubLoading}
                                     pagination={detailsSubPagination}
                                     onPageChange={(page) => fetchSummaryData("details_submitted_by_vendor", null, page, setDetailsSubData, setDetailsSubPagination, setIsDetailsSubLoading)}
-                                    onDownload={() => {}}
+                                    onDownload={async () => {
+                                      const rows = await fetchAllReKycData(
+                                        "vendor_re_kyc_dashboard/general_rekyc_summary_filtered.json",
+                                        getSummaryTransformer(),
+                                        { status: "details_submitted_by_vendor" }
+                                      );
+                                      exportTableToCsv(
+                                        rows,
+                                        [
+                                          { key: "organizationName", label: "Organization Name" },
+                                          { key: "rekycType", label: "ReKYC Type" },
+                                          { key: "fullName", label: "Full Name" },
+                                          { key: "updatedAt", label: "Updated at" },
+                                          { key: "ageingInMonth", label: "Ageing in Month" }
+                                        ],
+                                        "details_submitted_vendors"
+                                      );
+                                    }}
                                   />
                                 </SortableChartItem>
                               </div>
@@ -905,7 +1061,7 @@ const KYCManagementDashboard = () => {
                                   ) : (
                                     <DepartmentReKYCChart
                                       data={deptGeneralRekycData}
-                                      onDownload={undefined}
+                                      onDownload={() => exportChartData(deptGeneralRekycData, "dept_general_rekyc")}
                                     />
                                   )}
                                 </SortableChartItem>
@@ -934,7 +1090,30 @@ const KYCManagementDashboard = () => {
                                     isLoading={isApprovedNoReKycLoading}
                                     pagination={approvedNoReKycPagination}
                                     onPageChange={fetchApprovedNoReKycData}
-                                    onDownload={() => {}}
+                                    onDownload={async () => {
+                                      const rows = await fetchAllReKycData(
+                                        "vendor_re_kyc_dashboard/approved_vendor_but_rekyc_not_initiated.json",
+                                        (item) => ({
+                                          organizationName: item.organization_name,
+                                          departmentName: item.department_name,
+                                          createdAt: item.created_at,
+                                          updatedAt: item.updated_at,
+                                          ageingInMonth: item.ageing_in_month,
+                                          rowCount: item.row_flag
+                                        })
+                                      );
+                                      exportTableToCsv(
+                                        rows,
+                                        [
+                                          { key: "organizationName", label: "Organization Name" },
+                                          { key: "departmentName", label: "Department Name" },
+                                          { key: "createdAt", label: "Created at" },
+                                          { key: "updatedAt", label: "Updated at" },
+                                          { key: "ageingInMonth", label: "Ageing in Month" }
+                                        ],
+                                        "approved_but_no_rekyc"
+                                      );
+                                    }}
                                   />
                                 </SortableChartItem>
                               </div>
@@ -963,7 +1142,21 @@ const KYCManagementDashboard = () => {
                                     isLoading={isApprovedRecordsLoading}
                                     pagination={approvedRecordsPagination}
                                     onPageChange={(page) => fetchSummaryData("approved", null, page, setApprovedRecordsData, setApprovedRecordsPagination, setIsApprovedRecordsLoading)}
-                                    onDownload={() => {}}
+                                    onDownload={async () => {
+                                      const rows = await fetchAllReKycData(
+                                        "vendor_re_kyc_dashboard/general_rekyc_summary_filtered.json",
+                                        getSummaryTransformer(),
+                                        { status: "approved" }
+                                      );
+                                      exportTableToCsv(
+                                        rows,
+                                        [
+                                          { key: "organizationName", label: "Organization Name" },
+                                          { key: "rekycType", label: "ReKYC Type" }
+                                        ],
+                                        "approved_vendors"
+                                      );
+                                    }}
                                   />
                                 </SortableChartItem>
                               </div>
@@ -988,7 +1181,21 @@ const KYCManagementDashboard = () => {
                                     isLoading={isExpiredRecordsLoading}
                                     pagination={expiredRecordsPagination}
                                     onPageChange={(page) => fetchSummaryData("expired", null, page, setExpiredRecordsData, setExpiredRecordsPagination, setIsExpiredRecordsLoading)}
-                                    onDownload={() => {}}
+                                    onDownload={async () => {
+                                      const rows = await fetchAllReKycData(
+                                        "vendor_re_kyc_dashboard/general_rekyc_summary_filtered.json",
+                                        getSummaryTransformer(),
+                                        { status: "expired" }
+                                      );
+                                      exportTableToCsv(
+                                        rows,
+                                        [
+                                          { key: "organizationName", label: "Organization Name" },
+                                          { key: "rekycType", label: "ReKYC Type" }
+                                        ],
+                                        "expired_vendors"
+                                      );
+                                    }}
                                   />
                                 </SortableChartItem>
                               </div>
@@ -1020,6 +1227,7 @@ const KYCManagementDashboard = () => {
                                       data={monthData}
                                       title="Month Wise Re-KYC Type"
                                       isLoading={isChartLoading}
+                                      onDownload={() => exportChartData(monthData, "month_wise_rekyc_type")}
                                     />
                                   )}
                                 </SortableChartItem>
@@ -1053,6 +1261,7 @@ const KYCManagementDashboard = () => {
                                       title="Year Wise Re-KYC Count"
                                       type="year"
                                       isLoading={isChartLoading}
+                                      onDownload={() => exportChartData(yearData, "year_wise_rekyc_count")}
                                     />
                                   )}
                                 </SortableChartItem>
@@ -1079,7 +1288,22 @@ const KYCManagementDashboard = () => {
                                     isLoading={isSapErrorLoading}
                                     pagination={sapErrorPagination}
                                     onPageChange={(page) => fetchSummaryData("approved", "sap", page, setSapErrorData, setSapErrorPagination, setIsSapErrorLoading)}
-                                    onDownload={() => {}}
+                                    onDownload={async () => {
+                                      const rows = await fetchAllReKycData(
+                                        "vendor_re_kyc_dashboard/general_rekyc_summary_filtered.json",
+                                        getSummaryTransformer(),
+                                        { status: "approved", error: "sap" }
+                                      );
+                                      exportTableToCsv(
+                                        rows,
+                                        [
+                                          { key: "organizationName", label: "Organization Name" },
+                                          { key: "pushToSAP", label: "Push to SAP" },
+                                          { key: "rekycType", label: "ReKYC Type" }
+                                        ],
+                                        "sap_errors"
+                                      );
+                                    }}
                                   />
                                 </SortableChartItem>
                               </div>
@@ -1108,7 +1332,26 @@ const KYCManagementDashboard = () => {
                                     isLoading={isOrgWiseStatusLoading}
                                     pagination={orgWiseStatusPagination}
                                     onPageChange={fetchOrgWiseStatusData}
-                                    onDownload={() => {}}
+                                    onDownload={async () => {
+                                      const rows = await fetchAllReKycData(
+                                        "vendor_re_kyc_dashboard/organization_wise_vendor_rekyc_status.json",
+                                        (item) => ({
+                                          organizationName: item.organization_name || "N/A",
+                                          initiatedBy: item.initiated_by,
+                                          statuses: item.rekyc_status,
+                                          count: item.row_count
+                                        })
+                                      );
+                                      exportTableToCsv(
+                                        rows,
+                                        [
+                                          { key: "organizationName", label: "Organization Name" },
+                                          { key: "initiatedBy", label: "Initiated By" },
+                                          { key: "statuses", label: "Statuses" }
+                                        ],
+                                        "org_wise_vendors"
+                                      );
+                                    }}
                                   />
                                 </SortableChartItem>
                               </div>
@@ -1135,7 +1378,23 @@ const KYCManagementDashboard = () => {
                                     isLoading={isOpenInvitesLoading}
                                     pagination={openInvitesPagination}
                                     onPageChange={(page) => fetchSummaryData("pending", null, page, setOpenInvitesData, setOpenInvitesPagination, setIsOpenInvitesLoading)}
-                                    onDownload={() => {}}
+                                    onDownload={async () => {
+                                      const rows = await fetchAllReKycData(
+                                        "vendor_re_kyc_dashboard/general_rekyc_summary_filtered.json",
+                                        getSummaryTransformer(),
+                                        { status: "pending" }
+                                      );
+                                      exportTableToCsv(
+                                        rows,
+                                        [
+                                          { key: "organizationName", label: "Organization Name" },
+                                          { key: "rekycType", label: "ReKYC Type" },
+                                          { key: "updatedAt", label: "Updated at" },
+                                          { key: "ageingInMonth", label: "Ageing in Month" }
+                                        ],
+                                        "open_invites"
+                                      );
+                                    }}
                                   />
                                 </SortableChartItem>
                               </div>

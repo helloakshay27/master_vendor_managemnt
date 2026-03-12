@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Download } from "lucide-react";
+import { Download, Loader2 } from "lucide-react";
 
 /**
  * Helper to determine if a color is light or dark
@@ -25,6 +25,7 @@ export const GradeAssessmentBar = ({
   onDownload,
   className = "" 
 }) => {
+  const [isDownloading, setIsDownloading] = useState(false);
   const [tooltip, setTooltip] = useState(null);
 
   const total = data.reduce((acc, item) => acc + item.value, 0);
@@ -73,25 +74,45 @@ export const GradeAssessmentBar = ({
         </h5>
         
         {onDownload && (
-          <button
-            onClick={onDownload}
+          <div
             style={{
               position: "absolute",
               right: "15px",
-              background: "transparent",
-              border: "none",
-              cursor: "pointer",
-              color: "#ffffff",
               display: "flex",
-              alignItems: "center",
-              opacity: 0.8,
-              transition: "opacity 0.2s"
+              alignItems: "center"
             }}
-            onMouseEnter={(e) => e.currentTarget.style.opacity = "1"}
-            onMouseLeave={(e) => e.currentTarget.style.opacity = "0.8"}
           >
-            <Download size={18} />
-          </button>
+            {isDownloading ? (
+              <Loader2 size={18} className="animate-spin text-white" />
+            ) : (
+              <button
+                onClick={async (e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsDownloading(true);
+                  try {
+                    await onDownload();
+                  } finally {
+                    setIsDownloading(false);
+                  }
+                }}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  cursor: "pointer",
+                  color: "#ffffff",
+                  display: "flex",
+                  alignItems: "center",
+                  opacity: 0.8,
+                  transition: "opacity 0.2s"
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.opacity = "1"}
+                onMouseLeave={(e) => e.currentTarget.style.opacity = "0.8"}
+              >
+                <Download size={18} />
+              </button>
+            )}
+          </div>
         )}
       </div>
 
