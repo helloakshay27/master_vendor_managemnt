@@ -685,6 +685,8 @@ function VendorManagementDashboard() {
   const [bottomVendorsData, setBottomVendorsData] = useState([]);
   const [isTopBottomVendorsLoading, setIsTopBottomVendorsLoading] = useState(false);
   const [verificationPendingData, setVerificationPendingData] = useState([]);
+  const [verificationPendingPagination, setVerificationPendingPagination] = useState(null);
+  const [verificationPendingPage, setVerificationPendingPage] = useState(1);
   const [isVerificationPendingLoading, setIsVerificationPendingLoading] = useState(false);
 
   // Default start date is last 7 days
@@ -732,6 +734,14 @@ function VendorManagementDashboard() {
 
   const handleAnalyticsFilterApply = (filters) => {
     setActiveFilters(filters);
+    setApprovedVendorsPage(1);
+    setPqVendorsPage(1);
+    setNonPqVendorsPage(1);
+    setResubmissionRequestsPage(1);
+    setOnboardingInProcessPage(1);
+    setInvitedVendorsPage(1);
+    setDetailsSubmittedPage(1);
+    setVerificationPendingPage(1);
   };
 
   const handleSelectionChange = (selectedSections) => {
@@ -1011,7 +1021,7 @@ function VendorManagementDashboard() {
       try {
         const queryParams = new URLSearchParams();
         queryParams.append("token", tokenFromUrl);
-        queryParams.append("status", "approved");
+        queryParams.append("status", "verification_pending");
         
         if (activeFilters.companyName) queryParams.append("company_ids", activeFilters.companyName);
         if (activeFilters.departmentName) queryParams.append("department_ids", activeFilters.departmentName);
@@ -1063,9 +1073,8 @@ function VendorManagementDashboard() {
         setSupplierPerformanceData(
           rawData.map((item) => ({
             department: item.department_name || item.department || "Unknown",
-            approvedVendors: item.approved_vendors || 0,
-            avgTat: item.avg_tat || "0.00",
-            invitedToApproved: item.invited_to_approved_vendors || 0,
+            approvedVendors: item.approved_vendor_count || 0,
+            avgTat: item.avg_tat_days || "0.00",
           })),
         );
       } catch (error) {
@@ -1081,6 +1090,7 @@ function VendorManagementDashboard() {
         const queryParams = new URLSearchParams();
         queryParams.append("token", tokenFromUrl);
         queryParams.append("status", "approved");
+        queryParams.append("page", approvedVendorsPage);
         
         if (activeFilters.companyName) queryParams.append("company_ids", activeFilters.companyName);
         if (activeFilters.departmentName) queryParams.append("department_ids", activeFilters.departmentName);
@@ -1108,8 +1118,10 @@ function VendorManagementDashboard() {
             contactEmail: item.contact_email || "-",
           })),
         );
+        setApprovedVendorsPagination(json?.data?.pagination || null);
       } catch (error) {
         setApprovedVendorsData([]);
+        setApprovedVendorsPagination(null);
       } finally {
         setIsApprovedVendorsLoading(false);
       }
@@ -1122,6 +1134,7 @@ function VendorManagementDashboard() {
         queryParams.append("token", tokenFromUrl);
         queryParams.append("status", "approved");
         queryParams.append("pq_type", "with_pq");
+        queryParams.append("page", pqVendorsPage);
         
         if (activeFilters.companyName) queryParams.append("company_ids", activeFilters.companyName);
         if (activeFilters.departmentName) queryParams.append("department_ids", activeFilters.departmentName);
@@ -1134,8 +1147,10 @@ function VendorManagementDashboard() {
         );
         const json = await response.json();
         setPqVendorsData(json?.data?.suppliers || []);
+        setPqVendorsPagination(json?.data?.pagination || null);
       } catch (error) {
         setPqVendorsData([]);
+        setPqVendorsPagination(null);
       } finally {
         setIsPqVendorsLoading(false);
       }
@@ -1148,6 +1163,7 @@ function VendorManagementDashboard() {
         queryParams.append("token", tokenFromUrl);
         queryParams.append("status", "approved");
         queryParams.append("pq_type", "without_pq");
+        queryParams.append("page", nonPqVendorsPage);
         
         if (activeFilters.companyName) queryParams.append("company_ids", activeFilters.companyName);
         if (activeFilters.departmentName) queryParams.append("department_ids", activeFilters.departmentName);
@@ -1160,8 +1176,10 @@ function VendorManagementDashboard() {
         );
         const json = await response.json();
         setNonPqVendorsData(json?.data?.suppliers || []);
+        setNonPqVendorsPagination(json?.data?.pagination || null);
       } catch (error) {
         setNonPqVendorsData([]);
+        setNonPqVendorsPagination(null);
       } finally {
         setIsNonPqVendorsLoading(false);
       }
@@ -1173,6 +1191,7 @@ function VendorManagementDashboard() {
         const queryParams = new URLSearchParams();
         queryParams.append("token", tokenFromUrl);
         queryParams.append("status", "request_for_resubmission");
+        queryParams.append("page", resubmissionRequestsPage);
         
         if (activeFilters.companyName) queryParams.append("company_ids", activeFilters.companyName);
         if (activeFilters.departmentName) queryParams.append("department_ids", activeFilters.departmentName);
@@ -1200,8 +1219,10 @@ function VendorManagementDashboard() {
             currentStatus: item.current_status || "-",
           })),
         );
+        setResubmissionRequestsPagination(json?.data?.pagination || null);
       } catch (error) {
         setResubmissionRequestsData([]);
+        setResubmissionRequestsPagination(null);
       } finally {
         setIsResubmissionRequestsLoading(false);
       }
@@ -1213,6 +1234,7 @@ function VendorManagementDashboard() {
         const queryParams = new URLSearchParams();
         queryParams.append("token", tokenFromUrl);
         queryParams.append("status", "onboarding");
+        queryParams.append("page", onboardingInProcessPage);
         
         if (activeFilters.companyName) queryParams.append("company_ids", activeFilters.companyName);
         if (activeFilters.departmentName) queryParams.append("department_ids", activeFilters.departmentName);
@@ -1240,8 +1262,10 @@ function VendorManagementDashboard() {
             progressPercentage: item.progress_percentage || "-",
           })),
         );
+        setOnboardingInProcessPagination(json?.data?.pagination || null);
       } catch (error) {
         setOnboardingInProcessData([]);
+        setOnboardingInProcessPagination(null);
       } finally {
         setIsOnboardingInProcessLoading(false);
       }
@@ -1253,6 +1277,7 @@ function VendorManagementDashboard() {
         const queryParams = new URLSearchParams();
         queryParams.append("token", tokenFromUrl);
         queryParams.append("status", "invited");
+        queryParams.append("page", invitedVendorsPage);
         
         if (activeFilters.companyName) queryParams.append("company_ids", activeFilters.companyName);
         if (activeFilters.departmentName) queryParams.append("department_ids", activeFilters.departmentName);
@@ -1280,8 +1305,10 @@ function VendorManagementDashboard() {
             responseStatus: item.response_status || "Pending",
           })),
         );
+        setInvitedVendorsPagination(json?.data?.pagination || null);
       } catch (error) {
         setInvitedVendorsData([]);
+        setInvitedVendorsPagination(null);
       } finally {
         setIsInvitedVendorsLoading(false);
       }
@@ -1293,6 +1320,7 @@ function VendorManagementDashboard() {
         const queryParams = new URLSearchParams();
         queryParams.append("token", tokenFromUrl);
         queryParams.append("status", "details_submitted_by_vendor");
+        queryParams.append("page", detailsSubmittedPage);
         
         if (activeFilters.companyName) queryParams.append("company_ids", activeFilters.companyName);
         if (activeFilters.departmentName) queryParams.append("department_ids", activeFilters.departmentName);
@@ -1317,8 +1345,10 @@ function VendorManagementDashboard() {
             reviewStatus: item.review_status || "Pending Review",
           })),
         );
+        setDetailsSubmittedPagination(json?.data?.pagination || null);
       } catch (error) {
         setDetailsSubmittedData([]);
+        setDetailsSubmittedPagination(null);
       } finally {
         setIsDetailsSubmittedLoading(false);
       }
@@ -1330,6 +1360,7 @@ function VendorManagementDashboard() {
         const queryParams = new URLSearchParams();
         queryParams.append("token", tokenFromUrl);
         queryParams.append("status", "verification_pending");
+        queryParams.append("page", verificationPendingPage);
 
         if (activeFilters.companyName) queryParams.append("company_ids", activeFilters.companyName);
         if (activeFilters.departmentName) queryParams.append("department_ids", activeFilters.departmentName);
@@ -1347,13 +1378,18 @@ function VendorManagementDashboard() {
             organization: item.organization_name || "-",
             department: item.department_name || "-",
             status: item.status || "Verification Pending",
-            overallTatDays: item.cumulative_tat_days ?? item.overall_tat_days ?? "-",
-            approvalLevel: item.approval_level || "-",
+            vendorTat: item.vendor_tat_days ?? "-",
+            internalTat: item.internal_tat_days ?? "-",
+            cumulativeTat: item.cumulative_tat_days ?? "-",
+            pendingLevel: item.pending_level || "-",
+            approverName: item.approver_name || "-",
           }))
         );
+        setVerificationPendingPagination(json?.data?.pagination || null);
       } catch (error) {
         console.error("Error fetching Verification Pending:", error);
         setVerificationPendingData([]);
+        setVerificationPendingPagination(null);
       } finally {
         setIsVerificationPendingLoading(false);
       }
@@ -1916,6 +1952,8 @@ function VendorManagementDashboard() {
                                       data={approvedVendorsData}
                                       columns={APPROVED_VENDORS_COLUMNS}
                                       onDownload={() => {}}
+                                      pagination={approvedVendorsPagination}
+                                      onPageChange={setApprovedVendorsPage}
                                     />
                                   )}
                                 </SortableChartItem>
@@ -1956,6 +1994,8 @@ function VendorManagementDashboard() {
                                         // { key: "cumulative_tat_days", label: "Cumulative TAT (Days)" },
                                       ]}
                                       onDownload={() => {}}
+                                      pagination={pqVendorsPagination}
+                                      onPageChange={setPqVendorsPage}
                                     />
                                   )}
                                 </SortableChartItem>
@@ -1995,6 +2035,8 @@ function VendorManagementDashboard() {
                                         // { key: "cumulative_tat_days", label: "Cumulative TAT (Days)" },
                                       ]}
                                       onDownload={() => {}}
+                                      pagination={nonPqVendorsPagination}
+                                      onPageChange={setNonPqVendorsPage}
                                     />
                                   )}
                                 </SortableChartItem>
@@ -2063,6 +2105,8 @@ function VendorManagementDashboard() {
                                         // },
                                       ]}
                                       onDownload={() => {}}
+                                      pagination={invitedVendorsPagination}
+                                      onPageChange={setInvitedVendorsPage}
                                     />
                                   )}
                                 </SortableChartItem>
@@ -2098,21 +2142,35 @@ function VendorManagementDashboard() {
                                           key: "organization",
                                           label: "Organization Name",
                                         },
-                                        { key: "status", label: "Status" },
                                         {
                                           key: "department",
                                           label: "Department Name",
                                         },
+                                        { key: "status", label: "Status" },
                                         {
-                                          key: "overallTatDays",
-                                          label: "Overall TAT Days",
+                                          key: "vendorTat",
+                                          label: "Vendor TAT (Days)",
                                         },
                                         {
-                                          key: "approvalLevel",
-                                          label: "Approval Level",
+                                          key: "internalTat",
+                                          label: "Internal TAT (Days)",
+                                        },
+                                        {
+                                          key: "cumulativeTat",
+                                          label: "Cumulative TAT (Days)",
+                                        },
+                                        {
+                                          key: "pendingLevel",
+                                          label: "Pending Level",
+                                        },
+                                        {
+                                          key: "approverName",
+                                          label: "Approver Name",
                                         },
                                       ]}
                                       onDownload={() => {}}
+                                      pagination={verificationPendingPagination}
+                                      onPageChange={setVerificationPendingPage}
                                     />
                                   )}
                                 </SortableChartItem>
@@ -2175,6 +2233,8 @@ function VendorManagementDashboard() {
                                         // },
                                       ]}
                                       onDownload={() => {}}
+                                      pagination={detailsSubmittedPagination}
+                                      onPageChange={setDetailsSubmittedPage}
                                     />
                                   )}
                                 </SortableChartItem>
@@ -2249,6 +2309,8 @@ function VendorManagementDashboard() {
                                         // },
                                       ]}
                                       onDownload={() => {}}
+                                      pagination={onboardingInProcessPagination}
+                                      onPageChange={setOnboardingInProcessPage}
                                     />
                                   )}
                                 </SortableChartItem>
@@ -2320,6 +2382,8 @@ function VendorManagementDashboard() {
                                         // },
                                       ]}
                                       onDownload={() => {}}
+                                      pagination={resubmissionRequestsPagination}
+                                      onPageChange={setResubmissionRequestsPage}
                                     />
                                   )}
                                 </SortableChartItem>

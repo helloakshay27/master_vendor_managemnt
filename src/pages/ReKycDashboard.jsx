@@ -780,7 +780,6 @@ const KYCManagementDashboard = () => {
                                     columns={[
                                       { key: "organizationName", label: "Organization Name" },
                                       { key: "rekycType", label: "ReKYC Type" },
-                                      { key: "rejectedSuppliers", label: "Rejected Suppliers" },
                                       { key: "comment", label: "Comment" },
                                     ]}
                                     data={rejectedData}
@@ -810,7 +809,6 @@ const KYCManagementDashboard = () => {
                                       { key: "fullName", label: "Full Name" },
                                       { key: "updatedAt", label: "Updated at" },
                                       { key: "ageingInMonth", label: "Ageing in Month" },
-                                      { key: "detailsSubmittedSuppliers", label: "Details Submitted Suppliers" },
                                     ]}
                                     data={detailsSubData}
                                     isLoading={isDetailsSubLoading}
@@ -871,7 +869,6 @@ const KYCManagementDashboard = () => {
                                       { key: "createdAt", label: "Created at" },
                                       { key: "updatedAt", label: "Updated at" },
                                       { key: "ageingInMonth", label: "Ageing in Month" },
-                                      { key: "rowCount", label: "Row Count" },
                                     ]}
                                     data={approvedNoReKycData}
                                     isLoading={isApprovedNoReKycLoading}
@@ -901,7 +898,6 @@ const KYCManagementDashboard = () => {
                                     columns={[
                                       { key: "organizationName", label: "Organization Name" },
                                       { key: "rekycType", label: "ReKYC Type" },
-                                      { key: "approvedSuppliers", label: "Approved Suppliers" },
                                     ]}
                                     data={approvedRecordsData}
                                     isLoading={isApprovedRecordsLoading}
@@ -927,7 +923,6 @@ const KYCManagementDashboard = () => {
                                     columns={[
                                       { key: "organizationName", label: "Organization Name" },
                                       { key: "rekycType", label: "ReKYC Type" },
-                                      { key: "expiredSuppliers", label: "Expired Suppliers" },
                                     ]}
                                     data={expiredRecordsData}
                                     isLoading={isExpiredRecordsLoading}
@@ -1019,7 +1014,6 @@ const KYCManagementDashboard = () => {
                                       { key: "organizationName", label: "Organization Name" },
                                       { key: "pushToSAP", label: "Push to SAP" },
                                       { key: "rekycType", label: "ReKYC Type" },
-                                      { key: "count", label: "Count" },
                                     ]}
                                     data={sapErrorData}
                                     isLoading={isSapErrorLoading}
@@ -1049,7 +1043,6 @@ const KYCManagementDashboard = () => {
                                       },
                                       { key: "initiatedBy", label: "Initiated By" },
                                       { key: "statuses", label: "Statuses" },
-                                      { key: "count", label: "Count" },
                                     ]}
                                     data={orgWiseStatusData}
                                     isLoading={isOrgWiseStatusLoading}
@@ -1077,7 +1070,6 @@ const KYCManagementDashboard = () => {
                                       { key: "rekycType", label: "ReKYC Type" },
                                       { key: "updatedAt", label: "Updated at" },
                                       { key: "ageingInMonth", label: "Ageing in Month" },
-                                      { key: "pendingSuppliers", label: "Pending Suppliers" },
                                     ]}
                                     data={openInvitesData}
                                     isLoading={isOpenInvitesLoading}
