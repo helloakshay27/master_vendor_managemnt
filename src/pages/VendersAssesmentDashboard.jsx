@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   DndContext,
   closestCenter,
@@ -13,16 +13,10 @@ import {
   sortableKeyboardCoordinates,
   rectSortingStrategy,
 } from "@dnd-kit/sortable";
-import {
-  BarChart3,
-  Calendar as CalendarIcon,
-  Filter,
-  TrendingUp,
-} from "lucide-react";
+import { BarChart3, TrendingUp } from "lucide-react";
 import { SortableChartItem } from "@/components/SortableChartItem";
 import { VendorStatCard } from "@/components/vendor-analytics/VendorStatCard";
 import { VendorSectionSelector } from "@/components/vendor-analytics/VendorSectionSelector";
-import { VendorAnalyticsFilterDialog } from "@/components/vendor-analytics/VendorAnalyticsFilterDialog";
 import { GradeAssessmentBar } from "@/components/vendor-analytics/GradeAssessmentBar";
 import { TopBottomVendorsChart } from "@/components/vendor-analytics/TopBottomVendorsChart";
 import { VendorDataTable } from "@/components/vendor-analytics/VendorDataTable";
@@ -30,125 +24,30 @@ import SubmittedPendingOverview from "@/components/vendor-analytics/SubmittedPen
 import SubmittedAssessmentOverview from "@/components/vendor-analytics/SubmittedAssessmentOverview";
 import { CategoryWiseRiskFlag } from "@/components/vendor-analytics/CategoryWiseRiskFlag";
 import OnTimeCompletion from "@/components/vendor-analytics/OnTimeCompletionChart";
-import LeaderBoard from "@/components/vendor-analytics/leaderBoard";
+// LeaderBoard component replaced by VendorDataTable (same table structure)
 import PercentageCompletionChart from "@/components/vendor-analytics/PercentageCompletionChart";
+import { VendorFilterCard } from "@/components/vendor-analytics/VendorFilterCard";
+import { baseURL } from "@/confi/apiDomain";
 
-// =============================================================================
-// MOCK DATA (आपका वही रहेगा)
-// =============================================================================
-
-const MOCK_STAT_DATA = {
-  TotalapprovedVendors: 4987,
-  TotalAssesmentCount: 319,
-  FullyCompleted: 317,
-  PartiallyCompleted: 2,
-  Pending: 0,
-  TotalUniqueVendorCountForAssessment: 100,
-  TotalQualifiedVendors: 98,
-  DisqualifiedVendorDuetoRatingNotGiven: 0,
-  TotalDisqualifiedVendorsDuetoRating: 2,
-  TotalWatchlistVendors: 25,
-};
-
-const MOCK_GRADE_DATA = [
-  { grade: "A", value: 5, color: "#00b050" },
-  { grade: "B", value: 147, color: "#f58513" },
-  { grade: "C", value: 101, color: "#e6b325" },
-  { grade: "D", value: 62, color: "#f4ea00" },
-  { grade: "F", value: 8, color: "#e00000" },
-];
-
-const MOCK_TOP_VENDORS = [
-  { name: "FABRICASTO PRIVATE LIMITED", avgTat: 98 },
-  { name: "M/S POKARNA ENGINEERING", avgTat: 95 },
-  { name: "Om Sai Enterprises", avgTat: 94 },
-  { name: "Envirotech", avgTat: 92 },
-  { name: "THE SHINE REFLECTO", avgTat: 91 },
-  { name: "RAMJI VITHAL JAGTAP", avgTat: 89 },
-  { name: "TOR.AI LIMITED", avgTat: 87 },
-  { name: "RSB INFOTECH", avgTat: 85 },
-  { name: "R. A. CONTRACTOR'S", avgTat: 84 },
-  { name: "Snehal Fiber Products", avgTat: 82 },
-];
-
-const MOCK_BOTTOM_VENDORS = [
-  { name: "Stone Natural", avgTat: 55.5 },
-  { name: "R K Associates", avgTat: 54.0 },
-  { name: "Kiran Buildcon", avgTat: 52.5 },
-  { name: "Front Line Technologies", avgTat: 52.33 },
-  { name: "Giitai Buildcon Private Ltd", avgTat: 52.0 },
-  { name: "PANKAJ DHARKAR & Associates", avgTat: 51.5 },
-  { name: "Instec Technology", avgTat: 51.0 },
-  { name: "S.A. INFRA", avgTat: 47.5 },
-  { name: "Aquastop Solutions", avgTat: 47.0 },
-  { name: "Dar & Wagh Architects", avgTat: 38.0 },
-];
-
-const MOCK_NOT_GIVEN_RATING_COLUMNS = [
+const NOT_GIVEN_RATING_COLUMNS = [
   { key: "organizationName", label: "Organization Name" },
   { key: "siteName", label: "Site Name" },
   { key: "category", label: "Category" },
 ];
 
-const MOCK_NOT_GIVEN_RATING_DATA = [
-  {
-    organizationName: "Precast India Infrastructures Private Limited",
-    siteName: "NTT Airoli Common DC",
-    category: "Project Execution Feedback",
-  },
-  {
-    organizationName: "Dar & Wagh Architects",
-    siteName: "YOO Pune",
-    category: "Design Feedback",
-  },
-];
-
-const MOCK_WATCHLIST_COLUMNS = [
+const WATCHLIST_COLUMNS = [
   { key: "organizationName", label: "Organization Name" },
   { key: "siteName", label: "Site Name" },
   { key: "avgScore", label: "Avg Score (Only Completed)" },
 ];
 
-const MOCK_WATCHLIST_DATA = [
-  {
-    organizationName: "AASHI SOLUTIONS PRIVATE LIMITED",
-    siteName: "Gagan Habitats LLP",
-    avgScore: 56.33,
-  },
-  {
-    organizationName: "AASHI SOLUTIONS PRIVATE LIMITED",
-    siteName: "Kharadi (PBSPL) - Co",
-    avgScore: 56.33,
-  },
-];
-
-const MOCK_DISQUALIFIED_COLUMNS = [
+const DISQUALIFIED_COLUMNS = [
   { key: "organizationName", label: "Organization Name" },
   { key: "siteName", label: "Site Name" },
   { key: "avgScore", label: "Avg Score (Only Completed)" },
 ];
 
-const MOCK_DISQUALIFIED_DATA = [
-  {
-    organizationName: "Aquastop Solutions",
-    siteName: "SRA(Resi.)–Mahadev-Bandra",
-    avgScore: 47.0,
-  },
-  {
-    organizationName: "S.A. INFRA",
-    siteName: "Almedia Park -Gold Fusion, Bandra",
-    avgScore: 47.5,
-  },
-];
-
-const MOCK_VENDOR_GRADE_DATA = [
-  { grade: "B", value: 40, color: "#f58513" },
-  { grade: "C", value: 31, color: "#e6b325" },
-  { grade: "D", value: 27, color: "#f4ea00" },
-  { grade: "F", value: 2, color: "#e00000" },
-];
-
-const MOCK_SCORES_COLUMNS = [
+const SCORES_COLUMNS = [
   { key: "organizationName", label: "Organization Name" },
   { key: "siteName", label: "Site Name" },
   { key: "category", label: "Category" },
@@ -158,67 +57,17 @@ const MOCK_SCORES_COLUMNS = [
   { key: "givenScore", label: "Given Score" },
   { key: "siteScore", label: "Site Score" },
   { key: "vendorAvgScore", label: "Vendor Avg Score (Complete Sites)" },
-  { key: "remainingSites", label: "Remaining Sites" },
+  { key: "remark", label: "Remark" },
 ];
 
-const MOCK_SCORES_DATA = [
-  {
-    organizationName: "Siddhivinayak Precast Pipes Private Limited",
-    siteName: "L BOMB-Common",
-    category: "Procurement Feedback",
-    firstName: "Satyabrata",
-    lastName: "Dash",
-    riskCategory: "Low Risk",
-    givenScore: 45,
-    siteScore: 80,
-    vendorAvgScore: 77.5,
-    remainingSites: "Sup",
-  },
+const LEADERBOARD_COLUMNS = [
+  { key: "organizationName", label: "Organization Name" },
+  { key: "siteName", label: "Site Name" },
+  { key: "bestSiteScore", label: "Best Site Score" },
+  { key: "worstSiteScore", label: "Worst Site Score" },
+  { key: "avgScore", label: "Avg Score" },
+  { key: "variancePct", label: "Variance %" },
 ];
-
-const MOCK_SUBMITTED_PENDING_DATA = [
-  { name: "Procurement Feedback", submitted: 198, pending: 0 },
-  { name: "QAQC Feedback", submitted: 198, pending: 0 },
-];
-
-const MOCK_SUBMITTED_ASSESSMENT_DATA = [
-  {
-    name: "Procurement Feedback",
-    A: 145,
-    B: 23,
-    C: 24,
-    D: 4,
-    F: 2,
-    total: 198,
-  },
-];
-
-const MOCK_PERCENTAGE_COMPLETION_DATA = [
-  { department: "Procurement Feedback", percentage: 92 },
-  { department: "Design Feedback", percentage: 69 },
-];
-
-const MOCK_CATEGORY_RISK_DATA = [
-  {
-    name: "Procurement Feedback",
-    HIGH: 5,
-    LOW: 191,
-    MODERATE: 10,
-  },
-];
-
-const MOCK_LEADERBOARD_DATA = [
-  {
-    organizationName: "Tata Steel Limited",
-    siteName: "L BOMB-Common",
-    bestSiteScore: 93.0,
-  },
-];
-
-const MOCK_ON_TIME_COMPLETION = {
-  submitted: 317,
-  totalAssessments: 319,
-};
 
 // =============================================================================
 // SECTION SELECTOR CONFIG
@@ -330,14 +179,13 @@ const ALL_STAT_IDS = [
 
 const getDefaultDateRange = () => {
   const today = new Date();
-  const lastYear = new Date();
-  lastYear.setFullYear(today.getFullYear() - 1);
   const fmt = (d) => {
     const dd = d.getDate().toString().padStart(2, "0");
     const mm = (d.getMonth() + 1).toString().padStart(2, "0");
     return `${dd}/${mm}/${d.getFullYear()}`;
   };
-  return { startDate: fmt(lastYear), endDate: fmt(today) };
+  const startDate2024 = new Date(2024, 0, 1); // 01 Jan 2024
+  return { startDate: fmt(startDate2024), endDate: fmt(today) };
 };
 
 // =============================================================================
@@ -345,8 +193,21 @@ const getDefaultDateRange = () => {
 // =============================================================================
 
 const VendersAssesmentDashboard = () => {
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [dateRange, setDateRange] = useState(getDefaultDateRange);
+  const [activeFilters, setActiveFilters] = useState(() => {
+    const companyId =
+      typeof window !== "undefined"
+        ? sessionStorage.getItem("company_id") || "40"
+        : "40";
+    return {
+      companyId,
+      departmentIds: "",
+      vendorIds: "",
+      siteId: "",
+      categoryId: "",
+      subCategoryId: "",
+    };
+  });
   const [chartOrder, setChartOrder] = useState(ALL_CHART_IDS);
   const [visibleSections, setVisibleSections] = useState([
     ...ALL_STAT_IDS,
@@ -387,6 +248,704 @@ const VendersAssesmentDashboard = () => {
   // Helper to check if any component in a row is visible
   const showRow = (components) => components.some(show);
 
+  const token = useMemo(() => {
+    if (typeof window === "undefined") return "";
+    const tokenFromUrl = new URLSearchParams(window.location.search).get(
+      "token",
+    );
+    return tokenFromUrl || sessionStorage.getItem("token") || "";
+  }, []);
+
+  const [kpiResponse, setKpiResponse] = useState(null);
+  const [isKpiLoading, setIsKpiLoading] = useState(false);
+
+  const [topBottomResponse, setTopBottomResponse] = useState(null);
+  const [isTopBottomLoading, setIsTopBottomLoading] = useState(false);
+
+  const [vendorsByGradeResponse, setVendorsByGradeResponse] = useState(null);
+  const [isVendorsByGradeLoading, setIsVendorsByGradeLoading] = useState(false);
+
+  const [noRatingRows, setNoRatingRows] = useState([]);
+  const [watchlistRows, setWatchlistRows] = useState([]);
+  const [disqualifiedRows, setDisqualifiedRows] = useState([]);
+  const [isNoRatingLoading, setIsNoRatingLoading] = useState(false);
+  const [isWatchlistLoading, setIsWatchlistLoading] = useState(false);
+  const [isDisqualifiedLoading, setIsDisqualifiedLoading] = useState(false);
+
+  const [scoresRows, setScoresRows] = useState([]);
+  const [scoresPagination, setScoresPagination] = useState({
+    current_page: 1,
+    per_page: 50,
+    total_pages: 1,
+    total_records: 0,
+  });
+  const [isScoresLoading, setIsScoresLoading] = useState(false);
+
+  const [leaderboardRows, setLeaderboardRows] = useState([]);
+  const [leaderboardPagination, setLeaderboardPagination] = useState({
+    current_page: 1,
+    per_page: 50,
+    total_pages: 1,
+    total_records: 0,
+  });
+  const [isLeaderboardLoading, setIsLeaderboardLoading] = useState(false);
+
+  const [subcategoryOverviewResponse, setSubcategoryOverviewResponse] =
+    useState(null);
+  const [isSubcategoryOverviewLoading, setIsSubcategoryOverviewLoading] =
+    useState(false);
+
+  const LoadingCard = ({ title, height = 200, className = "" }) => (
+    <div className={`card go-shadow bg-white rounded-lg w-100 ${className}`}>
+      <div className="vendor-card-header">
+        <h3 className="vendor-card-title">{title}</h3>
+      </div>
+      <div
+        className="card-body"
+        style={{
+          height,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <div className="spinner-border text-primary mb-2" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
+        <span className="text-muted fw-medium">Loading {title}...</span>
+      </div>
+    </div>
+  );
+
+  const exportTableToCsv = (rows, columns, filename) => {
+    if (!rows || rows.length === 0) return;
+    const safeColumns = columns || [];
+    const header = safeColumns
+      .map((c) => `"${String(c.label || "").replace(/"/g, '""')}"`)
+      .join(",");
+    const body = rows
+      .map((row) =>
+        safeColumns
+          .map((c) => {
+            const raw = row[c.key];
+            const value = raw === null || raw === undefined ? "" : String(raw);
+            return `"${value.replace(/"/g, '""')}"`;
+          })
+          .join(","),
+      )
+      .join("\n");
+    const csv = `${header}\n${body}`;
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${filename || "export"}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const exportChartData = (data, filename) => {
+    if (!data || data.length === 0) {
+      alert("No data available to download!");
+      return;
+    }
+    const exportData = Array.isArray(data) ? data : [data];
+    if (exportData.length === 0) return;
+    const keys = Object.keys(exportData[0]).filter(
+      (k) => !["color", "fill", "icon", "component"].includes(k),
+    );
+    const columns = keys.map((k) => ({
+      key: k,
+      label: k.replace(/_/g, " ").toUpperCase(),
+    }));
+    exportTableToCsv(exportData, columns, filename);
+  };
+
+  const buildAssessmentQueryParams = (extra = {}) => {
+    const params = new URLSearchParams();
+    params.append("token", token);
+    if (activeFilters.departmentIds)
+      params.append("department_ids", activeFilters.departmentIds);
+    if (activeFilters.siteId) params.append("sites_ids", activeFilters.siteId);
+    if (activeFilters.vendorIds) params.append("vendor_ids", activeFilters.vendorIds);
+    params.append("from_date", dateRange.startDate);
+    params.append("end_date", dateRange.endDate);
+    if (activeFilters.categoryId) params.append("category_ids", activeFilters.categoryId);
+    if (activeFilters.subCategoryId)
+      params.append("sub_category_ids", activeFilters.subCategoryId);
+
+    Object.entries(extra).forEach(([k, v]) => {
+      if (v !== undefined && v !== null && v !== "") params.append(k, v);
+    });
+
+    return params;
+  };
+
+  const refreshKpisAndGrades = useCallback(
+    async (signal) => {
+      if (!token) return;
+      if (!dateRange?.startDate || !dateRange?.endDate) return;
+      setIsKpiLoading(true);
+      try {
+        const params = buildAssessmentQueryParams();
+        const res = await fetch(
+          `${baseURL}vendor_assement_dashboard/kpis_and_grades.json?${params.toString()}`,
+          { signal },
+        );
+        const json = await res.json();
+        setKpiResponse(json);
+      } catch (e) {
+        if (e?.name !== "AbortError")
+          console.error("KPI/Grades fetch error:", e);
+        setKpiResponse(null);
+      } finally {
+        setIsKpiLoading(false);
+      }
+    },
+    [
+      token,
+      dateRange?.startDate,
+      dateRange?.endDate,
+      activeFilters.departmentIds,
+      activeFilters.vendorIds,
+      activeFilters.siteId,
+      activeFilters.categoryId,
+      activeFilters.subCategoryId,
+    ],
+  );
+
+  const fetchAllVendorProjectList = async (type, signal) => {
+    const all = [];
+    let page = 1;
+    let totalPages = 1;
+
+    do {
+      const params = buildAssessmentQueryParams({ type, page });
+      const res = await fetch(
+        `${baseURL}vendor_assement_dashboard/vendor_project_list.json?${params.toString()}`,
+        { signal },
+      );
+      const json = await res.json();
+      const rows = Array.isArray(json?.data) ? json.data : [];
+      rows.forEach((r) => all.push(r));
+      totalPages = Number(json?.total_pages ?? 1) || 1;
+      page += 1;
+    } while (page <= totalPages);
+
+    return all;
+  };
+
+  const refreshTables = useCallback(
+    async (signal) => {
+      if (!token) return;
+      if (!dateRange?.startDate || !dateRange?.endDate) return;
+      setIsNoRatingLoading(true);
+      setIsWatchlistLoading(true);
+      setIsDisqualifiedLoading(true);
+      try {
+        const [noRating, watchlist, disqualified] = await Promise.all([
+          fetchAllVendorProjectList("no_rating", signal),
+          fetchAllVendorProjectList("watchlist", signal),
+          fetchAllVendorProjectList("disqualified", signal),
+        ]);
+
+        setNoRatingRows(
+          (noRating || []).map((r) => ({
+            organizationName: r.vendor_name,
+            siteName: r.project_name,
+            category: r.category_name,
+          })),
+        );
+        setWatchlistRows(
+          (watchlist || []).map((r) => ({
+            organizationName: r.vendor_name,
+            siteName: r.project_name,
+            avgScore: r.avg_percentage,
+          })),
+        );
+        setDisqualifiedRows(
+          (disqualified || []).map((r) => ({
+            organizationName: r.vendor_name,
+            siteName: r.project_name,
+            avgScore: r.avg_percentage,
+          })),
+        );
+      } catch (e) {
+        if (e?.name !== "AbortError") console.error("Tables fetch error:", e);
+        setNoRatingRows([]);
+        setWatchlistRows([]);
+        setDisqualifiedRows([]);
+      } finally {
+        setIsNoRatingLoading(false);
+        setIsWatchlistLoading(false);
+        setIsDisqualifiedLoading(false);
+      }
+    },
+    [
+      token,
+      dateRange?.startDate,
+      dateRange?.endDate,
+      activeFilters.departmentIds,
+      activeFilters.vendorIds,
+      activeFilters.siteId,
+      activeFilters.categoryId,
+      activeFilters.subCategoryId,
+    ],
+  );
+
+  const statData = useMemo(() => {
+    const r = kpiResponse || {};
+    const k = r.kpis || {};
+    const s = r.assessment_status || {};
+    const vr = r.vendor_rating || {};
+
+    return {
+      TotalapprovedVendors: k.approved_vendors ?? 0,
+      TotalAssesmentCount: k.total_assessment_count ?? 0,
+      FullyCompleted: s.fully_completed ?? 0,
+      PartiallyCompleted: s.partially_completed ?? 0,
+      Pending: s.pending ?? 0,
+      TotalUniqueVendorCountForAssessment: k.unique_vendor_count ?? 0,
+      TotalQualifiedVendors: vr.total_qualified_vendors ?? 0,
+      DisqualifiedVendorDuetoRatingNotGiven:
+        vr.disqualified_due_to_missing_rating ?? 0,
+      TotalDisqualifiedVendorsDuetoRating: vr.total_disqualified_vendors ?? 0,
+      TotalWatchlistVendors: vr.watchlist_vendors ?? 0,
+    };
+  }, [kpiResponse]);
+
+  const gradeData = useMemo(() => {
+    const grades = kpiResponse?.assesment_grades || {};
+    // Keep existing colors
+    const colors = {
+      A: "#00b050",
+      B: "#f58513",
+      C: "#e6b325",
+      D: "#f4ea00",
+      F: "#e00000",
+    };
+    return ["A", "B", "C", "D", "F"].map((g) => ({
+      grade: g,
+      value: Number(grades?.[g] ?? 0),
+      color: colors[g],
+    }));
+  }, [kpiResponse]);
+
+  const vendorsByGradeData = useMemo(() => {
+    const grades = vendorsByGradeResponse?.vendor_by_grade || {};
+    const colors = {
+      A: "#00b050",
+      B: "#f58513",
+      C: "#e6b325",
+      D: "#f4ea00",
+      F: "#e00000",
+    };
+    return ["A", "B", "C", "D", "F"].map((g) => ({
+      grade: g,
+      value: Number(grades?.[g] ?? 0),
+      color: colors[g],
+    }));
+  }, [vendorsByGradeResponse]);
+
+  const submittedPendingData = useMemo(() => {
+    const rows = subcategoryOverviewResponse?.data;
+    if (!Array.isArray(rows)) return [];
+    return rows.map((r) => ({
+      name: r.sub_category_name,
+      submitted: Number(r.submitted_count ?? 0),
+      pending: Number(r.pending_count ?? 0),
+    }));
+  }, [subcategoryOverviewResponse]);
+
+  const submittedAssessmentOverviewData = useMemo(() => {
+    const rows = subcategoryOverviewResponse?.data;
+    if (!Array.isArray(rows)) return [];
+    const byCategory = new Map();
+    for (const r of rows) {
+      const key = String(r.category || "Unknown").trim();
+      const prev = byCategory.get(key) || {
+        name: key,
+        A: 0,
+        B: 0,
+        C: 0,
+        D: 0,
+        F: 0,
+        total: 0,
+      };
+      prev.A += Number(r.grade_a ?? 0);
+      prev.B += Number(r.grade_b ?? 0);
+      prev.C += Number(r.grade_c ?? 0);
+      prev.D += Number(r.grade_d ?? 0);
+      prev.F += Number(r.grade_f ?? 0);
+      prev.total += Number(r.total_count ?? 0);
+      byCategory.set(key, prev);
+    }
+    return Array.from(byCategory.values());
+  }, [subcategoryOverviewResponse]);
+
+  const percentageCompletionData = useMemo(() => {
+    const rows = subcategoryOverviewResponse?.data;
+    if (!Array.isArray(rows)) return [];
+    return rows.map((r) => {
+      const submitted = Number(r.submitted_count ?? 0);
+      const total = Number(r.total_count ?? 0);
+      const pct = total > 0 ? Math.round((submitted / total) * 100) : 0;
+      return {
+        department: r.sub_category_name,
+        percentage: pct,
+      };
+    });
+  }, [subcategoryOverviewResponse]);
+
+  const categoryRiskFlagData = useMemo(() => {
+    const rows = subcategoryOverviewResponse?.data;
+    if (!Array.isArray(rows)) return [];
+    const byCategory = new Map();
+    const normalizeRisk = (riskFlag) => {
+      const v = String(riskFlag || "").toLowerCase();
+      if (v.includes("high")) return "HIGH";
+      if (v.includes("moderate")) return "MODERATE";
+      if (v.includes("low")) return "LOW";
+      return "MODERATE";
+    };
+    for (const r of rows) {
+      const key = String(r.category || "Unknown").trim();
+      const prev = byCategory.get(key) || { name: key, HIGH: 0, LOW: 0, MODERATE: 0 };
+      const bucket = normalizeRisk(r.risk_flag);
+      const inc = Number(r.total_count ?? 0);
+      prev[bucket] += inc;
+      byCategory.set(key, prev);
+    }
+    return Array.from(byCategory.values());
+  }, [subcategoryOverviewResponse]);
+
+  const topVendorsData = useMemo(() => {
+    const arr = topBottomResponse?.top_vendors || [];
+    return (Array.isArray(arr) ? arr : [])
+      .slice(0, 10)
+      .map((v) => ({
+        vendorId: v.vendor_id,
+        name: String(v.vendor_name || "").trim(),
+        avgTat: Number(v.average_score ?? 0),
+      }))
+      .filter((x) => x.name);
+  }, [topBottomResponse]);
+
+  const bottomVendorsData = useMemo(() => {
+    const arr = topBottomResponse?.bottom_vendors || [];
+    return (Array.isArray(arr) ? arr : [])
+      .slice(0, 10)
+      .map((v) => ({
+        vendorId: v.vendor_id,
+        name: String(v.vendor_name || "").trim(),
+        avgTat: Number(v.average_score ?? 0),
+      }))
+      .filter((x) => x.name);
+  }, [topBottomResponse]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    refreshKpisAndGrades(controller.signal);
+    return () => controller.abort();
+  }, [refreshKpisAndGrades]);
+
+  const refreshTopBottom = useCallback(
+    async (signal) => {
+      if (!token) return;
+      if (!dateRange?.startDate || !dateRange?.endDate) return;
+      setIsTopBottomLoading(true);
+      try {
+        const params = buildAssessmentQueryParams();
+        const res = await fetch(
+          `${baseURL}vendor_assement_dashboard/top_bottom_vendors.json?${params.toString()}`,
+          { signal },
+        );
+        const json = await res.json();
+        setTopBottomResponse(json);
+      } catch (e) {
+        if (e?.name !== "AbortError")
+          console.error("Top/Bottom vendors fetch error:", e);
+        setTopBottomResponse(null);
+      } finally {
+        setIsTopBottomLoading(false);
+      }
+    },
+    [
+      token,
+      dateRange?.startDate,
+      dateRange?.endDate,
+      activeFilters.departmentIds,
+      activeFilters.vendorIds,
+      activeFilters.siteId,
+      activeFilters.categoryId,
+      activeFilters.subCategoryId,
+    ],
+  );
+
+  useEffect(() => {
+    const controller = new AbortController();
+    refreshTopBottom(controller.signal);
+    return () => controller.abort();
+  }, [refreshTopBottom]);
+
+  const refreshVendorsByGrade = useCallback(
+    async (signal) => {
+      if (!token) return;
+      if (!dateRange?.startDate || !dateRange?.endDate) return;
+      setIsVendorsByGradeLoading(true);
+      try {
+        const params = buildAssessmentQueryParams();
+        const res = await fetch(
+          `${baseURL}vendor_assement_dashboard/vendors_by_grade.json?${params.toString()}`,
+          { signal },
+        );
+        const json = await res.json();
+        setVendorsByGradeResponse(json);
+      } catch (e) {
+        if (e?.name !== "AbortError")
+          console.error("Vendors by grade fetch error:", e);
+        setVendorsByGradeResponse(null);
+      } finally {
+        setIsVendorsByGradeLoading(false);
+      }
+    },
+    [
+      token,
+      dateRange?.startDate,
+      dateRange?.endDate,
+      activeFilters.departmentIds,
+      activeFilters.vendorIds,
+      activeFilters.siteId,
+      activeFilters.categoryId,
+      activeFilters.subCategoryId,
+    ],
+  );
+
+  useEffect(() => {
+    const controller = new AbortController();
+    refreshVendorsByGrade(controller.signal);
+    return () => controller.abort();
+  }, [refreshVendorsByGrade]);
+
+  const refreshSubcategoryOverview = useCallback(
+    async (signal) => {
+      if (!token) return;
+      if (!dateRange?.startDate || !dateRange?.endDate) return;
+      setIsSubcategoryOverviewLoading(true);
+      try {
+        const params = buildAssessmentQueryParams();
+        const res = await fetch(
+          `${baseURL}vendor_assement_dashboard/subcategory_overview.json?${params.toString()}`,
+          { signal },
+        );
+        const json = await res.json();
+        setSubcategoryOverviewResponse(json);
+      } catch (e) {
+        if (e?.name !== "AbortError")
+          console.error("Subcategory overview fetch error:", e);
+        setSubcategoryOverviewResponse(null);
+      } finally {
+        setIsSubcategoryOverviewLoading(false);
+      }
+    },
+    [
+      token,
+      dateRange?.startDate,
+      dateRange?.endDate,
+      activeFilters.departmentIds,
+      activeFilters.vendorIds,
+      activeFilters.siteId,
+      activeFilters.categoryId,
+      activeFilters.subCategoryId,
+    ],
+  );
+
+  useEffect(() => {
+    const controller = new AbortController();
+    refreshSubcategoryOverview(controller.signal);
+    return () => controller.abort();
+  }, [refreshSubcategoryOverview]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    refreshTables(controller.signal);
+    return () => controller.abort();
+  }, [refreshTables]);
+
+  const fetchVendorSiteScoresPage = async (page, signal) => {
+    const params = buildAssessmentQueryParams({ page });
+    const res = await fetch(
+      `${baseURL}vendor_assement_dashboard/vendor_site_scores.json?${params.toString()}`,
+      { signal },
+    );
+    const json = await res.json();
+    const rows = Array.isArray(json?.data) ? json.data : [];
+    setScoresRows(
+      rows.map((r) => ({
+        organizationName: r.organization_name,
+        siteName: r.site_name,
+        category: r.category,
+        firstName: r.first_name,
+        lastName: r.last_name,
+        riskCategory: r.risk_category,
+        givenScore: r.given_score,
+        siteScore: r.site_score,
+        vendorAvgScore: r.vendor_avg_score,
+        remark: r.remark,
+      })),
+    );
+    setScoresPagination({
+      current_page: Number(json?.page ?? page) || page,
+      per_page: Number(json?.per_page ?? 50) || 50,
+      total_pages: Number(json?.total_pages ?? 1) || 1,
+      total_records: Number(json?.total_rows ?? 0) || 0,
+    });
+  };
+
+  const fetchAllVendorSiteScores = async (signal) => {
+    const all = [];
+    let page = 1;
+    let totalPages = 1;
+    do {
+      const params = buildAssessmentQueryParams({ page });
+      const res = await fetch(
+        `${baseURL}vendor_assement_dashboard/vendor_site_scores.json?${params.toString()}`,
+        { signal },
+      );
+      const json = await res.json();
+      const rows = Array.isArray(json?.data) ? json.data : [];
+      rows.forEach((r) => all.push(r));
+      totalPages = Number(json?.total_pages ?? 1) || 1;
+      page += 1;
+    } while (page <= totalPages);
+    return all;
+  };
+
+  const fetchLeaderboardPage = async (page, signal) => {
+    const params = buildAssessmentQueryParams({ page });
+    const res = await fetch(
+      `${baseURL}vendor_assement_dashboard/leaderboard.json?${params.toString()}`,
+      { signal },
+    );
+    const json = await res.json();
+    const rows = Array.isArray(json?.data) ? json.data : [];
+
+    setLeaderboardRows(
+      rows.map((r) => ({
+        supplierId: r.supplier_id,
+        organizationName: r.organization_name,
+        siteName: r.site_name,
+        bestSiteScore: r.best_site_score,
+        worstSiteScore: r.worst_site_score,
+        avgScore: r.avg_score,
+        variancePct: r.variance_pct,
+      })),
+    );
+
+    setLeaderboardPagination({
+      current_page: Number(json?.page ?? page) || page,
+      per_page: Number(json?.per_page ?? 50) || 50,
+      total_pages: Number(json?.total_pages ?? 1) || 1,
+      total_records: Number(json?.total_rows ?? 0) || 0,
+    });
+  };
+
+  const fetchAllLeaderboard = async (signal) => {
+    const all = [];
+    let page = 1;
+    let totalPages = 1;
+    do {
+      const params = buildAssessmentQueryParams({ page });
+      const res = await fetch(
+        `${baseURL}vendor_assement_dashboard/leaderboard.json?${params.toString()}`,
+        { signal },
+      );
+      const json = await res.json();
+      const rows = Array.isArray(json?.data) ? json.data : [];
+      rows.forEach((r) => all.push(r));
+      totalPages = Number(json?.total_pages ?? 1) || 1;
+      page += 1;
+    } while (page <= totalPages);
+    return all;
+  };
+
+  useEffect(() => {
+    if (!token) return;
+    if (!dateRange?.startDate || !dateRange?.endDate) return;
+    const controller = new AbortController();
+
+    const run = async () => {
+      setIsScoresLoading(true);
+      try {
+        await fetchVendorSiteScoresPage(1, controller.signal);
+      } catch (e) {
+        if (e?.name !== "AbortError")
+          console.error("Scores fetch error:", e);
+        setScoresRows([]);
+        setScoresPagination({
+          current_page: 1,
+          per_page: 50,
+          total_pages: 1,
+          total_records: 0,
+        });
+      } finally {
+        setIsScoresLoading(false);
+      }
+    };
+
+    run();
+    return () => controller.abort();
+  }, [
+    token,
+    dateRange?.startDate,
+    dateRange?.endDate,
+    activeFilters.departmentIds,
+    activeFilters.vendorIds,
+    activeFilters.siteId,
+    activeFilters.categoryId,
+    activeFilters.subCategoryId,
+  ]);
+
+  useEffect(() => {
+    if (!token) return;
+    if (!dateRange?.startDate || !dateRange?.endDate) return;
+    const controller = new AbortController();
+
+    const run = async () => {
+      setIsLeaderboardLoading(true);
+      try {
+        await fetchLeaderboardPage(1, controller.signal);
+      } catch (e) {
+        if (e?.name !== "AbortError")
+          console.error("Leaderboard fetch error:", e);
+        setLeaderboardRows([]);
+        setLeaderboardPagination({
+          current_page: 1,
+          per_page: 50,
+          total_pages: 1,
+          total_records: 0,
+        });
+      } finally {
+        setIsLeaderboardLoading(false);
+      }
+    };
+
+    run();
+    return () => controller.abort();
+  }, [
+    token,
+    dateRange?.startDate,
+    dateRange?.endDate,
+    activeFilters.departmentIds,
+    activeFilters.vendorIds,
+    activeFilters.siteId,
+    activeFilters.categoryId,
+    activeFilters.subCategoryId,
+  ]);
+
   return (
     <div className="site-content">
       <div className="website-content">
@@ -410,26 +969,6 @@ const VendersAssesmentDashboard = () => {
                         </p>
                       </div>
                       <div className="d-flex align-items-center gap-3">
-                        <button
-                          onClick={() => setIsFilterOpen(true)}
-                          className="btn d-flex align-items-center gap-2"
-                          style={{
-                            backgroundColor: "white",
-                            border: "1px solid #ddd",
-                            color: "#333",
-                            padding: "8px 16px",
-                            borderRadius: "6px",
-                            fontSize: "14px",
-                          }}
-                        >
-                          <CalendarIcon
-                            style={{ width: "16px", height: "16px" }}
-                          />
-                          <span style={{ fontWeight: 500 }}>
-                            {dateRange.startDate} – {dateRange.endDate}
-                          </span>
-                          <Filter style={{ width: "16px", height: "16px" }} />
-                        </button>
                         <VendorSectionSelector
                           data={VENDER_ASSESMENT_CONFIG}
                           dashboardType="assessment"
@@ -440,95 +979,163 @@ const VendersAssesmentDashboard = () => {
                   </div>
                 </div>
 
+                <VendorFilterCard
+                  onApplyFilters={(filters) => {
+                    setDateRange({
+                      startDate: filters.startDate,
+                      endDate: filters.endDate,
+                    });
+                    setActiveFilters({
+                      companyId: filters.companyId || "",
+                      departmentIds: filters.departmentName || "",
+                      vendorIds: filters.vendors || "",
+                      siteId: filters.siteId || "",
+                      categoryId: filters.categoryId || "",
+                      subCategoryId: filters.subCategoryId || "",
+                    });
+                  }}
+                  currentStartDate={dateRange.startDate}
+                  currentEndDate={dateRange.endDate}
+                  token={token}
+                  enableAssessmentDropdowns={true}
+                />
+
                 {/* Stat Cards */}
                 <div className="row g-3 mb-4">
                   {show("TotalapprovedVendors") && (
                     <div className="col-lg-3 col-md-6 col-sm-12">
-                      <VendorStatCard
-                        title="Total Approved Vendors"
-                        value={MOCK_STAT_DATA.TotalapprovedVendors}
-                      />
+                      {isKpiLoading && !kpiResponse ? (
+                        <LoadingCard title="Total Approved Vendors" height={120} />
+                      ) : (
+                        <VendorStatCard
+                          title="Total Approved Vendors"
+                          value={statData.TotalapprovedVendors}
+                        />
+                      )}
                     </div>
                   )}
                   {show("TotalAssesmentCount") && (
                     <div className="col-lg-3 col-md-6 col-sm-12">
-                      <VendorStatCard
-                        title="Total Assessment Count"
-                        value={MOCK_STAT_DATA.TotalAssesmentCount}
-                      />
+                      {isKpiLoading && !kpiResponse ? (
+                        <LoadingCard title="Total Assessment Count" height={120} />
+                      ) : (
+                        <VendorStatCard
+                          title="Total Assessment Count"
+                          value={statData.TotalAssesmentCount}
+                        />
+                      )}
                     </div>
                   )}
                   {show("FullyCompleted") && (
                     <div className="col-lg-3 col-md-6 col-sm-12">
-                      <VendorStatCard
-                        title="Fully Completed"
-                        value={MOCK_STAT_DATA.FullyCompleted}
-                      />
+                      {isKpiLoading && !kpiResponse ? (
+                        <LoadingCard title="Fully Completed" height={120} />
+                      ) : (
+                        <VendorStatCard
+                          title="Fully Completed"
+                          value={statData.FullyCompleted}
+                        />
+                      )}
                     </div>
                   )}
                   {show("PartiallyCompleted") && (
                     <div className="col-lg-3 col-md-6 col-sm-12">
-                      <VendorStatCard
-                        title="Partially Completed"
-                        value={MOCK_STAT_DATA.PartiallyCompleted}
-                      />
+                      {isKpiLoading && !kpiResponse ? (
+                        <LoadingCard title="Partially Completed" height={120} />
+                      ) : (
+                        <VendorStatCard
+                          title="Partially Completed"
+                          value={statData.PartiallyCompleted}
+                        />
+                      )}
                     </div>
                   )}
                   {show("Pending") && (
                     <div className="col-lg-3 col-md-6 col-sm-12">
-                      <VendorStatCard
-                        title="Pending"
-                        value={MOCK_STAT_DATA.Pending}
-                      />
+                      {isKpiLoading && !kpiResponse ? (
+                        <LoadingCard title="Pending" height={120} />
+                      ) : (
+                        <VendorStatCard title="Pending" value={statData.Pending} />
+                      )}
                     </div>
                   )}
                   {show("TotalUniqueVendorCountForAssessment") && (
                     <div className="col-lg-3 col-md-6 col-sm-12">
-                      <VendorStatCard
-                        title="Total Unique Vendor Count For Assessment"
-                        value={
-                          MOCK_STAT_DATA.TotalUniqueVendorCountForAssessment
-                        }
-                      />
+                      {isKpiLoading && !kpiResponse ? (
+                        <LoadingCard
+                          title="Total Unique Vendor Count For Assessment"
+                          height={120}
+                        />
+                      ) : (
+                        <VendorStatCard
+                          title="Total Unique Vendor Count For Assessment"
+                          value={statData.TotalUniqueVendorCountForAssessment}
+                        />
+                      )}
                     </div>
                   )}
                   {show("TotalQualifiedVendors") && (
                     <div className="col-lg-3 col-md-6 col-sm-12">
-                      <VendorStatCard
-                        title="Total Qualified Vendors (Above 50%)"
-                        value={MOCK_STAT_DATA.TotalQualifiedVendors}
-                      />
+                      {isKpiLoading && !kpiResponse ? (
+                        <LoadingCard
+                          title="Total Qualified Vendors (Above 50%)"
+                          height={120}
+                        />
+                      ) : (
+                        <VendorStatCard
+                          title="Total Qualified Vendors (Above 50%)"
+                          value={statData.TotalQualifiedVendors}
+                        />
+                      )}
                     </div>
                   )}
                   {show("DisqualifiedVendorDuetoRatingNotGiven") && (
                     <div className="col-lg-3 col-md-6 col-sm-12">
-                      <VendorStatCard
-                        title="Disqualified Vendor Due to Rating Not Given"
-                        value={
-                          MOCK_STAT_DATA.DisqualifiedVendorDuetoRatingNotGiven ===
-                          0
-                            ? "(Blank)"
-                            : MOCK_STAT_DATA.DisqualifiedVendorDuetoRatingNotGiven
-                        }
-                      />
+                      {isKpiLoading && !kpiResponse ? (
+                        <LoadingCard
+                          title="Disqualified Vendor Due to Rating Not Given"
+                          height={120}
+                        />
+                      ) : (
+                        <VendorStatCard
+                          title="Disqualified Vendor Due to Rating Not Given"
+                          value={
+                            statData.DisqualifiedVendorDuetoRatingNotGiven === 0
+                              ? 0
+                              : statData.DisqualifiedVendorDuetoRatingNotGiven
+                          }
+                        />
+                      )}
                     </div>
                   )}
                   {show("TotalDisqualifiedVendorsDuetoRating") && (
                     <div className="col-lg-3 col-md-6 col-sm-12">
-                      <VendorStatCard
-                        title="Total Disqualified Vendors Due to Rating (Below 50%)"
-                        value={
-                          MOCK_STAT_DATA.TotalDisqualifiedVendorsDuetoRating
-                        }
-                      />
+                      {isKpiLoading && !kpiResponse ? (
+                        <LoadingCard
+                          title="Total Disqualified Vendors Due to Rating (Below 50%)"
+                          height={120}
+                        />
+                      ) : (
+                        <VendorStatCard
+                          title="Total Disqualified Vendors Due to Rating (Below 50%)"
+                          value={statData.TotalDisqualifiedVendorsDuetoRating}
+                        />
+                      )}
                     </div>
                   )}
                   {show("TotalWatchlistVendors") && (
                     <div className="col-lg-3 col-md-6 col-sm-12">
-                      <VendorStatCard
-                        title="Total Watchlist Vendors (50% to 60%)"
-                        value={MOCK_STAT_DATA.TotalWatchlistVendors}
-                      />
+                      {isKpiLoading && !kpiResponse ? (
+                        <LoadingCard
+                          title="Total Watchlist Vendors (50% to 60%)"
+                          height={120}
+                        />
+                      ) : (
+                        <VendorStatCard
+                          title="Total Watchlist Vendors (50% to 60%)"
+                          value={statData.TotalWatchlistVendors}
+                        />
+                      )}
                     </div>
                   )}
                 </div>
@@ -553,10 +1160,24 @@ const VendersAssesmentDashboard = () => {
                           return (
                             <div key={chartId} className="mt-4">
                               <SortableChartItem id={chartId}>
-                                <GradeAssessmentBar
-                                  data={MOCK_GRADE_DATA}
-                                  onDownload={() => {}}
-                                />
+                                {isKpiLoading && !kpiResponse ? (
+                                  <LoadingCard
+                                    title="Count of Assessments by Grade"
+                                    height={220}
+                                  />
+                                ) : (
+                                  <GradeAssessmentBar
+                                    title="Count of Assessments by Grade"
+                                    data={gradeData}
+                                    onDownload={() => {}}
+                                    onRefresh={async () => {
+                                      const controller = new AbortController();
+                                      await refreshKpisAndGrades(
+                                        controller.signal,
+                                      );
+                                    }}
+                                  />
+                                )}
                               </SortableChartItem>
                             </div>
                           );
@@ -574,54 +1195,55 @@ const VendersAssesmentDashboard = () => {
                             return (
                               <div key={chartId} className="mt-4">
                                 <div className="row">
-                                  <div className="col-lg-8">
+                                  <div className="col-lg-12">
                                     <SortableChartItem id={chartId}>
-                                      <TopBottomVendorsChart
-                                        topData={MOCK_TOP_VENDORS}
-                                        bottomData={MOCK_BOTTOM_VENDORS}
-                                        onDownload={() => {}}
-                                      />
+                                      {isTopBottomLoading &&
+                                      !topBottomResponse ? (
+                                        <LoadingCard
+                                          title="Top / Bottom Vendors by Avg Score"
+                                          height={520}
+                                        />
+                                      ) : (
+                                        <TopBottomVendorsChart
+                                          topData={topVendorsData}
+                                          bottomData={bottomVendorsData}
+                                          onDownload={async () => {
+                                            exportChartData(
+                                              [
+                                                ...(topVendorsData || []).map(
+                                                  (x) => ({
+                                                    ...x,
+                                                    list: "Top",
+                                                  }),
+                                                ),
+                                                ...(bottomVendorsData || []).map(
+                                                  (x) => ({
+                                                    ...x,
+                                                    list: "Bottom",
+                                                  }),
+                                                ),
+                                              ],
+                                              "top_bottom_vendors",
+                                            );
+                                          }}
+                                          onRefresh={async () => {
+                                            const controller =
+                                              new AbortController();
+                                            await refreshTopBottom(
+                                              controller.signal,
+                                            );
+                                          }}
+                                        />
+                                      )}
                                     </SortableChartItem>
                                   </div>
-                                  {/* दूसरा कॉलम अगर visible है तो */}
-                                  {show("notGivenRatingTable") && (
-                                    <div className="col-lg-4">
-                                      {chartOrder.map((innerId) => {
-                                        if (
-                                          innerId === "row1_col2_notGivenRating"
-                                        ) {
-                                          return (
-                                            <SortableChartItem
-                                              key={innerId}
-                                              id={innerId}
-                                            >
-                                              <VendorDataTable
-                                                title="Name of Approver Who Have Not Given Rating"
-                                                columns={
-                                                  MOCK_NOT_GIVEN_RATING_COLUMNS
-                                                }
-                                                data={
-                                                  MOCK_NOT_GIVEN_RATING_DATA
-                                                }
-                                                onDownload={() => {}}
-                                              />
-                                            </SortableChartItem>
-                                          );
-                                        }
-                                        return null;
-                                      })}
-                                    </div>
-                                  )}
                                 </div>
                               </div>
                             );
                           }
 
-                          // अगर ये दूसरा कॉलम है
-                          if (
-                            chartId === "row1_col2_notGivenRating" &&
-                            !show("topBottomVendors")
-                          ) {
+                          // Not Given Rating - Full Width (independent)
+                          if (chartId === "row1_col2_notGivenRating") {
                             return (
                               <div key={chartId} className="mt-4">
                                 <div className="row">
@@ -629,9 +1251,29 @@ const VendersAssesmentDashboard = () => {
                                     <SortableChartItem id={chartId}>
                                       <VendorDataTable
                                         title="Name of Approver Who Have Not Given Rating"
-                                        columns={MOCK_NOT_GIVEN_RATING_COLUMNS}
-                                        data={MOCK_NOT_GIVEN_RATING_DATA}
-                                        onDownload={() => {}}
+                                        columns={NOT_GIVEN_RATING_COLUMNS}
+                                        data={noRatingRows}
+                                        loading={isNoRatingLoading}
+                                        onRefresh={async () => {
+                                          const controller =
+                                            new AbortController();
+                                          await refreshTables(controller.signal);
+                                        }}
+                                        onDownload={async ({ columns }) => {
+                                          const rows = await fetchAllVendorProjectList(
+                                            "no_rating",
+                                          );
+                                          const mapped = (rows || []).map((r) => ({
+                                            organizationName: r.vendor_name,
+                                            siteName: r.project_name,
+                                            category: r.category_name,
+                                          }));
+                                          exportTableToCsv(
+                                            mapped,
+                                            columns,
+                                            "no_rating_vendors",
+                                          );
+                                        }}
                                       />
                                     </SortableChartItem>
                                   </div>
@@ -657,9 +1299,29 @@ const VendersAssesmentDashboard = () => {
                                     <SortableChartItem id={chartId}>
                                       <VendorDataTable
                                         title="List of Watchlist Vendors"
-                                        columns={MOCK_WATCHLIST_COLUMNS}
-                                        data={MOCK_WATCHLIST_DATA}
-                                        onDownload={() => {}}
+                                        columns={WATCHLIST_COLUMNS}
+                                        data={watchlistRows}
+                                        loading={isWatchlistLoading}
+                                        onRefresh={async () => {
+                                          const controller =
+                                            new AbortController();
+                                          await refreshTables(controller.signal);
+                                        }}
+                                        onDownload={async ({ columns }) => {
+                                          const rows = await fetchAllVendorProjectList(
+                                            "watchlist",
+                                          );
+                                          const mapped = (rows || []).map((r) => ({
+                                            organizationName: r.vendor_name,
+                                            siteName: r.project_name,
+                                            avgScore: r.avg_percentage,
+                                          }));
+                                          exportTableToCsv(
+                                            mapped,
+                                            columns,
+                                            "watchlist_vendors",
+                                          );
+                                        }}
                                       />
                                     </SortableChartItem>
                                   </div>
@@ -678,10 +1340,29 @@ const VendersAssesmentDashboard = () => {
                                               <VendorDataTable
                                                 title="List of Disqualified Vendors"
                                                 columns={
-                                                  MOCK_DISQUALIFIED_COLUMNS
+                                                  DISQUALIFIED_COLUMNS
                                                 }
-                                                data={MOCK_DISQUALIFIED_DATA}
-                                                onDownload={() => {}}
+                                                data={disqualifiedRows}
+                                                loading={isDisqualifiedLoading}
+                                                onDownload={async ({ columns }) => {
+                                                  const rows =
+                                                    await fetchAllVendorProjectList(
+                                                      "disqualified",
+                                                    );
+                                                  const mapped = (rows || []).map(
+                                                    (r) => ({
+                                                      organizationName:
+                                                        r.vendor_name,
+                                                      siteName: r.project_name,
+                                                      avgScore: r.avg_percentage,
+                                                    }),
+                                                  );
+                                                  exportTableToCsv(
+                                                    mapped,
+                                                    columns,
+                                                    "disqualified_vendors",
+                                                  );
+                                                }}
                                               />
                                             </SortableChartItem>
                                           );
@@ -707,9 +1388,29 @@ const VendersAssesmentDashboard = () => {
                                     <SortableChartItem id={chartId}>
                                       <VendorDataTable
                                         title="List of Disqualified Vendors"
-                                        columns={MOCK_DISQUALIFIED_COLUMNS}
-                                        data={MOCK_DISQUALIFIED_DATA}
-                                        onDownload={() => {}}
+                                        columns={DISQUALIFIED_COLUMNS}
+                                        data={disqualifiedRows}
+                                        loading={isDisqualifiedLoading}
+                                        onRefresh={async () => {
+                                          const controller =
+                                            new AbortController();
+                                          await refreshTables(controller.signal);
+                                        }}
+                                        onDownload={async ({ columns }) => {
+                                          const rows = await fetchAllVendorProjectList(
+                                            "disqualified",
+                                          );
+                                          const mapped = (rows || []).map((r) => ({
+                                            organizationName: r.vendor_name,
+                                            siteName: r.project_name,
+                                            avgScore: r.avg_percentage,
+                                          }));
+                                          exportTableToCsv(
+                                            mapped,
+                                            columns,
+                                            "disqualified_vendors",
+                                          );
+                                        }}
                                       />
                                     </SortableChartItem>
                                   </div>
@@ -727,10 +1428,25 @@ const VendersAssesmentDashboard = () => {
                           return (
                             <div key={chartId} className="mt-4">
                               <SortableChartItem id={chartId}>
-                                <GradeAssessmentBar
-                                  data={MOCK_VENDOR_GRADE_DATA}
-                                  onDownload={() => {}}
-                                />
+                                {isVendorsByGradeLoading &&
+                                !vendorsByGradeResponse ? (
+                                  <LoadingCard
+                                    title="Count of Vendors by Grade"
+                                    height={220}
+                                  />
+                                ) : (
+                                  <GradeAssessmentBar
+                                    title="Count of Vendors by Grade"
+                                    data={vendorsByGradeData}
+                                    onDownload={() => {}}
+                                    onRefresh={async () => {
+                                      const controller = new AbortController();
+                                      await refreshVendorsByGrade(
+                                        controller.signal,
+                                      );
+                                    }}
+                                  />
+                                )}
                               </SortableChartItem>
                             </div>
                           );
@@ -746,79 +1462,131 @@ const VendersAssesmentDashboard = () => {
                               <SortableChartItem id={chartId}>
                                 <VendorDataTable
                                   title="Scores of Vendor in Respected Sites"
-                                  columns={MOCK_SCORES_COLUMNS}
-                                  data={MOCK_SCORES_DATA}
-                                  onDownload={() => {}}
+                                  columns={SCORES_COLUMNS}
+                                  data={scoresRows}
+                                  loading={isScoresLoading}
+                                  pagination={scoresPagination}
+                                  onRefresh={async () => {
+                                    const controller = new AbortController();
+                                    setIsScoresLoading(true);
+                                    try {
+                                      await fetchVendorSiteScoresPage(
+                                        1,
+                                        controller.signal,
+                                      );
+                                    } finally {
+                                      setIsScoresLoading(false);
+                                    }
+                                  }}
+                                  onPageChange={async (page) => {
+                                    const controller = new AbortController();
+                                    setIsScoresLoading(true);
+                                    try {
+                                      await fetchVendorSiteScoresPage(
+                                        page,
+                                        controller.signal,
+                                      );
+                                    } finally {
+                                      setIsScoresLoading(false);
+                                    }
+                                  }}
+                                  onDownload={async ({ columns }) => {
+                                    const controller = new AbortController();
+                                    const rows = await fetchAllVendorSiteScores(
+                                      controller.signal,
+                                    );
+                                    const mapped = (rows || []).map((r) => ({
+                                      organizationName: r.organization_name,
+                                      siteName: r.site_name,
+                                      category: r.category,
+                                      firstName: r.first_name,
+                                      lastName: r.last_name,
+                                      riskCategory: r.risk_category,
+                                      givenScore: r.given_score,
+                                      siteScore: r.site_score,
+                                      vendorAvgScore: r.vendor_avg_score,
+                                      remark: r.remark,
+                                    }));
+                                    exportTableToCsv(
+                                      mapped,
+                                      columns,
+                                      "vendor_site_scores",
+                                    );
+                                  }}
                                 />
                               </SortableChartItem>
                             </div>
                           );
                         }
 
-                        // ROW 3: Submitted vs Pending + Submitted Overview
+                        // ROW 3: Submitted vs Pending + Submitted Overview (full width)
                         if (
                           (chartId === "row3_col1_submittedPending" &&
                             show("submittedPendingOverview")) ||
                           (chartId === "row3_col2_submittedOverview" &&
                             show("submittedAssessmentOverview"))
                         ) {
-                          // अगर ये पहला कॉलम है
                           if (chartId === "row3_col1_submittedPending") {
                             return (
                               <div key={chartId} className="mt-4">
                                 <div className="row">
-                                  <div className="col-lg-6">
+                                  <div className="col-lg-12">
                                     <SortableChartItem id={chartId}>
                                       <SubmittedPendingOverview
-                                        data={MOCK_SUBMITTED_PENDING_DATA}
-                                        onDownload={() => {}}
+                                        data={
+                                          isSubcategoryOverviewLoading &&
+                                          !subcategoryOverviewResponse
+                                            ? []
+                                            : submittedPendingData
+                                        }
+                                        onDownload={() =>
+                                          exportChartData(
+                                            submittedPendingData,
+                                            "submitted_vs_pending_overview",
+                                          )
+                                        }
+                                        onRefresh={async () => {
+                                          const controller =
+                                            new AbortController();
+                                          await refreshSubcategoryOverview(
+                                            controller.signal,
+                                          );
+                                        }}
                                       />
                                     </SortableChartItem>
                                   </div>
-                                  {/* दूसरा कॉलम अगर visible है तो */}
-                                  {show("submittedAssessmentOverview") && (
-                                    <div className="col-lg-6">
-                                      {chartOrder.map((innerId) => {
-                                        if (
-                                          innerId ===
-                                          "row3_col2_submittedOverview"
-                                        ) {
-                                          return (
-                                            <SortableChartItem
-                                              key={innerId}
-                                              id={innerId}
-                                            >
-                                              <SubmittedAssessmentOverview
-                                                data={
-                                                  MOCK_SUBMITTED_ASSESSMENT_DATA
-                                                }
-                                                onDownload={() => {}}
-                                              />
-                                            </SortableChartItem>
-                                          );
-                                        }
-                                        return null;
-                                      })}
-                                    </div>
-                                  )}
                                 </div>
                               </div>
                             );
                           }
 
-                          // अगर ये दूसरा कॉलम है
-                          if (
-                            chartId === "row3_col2_submittedOverview" &&
-                            !show("submittedPendingOverview")
-                          ) {
+                          // Submitted Assessment Overview - Full Width (independent)
+                          if (chartId === "row3_col2_submittedOverview") {
                             return (
                               <div key={chartId} className="mt-4">
                                 <div className="row">
                                   <div className="col-lg-12">
                                     <SortableChartItem id={chartId}>
                                       <SubmittedAssessmentOverview
-                                        data={MOCK_SUBMITTED_ASSESSMENT_DATA}
-                                        onDownload={() => {}}
+                                        data={
+                                          isSubcategoryOverviewLoading &&
+                                          !subcategoryOverviewResponse
+                                            ? []
+                                            : submittedAssessmentOverviewData
+                                        }
+                                        onDownload={() =>
+                                          exportChartData(
+                                            submittedAssessmentOverviewData,
+                                            "submitted_assessment_overview",
+                                          )
+                                        }
+                                        onRefresh={async () => {
+                                          const controller =
+                                            new AbortController();
+                                          await refreshSubcategoryOverview(
+                                            controller.signal,
+                                          );
+                                        }}
                                       />
                                     </SortableChartItem>
                                   </div>
@@ -828,67 +1596,74 @@ const VendersAssesmentDashboard = () => {
                           }
                         }
 
-                        // ROW 4: Percentage Completion + Category Risk
+                        // ROW 4: Percentage Completion + Category Risk (full width)
                         if (
                           (chartId === "row4_col1_percentage" &&
                             show("percentageCompletion")) ||
                           (chartId === "row4_col2_categoryRisk" &&
                             show("categoryWiseRiskFlag"))
                         ) {
-                          // अगर ये पहला कॉलम है
                           if (chartId === "row4_col1_percentage") {
                             return (
                               <div key={chartId} className="mt-4">
                                 <div className="row">
-                                  <div className="col-lg-6">
+                                  <div className="col-lg-12">
                                     <SortableChartItem id={chartId}>
                                       <PercentageCompletionChart
-                                        data={MOCK_PERCENTAGE_COMPLETION_DATA}
-                                        onDownload={() => {}}
+                                        data={
+                                          isSubcategoryOverviewLoading &&
+                                          !subcategoryOverviewResponse
+                                            ? []
+                                            : percentageCompletionData
+                                        }
+                                        onDownload={() =>
+                                          exportChartData(
+                                            percentageCompletionData,
+                                            "percentage_completion",
+                                          )
+                                        }
+                                        onRefresh={async () => {
+                                          const controller =
+                                            new AbortController();
+                                          await refreshSubcategoryOverview(
+                                            controller.signal,
+                                          );
+                                        }}
                                       />
                                     </SortableChartItem>
                                   </div>
-                                  {/* दूसरा कॉलम अगर visible है तो */}
-                                  {show("categoryWiseRiskFlag") && (
-                                    <div className="col-lg-6">
-                                      {chartOrder.map((innerId) => {
-                                        if (
-                                          innerId === "row4_col2_categoryRisk"
-                                        ) {
-                                          return (
-                                            <SortableChartItem
-                                              key={innerId}
-                                              id={innerId}
-                                            >
-                                              <CategoryWiseRiskFlag
-                                                data={MOCK_CATEGORY_RISK_DATA}
-                                                onDownload={() => {}}
-                                              />
-                                            </SortableChartItem>
-                                          );
-                                        }
-                                        return null;
-                                      })}
-                                    </div>
-                                  )}
                                 </div>
                               </div>
                             );
                           }
 
-                          // अगर ये दूसरा कॉलम है
-                          if (
-                            chartId === "row4_col2_categoryRisk" &&
-                            !show("percentageCompletion")
-                          ) {
+                          // Category Wise Risk Flag - Full Width (independent)
+                          if (chartId === "row4_col2_categoryRisk") {
                             return (
                               <div key={chartId} className="mt-4">
                                 <div className="row">
                                   <div className="col-lg-12">
                                     <SortableChartItem id={chartId}>
                                       <CategoryWiseRiskFlag
-                                        data={MOCK_CATEGORY_RISK_DATA}
-                                        onDownload={() => {}}
+                                        data={
+                                          isSubcategoryOverviewLoading &&
+                                          !subcategoryOverviewResponse
+                                            ? []
+                                            : categoryRiskFlagData
+                                        }
+                                        onDownload={() =>
+                                          exportChartData(
+                                            categoryRiskFlagData,
+                                            "category_wise_risk_flag",
+                                          )
+                                        }
+                                        onRefresh={async () => {
+                                          const controller =
+                                            new AbortController();
+                                          await refreshSubcategoryOverview(
+                                            controller.signal,
+                                          );
+                                        }}
                                       />
                                     </SortableChartItem>
                                   </div>
@@ -910,43 +1685,69 @@ const VendersAssesmentDashboard = () => {
                             return (
                               <div key={chartId} className="mt-4 mb-4">
                                 <div className="row">
-                                  <div className="col-lg-6">
+                                  <div className="col-lg-12">
                                     <SortableChartItem id={chartId}>
-                                      <LeaderBoard
-                                        data={MOCK_LEADERBOARD_DATA}
-                                        onDownload={() => {}}
+                                      <VendorDataTable
+                                        title="Leader Board"
+                                        columns={LEADERBOARD_COLUMNS}
+                                        data={leaderboardRows}
+                                        loading={isLeaderboardLoading}
+                                        pagination={leaderboardPagination}
+                                        onRefresh={async () => {
+                                          const controller =
+                                            new AbortController();
+                                          setIsLeaderboardLoading(true);
+                                          try {
+                                            await fetchLeaderboardPage(
+                                              1,
+                                              controller.signal,
+                                            );
+                                          } finally {
+                                            setIsLeaderboardLoading(false);
+                                          }
+                                        }}
+                                        onPageChange={async (page) => {
+                                          const controller =
+                                            new AbortController();
+                                          setIsLeaderboardLoading(true);
+                                          try {
+                                            await fetchLeaderboardPage(
+                                              page,
+                                              controller.signal,
+                                            );
+                                          } finally {
+                                            setIsLeaderboardLoading(false);
+                                          }
+                                        }}
+                                        onDownload={async ({ columns }) => {
+                                          const controller =
+                                            new AbortController();
+                                          const rows =
+                                            await fetchAllLeaderboard(
+                                              controller.signal,
+                                            );
+                                          const mapped = (rows || []).map(
+                                            (r) => ({
+                                              supplierId: r.supplier_id,
+                                              organizationName:
+                                                r.organization_name,
+                                              siteName: r.site_name,
+                                              bestSiteScore: r.best_site_score,
+                                              worstSiteScore:
+                                                r.worst_site_score,
+                                              avgScore: r.avg_score,
+                                              variancePct: r.variance_pct,
+                                            }),
+                                          );
+                                          exportTableToCsv(
+                                            mapped,
+                                            columns,
+                                            "leaderboard",
+                                          );
+                                        }}
                                       />
                                     </SortableChartItem>
                                   </div>
-                                  {/* दूसरा कॉलम अगर visible है तो */}
-                                  {show("onTimeCompletion") && (
-                                    <div className="col-lg-6">
-                                      {chartOrder.map((innerId) => {
-                                        if (
-                                          innerId ===
-                                          "row5_col2_onTimeCompletion"
-                                        ) {
-                                          return (
-                                            <SortableChartItem
-                                              key={innerId}
-                                              id={innerId}
-                                            >
-                                              <OnTimeCompletion
-                                                submitted={
-                                                  MOCK_ON_TIME_COMPLETION.submitted
-                                                }
-                                                totalAssessments={
-                                                  MOCK_ON_TIME_COMPLETION.totalAssessments
-                                                }
-                                                onDownload={() => {}}
-                                              />
-                                            </SortableChartItem>
-                                          );
-                                        }
-                                        return null;
-                                      })}
-                                    </div>
-                                  )}
                                 </div>
                               </div>
                             );
@@ -954,23 +1755,42 @@ const VendersAssesmentDashboard = () => {
 
                           // अगर ये दूसरा कॉलम है
                           if (
-                            chartId === "row5_col2_onTimeCompletion" &&
-                            !show("leaderBoard")
+                            chartId === "row5_col2_onTimeCompletion"
                           ) {
                             return (
                               <div key={chartId} className="mt-4 mb-4">
                                 <div className="row">
                                   <div className="col-lg-12">
                                     <SortableChartItem id={chartId}>
-                                      <OnTimeCompletion
-                                        submitted={
-                                          MOCK_ON_TIME_COMPLETION.submitted
-                                        }
-                                        totalAssessments={
-                                          MOCK_ON_TIME_COMPLETION.totalAssessments
-                                        }
-                                        onDownload={() => {}}
-                                      />
+                                      {isKpiLoading && !kpiResponse ? (
+                                        <LoadingCard
+                                          title="On-Time Completion"
+                                          height={220}
+                                        />
+                                      ) : (
+                                        <OnTimeCompletion
+                                          submitted={
+                                            Number(
+                                              kpiResponse?.assessment_status
+                                                ?.fully_completed ?? 0,
+                                            ) || 0
+                                          }
+                                          totalAssessments={
+                                            Number(
+                                              kpiResponse?.kpis
+                                                ?.total_assessment_count ?? 0,
+                                            ) || 0
+                                          }
+                                          onDownload={() => {}}
+                                          onRefresh={async () => {
+                                            const controller =
+                                              new AbortController();
+                                            await refreshKpisAndGrades(
+                                              controller.signal,
+                                            );
+                                          }}
+                                        />
+                                      )}
                                     </SortableChartItem>
                                   </div>
                                 </div>
@@ -985,17 +1805,6 @@ const VendersAssesmentDashboard = () => {
                   </SortableContext>
                 </DndContext>
 
-                {/* Filter Dialog */}
-                <VendorAnalyticsFilterDialog
-                  isOpen={isFilterOpen}
-                  onClose={() => setIsFilterOpen(false)}
-                  onApplyFilters={(filters) => {
-                    setDateRange(filters);
-                    setIsFilterOpen(false);
-                  }}
-                  currentStartDate={dateRange.startDate}
-                  currentEndDate={dateRange.endDate}
-                />
               </div>
             </div>
           </div>

@@ -875,6 +875,7 @@ const ReKYCDashboard = () => {
                                     <DepartmentWiseDistributionChart
                                       title="StatusWise Re-KYC Distributions"
                                       data={statusChartData}
+                                      onRefresh={fetchKpiCards}
                                       onDownload={() => exportChartData(statusChartData, "status_wise_rekyc")}
                                     />
                                   )}
@@ -922,6 +923,7 @@ const ReKYCDashboard = () => {
                                     <DepartmentWiseDistributionChart
                                       title="TypeWise Re-KYC Distributions"
                                       data={typeChartData}
+                                      onRefresh={fetchTypeWiseData}
                                       onDownload={() => exportChartData(typeChartData, "type_wise_rekyc")}
                                     />
                                   )}
@@ -968,6 +970,7 @@ const ReKYCDashboard = () => {
                                   ) : (
                                     <DepartmentReKYCChart
                                       data={deptChartData}
+                                      onRefresh={fetchDeptWiseData}
                                       onDownload={() => exportChartData(deptChartData, "department_rekyc")}
                                     />
                                   )}
@@ -1015,6 +1018,7 @@ const ReKYCDashboard = () => {
                                       data={monthWiseData}
                                       title="Month Wise Re-KYC Type"
                                       height={500}
+                                      onRefresh={fetchMonthWiseData}
                                       onDownload={() => exportChartData(monthWiseData, "month_wise_rekyc")}
                                     />
                                   )}
@@ -1062,6 +1066,7 @@ const ReKYCDashboard = () => {
                                       data={yearWiseData}
                                       title="Year Wise Re-KYC Type"
                                       height={500}
+                                      onRefresh={fetchYearWiseData}
                                       onDownload={() => exportChartData(yearWiseData, "year_wise_rekyc")}
                                     />
                                   )}
@@ -1082,6 +1087,7 @@ const ReKYCDashboard = () => {
                                       data={rejectedRecordsData}
                                       pagination={rejectedPagination}
                                       onPageChange={(page) => fetchTableData("rejected", "", page)}
+                                      onRefresh={() => fetchTableData("rejected", "", rejectedPagination?.current_page || 1)}
                                       onDownload={async () => {
                                         const rows = await fetchAllReKycData(
                                           "vendor_re_kyc_dashboard/status_wise.json",
@@ -1122,6 +1128,7 @@ const ReKYCDashboard = () => {
                                       data={openInvitesData}
                                       pagination={openInvitesPagination}
                                       onPageChange={(page) => fetchTableData("pending", "", page)}
+                                      onRefresh={() => fetchTableData("pending", "", openInvitesPagination?.current_page || 1)}
                                       onDownload={async () => {
                                         const rows = await fetchAllReKycData(
                                           "vendor_re_kyc_dashboard/status_wise.json",
@@ -1159,6 +1166,7 @@ const ReKYCDashboard = () => {
                                     title="Type wise ReKYC Distribution"
                                     columns={TYPE_WISE_COLUMNS}
                                     data={typeWiseTableData}
+                                      onRefresh={fetchTypeWiseData}
                                     onDownload={() => exportTableToCsv(typeWiseTableData, TYPE_WISE_COLUMNS, "type_wise_rekyc")}
                                   />
                                 </SortableChartItem>
@@ -1177,6 +1185,7 @@ const ReKYCDashboard = () => {
                                       data={approvedRecordsData}
                                       pagination={approvedPagination}
                                       onPageChange={(page) => fetchTableData("approved", "", page)}
+                                      onRefresh={() => fetchTableData("approved", "", approvedPagination?.current_page || 1)}
                                       onDownload={async () => {
                                         const rows = await fetchAllReKycData(
                                           "vendor_re_kyc_dashboard/status_wise.json",
@@ -1214,6 +1223,7 @@ const ReKYCDashboard = () => {
                                       data={detailsSubData}
                                       pagination={detailsSubPagination}
                                       onPageChange={(page) => fetchTableData("details_submitted_by_vendor", "", page)}
+                                      onRefresh={() => fetchTableData("details_submitted_by_vendor", "", detailsSubPagination?.current_page || 1)}
                                       onDownload={async () => {
                                         const rows = await fetchAllReKycData(
                                           "vendor_re_kyc_dashboard/status_wise.json",
@@ -1251,6 +1261,7 @@ const ReKYCDashboard = () => {
                                       data={expiredData}
                                       pagination={expiredPagination}
                                       onPageChange={(page) => fetchTableData("expired", "", page)}
+                                      onRefresh={() => fetchTableData("expired", "", expiredPagination?.current_page || 1)}
                                       onDownload={async () => {
                                         const rows = await fetchAllReKycData(
                                           "vendor_re_kyc_dashboard/status_wise.json",
@@ -1288,6 +1299,7 @@ const ReKYCDashboard = () => {
                                       data={sapErrorData}
                                       pagination={sapErrorPagination}
                                       onPageChange={(page) => fetchTableData("approved", "sap", page)}
+                                      onRefresh={() => fetchTableData("approved", "sap", sapErrorPagination?.current_page || 1)}
                                       onDownload={async () => {
                                         const rows = await fetchAllReKycData(
                                           "vendor_re_kyc_dashboard/status_wise.json",

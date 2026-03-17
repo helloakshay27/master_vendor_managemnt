@@ -1,8 +1,15 @@
 import React, { useState } from 'react';
-import { Download, Loader2 } from 'lucide-react';
+import { Download, Loader2, RefreshCw } from 'lucide-react';
 
-export const ChartCard = ({ title, onDownload, children, className = "" }) => {
+export const ChartCard = ({
+  title,
+  onDownload,
+  onRefresh,
+  children,
+  className = "",
+}) => {
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   return (
     <div className={`card go-shadow bg-white rounded-lg ${className}`}>
       <div className="vendor-card-header">
@@ -10,28 +17,61 @@ export const ChartCard = ({ title, onDownload, children, className = "" }) => {
           <h3 className="vendor-card-title">
             {title}
           </h3>
-          {onDownload && (
-            isDownloading ? (
-              <Loader2 className="w-5 h-5 animate-spin" style={{ color: "#d97938" }} />
-            ) : (
-              <Download
-                data-no-drag="true"
-                className="w-5 h-5 cursor-pointer transition-colors z-50 hover:opacity-80"
-                style={{ color: '#6b7280' }}
-                onClick={async (e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setIsDownloading(true);
-                  try {
-                    await onDownload();
-                  } finally {
-                    setIsDownloading(false);
-                  }
-                }}
-                onPointerDown={(e) => e.stopPropagation()}
-                onMouseDown={(e) => e.stopPropagation()}
-              />
-            )
+          {(onRefresh || onDownload) && (
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              {onRefresh && (
+                isRefreshing ? (
+                  <Loader2
+                    className="w-5 h-5 animate-spin"
+                    style={{ color: "#d97938" }}
+                  />
+                ) : (
+                  <RefreshCw
+                    data-no-drag="true"
+                    className="w-5 h-5 cursor-pointer transition-colors z-50 hover:opacity-80"
+                    style={{ color: "#6b7280" }}
+                    onClick={async (e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setIsRefreshing(true);
+                      try {
+                        await onRefresh();
+                      } finally {
+                        setIsRefreshing(false);
+                      }
+                    }}
+                    onPointerDown={(e) => e.stopPropagation()}
+                    onMouseDown={(e) => e.stopPropagation()}
+                  />
+                )
+              )}
+              {onDownload && (
+                isDownloading ? (
+                  <Loader2
+                    className="w-5 h-5 animate-spin"
+                    style={{ color: "#d97938" }}
+                  />
+                ) : (
+                  <Download
+                    data-no-drag="true"
+                    className="w-5 h-5 cursor-pointer transition-colors z-50 hover:opacity-80"
+                    style={{ color: '#6b7280' }}
+                    onClick={async (e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setIsDownloading(true);
+                      try {
+                        await onDownload();
+                      } finally {
+                        setIsDownloading(false);
+                      }
+                    }}
+                    onPointerDown={(e) => e.stopPropagation()}
+                    onMouseDown={(e) => e.stopPropagation()}
+                  />
+                )
+              )}
+            </div>
           )}
         </div>
       </div>

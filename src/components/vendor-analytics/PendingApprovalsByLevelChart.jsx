@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Download, Loader2 } from 'lucide-react';
+import { Download, Loader2, RefreshCw } from 'lucide-react';
 
 const CHART_COLORS = {
   approvals: '#c4b99d',
@@ -29,8 +29,9 @@ const TruncatedTick = ({ x, y, payload, maxChars = 8 }) => {
   );
 };
 
-export const PendingApprovalsByLevelChart = ({ data, onDownload, className = "" }) => {
+export const PendingApprovalsByLevelChart = ({ data, onDownload, onRefresh, className = "" }) => {
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   
   // 1. Safely extract array from API response (Handles both direct array and { data: [...] } format)
   let safeData = [];
@@ -56,25 +57,49 @@ export const PendingApprovalsByLevelChart = ({ data, onDownload, className = "" 
           <h3 className="vendor-card-title">
             Pending Approvals by Level
           </h3>
-          {onDownload && (
-            isDownloading ? (
-              <Loader2 className="w-5 h-5 animate-spin" style={{ color: "#d97938" }} />
-            ) : (
-              <Download
-                className="w-5 h-5 cursor-pointer"
-                style={{ color: "#6b7280" }}
-                onClick={async (e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setIsDownloading(true);
-                  try {
-                    await onDownload();
-                  } finally {
-                    setIsDownloading(false);
-                  }
-                }}
-              />
-            )
+          {(onRefresh || onDownload) && (
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              {onRefresh && (
+                isRefreshing ? (
+                  <Loader2 className="w-5 h-5 animate-spin" style={{ color: "#d97938" }} />
+                ) : (
+                  <RefreshCw
+                    className="w-5 h-5 cursor-pointer"
+                    style={{ color: "#6b7280" }}
+                    onClick={async (e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setIsRefreshing(true);
+                      try {
+                        await onRefresh();
+                      } finally {
+                        setIsRefreshing(false);
+                      }
+                    }}
+                  />
+                )
+              )}
+              {onDownload && (
+                isDownloading ? (
+                  <Loader2 className="w-5 h-5 animate-spin" style={{ color: "#d97938" }} />
+                ) : (
+                  <Download
+                    className="w-5 h-5 cursor-pointer"
+                    style={{ color: "#6b7280" }}
+                    onClick={async (e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setIsDownloading(true);
+                      try {
+                        await onDownload();
+                      } finally {
+                        setIsDownloading(false);
+                      }
+                    }}
+                  />
+                )
+              )}
+            </div>
           )}
         </div>
       </div>

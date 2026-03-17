@@ -897,6 +897,298 @@ function VendorManagementDashboard() {
 
   const formatDtForAPI = (dt) => (dt ? dt.split("/").join("-") : "");
 
+  const buildCommonQueryParams = useCallback(
+    (extraParams = {}) => {
+      const queryParams = new URLSearchParams();
+      queryParams.append("token", tokenFromUrl);
+
+      Object.entries(extraParams).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== "") {
+          queryParams.append(key, value);
+        }
+      });
+
+      if (activeFilters.companyName) queryParams.append("company_ids", activeFilters.companyName);
+      if (activeFilters.departmentName) queryParams.append("department_ids", activeFilters.departmentName);
+      if (activeFilters.vendors) queryParams.append("vendor_ids", activeFilters.vendors);
+      if (activeFilters.startDate) queryParams.append("from_date", formatDtForAPI(activeFilters.startDate));
+      if (activeFilters.endDate) queryParams.append("end_date", formatDtForAPI(activeFilters.endDate));
+
+      return queryParams;
+    },
+    [activeFilters, tokenFromUrl],
+  );
+
+  const refreshDeptDistribution = useCallback(async () => {
+    setIsDeptDistributionLoading(true);
+    try {
+      const queryParams = buildCommonQueryParams();
+      const response = await fetch(
+        `${baseURL}vendor_pq_dashboard/department_wise_distribution.json?${queryParams}`,
+      );
+      const json = await response.json();
+      let rawData = [];
+      if (json?.data?.departments && Array.isArray(json.data.departments)) rawData = json.data.departments;
+      else if (json?.data?.department_wise_distribution && Array.isArray(json.data.department_wise_distribution)) rawData = json.data.department_wise_distribution;
+      else if (Array.isArray(json?.data)) rawData = json.data;
+      else rawData = Object.values(json).find((val) => Array.isArray(val)) || [];
+
+      const mappedData = rawData.map((item) => ({
+        name: item.department_name || item.name || "Unknown",
+        value: Number(item.vendor_count || item.count || item.value || 0),
+      }));
+      setDeptDistributionData(mappedData);
+    } catch (e) {
+      setDeptDistributionData([]);
+    } finally {
+      setIsDeptDistributionLoading(false);
+    }
+  }, [buildCommonQueryParams]);
+
+  const refreshYearWise = useCallback(async () => {
+    setIsYearWiseLoading(true);
+    try {
+      const queryParams = buildCommonQueryParams({
+        status: "approved",
+        pq_type: "without_pq,with_pq",
+      });
+      const response = await fetch(
+        `${baseURL}vendor_pq_dashboard/yearwise_onboarding.json?${queryParams}`,
+      );
+      const json = await response.json();
+      let rawData = Array.isArray(json?.data)
+        ? json.data
+        : json?.data?.years ||
+          json?.data?.year_wise_onboarding ||
+          Object.values(json?.data || {}).find((val) => Array.isArray(val)) ||
+          [];
+
+      setYearWiseData(
+        rawData.map((item) => ({
+          year: String(item.year || item.label || item.period || "Unknown"),
+          pqApproved: Number(item.pq ?? item.with_pq ?? item.pqApproved ?? 0),
+          nonPqApproved: Number(item.non_pq ?? item.without_pq ?? item.nonPqApproved ?? 0),
+          total: Number(item.total || (item.pq ?? 0) + (item.non_pq ?? 0) || 0),
+        })),
+      );
+    } catch (e) {
+      setYearWiseData([]);
+    } finally {
+      setIsYearWiseLoading(false);
+    }
+  }, [buildCommonQueryParams]);
+
+  const refreshQuarterWise = useCallback(async () => {
+    setIsQuarterWiseLoading(true);
+    try {
+      const queryParams = buildCommonQueryParams({
+        status: activeFilters.status || "approved",
+        pq_type: activeFilters.pqType || "without_pq,with_pq",
+        group_by: "quarter",
+      });
+      const response = await fetch(
+        `${baseURL}vendor_pq_dashboard/time_wise_registration.json?${queryParams}`,
+      );
+      const json = await response.json();
+      let rawData =
+        json?.data?.quarters ||
+        json?.data?.time_wise_registration ||
+        Object.values(json?.data || {}).find((val) => Array.isArray(val)) ||
+        Object.values(json).find((val) => Array.isArray(val)) ||
+        [];
+
+      setQuarterWiseData(
+        rawData.map((item) => ({
+          quarter: item.quarter || item.period || "Q",
+          label: item.label || item.quarter || "",
+          pqApproved: Number(item.with_pq || item.pqApproved || 0),
+          nonPqApproved: Number(item.without_pq || item.nonPqApproved || 0),
+          total: Number(item.total || 0),
+        })),
+      );
+    } catch (e) {
+      setQuarterWiseData([]);
+    } finally {
+      setIsQuarterWiseLoading(false);
+    }
+  }, [buildCommonQueryParams, activeFilters.pqType, activeFilters.status]);
+
+  const refreshMonthWise = useCallback(async () => {
+    setIsMonthWiseLoading(true);
+    try {
+      const queryParams = buildCommonQueryParams({
+        status: "approved",
+        pq_type: "without_pq,with_pq",
+        group_by: "month",
+      });
+      const response = await fetch(
+        `${baseURL}vendor_pq_dashboard/time_wise_registration.json?${queryParams}`,
+      );
+      const json = await response.json();
+      let rawData =
+        json?.data?.months ||
+        json?.data?.time_wise_registration ||
+        Object.values(json?.data || {}).find((val) => Array.isArray(val)) ||
+        Object.values(json).find((val) => Array.isArray(val)) ||
+        [];
+
+      setMonthWiseData(
+        rawData.map((item) => ({
+          month: item.label || item.month || item.period || "M",
+          pqApproved: Number(item.with_pq || item.pqApproved || 0),
+          nonPqApproved: Number(item.without_pq || item.nonPqApproved || 0),
+          total: Number(item.total || 0),
+        })),
+      );
+    } catch (e) {
+      setMonthWiseData([]);
+    } finally {
+      setIsMonthWiseLoading(false);
+    }
+  }, [buildCommonQueryParams]);
+
+  const refreshPendingApprovals = useCallback(async () => {
+    setIsPendingApprovalsLoading(true);
+    try {
+      const queryParams = buildCommonQueryParams({ status: "verification_pending" });
+      const response = await fetch(
+        `${baseURL}vendor_pq_dashboard/pending_approvals_by_level.json?${queryParams}`,
+      );
+      const json = await response.json();
+      let rawData =
+        json?.data?.pending_approvals ||
+        Object.values(json).find((val) => Array.isArray(val)) ||
+        [];
+      setPendingApprovalsData(
+        rawData.map((item) => ({
+          level: item.approval_level || item.level || "Unknown",
+          count: Number(item.pending_count || item.count || 0),
+        })),
+      );
+    } catch (e) {
+      setPendingApprovalsData([]);
+    } finally {
+      setIsPendingApprovalsLoading(false);
+    }
+  }, [buildCommonQueryParams]);
+
+  const refreshDeptPreQual = useCallback(async () => {
+    setIsDeptPreQualLoading(true);
+    try {
+      const queryParams = buildCommonQueryParams({
+        status: "approved",
+        ...(activeFilters.pqType ? { pq_type: activeFilters.pqType } : {}),
+      });
+      const response = await fetch(
+        `${baseURL}vendor_pq_dashboard/department_pq_split.json?${queryParams}`,
+      );
+      const json = await response.json();
+      let rawData =
+        json?.data?.departments ||
+        json?.data?.department_pq_split ||
+        json?.departments ||
+        Object.values(json?.data || {}).find((val) => Array.isArray(val)) ||
+        Object.values(json).find((val) => Array.isArray(val)) ||
+        [];
+      setDeptPreQualData(rawData);
+    } catch (e) {
+      setDeptPreQualData([]);
+    } finally {
+      setIsDeptPreQualLoading(false);
+    }
+  }, [buildCommonQueryParams, activeFilters.pqType]);
+
+  const refreshSupplierPerformance = useCallback(async () => {
+    setIsSupplierPerformanceLoading(true);
+    try {
+      const queryParams = buildCommonQueryParams();
+      const response = await fetch(
+        `${baseURL}vendor_pq_dashboard/department_supplier_performance.json?${queryParams}`,
+      );
+      const json = await response.json();
+      let rawData =
+        json?.data?.supplier_performance ||
+        Object.values(json).find((val) => Array.isArray(val)) ||
+        [];
+      setSupplierPerformanceData(
+        rawData.map((item) => ({
+          department: item.department_name || item.department || "Unknown",
+          totalSuppliers: item.total_suppliers ?? 0,
+          approvedVendors: item.approved_vendor_count ?? 0,
+          invitedVendors: item.invited_vendor_count ?? 0,
+          avgTat: item.avg_tat_days ?? "0.00",
+        })),
+      );
+    } catch (e) {
+      setSupplierPerformanceData([]);
+    } finally {
+      setIsSupplierPerformanceLoading(false);
+    }
+  }, [buildCommonQueryParams]);
+
+  const refreshTopBottomVendors = useCallback(async () => {
+    setIsTopBottomVendorsLoading(true);
+    try {
+      const queryParams = new URLSearchParams();
+      queryParams.append("token", tokenFromUrl);
+      if (activeFilters.companyName) queryParams.append("company_id", activeFilters.companyName);
+
+      const [topRes, bottomRes] = await Promise.all([
+        fetch(`${baseURL}vendor_pq_dashboard/top_10_vendors_by_avg_tat.json?${queryParams}`),
+        fetch(`${baseURL}vendor_pq_dashboard/bottom_10_vendors_by_avg_tat.json?${queryParams}`),
+      ]);
+      const [topJson, bottomJson] = await Promise.all([topRes.json(), bottomRes.json()]);
+
+      const normalize = (json, key) => {
+        let raw = json?.data?.vendors || json?.data?.[key] || json?.data || [];
+        if (!Array.isArray(raw) && typeof raw === "object") {
+          raw = Object.values(raw).find((val) => Array.isArray(val)) || [];
+        }
+        return raw.map((item) => ({
+          name: item.organization_name || item.vendor_name || item.name || "Unknown",
+          avgTat: Number(item.avg_tat || item.average_tat || item.avg_tat_days || 0),
+        }));
+      };
+
+      setTopVendorsData(normalize(topJson, "top_vendors"));
+      setBottomVendorsData(normalize(bottomJson, "bottom_vendors"));
+    } catch (e) {
+      setTopVendorsData([]);
+      setBottomVendorsData([]);
+    } finally {
+      setIsTopBottomVendorsLoading(false);
+    }
+  }, [activeFilters.companyName, tokenFromUrl]);
+
+  const refreshPqVendorStatsTable = useCallback(
+    async ({
+      extraParams,
+      page,
+      setLoading,
+      setData,
+      setPagination,
+      mapItem,
+    }) => {
+      setLoading(true);
+      try {
+        const queryParams = buildCommonQueryParams({ ...extraParams, page });
+        const response = await fetch(
+          `${baseURL}vendor_pq_dashboard/pq_vendor_stats.json?${queryParams}`,
+        );
+        const json = await response.json();
+        const suppliers = json?.data?.suppliers || [];
+        setData(mapItem ? suppliers.map(mapItem) : suppliers);
+        setPagination(json?.data?.pagination || null);
+      } catch (e) {
+        setData([]);
+        setPagination(null);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [buildCommonQueryParams],
+  );
+
   // =========================================================================
   // API CALLS - initial load + filter changes
   // =========================================================================
@@ -2272,6 +2564,7 @@ function VendorManagementDashboard() {
                                     ) : (
                                       <DepartmentWiseDistributionChart
                                         data={deptDistributionData}
+                                        onRefresh={refreshDeptDistribution}
                                         onDownload={() => exportChartData(deptDistributionData, "department_wise_distribution")}
                                       />
                                     )}
@@ -2302,6 +2595,7 @@ function VendorManagementDashboard() {
                                     ) : (
                                       <YearWiseRegistrationChart
                                         data={yearWiseData}
+                                        onRefresh={refreshYearWise}
                                         onDownload={() => exportChartData(yearWiseData, "year_wise_registration")}
                                       />
                                     )}
@@ -2332,6 +2626,7 @@ function VendorManagementDashboard() {
                                     ) : (
                                       <QuarterWiseRegistrationChart
                                         data={quarterWiseData}
+                                        onRefresh={refreshQuarterWise}
                                         onDownload={() => exportChartData(quarterWiseData, "quarter_wise_registration")}
                                       />
                                     )}
@@ -2362,6 +2657,7 @@ function VendorManagementDashboard() {
                                     ) : (
                                       <MonthWiseRegistrationChart
                                         data={monthWiseData}
+                                        onRefresh={refreshMonthWise}
                                         onDownload={() => exportChartData(monthWiseData, "month_wise_registration")}
                                       />
                                     )}
@@ -2392,6 +2688,7 @@ function VendorManagementDashboard() {
                                     ) : (
                                       <PendingApprovalsByLevelChart
                                         data={pendingApprovalsData}
+                                        onRefresh={refreshPendingApprovals}
                                         onDownload={() => exportChartData(pendingApprovalsData, "pending_approvals")}
                                       />
                                     )}
@@ -2424,6 +2721,7 @@ function VendorManagementDashboard() {
                                         title="Department-Wise Supplier Performance"
                                         data={supplierPerformanceData}
                                         columns={SUPPLIER_PERFORMANCE_COLUMNS}
+                                        onRefresh={refreshSupplierPerformance}
                                         onDownload={() =>
                                           exportTableToCsv(
                                             supplierPerformanceData,
@@ -2465,6 +2763,7 @@ function VendorManagementDashboard() {
                                   ) : (
                                     <DepartmentPreQualificationChart
                                       data={deptPreQualData}
+                                      onRefresh={refreshDeptPreQual}
                                       onDownload={() => exportChartData(deptPreQualData, "department_pre_qual")}
                                     />
                                   )}
@@ -2496,6 +2795,7 @@ function VendorManagementDashboard() {
                                     <TopBottomVendorsChart
                                       topData={topVendorsData}
                                       bottomData={bottomVendorsData}
+                                      onRefresh={refreshTopBottomVendors}
                                       onDownload={() => exportChartData([...(topVendorsData || []).map(x => ({...x, category: "Top"})), ...(bottomVendorsData || []).map(x => ({...x, category: "Bottom"}))], "top_bottom_vendors")}
                                     />
                                   )}
@@ -2528,6 +2828,28 @@ function VendorManagementDashboard() {
                                       title="Approved Vendors"
                                       data={approvedVendorsData}
                                       columns={APPROVED_VENDORS_COLUMNS}
+                                      onRefresh={() =>
+                                        refreshPqVendorStatsTable({
+                                          extraParams: { status: "approved" },
+                                          page: approvedVendorsPage,
+                                          setLoading: setIsApprovedVendorsLoading,
+                                          setData: setApprovedVendorsData,
+                                          setPagination: setApprovedVendorsPagination,
+                                          mapItem: (item) => ({
+                                            organization: item.organization_name || "-",
+                                            department: item.department_name || "-",
+                                            status: item.status || "Approved",
+                                            vendorTat: item.vendor_tat_days ?? "-",
+                                            internalTat: item.internal_tat_days ?? "-",
+                                            cumulativeTat: item.cumulative_tat_days ?? "-",
+                                            approvalDate: item.approval_date || "-",
+                                            vendorCode: item.vendor_code || "-",
+                                            category: item.category || "-",
+                                            contactPerson: item.contact_person || "-",
+                                            contactEmail: item.contact_email || "-",
+                                          }),
+                                        })
+                                      }
                                       onDownload={async () => {
                                         const rows = await fetchAllPqVendorStats(
                                           { status: "approved" },
@@ -2585,6 +2907,15 @@ function VendorManagementDashboard() {
                                       title="PQ Vendors (Active & Approved)"
                                       data={pqVendorsData}
                                       columns={PQ_VENDORS_COLUMNS}
+                                      onRefresh={() =>
+                                        refreshPqVendorStatsTable({
+                                          extraParams: { status: "approved", pq_type: "with_pq" },
+                                          page: pqVendorsPage,
+                                          setLoading: setIsPqVendorsLoading,
+                                          setData: setPqVendorsData,
+                                          setPagination: setPqVendorsPagination,
+                                        })
+                                      }
                                       onDownload={async () => {
                                         const rows = await fetchAllPqVendorStats(
                                           { status: "approved", pq_type: "with_pq" },
@@ -2629,6 +2960,15 @@ function VendorManagementDashboard() {
                                       title="Non PQ Vendors (Active & Approved)"
                                       data={nonPqVendorsData}
                                       columns={NON_PQ_VENDORS_COLUMNS}
+                                      onRefresh={() =>
+                                        refreshPqVendorStatsTable({
+                                          extraParams: { status: "approved", pq_type: "without_pq" },
+                                          page: nonPqVendorsPage,
+                                          setLoading: setIsNonPqVendorsLoading,
+                                          setData: setNonPqVendorsData,
+                                          setPagination: setNonPqVendorsPagination,
+                                        })
+                                      }
                                       onDownload={async () => {
                                         const rows = await fetchAllPqVendorStats(
                                           { status: "approved", pq_type: "without_pq" },
@@ -2673,6 +3013,28 @@ function VendorManagementDashboard() {
                                       title="Invited Vendors"
                                       data={invitedVendorsData}
                                       columns={INVITED_VENDORS_COLUMNS}
+                                      onRefresh={() =>
+                                        refreshPqVendorStatsTable({
+                                          extraParams: { status: "invited" },
+                                          page: invitedVendorsPage,
+                                          setLoading: setIsInvitedVendorsLoading,
+                                          setData: setInvitedVendorsData,
+                                          setPagination: setInvitedVendorsPagination,
+                                          mapItem: (item) => ({
+                                            organization: item.organization_name || "-",
+                                            department: item.department_name || "-",
+                                            status: item.status || "Invited",
+                                            vendorTat: item.vendor_tat_days ?? "-",
+                                            internalTat: item.internal_tat_days ?? "-",
+                                            cumulativeTat: item.cumulative_tat_days ?? "-",
+                                            invitationDate: item.invitation_date || "-",
+                                            invitedBy: item.invited_by || "-",
+                                            category: item.category || "-",
+                                            email: item.contact_email || "-",
+                                            responseStatus: item.response_status || "Pending",
+                                          }),
+                                        })
+                                      }
                                       onDownload={async () => {
                                         const rows = await fetchAllPqVendorStats(
                                           { status: "invited" },
@@ -2717,6 +3079,25 @@ function VendorManagementDashboard() {
                                       title="Verification Pending Vendors"
                                       data={verificationPendingData}
                                       columns={VERIFICATION_PENDING_COLUMNS}
+                                      onRefresh={() =>
+                                        refreshPqVendorStatsTable({
+                                          extraParams: { status: "verification_pending" },
+                                          page: verificationPendingPage,
+                                          setLoading: setIsVerificationPendingLoading,
+                                          setData: setVerificationPendingData,
+                                          setPagination: setVerificationPendingPagination,
+                                          mapItem: (item) => ({
+                                            organization: item.organization_name || "-",
+                                            department: item.department_name || "-",
+                                            status: item.status || "Verification Pending",
+                                            vendorTat: item.vendor_tat_days ?? "-",
+                                            internalTat: item.internal_tat_days ?? "-",
+                                            cumulativeTat: item.cumulative_tat_days ?? "-",
+                                            pendingLevel: item.pending_level || "-",
+                                            approverName: item.approver_name || "-",
+                                          }),
+                                        })
+                                      }
                                       onDownload={async () => {
                                         const rows = await fetchAllPqVendorStats(
                                           { status: "verification_pending" },
@@ -2770,6 +3151,25 @@ function VendorManagementDashboard() {
                                       title="Details Submitted Vendors"
                                       data={detailsSubmittedData}
                                       columns={DETAILS_SUBMITTED_COLUMNS}
+                                      onRefresh={() =>
+                                        refreshPqVendorStatsTable({
+                                          extraParams: { status: "details_submitted_by_vendor" },
+                                          page: detailsSubmittedPage,
+                                          setLoading: setIsDetailsSubmittedLoading,
+                                          setData: setDetailsSubmittedData,
+                                          setPagination: setDetailsSubmittedPagination,
+                                          mapItem: (item) => ({
+                                            organization: item.organization_name || "-",
+                                            department: item.department_name || "-",
+                                            status: "Details Submitted",
+                                            submissionDate: item.submission_date || "-",
+                                            completionPercentage: item.completion_percentage || "-",
+                                            documentsUploaded: item.documents_uploaded || "-",
+                                            lastUpdated: item.last_updated || "-",
+                                            reviewStatus: item.review_status || "Pending Review",
+                                          }),
+                                        })
+                                      }
                                       onDownload={async () => {
                                         const rows = await fetchAllPqVendorStats(
                                           { status: "details_submitted_by_vendor" },
@@ -2818,6 +3218,28 @@ function VendorManagementDashboard() {
                                       title="Onboarding In Process"
                                       data={onboardingInProcessData}
                                       columns={ONBOARDING_IN_PROCESS_COLUMNS}
+                                      onRefresh={() =>
+                                        refreshPqVendorStatsTable({
+                                          extraParams: { status: "onboarding" },
+                                          page: onboardingInProcessPage,
+                                          setLoading: setIsOnboardingInProcessLoading,
+                                          setData: setOnboardingInProcessData,
+                                          setPagination: setOnboardingInProcessPagination,
+                                          mapItem: (item) => ({
+                                            organization: item.organization_name || "-",
+                                            department: item.department_name || "-",
+                                            status: item.status || "Onboarding",
+                                            vendorTat: item.vendor_tat_days ?? "-",
+                                            internalTat: item.internal_tat_days ?? "-",
+                                            cumulativeTat: item.cumulative_tat_days ?? "-",
+                                            startDate: item.start_date || "-",
+                                            currentStage: item.current_stage || "-",
+                                            daysInProcess: item.days_in_process || "-",
+                                            assignedTo: item.assigned_to || "-",
+                                            progressPercentage: item.progress_percentage || "-",
+                                          }),
+                                        })
+                                      }
                                       onDownload={async () => {
                                         const rows = await fetchAllPqVendorStats(
                                           { status: "onboarding" },
@@ -2866,6 +3288,28 @@ function VendorManagementDashboard() {
                                       title="Request for Resubmission Vendors"
                                       data={resubmissionRequestsData}
                                       columns={RESUBMISSION_REQUESTS_COLUMNS}
+                                      onRefresh={() =>
+                                        refreshPqVendorStatsTable({
+                                          extraParams: { status: "request_for_resubmission" },
+                                          page: resubmissionRequestsPage,
+                                          setLoading: setIsResubmissionRequestsLoading,
+                                          setData: setResubmissionRequestsData,
+                                          setPagination: setResubmissionRequestsPagination,
+                                          mapItem: (item) => ({
+                                            organization: item.organization_name || "-",
+                                            department: item.department_name || "-",
+                                            status: item.status || "Request for Resubmission",
+                                            vendorTat: item.vendor_tat_days ?? "-",
+                                            internalTat: item.internal_tat_days ?? "-",
+                                            cumulativeTat: item.cumulative_tat_days ?? "-",
+                                            requestDate: item.request_date || "-",
+                                            reason: item.reason || "-",
+                                            requestedBy: item.requested_by || "-",
+                                            resubmittedOn: item.resubmitted_on || "-",
+                                            currentStatus: item.current_status || "-",
+                                          }),
+                                        })
+                                      }
                                       onDownload={async () => {
                                         const rows = await fetchAllPqVendorStats(
                                           { status: "request_for_resubmission" },

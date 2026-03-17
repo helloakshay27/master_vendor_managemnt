@@ -10,9 +10,37 @@ import {
   Cell,
   LabelList,
 } from "recharts";
-import { Download, Loader2 } from "lucide-react";
+import { Download, Loader2, RefreshCw } from "lucide-react";
 
 const getBarColor = () => "#b08968"; // uniform light brown bars
+
+const truncateLabel = (value, max = 14) => {
+  const str = String(value ?? "");
+  if (str.length <= max) return str;
+  return `${str.slice(0, Math.max(0, max - 3))}...`;
+};
+
+const TruncatedAxisTick = (props) => {
+  const { x, y, payload } = props;
+  const full = String(payload?.value ?? "");
+  const short = truncateLabel(full, 14);
+  return (
+    <g transform={`translate(${x},${y})`}>
+      <title>{full}</title>
+      <text
+        x={0}
+        y={0}
+        dy={16}
+        textAnchor="end"
+        fill="#8d6e63"
+        fontSize={10}
+        transform="rotate(-30)"
+      >
+        {short}
+      </text>
+    </g>
+  );
+};
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
@@ -39,8 +67,9 @@ const CustomTooltip = ({ active, payload, label }) => {
   );
 };
 
-const PercentageCompletionChart = ({ data = [], onDownload }) => {
+const PercentageCompletionChart = ({ data = [], onDownload, onRefresh }) => {
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   return (
     <div
       style={{
@@ -55,25 +84,49 @@ const PercentageCompletionChart = ({ data = [], onDownload }) => {
       <div className="vendor-card-header">
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
           <h3 className="vendor-card-title">Percentage of Completed Assessment by Category</h3>
-          {onDownload && (
-            isDownloading ? (
-              <Loader2 className="w-5 h-5 animate-spin" style={{ color: "#d97938" }} />
-            ) : (
-              <Download
-                className="w-5 h-5 cursor-pointer"
-                style={{ color: "#6b7280" }}
-                onClick={async (e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setIsDownloading(true);
-                  try {
-                    await onDownload();
-                  } finally {
-                    setIsDownloading(false);
-                  }
-                }}
-              />
-            )
+          {(onRefresh || onDownload) && (
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              {onRefresh && (
+                isRefreshing ? (
+                  <Loader2 className="w-5 h-5 animate-spin" style={{ color: "#d97938" }} />
+                ) : (
+                  <RefreshCw
+                    className="w-5 h-5 cursor-pointer"
+                    style={{ color: "#6b7280" }}
+                    onClick={async (e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setIsRefreshing(true);
+                      try {
+                        await onRefresh();
+                      } finally {
+                        setIsRefreshing(false);
+                      }
+                    }}
+                  />
+                )
+              )}
+              {onDownload && (
+                isDownloading ? (
+                  <Loader2 className="w-5 h-5 animate-spin" style={{ color: "#d97938" }} />
+                ) : (
+                  <Download
+                    className="w-5 h-5 cursor-pointer"
+                    style={{ color: "#6b7280" }}
+                    onClick={async (e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setIsDownloading(true);
+                      try {
+                        await onDownload();
+                      } finally {
+                        setIsDownloading(false);
+                      }
+                    }}
+                  />
+                )
+              )}
+            </div>
           )}
         </div>
       </div>
@@ -82,7 +135,8 @@ const PercentageCompletionChart = ({ data = [], onDownload }) => {
       <ResponsiveContainer width="100%" height={320}>
         <BarChart
           data={data}
-          margin={{ top: 24, right: 10, left: 0, bottom: 70 }}
+          // Give enough left space so Y-axis text stays outside plot
+          margin={{ top: 24, right: 10, left: 50, bottom: 70 }}
         >
           <CartesianGrid
             strokeDasharray="3 3"
@@ -92,9 +146,7 @@ const PercentageCompletionChart = ({ data = [], onDownload }) => {
 
           <XAxis
             dataKey="department"
-            tick={{ fontSize: 10, fill: "#8d6e63" }}
-            angle={-30}
-            textAnchor="end"
+            tick={<TruncatedAxisTick />}
             interval={0}
           />
 
@@ -102,6 +154,7 @@ const PercentageCompletionChart = ({ data = [], onDownload }) => {
             domain={[0, 100]}
             tick={{ fontSize: 11, fill: "#8d6e63" }}
             tickFormatter={(v) => `${v}`}
+            width={55}
           />
 
           <Tooltip content={<CustomTooltip />} />

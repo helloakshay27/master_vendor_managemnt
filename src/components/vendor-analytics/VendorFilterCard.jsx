@@ -1,5 +1,13 @@
 import React, { useState, useEffect, useRef } from "react";
-import { RotateCcw, Building2, Layers, Users, Calendar } from "lucide-react";
+import {
+  RotateCcw,
+  Building2,
+  Layers,
+  Users,
+  Calendar,
+  MapPin,
+  ListTree,
+} from "lucide-react";
 import Select, { components } from "react-select";
 import { baseURL } from "../../confi/apiDomain";
 
@@ -40,7 +48,17 @@ const ValueContainer = ({ children, ...props }) => {
   );
 };
 
-const FilterCardItem = ({ icon: Icon, label, value, onChange, isLoading, options, disabled, hasDropdown = true }) => {
+const FilterCardItem = ({
+  icon: Icon,
+  label,
+  value,
+  onChange,
+  isLoading,
+  options,
+  disabled,
+  hasDropdown = true,
+  isMulti = true,
+}) => {
   return (
     <div
       style={{
@@ -86,13 +104,25 @@ const FilterCardItem = ({ icon: Icon, label, value, onChange, isLoading, options
         </label>
         {hasDropdown ? (
           <Select
-            isMulti
-            options={[{ value: "all", label: "Select All" }, ...options]}
+            isMulti={isMulti}
+            options={
+              isMulti ? [{ value: "all", label: "Select All" }, ...options] : options
+            }
             value={value}
             onChange={(selected, actionMeta) => {
-              if (actionMeta.action === "select-option" && actionMeta.option.value === "all") {
+              if (!isMulti) {
+                onChange(selected || null);
+                return;
+              }
+              if (
+                actionMeta.action === "select-option" &&
+                actionMeta.option.value === "all"
+              ) {
                 onChange(options);
-              } else if (actionMeta.action === "deselect-option" && actionMeta.option.value === "all") {
+              } else if (
+                actionMeta.action === "deselect-option" &&
+                actionMeta.option.value === "all"
+              ) {
                 onChange([]);
               } else {
                 onChange(selected || []);
@@ -181,6 +211,7 @@ export const VendorFilterCard = ({
   currentEndDate,
   token, // Added token prop
   currentPqType = "with_pq",
+  enableAssessmentDropdowns = false,
 }) => {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -188,6 +219,17 @@ export const VendorFilterCard = ({
   const [departmentName, setDepartmentName] = useState([]);
   const [vendors, setVendors] = useState([]);
   const [pqType, setPqType] = useState("with_pq");
+
+  const [site, setSite] = useState([]);
+  const [category, setCategory] = useState([]);
+  const [subCategory, setSubCategory] = useState([]);
+
+  const [sitesList, setSitesList] = useState([]);
+  const [categoriesList, setCategoriesList] = useState([]);
+  const [subCategoriesList, setSubCategoriesList] = useState([]);
+  const [isLoadingSites, setIsLoadingSites] = useState(false);
+  const [isLoadingCategories, setIsLoadingCategories] = useState(false);
+  const [isLoadingSubCategories, setIsLoadingSubCategories] = useState(false);
 
   const [companiesList, setCompaniesList] = useState([]);
   const [isLoadingCompanies, setIsLoadingCompanies] = useState(false);
@@ -203,6 +245,18 @@ export const VendorFilterCard = ({
   const initialApplied = useRef(false);
   const companiesLoadedRef = useRef(false);
 
+  const companyIdsKey = (companyName || [])
+    .map((c) => c?.value)
+    .filter((v) => v !== undefined && v !== null && String(v).length > 0)
+    .map((v) => String(v))
+    .join(",");
+
+  const departmentIdsKey = (departmentName || [])
+    .map((d) => d?.value)
+    .filter((v) => v !== undefined && v !== null && String(v).length > 0)
+    .map((v) => String(v))
+    .join(",");
+
   useEffect(() => {
     const formatForInput = (dateStr) => {
       if (!dateStr) return "";
@@ -210,7 +264,8 @@ export const VendorFilterCard = ({
       if (parts.length === 3) return `${parts[2]}-${parts[1]}-${parts[0]}`;
       return dateStr;
     };
-    setStartDate(formatForInput(currentStartDate));
+    const defaultStart = "01/01/2024";
+    setStartDate(formatForInput(currentStartDate || defaultStart));
     setEndDate(formatForInput(currentEndDate));
     setPqType(currentPqType || "with_pq");
   }, [currentStartDate, currentEndDate, currentPqType]);
@@ -239,6 +294,11 @@ export const VendorFilterCard = ({
         const data = await response.json();
         const arr = data.data || (Array.isArray(data) ? data : []);
         setDepartmentsList(arr);
+        const allDepartments = arr.map(d => ({
+          value: d.id || d.name || d,
+          label: d.name || d.department_name || d,
+        }));
+        setDepartmentName(allDepartments); // default all selected
       } catch (err) { console.error("Error fetching departments:", err); }
       finally { setIsLoadingDepartments(false); }
     };
@@ -270,13 +330,14 @@ export const VendorFilterCard = ({
         setVendorsList(arr);
 
         // Fire onApplyFilters only once on initial load — never again from this effect
-        if (!initialApplied.current) {
+        // Ensure we include default "all departments" in the first apply
+        if (!initialApplied.current && departmentIdsKey) {
           initialApplied.current = true;
           onApplyFilters({
             startDate: currentStartDate,
             endDate: currentEndDate,
             companyName: companyName.map(c => c.value).join(","),
-            departmentName: "",
+            departmentName: departmentIdsKey,
             vendors: "",
             pqType: currentPqType || "with_pq",
           });
@@ -289,6 +350,150 @@ export const VendorFilterCard = ({
     // Only re-fetch vendors when user manually changes company or department selection
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [companyName, departmentName]);
+
+  // Assessment dropdowns depend on company (single effective company: first selected)
+  useEffect(() => {
+    if (!enableAssessmentDropdowns) return;
+    if (!token) return;
+
+    const companyIds = companyIdsKey ? companyIdsKey.split(",") : [];
+    const departmentIds = departmentIdsKey ? departmentIdsKey.split(",") : [];
+
+    if (companyIds.length === 0) {
+      setSitesList([]);
+      setCategoriesList([]);
+      setSubCategoriesList([]);
+      setSite([]);
+      setCategory([]);
+      setSubCategory([]);
+      return;
+    }
+
+    const controller = new AbortController();
+
+    const normalize = (json) => {
+      if (!json) return [];
+      if (Array.isArray(json)) return json;
+      if (json?.data && Array.isArray(json.data)) return json.data;
+      if (json?.sites && Array.isArray(json.sites)) return json.sites;
+      if (json?.category && Array.isArray(json.category)) return json.category;
+      if (json?.sub_category && Array.isArray(json.sub_category))
+        return json.sub_category;
+      const arr = typeof json === "object"
+        ? Object.values(json).find((v) => Array.isArray(v))
+        : null;
+      return Array.isArray(arr) ? arr : [];
+    };
+
+    const fetchSites = async () => {
+      setIsLoadingSites(true);
+      try {
+        const deptParam =
+          departmentIds.length > 0
+            ? `&department_ids=${encodeURIComponent(departmentIds.join(","))}`
+            : "";
+
+        // Call API ONCE with all company ids (when multiple selected).
+        // Use company_id for single selection to match existing backend behavior.
+        const companyParam =
+          companyIds.length <= 1
+            ? `company_id=${encodeURIComponent(companyIds[0] || "")}`
+            : `company_ids=${encodeURIComponent(companyIds.join(","))}`;
+
+        const res = await fetch(
+          `${baseURL}vendor_assement_dashboard/sites_filter.json?token=${token}&${companyParam}${deptParam}`,
+          { signal: controller.signal },
+        );
+        const json = await res.json();
+        setSitesList(normalize(json?.sites ?? json));
+      } catch (e) {
+        if (e?.name !== "AbortError") console.error("Error fetching sites:", e);
+        setSitesList([]);
+      } finally {
+        setIsLoadingSites(false);
+      }
+    };
+
+    const fetchCategories = async () => {
+      setIsLoadingCategories(true);
+      try {
+        const res = await fetch(
+          `${baseURL}vendor_assement_dashboard/category_filter.json?token=${token}&company_ids=${encodeURIComponent(companyIds.join(","))}`,
+          { signal: controller.signal },
+        );
+        const json = await res.json();
+        setCategoriesList(normalize(json?.category ?? json));
+      } catch (e) {
+        if (e?.name !== "AbortError")
+          console.error("Error fetching categories:", e);
+        setCategoriesList([]);
+      } finally {
+        setIsLoadingCategories(false);
+      }
+    };
+
+    fetchSites();
+    fetchCategories();
+
+    // Clear dependent selections when company changes
+    setSite([]);
+    setCategory([]);
+    setSubCategory([]);
+    setSubCategoriesList([]);
+
+    return () => controller.abort();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [enableAssessmentDropdowns, token, companyIdsKey, departmentIdsKey]);
+
+  // Subcategory: depends on company + category (optional category-wise)
+  useEffect(() => {
+    if (!enableAssessmentDropdowns) return;
+    if (!token) return;
+    const companyIds = companyIdsKey ? companyIdsKey.split(",") : [];
+    if (companyIds.length === 0) return;
+
+    const controller = new AbortController();
+
+    const normalize = (json) => {
+      if (!json) return [];
+      if (Array.isArray(json)) return json;
+      if (json?.sub_category && Array.isArray(json.sub_category))
+        return json.sub_category;
+      const arr = typeof json === "object"
+        ? Object.values(json).find((v) => Array.isArray(v))
+        : null;
+      return Array.isArray(arr) ? arr : [];
+    };
+
+    const fetchSubCategories = async () => {
+      setIsLoadingSubCategories(true);
+      try {
+        const base =
+          `${baseURL}vendor_assement_dashboard/sub_category_filter.json?token=${token}` +
+          `&company_ids=${encodeURIComponent(companyIds.join(","))}`;
+        // If exactly one category selected, try category-wise subcategories.
+        // If multiple selected, fall back to full list (backend may not support multi).
+        const url =
+          Array.isArray(category) && category.length === 1 && category[0]?.value
+            ? `${base}&category_id=${encodeURIComponent(category[0].value)}`
+            : base;
+        const res = await fetch(url, { signal: controller.signal });
+        const json = await res.json();
+        setSubCategoriesList(normalize(json?.sub_category ?? json));
+      } catch (e) {
+        if (e?.name !== "AbortError")
+          console.error("Error fetching subcategories:", e);
+        setSubCategoriesList([]);
+      } finally {
+        setIsLoadingSubCategories(false);
+      }
+    };
+
+    fetchSubCategories();
+    setSubCategory([]);
+
+    return () => controller.abort();
+  }, [enableAssessmentDropdowns, token, companyIdsKey, category]);
 
   const handleApply = () => {
     if (startDate && endDate) {
@@ -305,6 +510,14 @@ export const VendorFilterCard = ({
         departmentName: departmentName.map(d => d.value).join(","),
         vendors: vendors.map(v => v.value).join(","),
         pqType,
+        ...(enableAssessmentDropdowns
+          ? {
+              companyId: companyName?.length ? companyName.map((c) => String(c.value)).join(",") : "",
+              siteId: Array.isArray(site) && site.length ? site.map((s) => String(s.value)).join(",") : "",
+              categoryId: Array.isArray(category) && category.length ? category.map((c) => String(c.value)).join(",") : "",
+              subCategoryId: Array.isArray(subCategory) && subCategory.length ? subCategory.map((sc) => String(sc.value)).join(",") : "",
+            }
+          : {}),
       });
     }
   };
@@ -343,17 +556,23 @@ export const VendorFilterCard = ({
     setStartDate(formatDt(startDate2024));
     setEndDate(formatDt(today));
     setCompanyName(allCos);
-    setDepartmentName([]); // Start with empty selection
+    setDepartmentName(allDepts); // default all selected
     setVendors([]); // Start with empty selection
     setPqType("with_pq");
+    setSite([]);
+    setCategory([]);
+    setSubCategory([]);
 
     onApplyFilters({
       startDate: formatOut(startDate2024),
       endDate: formatOut(today),
       companyName: allCos.map(c => c.value).join(","),
-      departmentName: "", // Passing empty as per requirement
+      departmentName: allDepts.map(d => d.value).join(","),
       vendors: "", // Passing empty as per requirement
       pqType: "with_pq",
+      ...(enableAssessmentDropdowns
+        ? { companyId: allCos.map((c) => String(c.value)).join(","), siteId: "", categoryId: "", subCategoryId: "" }
+        : {}),
     });
   };
 
@@ -375,6 +594,21 @@ export const VendorFilterCard = ({
     value: vendor.id || vendor.name || vendor,
     label: vendor.name || vendor.vendor_name || vendor,
   }));
+
+  const siteOptions = (Array.isArray(sitesList) ? sitesList : []).map((s) => ({
+    value: s.id ?? s.value ?? "",
+    label: s.name ?? s.label ?? "",
+  })).filter(o => o.value && o.label);
+
+  const categoryOptions = (Array.isArray(categoriesList) ? categoriesList : []).map((c) => ({
+    value: c.id ?? c.value ?? "",
+    label: c.name ?? c.label ?? "",
+  })).filter(o => o.value && o.label);
+
+  const subCategoryOptions = (Array.isArray(subCategoriesList) ? subCategoriesList : []).map((sc) => ({
+    value: sc.id ?? sc.value ?? "",
+    label: sc.name ?? sc.label ?? "",
+  })).filter(o => o.value && o.label);
 
 
   return (
@@ -485,7 +719,48 @@ export const VendorFilterCard = ({
           options={vendorOptions}
           disabled={false}
           hasDropdown={true}
+          isMulti={true}
         />
+
+        {enableAssessmentDropdowns && (
+          <>
+            <FilterCardItem
+              icon={MapPin}
+              label="Site"
+              value={site}
+              onChange={(selected) => setSite(selected)}
+              isLoading={isLoadingSites}
+              options={siteOptions}
+              disabled={!companyName?.length}
+              hasDropdown={true}
+              isMulti={true}
+            />
+
+            <FilterCardItem
+              icon={Layers}
+              label="Category"
+              value={category}
+              onChange={(selected) => setCategory(selected)}
+              isLoading={isLoadingCategories}
+              options={categoryOptions}
+              disabled={!companyName?.length}
+              hasDropdown={true}
+              isMulti={true}
+            />
+
+            <FilterCardItem
+              icon={ListTree}
+              label="Subcategory"
+              value={subCategory}
+              onChange={(selected) => setSubCategory(selected)}
+              isLoading={isLoadingSubCategories}
+              options={subCategoryOptions}
+              disabled={!companyName?.length}
+              hasDropdown={true}
+              isMulti={true}
+            />
+          </>
+        )}
       </div>
 
       {/* Apply Button */}

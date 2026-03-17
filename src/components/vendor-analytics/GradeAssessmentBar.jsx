@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Download, Loader2 } from "lucide-react";
+import { Download, Loader2, RefreshCw } from "lucide-react";
 
 /**
  * Helper to determine if a color is light or dark
@@ -23,9 +23,11 @@ export const GradeAssessmentBar = ({
   data = [], 
   legendLabel = "Grade",
   onDownload,
+  onRefresh,
   className = "" 
 }) => {
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [tooltip, setTooltip] = useState(null);
 
   const total = data.reduce((acc, item) => acc + item.value, 0);
@@ -82,6 +84,41 @@ export const GradeAssessmentBar = ({
               alignItems: "center"
             }}
           >
+            {onRefresh && (
+              <button
+                onClick={async (e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsRefreshing(true);
+                  try {
+                    await onRefresh();
+                  } finally {
+                    setIsRefreshing(false);
+                  }
+                }}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  cursor: "pointer",
+                  color: "#ffffff",
+                  display: "flex",
+                  alignItems: "center",
+                  opacity: 0.8,
+                  transition: "opacity 0.2s",
+                  marginRight: "10px",
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
+                onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.8")}
+                disabled={isRefreshing}
+                title="Refresh"
+              >
+                {isRefreshing ? (
+                  <Loader2 size={18} className="animate-spin text-white" />
+                ) : (
+                  <RefreshCw size={18} />
+                )}
+              </button>
+            )}
             {isDownloading ? (
               <Loader2 size={18} className="animate-spin text-white" />
             ) : (

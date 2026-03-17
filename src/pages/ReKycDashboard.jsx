@@ -855,6 +855,7 @@ const KYCManagementDashboard = () => {
                                       ]}
                                       title="Total Approved Suppliers"
                                       legendLabel="Suppliers"
+                                      onRefresh={fetchKpiCards}
                                       onDownload={() => exportChartData([
                                         { 
                                           label: "Initiated Suppliers", 
@@ -923,6 +924,7 @@ const KYCManagementDashboard = () => {
                                       ]}
                                       title="Status Wise Vendor Count"
                                       legendLabel="Statuses"
+                                      onRefresh={fetchKpiCards}
                                       onDownload={() => exportChartData([
                                         { 
                                           label: "Approved", 
@@ -971,6 +973,7 @@ const KYCManagementDashboard = () => {
                                     isLoading={isRejectedLoading}
                                     pagination={rejectedPagination}
                                     onPageChange={(page) => fetchSummaryData("rejected", null, page, setRejectedData, setRejectedPagination, setIsRejectedLoading)}
+                                    onRefresh={() => fetchSummaryData("rejected", null, rejectedPagination?.current_page || 1, setRejectedData, setRejectedPagination, setIsRejectedLoading)}
                                     onDownload={async () => {
                                       const rows = await fetchAllReKycData(
                                         "vendor_re_kyc_dashboard/general_rekyc_summary_filtered.json",
@@ -1014,6 +1017,7 @@ const KYCManagementDashboard = () => {
                                     isLoading={isDetailsSubLoading}
                                     pagination={detailsSubPagination}
                                     onPageChange={(page) => fetchSummaryData("details_submitted_by_vendor", null, page, setDetailsSubData, setDetailsSubPagination, setIsDetailsSubLoading)}
+                                    onRefresh={() => fetchSummaryData("details_submitted_by_vendor", null, detailsSubPagination?.current_page || 1, setDetailsSubData, setDetailsSubPagination, setIsDetailsSubLoading)}
                                     onDownload={async () => {
                                       const rows = await fetchAllReKycData(
                                         "vendor_re_kyc_dashboard/general_rekyc_summary_filtered.json",
@@ -1061,6 +1065,7 @@ const KYCManagementDashboard = () => {
                                   ) : (
                                     <DepartmentReKYCChart
                                       data={deptGeneralRekycData}
+                                      onRefresh={fetchDeptGeneralRekyc}
                                       onDownload={() => exportChartData(deptGeneralRekycData, "dept_general_rekyc")}
                                     />
                                   )}
@@ -1090,6 +1095,7 @@ const KYCManagementDashboard = () => {
                                     isLoading={isApprovedNoReKycLoading}
                                     pagination={approvedNoReKycPagination}
                                     onPageChange={fetchApprovedNoReKycData}
+                                    onRefresh={() => fetchApprovedNoReKycData(approvedNoReKycPagination?.current_page || 1)}
                                     onDownload={async () => {
                                       const rows = await fetchAllReKycData(
                                         "vendor_re_kyc_dashboard/approved_vendor_but_rekyc_not_initiated.json",
@@ -1142,6 +1148,7 @@ const KYCManagementDashboard = () => {
                                     isLoading={isApprovedRecordsLoading}
                                     pagination={approvedRecordsPagination}
                                     onPageChange={(page) => fetchSummaryData("approved", null, page, setApprovedRecordsData, setApprovedRecordsPagination, setIsApprovedRecordsLoading)}
+                                    onRefresh={() => fetchSummaryData("approved", null, approvedRecordsPagination?.current_page || 1, setApprovedRecordsData, setApprovedRecordsPagination, setIsApprovedRecordsLoading)}
                                     onDownload={async () => {
                                       const rows = await fetchAllReKycData(
                                         "vendor_re_kyc_dashboard/general_rekyc_summary_filtered.json",
@@ -1181,6 +1188,7 @@ const KYCManagementDashboard = () => {
                                     isLoading={isExpiredRecordsLoading}
                                     pagination={expiredRecordsPagination}
                                     onPageChange={(page) => fetchSummaryData("expired", null, page, setExpiredRecordsData, setExpiredRecordsPagination, setIsExpiredRecordsLoading)}
+                                    onRefresh={() => fetchSummaryData("expired", null, expiredRecordsPagination?.current_page || 1, setExpiredRecordsData, setExpiredRecordsPagination, setIsExpiredRecordsLoading)}
                                     onDownload={async () => {
                                       const rows = await fetchAllReKycData(
                                         "vendor_re_kyc_dashboard/general_rekyc_summary_filtered.json",
@@ -1227,6 +1235,7 @@ const KYCManagementDashboard = () => {
                                       data={monthData}
                                       title="Month Wise Re-KYC Type"
                                       isLoading={isChartLoading}
+                                      onRefresh={fetchTimeWiseData}
                                       onDownload={() => exportChartData(monthData, "month_wise_rekyc_type")}
                                     />
                                   )}
@@ -1261,6 +1270,7 @@ const KYCManagementDashboard = () => {
                                       title="Year Wise Re-KYC Count"
                                       type="year"
                                       isLoading={isChartLoading}
+                                      onRefresh={fetchTimeWiseData}
                                       onDownload={() => exportChartData(yearData, "year_wise_rekyc_count")}
                                     />
                                   )}
@@ -1288,6 +1298,7 @@ const KYCManagementDashboard = () => {
                                     isLoading={isSapErrorLoading}
                                     pagination={sapErrorPagination}
                                     onPageChange={(page) => fetchSummaryData("approved", "sap", page, setSapErrorData, setSapErrorPagination, setIsSapErrorLoading)}
+                                    onRefresh={() => fetchSummaryData("approved", "sap", sapErrorPagination?.current_page || 1, setSapErrorData, setSapErrorPagination, setIsSapErrorLoading)}
                                     onDownload={async () => {
                                       const rows = await fetchAllReKycData(
                                         "vendor_re_kyc_dashboard/general_rekyc_summary_filtered.json",
@@ -1332,6 +1343,7 @@ const KYCManagementDashboard = () => {
                                     isLoading={isOrgWiseStatusLoading}
                                     pagination={orgWiseStatusPagination}
                                     onPageChange={fetchOrgWiseStatusData}
+                                    onRefresh={() => fetchOrgWiseStatusData(orgWiseStatusPagination?.current_page || 1)}
                                     onDownload={async () => {
                                       const rows = await fetchAllReKycData(
                                         "vendor_re_kyc_dashboard/organization_wise_vendor_rekyc_status.json",
@@ -1378,6 +1390,7 @@ const KYCManagementDashboard = () => {
                                     isLoading={isOpenInvitesLoading}
                                     pagination={openInvitesPagination}
                                     onPageChange={(page) => fetchSummaryData("pending", null, page, setOpenInvitesData, setOpenInvitesPagination, setIsOpenInvitesLoading)}
+                                    onRefresh={() => fetchSummaryData("pending", null, openInvitesPagination?.current_page || 1, setOpenInvitesData, setOpenInvitesPagination, setIsOpenInvitesLoading)}
                                     onDownload={async () => {
                                       const rows = await fetchAllReKycData(
                                         "vendor_re_kyc_dashboard/general_rekyc_summary_filtered.json",

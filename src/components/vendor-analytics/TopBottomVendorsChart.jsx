@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import { Download, Loader2 } from 'lucide-react';
+import { Download, Loader2, RefreshCw } from 'lucide-react';
 
 const CHART_COLORS = {
   top: '#c4b99d',
   bottom: '#8b7355',
 };
 
-export const TopBottomVendorsChart = ({ topData, bottomData, onDownload, className = "" }) => {
+export const TopBottomVendorsChart = ({ topData, bottomData, onDownload, onRefresh, className = "" }) => {
   const [isDownloadingTop, setIsDownloadingTop] = useState(false);
   const [isDownloadingBottom, setIsDownloadingBottom] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   // Use provided data or fallback to empty array
   const topChartData = (topData && topData.length > 0 ? topData : []);
   const bottomChartData = (bottomData && bottomData.length > 0 ? bottomData : []);
@@ -27,24 +28,48 @@ export const TopBottomVendorsChart = ({ topData, bottomData, onDownload, classNa
               <h3 className="vendor-card-title">
                 Top 10 Vendors by Avg TAT
               </h3>
-              {onDownload && (
+              {(onRefresh || onDownload) && (
                 isDownloadingTop ? (
                   <Loader2 className="w-5 h-5 animate-spin" style={{ color: "#d97938" }} />
                 ) : (
-                  <Download
-                    className="w-5 h-5 cursor-pointer"
-                    style={{ color: "#6b7280" }}
-                    onClick={async (e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      setIsDownloadingTop(true);
-                      try {
-                        await onDownload();
-                      } finally {
-                        setIsDownloadingTop(false);
-                      }
-                    }}
-                  />
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    {onRefresh && (
+                      isRefreshing ? (
+                        <Loader2 className="w-5 h-5 animate-spin" style={{ color: "#d97938" }} />
+                      ) : (
+                        <RefreshCw
+                          className="w-5 h-5 cursor-pointer"
+                          style={{ color: "#6b7280" }}
+                          onClick={async (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setIsRefreshing(true);
+                            try {
+                              await onRefresh();
+                            } finally {
+                              setIsRefreshing(false);
+                            }
+                          }}
+                        />
+                      )
+                    )}
+                    {onDownload && (
+                      <Download
+                        className="w-5 h-5 cursor-pointer"
+                        style={{ color: "#6b7280" }}
+                        onClick={async (e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setIsDownloadingTop(true);
+                          try {
+                            await onDownload();
+                          } finally {
+                            setIsDownloadingTop(false);
+                          }
+                        }}
+                      />
+                    )}
+                  </div>
                 )
               )}
             </div>
@@ -111,24 +136,48 @@ export const TopBottomVendorsChart = ({ topData, bottomData, onDownload, classNa
               <h3 className="vendor-card-title">
                 Bottom 10 Vendors by Avg TAT
               </h3>
-              {onDownload && (
+              {(onRefresh || onDownload) && (
                 isDownloadingBottom ? (
                   <Loader2 className="w-5 h-5 animate-spin" style={{ color: "#d97938" }} />
                 ) : (
-                  <Download
-                    className="w-5 h-5 cursor-pointer"
-                    style={{ color: "#6b7280" }}
-                    onClick={async (e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      setIsDownloadingBottom(true);
-                      try {
-                        await onDownload();
-                      } finally {
-                        setIsDownloadingBottom(false);
-                      }
-                    }}
-                  />
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    {onRefresh && (
+                      isRefreshing ? (
+                        <Loader2 className="w-5 h-5 animate-spin" style={{ color: "#d97938" }} />
+                      ) : (
+                        <RefreshCw
+                          className="w-5 h-5 cursor-pointer"
+                          style={{ color: "#6b7280" }}
+                          onClick={async (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setIsRefreshing(true);
+                            try {
+                              await onRefresh();
+                            } finally {
+                              setIsRefreshing(false);
+                            }
+                          }}
+                        />
+                      )
+                    )}
+                    {onDownload && (
+                      <Download
+                        className="w-5 h-5 cursor-pointer"
+                        style={{ color: "#6b7280" }}
+                        onClick={async (e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setIsDownloadingBottom(true);
+                          try {
+                            await onDownload();
+                          } finally {
+                            setIsDownloadingBottom(false);
+                          }
+                        }}
+                      />
+                    )}
+                  </div>
                 )
               )}
             </div>

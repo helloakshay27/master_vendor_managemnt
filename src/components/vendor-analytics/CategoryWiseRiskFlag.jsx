@@ -9,7 +9,7 @@ import {
   ResponsiveContainer,
   LabelList,
 } from "recharts";
-import { Download, Loader2 } from "lucide-react";
+import { Download, Loader2, RefreshCw } from "lucide-react";
 
 const COLORS = {
   HIGH: "#5c4033",
@@ -17,14 +17,43 @@ const COLORS = {
   MODERATE: "#e6d5c3",
 };
 
-export const CategoryWiseRiskFlag = ({ data = [], onDownload }) => {
+export const CategoryWiseRiskFlag = ({ data = [], onDownload, onRefresh }) => {
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const chartData = data.map((item) => ({
     name: item.name,
     HIGH: item.HIGH || 0,
     LOW: item.LOW || 0,
     MODERATE: item.MODERATE || 0,
   }));
+
+  const truncateLabel = (value, max = 14) => {
+    const str = String(value ?? "");
+    if (str.length <= max) return str;
+    return `${str.slice(0, Math.max(0, max - 3))}...`;
+  };
+
+  const TruncatedAxisTick = (props) => {
+    const { x, y, payload } = props;
+    const full = String(payload?.value ?? "");
+    const short = truncateLabel(full, 14);
+    return (
+      <g transform={`translate(${x},${y})`}>
+        <title>{full}</title>
+        <text
+          x={0}
+          y={0}
+          dy={16}
+          textAnchor="end"
+          fill="#8d6e63"
+          fontSize={11}
+          transform="rotate(-30)"
+        >
+          {short}
+        </text>
+      </g>
+    );
+  };
 
   return (
     <div
@@ -39,25 +68,49 @@ export const CategoryWiseRiskFlag = ({ data = [], onDownload }) => {
       <div className="vendor-card-header">
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
           <h3 className="vendor-card-title">Category Wise Risk Flag</h3>
-          {onDownload && (
-            isDownloading ? (
-              <Loader2 className="w-5 h-5 animate-spin" style={{ color: "#d97938" }} />
-            ) : (
-              <Download
-                className="w-5 h-5 cursor-pointer"
-                style={{ color: "#6b7280" }}
-                onClick={async (e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setIsDownloading(true);
-                  try {
-                    await onDownload();
-                  } finally {
-                    setIsDownloading(false);
-                  }
-                }}
-              />
-            )
+          {(onRefresh || onDownload) && (
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              {onRefresh && (
+                isRefreshing ? (
+                  <Loader2 className="w-5 h-5 animate-spin" style={{ color: "#d97938" }} />
+                ) : (
+                  <RefreshCw
+                    className="w-5 h-5 cursor-pointer"
+                    style={{ color: "#6b7280" }}
+                    onClick={async (e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setIsRefreshing(true);
+                      try {
+                        await onRefresh();
+                      } finally {
+                        setIsRefreshing(false);
+                      }
+                    }}
+                  />
+                )
+              )}
+              {onDownload && (
+                isDownloading ? (
+                  <Loader2 className="w-5 h-5 animate-spin" style={{ color: "#d97938" }} />
+                ) : (
+                  <Download
+                    className="w-5 h-5 cursor-pointer"
+                    style={{ color: "#6b7280" }}
+                    onClick={async (e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setIsDownloading(true);
+                      try {
+                        await onDownload();
+                      } finally {
+                        setIsDownloading(false);
+                      }
+                    }}
+                  />
+                )
+              )}
+            </div>
           )}
         </div>
       </div>
@@ -100,7 +153,8 @@ export const CategoryWiseRiskFlag = ({ data = [], onDownload }) => {
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
             data={chartData}
-            margin={{ top: 20, right: 30, left: 20, bottom: 80 }}
+            // Increase left gutter so Y-axis label never overlaps chart
+            margin={{ top: 20, right: 30, left: 70, bottom: 80 }}
           >
             <CartesianGrid
               strokeDasharray="3 3"
@@ -111,25 +165,15 @@ export const CategoryWiseRiskFlag = ({ data = [], onDownload }) => {
             {/* ✅ Cross / Tilted Labels */}
             <XAxis
               dataKey="name"
-              angle={-30}
-              textAnchor="end"
               interval={0}
               height={80}
-              tick={{ fontSize: 11, fill: "#8d6e63" }}
+              tick={<TruncatedAxisTick />}
             />
 
             <YAxis
               allowDecimals={false}
               tick={{ fontSize: 11, fill: "#8d6e63" }}
-              label={{
-                value: "Total Assessments",
-                angle: -90,
-                position: "insideLeft",
-                style: {
-                  textAnchor: "middle",
-                  fill: "#8d6e63",
-                },
-              }}
+              width={80}
             />
 
             <Tooltip

@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState } from "react";
+import { Download, Loader2, RefreshCw } from "lucide-react";
 import {
   BarChart,
   Bar,
@@ -22,7 +23,9 @@ const COLORS = {
   BORDER: "#e6d5c3",
 };
 
-const SubmittedAssessmentOverview = ({ data = [] }) => {
+const SubmittedAssessmentOverview = ({ data = [], onDownload, onRefresh }) => {
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   return (
     <div
       style={{
@@ -33,19 +36,79 @@ const SubmittedAssessmentOverview = ({ data = [] }) => {
         boxShadow: "0 2px 8px rgba(176,137,104,0.15)",
       }}
     >
-      {/* Header */}
       <div
+        className="vendor-card-header"
         style={{
           background: "#ffffff",
-          color: COLORS.A,
-          padding: "14px",
-          textAlign: "center",
-          fontWeight: 600,
-          fontSize: "16px",
           borderBottom: `1px solid ${COLORS.BORDER}`,
+          position: "relative",
+          padding: "14px 48px 14px 14px",
         }}
       >
-        Submitted Assessment Overview by Categories
+        <div style={{ fontWeight: 600, fontSize: "16px", color: COLORS.A }}>
+          Submitted Assessment Overview by Categories
+        </div>
+
+        {(onRefresh || onDownload) && (
+          <div
+            style={{
+              position: "absolute",
+              right: 14,
+              top: "50%",
+              transform: "translateY(-50%)",
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+            }}
+          >
+            {onRefresh && (
+              isRefreshing ? (
+                <Loader2
+                  className="w-5 h-5 animate-spin"
+                  style={{ color: "#d97938" }}
+                />
+              ) : (
+                <RefreshCw
+                  className="w-5 h-5 cursor-pointer"
+                  style={{ color: "#6b7280" }}
+                  onClick={async (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setIsRefreshing(true);
+                    try {
+                      await onRefresh();
+                    } finally {
+                      setIsRefreshing(false);
+                    }
+                  }}
+                />
+              )
+            )}
+            {onDownload && (
+              isDownloading ? (
+                <Loader2
+                  className="w-5 h-5 animate-spin"
+                  style={{ color: "#d97938" }}
+                />
+              ) : (
+                <Download
+                  className="w-5 h-5 cursor-pointer"
+                  style={{ color: "#6b7280" }}
+                  onClick={async (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setIsDownloading(true);
+                    try {
+                      await onDownload();
+                    } finally {
+                      setIsDownloading(false);
+                    }
+                  }}
+                />
+              )
+            )}
+          </div>
+        )}
       </div>
 
       <div style={{ padding: "20px" }}>
