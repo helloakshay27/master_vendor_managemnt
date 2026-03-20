@@ -441,7 +441,7 @@ const Sidebar = () => {
                 </a>
               </li>
               <li className="menu-item d-flex">
-                <a
+                {/* <a
                   className="menu-link active d-flex"
                   style={{ flexDirection: "column" }}
                   href="/event-list?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414"
@@ -460,7 +460,7 @@ const Sidebar = () => {
                     ></path>
                   </svg>
                   <span className="menu-link-text">RFQ</span>
-                </a>
+                </a> */}
               </li>
               <li className="menu-item d-flex">
                 <a
