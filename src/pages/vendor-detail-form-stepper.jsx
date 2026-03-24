@@ -316,18 +316,22 @@ const VendorDetailFormStepper = () => {
         setApprovalLogs(processedLogs);
 
         // Set initial compliance values if available
-        if (vendorResponse.data?.supplier) {
+        // API returns flat structure at root level (not nested under .supplier)
+        const vd = vendorResponse.data;
+        if (vd) {
           setHigherRateApplicable(
-            vendorResponse.data.supplier.higher_rate_app || false
+            vd.higher_rate_app === true
           );
+          // pan_aadhar_linked: true means linked, false means NOT linked
           setPanAadharNotLinked(
-            !(vendorResponse.data.supplier.pan_aadhar_linked ?? true)
+            !(vd.pan_aadhar_linked ?? true)
           );
+          // Convert to String so HTML <select> value comparison works correctly
           setWithholdingSection(
-            vendorResponse.data.supplier.withholding_section_id || ""
+            vd.withholding_section_id != null ? String(vd.withholding_section_id) : ""
           );
           setTypeOfRecipient(
-            vendorResponse.data.supplier.type_of_recipient_id || ""
+            vd.type_of_recipient_id != null ? String(vd.type_of_recipient_id) : ""
           );
         }
 
@@ -4430,7 +4434,7 @@ const VendorDetailFormStepper = () => {
                             >
                               <option value="">Select Withholding Section</option>
                               {withholdingSections.map((ws) => (
-                                <option key={ws.value} value={ws.value}>
+                                <option key={ws.value} value={String(ws.value)}>
                                   {ws.name}
                                 </option>
                               ))}
@@ -4448,7 +4452,7 @@ const VendorDetailFormStepper = () => {
                             >
                               <option value="">Select Type Of Recipient</option>
                               {typeOfRecipients.map((tr) => (
-                                <option key={tr.value} value={tr.value}>
+                                <option key={tr.value} value={String(tr.value)}>
                                   {tr.name}
                                 </option>
                               ))}
