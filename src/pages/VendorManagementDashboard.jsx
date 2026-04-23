@@ -583,6 +583,7 @@ const NON_PQ_VENDORS_COLUMNS = [
   { key: "department_name", label: "Department Name" },
   { key: "status", label: "Status" },
   { key: "created_by_name", label: "Created By" },
+  
   { key: "proceed_remark_reason", label: "Remark/Reason" },
 ];
 
