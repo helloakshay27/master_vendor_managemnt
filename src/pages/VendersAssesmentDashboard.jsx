@@ -32,7 +32,20 @@ import { baseURL } from "@/confi/apiDomain";
 const NOT_GIVEN_RATING_COLUMNS = [
   { key: "organizationName", label: "Organization Name" },
   { key: "siteName", label: "Site Name" },
-  { key: "approverName", label: "Approver Name" },
+  {
+    key: "approverName",
+    label: "Approver Name",
+    render: (value) => (
+      <span
+        style={{
+          color: "#d97938",
+          fontWeight: 600,
+        }}
+      >
+        {value || "-"}
+      </span>
+    ),
+  },
   { key: "category", label: "Category" },
 ];
 
@@ -464,16 +477,11 @@ const VendersAssesmentDashboard = () => {
           (noRating || []).map((r) => ({
             organizationName: r.vendor_name,
             siteName: r.project_name,
-            approverName: concatApproverName(
-              r.approver_firstname ??
-                r.approver_first_name ??
-                r.approverFirstName ??
-                "",
-              r.approver_lastname ??
-                r.approver_last_name ??
-                r.approverLastName ??
-                "",
-            ),
+            approverName: (() => {
+              const f = String(r.approver_firstname || "").trim();
+              const l = String(r.approver_lastname || "").trim();
+              return [f, l].filter(Boolean).join(" ") || r.approver_name || "-";
+            })(),
             category: r.category_name,
           })),
         );
@@ -1332,20 +1340,9 @@ const VendersAssesmentDashboard = () => {
                                             organizationName: r.vendor_name,
                                             siteName: r.project_name,
                                             approverName: (() => {
-                                              const f = String(
-                                                r.approver_firstname ??
-                                                  r.approver_first_name ??
-                                                  r.approverFirstName ??
-                                                  "",
-                                              ).trim();
-                                              const l = String(
-                                                r.approver_lastname ??
-                                                  r.approver_last_name ??
-                                                  r.approverLastName ??
-                                                  "",
-                                              ).trim();
-                                              const parts = [f, l].filter(Boolean);
-                                              return parts.join(" ") || "-";
+                                              const f = String(r.approver_firstname || "").trim();
+                                              const l = String(r.approver_lastname || "").trim();
+                                              return [f, l].filter(Boolean).join(" ") || r.approver_name || "-";
                                             })(),
                                             category: r.category_name,
                                           }));
