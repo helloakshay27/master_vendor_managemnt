@@ -32,6 +32,7 @@ import { baseURL } from "@/confi/apiDomain";
 const NOT_GIVEN_RATING_COLUMNS = [
   { key: "organizationName", label: "Organization Name" },
   { key: "siteName", label: "Site Name" },
+  { key: "approverName", label: "Approver Name" },
   { key: "category", label: "Category" },
 ];
 
@@ -452,10 +453,27 @@ const VendersAssesmentDashboard = () => {
           fetchAllVendorProjectList("disqualified", signal),
         ]);
 
+        const concatApproverName = (first, last) => {
+          const f = String(first ?? "").trim();
+          const l = String(last ?? "").trim();
+          const parts = [f, l].filter(Boolean);
+          return parts.join(" ") || "-";
+        };
+
         setNoRatingRows(
           (noRating || []).map((r) => ({
             organizationName: r.vendor_name,
             siteName: r.project_name,
+            approverName: concatApproverName(
+              r.approver_firstname ??
+                r.approver_first_name ??
+                r.approverFirstName ??
+                "",
+              r.approver_lastname ??
+                r.approver_last_name ??
+                r.approverLastName ??
+                "",
+            ),
             category: r.category_name,
           })),
         );
@@ -554,7 +572,16 @@ const VendersAssesmentDashboard = () => {
     const rows = subcategoryOverviewResponse?.data;
     if (!Array.isArray(rows)) return [];
     return rows.map((r) => ({
-      name: r.sub_category_name,
+      // Show combined category label on Y-axis
+      // Example: "Assessment Contract And Billing - Billing Feedback"
+      name: (() => {
+        let category = String(r.category ?? r.category_name ?? "").trim();
+        // Remove "Assessment" word from category label (e.g., "Assessment Contract And Billing")
+        category = category.replace(/^assessment\s*/i, "").trim();
+        const sub = String(r.sub_category_name ?? "").trim();
+        if (category && sub) return `${category} - ${sub}`;
+        return sub || category || "-";
+      })(),
       submitted: Number(r.submitted_count ?? 0),
       pending: Number(r.pending_count ?? 0),
     }));
@@ -629,7 +656,22 @@ const VendersAssesmentDashboard = () => {
       .map((v) => ({
         vendorId: v.vendor_id,
         name: String(v.vendor_name || "").trim(),
-        avgTat: Number(v.average_score ?? 0),
+        avgTat: Number(v.average_score ?? 0), // backward compatibility
+        avgWantedScore: Number(
+          v.average_score ??
+            v.avg_score ??
+            v.score ??
+            v.average_score ??
+            0,
+        ),
+        Days: Number(
+          v.average_days ??
+            v.wanted_days ??
+            v.average_days ??
+            v.average_tat_days ??
+            v.avg_tat_days ??
+            0,
+        ),
       }))
       .filter((x) => x.name);
   }, [topBottomResponse]);
@@ -641,7 +683,22 @@ const VendersAssesmentDashboard = () => {
       .map((v) => ({
         vendorId: v.vendor_id,
         name: String(v.vendor_name || "").trim(),
-        avgTat: Number(v.average_score ?? 0),
+        avgTat: Number(v.average_score ?? 0), // backward compatibility
+        avgWantedScore: Number(
+          v.average_wanted_score ??
+            v.wanted_avg_score ??
+            v.wanted_score ??
+            v.average_score ??
+            0,
+        ),
+        wantedDays: Number(
+          v.average_wanted_days ??
+            v.wanted_days ??
+            v.average_days ??
+            v.average_tat_days ??
+            v.avg_tat_days ??
+            0,
+        ),
       }))
       .filter((x) => x.name);
   }, [topBottomResponse]);
@@ -835,7 +892,7 @@ const VendersAssesmentDashboard = () => {
 
     setLeaderboardRows(
       rows.map((r) => ({
-        supplierId: r.supplier_id,
+      supplierId: r.supplier_id,
         organizationName: r.organization_name,
         siteName: r.site_name,
         bestSiteScore: r.best_site_score,
@@ -1207,6 +1264,14 @@ const VendersAssesmentDashboard = () => {
                                         <TopBottomVendorsChart
                                           topData={topVendorsData}
                                           bottomData={bottomVendorsData}
+                                          valueKey="avgWantedScore"
+                                          xAxisLabel="Supplier Avg Score"
+                                          topTitle="Top 10 Vendors by Avg Score"
+                                          bottomTitle="Bottom 10 Vendors by Avg Score"
+                                          tooltipScoreLabel="Avg Score"
+                                          tooltipScoreSuffix=""
+                                          daysKey="wantedDays"
+                                          tooltipDaysLabel="Days"
                                           onDownload={async () => {
                                             exportChartData(
                                               [
@@ -1266,6 +1331,22 @@ const VendersAssesmentDashboard = () => {
                                           const mapped = (rows || []).map((r) => ({
                                             organizationName: r.vendor_name,
                                             siteName: r.project_name,
+                                            approverName: (() => {
+                                              const f = String(
+                                                r.approver_firstname ??
+                                                  r.approver_first_name ??
+                                                  r.approverFirstName ??
+                                                  "",
+                                              ).trim();
+                                              const l = String(
+                                                r.approver_lastname ??
+                                                  r.approver_last_name ??
+                                                  r.approverLastName ??
+                                                  "",
+                                              ).trim();
+                                              const parts = [f, l].filter(Boolean);
+                                              return parts.join(" ") || "-";
+                                            })(),
                                             category: r.category_name,
                                           }));
                                           exportTableToCsv(

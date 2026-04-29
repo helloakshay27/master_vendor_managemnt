@@ -7,7 +7,22 @@ const CHART_COLORS = {
   bottom: '#8b7355',
 };
 
-export const TopBottomVendorsChart = ({ topData, bottomData, onDownload, onRefresh, className = "" }) => {
+export const TopBottomVendorsChart = ({
+  topData,
+  bottomData,
+  onDownload,
+  onRefresh,
+  className = "",
+  // Default metric is Avg TAT. Screens can override metric labels.
+  valueKey = "avgTat",
+  xAxisLabel = "Supplier Avg TAT",
+  topTitle = "Top 10 Vendors by Avg TAT",
+  bottomTitle = "Bottom 10 Vendors by Avg TAT",
+  tooltipScoreLabel = "Avg TAT",
+  tooltipScoreSuffix = "days",
+  daysKey = null,
+  tooltipDaysLabel = "Avg TAT",
+}) => {
   const [isDownloadingTop, setIsDownloadingTop] = useState(false);
   const [isDownloadingBottom, setIsDownloadingBottom] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -15,8 +30,35 @@ export const TopBottomVendorsChart = ({ topData, bottomData, onDownload, onRefre
   const topChartData = (topData && topData.length > 0 ? topData : []);
   const bottomChartData = (bottomData && bottomData.length > 0 ? bottomData : []);
 
-  console.log('TopBottomVendorsChart - topData:', topChartData);
-  console.log('TopBottomVendorsChart - bottomData:', bottomChartData);
+  const renderTooltipContent = ({ active, payload }) => {
+    if (!active || !payload || payload.length === 0) return null;
+
+    const row = payload[0]?.payload;
+    const scoreValue = payload[0]?.value;
+    const daysValue = daysKey ? row?.[daysKey] : null;
+
+    const showDays =
+      daysKey !== null &&
+      daysValue !== undefined &&
+      daysValue !== null &&
+      daysValue !== "" &&
+      !Number.isNaN(Number(daysValue));
+
+    return (
+      <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
+        <p className="font-semibold text-gray-800 mb-1">{row?.name}</p>
+        <p className="text-gray-600">
+          {tooltipScoreLabel}: <span className="font-bold">{scoreValue}</span>
+          {tooltipScoreSuffix ? ` ${tooltipScoreSuffix}` : ""}
+        </p>
+        {showDays && (
+          <p className="text-gray-600">
+            {tooltipDaysLabel}: <span className="font-bold">{daysValue}</span>
+          </p>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="row g-4">
@@ -26,7 +68,7 @@ export const TopBottomVendorsChart = ({ topData, bottomData, onDownload, onRefre
           <div className="vendor-card-header">
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
               <h3 className="vendor-card-title">
-                Top 10 Vendors by Avg TAT
+                {topTitle}
               </h3>
               {(onRefresh || onDownload) && (
                 isDownloadingTop ? (
@@ -88,7 +130,7 @@ export const TopBottomVendorsChart = ({ topData, bottomData, onDownload, onRefre
                       type="number" 
                       fontSize={12} 
                       tick={{ fill: '#374151' }}
-                      label={{ value: 'Supplier Avg TAT', position: 'insideBottom', offset: -5, style: { fill: '#374151', fontSize: 14 } }}
+                      label={{ value: xAxisLabel, position: 'insideBottom', offset: -5, style: { fill: '#374151', fontSize: 14 } }}
                     />
                     <YAxis
                       type="category"
@@ -99,19 +141,9 @@ export const TopBottomVendorsChart = ({ topData, bottomData, onDownload, onRefre
                       interval={0}
                     />
                     <Tooltip
-                      content={({ active, payload }) => {
-                        if (active && payload && payload.length) {
-                          return (
-                            <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
-                              <p className="font-semibold text-gray-800 mb-1">{payload[0].payload.name}</p>
-                              <p className="text-gray-600">Avg TAT: <span className="font-bold">{payload[0].value}</span> days</p>
-                            </div>
-                          );
-                        }
-                        return null;
-                      }}
+                      content={renderTooltipContent}
                     />
-                    <Bar dataKey="avgTat" radius={[0, 4, 4, 0]} label={{ position: 'right', fill: '#374151', fontSize: 12 }}>
+                    <Bar dataKey={valueKey} radius={[0, 4, 4, 0]} label={{ position: 'right', fill: '#374151', fontSize: 12 }}>
                       {topChartData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={CHART_COLORS.top} />
                       ))}
@@ -134,7 +166,7 @@ export const TopBottomVendorsChart = ({ topData, bottomData, onDownload, onRefre
           <div className="vendor-card-header">
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
               <h3 className="vendor-card-title">
-                Bottom 10 Vendors by Avg TAT
+                {bottomTitle}
               </h3>
               {(onRefresh || onDownload) && (
                 isDownloadingBottom ? (
@@ -196,7 +228,7 @@ export const TopBottomVendorsChart = ({ topData, bottomData, onDownload, onRefre
                       type="number" 
                       fontSize={12} 
                       tick={{ fill: '#374151' }}
-                      label={{ value: 'Supplier Avg TAT', position: 'insideBottom', offset: -5, style: { fill: '#374151', fontSize: 14 } }}
+                      label={{ value: xAxisLabel, position: 'insideBottom', offset: -5, style: { fill: '#374151', fontSize: 14 } }}
                     />
                     <YAxis
                       type="category"
@@ -207,19 +239,9 @@ export const TopBottomVendorsChart = ({ topData, bottomData, onDownload, onRefre
                       interval={0}
                     />
                     <Tooltip
-                      content={({ active, payload }) => {
-                        if (active && payload && payload.length) {
-                          return (
-                            <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
-                              <p className="font-semibold text-gray-800 mb-1">{payload[0].payload.name}</p>
-                              <p className="text-gray-600">Avg TAT: <span className="font-bold">{payload[0].value}</span> days</p>
-                            </div>
-                          );
-                        }
-                        return null;
-                      }}
+                      content={renderTooltipContent}
                     />
-                    <Bar dataKey="avgTat" radius={[0, 4, 4, 0]} label={{ position: 'right', fill: '#374151', fontSize: 12 }}>
+                    <Bar dataKey={valueKey} radius={[0, 4, 4, 0]} label={{ position: 'right', fill: '#374151', fontSize: 12 }}>
                       {bottomChartData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={CHART_COLORS.bottom} />
                       ))}

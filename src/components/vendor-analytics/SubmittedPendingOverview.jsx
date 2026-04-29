@@ -107,11 +107,11 @@ const SubmittedPendingOverview = ({ data = [], onDownload, onRefresh }) => {
       </div>
 
       <div style={{ padding: "20px" }}>
-        <ResponsiveContainer width="100%" height={420}>
+        <ResponsiveContainer width="100%" height={480}>
           <BarChart
             data={data}
             layout="vertical"
-            margin={{ top: 10, right: 40, left: 40, bottom: 20 }}
+            margin={{ top: 10, right: 40, left: 70, bottom: 20 }}
           >
             <CartesianGrid
               strokeDasharray="3 3"
@@ -124,8 +124,9 @@ const SubmittedPendingOverview = ({ data = [], onDownload, onRefresh }) => {
             <YAxis
               type="category"
               dataKey="name"
-              width={180}
-              tick={{ fontSize: 12, fill: "#8d6e63" }}
+              width={320}
+              tick={{ fontSize: 11, fill: "#8d6e63" }}
+              tickLine={false}
             />
 
             <Tooltip
