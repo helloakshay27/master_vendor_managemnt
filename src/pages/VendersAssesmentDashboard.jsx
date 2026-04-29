@@ -474,8 +474,8 @@ const VendersAssesmentDashboard = () => {
         };
 
         setNoRatingRows(
-          (noRating || []).map((r) => {
-            console.log("Approver Name from API:", r.approver_name);
+          (noRating || []).map((r, idx) => {
+            if (idx === 0) console.log("Sample full record from API:", r);
             return {
               organizationName: r.vendor_name,
               siteName: r.project_name,
