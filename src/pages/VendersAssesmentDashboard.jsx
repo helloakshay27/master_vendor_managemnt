@@ -42,7 +42,7 @@ const NOT_GIVEN_RATING_COLUMNS = [
           fontWeight: 600,
         }}
       >
-        {value || "-"}
+        {value}
       </span>
     ),
   },
@@ -478,9 +478,20 @@ const VendersAssesmentDashboard = () => {
             organizationName: r.vendor_name,
             siteName: r.project_name,
             approverName: (() => {
-              const f = String(r.approver_firstname || "").trim();
-              const l = String(r.approver_lastname || "").trim();
-              return [f, l].filter(Boolean).join(" ") || r.approver_name || "-";
+              const f = String(
+                r.approver_firstname ||
+                  r.approver_first_name ||
+                  r.approverFirstName ||
+                  "",
+              ).trim();
+              const l = String(
+                r.approver_lastname ||
+                  r.approver_last_name ||
+                  r.approverLastName ||
+                  "",
+              ).trim();
+              const full = String(r.approver_name || "").trim();
+              return [f, l].filter(Boolean).join(" ") || full || "";
             })(),
             category: r.category_name,
           })),
@@ -1340,9 +1351,20 @@ const VendersAssesmentDashboard = () => {
                                             organizationName: r.vendor_name,
                                             siteName: r.project_name,
                                             approverName: (() => {
-                                              const f = String(r.approver_firstname || "").trim();
-                                              const l = String(r.approver_lastname || "").trim();
-                                              return [f, l].filter(Boolean).join(" ") || r.approver_name || "-";
+                                              const f = String(
+                                                r.approver_firstname ||
+                                                  r.approver_first_name ||
+                                                  r.approverFirstName ||
+                                                  "",
+                                              ).trim();
+                                              const l = String(
+                                                r.approver_lastname ||
+                                                  r.approver_last_name ||
+                                                  r.approverLastName ||
+                                                  "",
+                                              ).trim();
+                                              const full = String(r.approver_name || "").trim();
+                                              return [f, l].filter(Boolean).join(" ") || full || "";
                                             })(),
                                             category: r.category_name,
                                           }));
