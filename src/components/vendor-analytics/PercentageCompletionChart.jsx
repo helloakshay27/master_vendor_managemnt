@@ -14,7 +14,7 @@ import { Download, Loader2, RefreshCw } from "lucide-react";
 
 const getBarColor = () => "#b08968"; // uniform light brown bars
 
-const truncateLabel = (value, max = 14) => {
+const truncateLabel = (value, max = 24) => {
   const str = String(value ?? "");
   if (str.length <= max) return str;
   return `${str.slice(0, Math.max(0, max - 3))}...`;
@@ -23,7 +23,7 @@ const truncateLabel = (value, max = 14) => {
 const TruncatedAxisTick = (props) => {
   const { x, y, payload } = props;
   const full = String(payload?.value ?? "");
-  const short = truncateLabel(full, 14);
+  const short = truncateLabel(full, 24);
   return (
     <g transform={`translate(${x},${y})`}>
       <title>{full}</title>
@@ -34,7 +34,7 @@ const TruncatedAxisTick = (props) => {
         textAnchor="end"
         fill="#8d6e63"
         fontSize={10}
-        transform="rotate(-30)"
+        transform="rotate(-25)"
       >
         {short}
       </text>

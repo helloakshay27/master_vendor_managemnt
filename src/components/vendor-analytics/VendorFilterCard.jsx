@@ -5,8 +5,10 @@ import {
   Layers,
   Users,
   Calendar,
+  CalendarDays,
   MapPin,
   ListTree,
+  Loader2,
 } from "lucide-react";
 import Select, { components } from "react-select";
 import { baseURL } from "../../confi/apiDomain";
@@ -212,6 +214,7 @@ export const VendorFilterCard = ({
   token, // Added token prop
   currentPqType = "with_pq",
   enableAssessmentDropdowns = false,
+  showAssessmentPeriodFilters = false, // Fiscal Year + Half Yearly (only where needed)
 }) => {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -223,6 +226,14 @@ export const VendorFilterCard = ({
   const [site, setSite] = useState([]);
   const [category, setCategory] = useState([]);
   const [subCategory, setSubCategory] = useState([]);
+
+  const [fiscalYear, setFiscalYear] = useState([]);
+  const [halfYearly, setHalfYearly] = useState([]);
+
+  const [fiscalYearsList, setFiscalYearsList] = useState([]);
+  const [halvesList, setHalvesList] = useState([]);
+  const [isLoadingFiscalYears, setIsLoadingFiscalYears] = useState(false);
+  const [isLoadingHalves, setIsLoadingHalves] = useState(false);
 
   const [sitesList, setSitesList] = useState([]);
   const [categoriesList, setCategoriesList] = useState([]);
@@ -244,6 +255,8 @@ export const VendorFilterCard = ({
   // Use a ref so the initial-apply guard survives re-renders without triggering effects
   const initialApplied = useRef(false);
   const companiesLoadedRef = useRef(false);
+
+  const [isApplying, setIsApplying] = useState(false);
 
   const companyIdsKey = (companyName || [])
     .map((c) => c?.value)
@@ -350,6 +363,63 @@ export const VendorFilterCard = ({
     // Only re-fetch vendors when user manually changes company or department selection
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [companyName, departmentName]);
+
+  // Fiscal Year + Half Yearly filters (assessment dashboard only)
+  useEffect(() => {
+    if (!showAssessmentPeriodFilters) return;
+    if (!token) return;
+
+    const controller = new AbortController();
+
+    const normalizeList = (json, key) => {
+      const raw = json?.[key];
+      if (Array.isArray(raw)) return raw;
+      if (json?.data && Array.isArray(json.data)) return json.data;
+      if (json?.data && Array.isArray(json.data?.[key])) return json.data[key];
+      return [];
+    };
+
+    const fetchFiscalYears = async () => {
+      setIsLoadingFiscalYears(true);
+      try {
+        const res = await fetch(
+          `${baseURL}vendor_assement_dashboard/fiscal_year_filter.json?token=${encodeURIComponent(token)}`,
+          { signal: controller.signal },
+        );
+        const json = await res.json();
+        setFiscalYearsList(normalizeList(json, "fiscal_years"));
+      } catch (e) {
+        if (e?.name !== "AbortError")
+          console.error("Error fetching fiscal years:", e);
+        setFiscalYearsList([]);
+      } finally {
+        setIsLoadingFiscalYears(false);
+      }
+    };
+
+    const fetchHalves = async () => {
+      setIsLoadingHalves(true);
+      try {
+        const res = await fetch(
+          `${baseURL}vendor_assement_dashboard/assessment_half_filter.json?token=${encodeURIComponent(token)}`,
+          { signal: controller.signal },
+        );
+        const json = await res.json();
+        setHalvesList(normalizeList(json, "halves"));
+      } catch (e) {
+        if (e?.name !== "AbortError")
+          console.error("Error fetching halves:", e);
+        setHalvesList([]);
+      } finally {
+        setIsLoadingHalves(false);
+      }
+    };
+
+    fetchFiscalYears();
+    fetchHalves();
+
+    return () => controller.abort();
+  }, [showAssessmentPeriodFilters, token]);
 
   // Assessment dropdowns depend on company (single effective company: first selected)
   useEffect(() => {
@@ -495,7 +565,7 @@ export const VendorFilterCard = ({
     return () => controller.abort();
   }, [enableAssessmentDropdowns, token, companyIdsKey, category]);
 
-  const handleApply = () => {
+  const handleApply = async () => {
     if (startDate && endDate) {
       const formatOutput = (date) => {
         const parts = date.split("-");
@@ -503,22 +573,50 @@ export const VendorFilterCard = ({
         return date;
       };
 
-      onApplyFilters({
+      const payload = {
         startDate: formatOutput(startDate),
         endDate: formatOutput(endDate),
-        companyName: companyName.map(c => c.value).join(","),
-        departmentName: departmentName.map(d => d.value).join(","),
-        vendors: vendors.map(v => v.value).join(","),
+        companyName: companyName.map((c) => c.value).join(","),
+        departmentName: departmentName.map((d) => d.value).join(","),
+        vendors: vendors.map((v) => v.value).join(","),
         pqType,
-        ...(enableAssessmentDropdowns
+        ...(showAssessmentPeriodFilters
           ? {
-              companyId: companyName?.length ? companyName.map((c) => String(c.value)).join(",") : "",
-              siteId: Array.isArray(site) && site.length ? site.map((s) => String(s.value)).join(",") : "",
-              categoryId: Array.isArray(category) && category.length ? category.map((c) => String(c.value)).join(",") : "",
-              subCategoryId: Array.isArray(subCategory) && subCategory.length ? subCategory.map((sc) => String(sc.value)).join(",") : "",
+              fiscal_year: (fiscalYear || [])
+                .map((x) => String(x.value))
+                .join(","),
+              assessment_half: (halfYearly || [])
+                .map((x) => String(x.value))
+                .join(","),
             }
           : {}),
-      });
+        ...(enableAssessmentDropdowns
+          ? {
+              companyId: companyName?.length
+                ? companyName.map((c) => String(c.value)).join(",")
+                : "",
+              siteId:
+                Array.isArray(site) && site.length
+                  ? site.map((s) => String(s.value)).join(",")
+                  : "",
+              categoryId:
+                Array.isArray(category) && category.length
+                  ? category.map((c) => String(c.value)).join(",")
+                  : "",
+              subCategoryId:
+                Array.isArray(subCategory) && subCategory.length
+                  ? subCategory.map((sc) => String(sc.value)).join(",")
+                  : "",
+            }
+          : {}),
+      };
+
+      setIsApplying(true);
+      try {
+        await Promise.resolve(onApplyFilters(payload));
+      } finally {
+        setIsApplying(false);
+      }
     }
   };
 
@@ -562,6 +660,8 @@ export const VendorFilterCard = ({
     setSite([]);
     setCategory([]);
     setSubCategory([]);
+    setFiscalYear([]);
+    setHalfYearly([]);
 
     onApplyFilters({
       startDate: formatOut(startDate2024),
@@ -570,6 +670,9 @@ export const VendorFilterCard = ({
       departmentName: allDepts.map(d => d.value).join(","),
       vendors: "", // Passing empty as per requirement
       pqType: "with_pq",
+      ...(showAssessmentPeriodFilters
+        ? { fiscal_year: "", assessment_half: "" }
+        : {}),
       ...(enableAssessmentDropdowns
         ? { companyId: allCos.map((c) => String(c.value)).join(","), siteId: "", categoryId: "", subCategoryId: "" }
         : {}),
@@ -609,6 +712,20 @@ export const VendorFilterCard = ({
     value: sc.id ?? sc.value ?? "",
     label: sc.name ?? sc.label ?? "",
   })).filter(o => o.value && o.label);
+
+  const fiscalYearOptions = (Array.isArray(fiscalYearsList) ? fiscalYearsList : [])
+    .map((fy) => ({
+      value: fy?.id ?? fy?.value ?? fy,
+      label: fy?.name ?? fy?.label ?? fy,
+    }))
+    .filter((o) => o.value && o.label);
+
+  const halfYearlyOptions = (Array.isArray(halvesList) ? halvesList : [])
+    .map((h) => ({
+      value: h?.id ?? h?.value ?? h,
+      label: h?.name ?? h?.label ?? h,
+    }))
+    .filter((o) => o.value && o.label);
 
 
   return (
@@ -722,6 +839,34 @@ export const VendorFilterCard = ({
           isMulti={true}
         />
 
+        {showAssessmentPeriodFilters && (
+          <>
+            <FilterCardItem
+              icon={CalendarDays}
+              label="Fiscal Year"
+              value={fiscalYear}
+              onChange={(selected) => setFiscalYear(selected || [])}
+              isLoading={isLoadingFiscalYears}
+              options={fiscalYearOptions}
+              disabled={false}
+              hasDropdown={true}
+              isMulti={true}
+            />
+
+            <FilterCardItem
+              icon={CalendarDays}
+              label="Half Yearly"
+              value={halfYearly}
+              onChange={(selected) => setHalfYearly(selected || [])}
+              isLoading={isLoadingHalves}
+              options={halfYearlyOptions}
+              disabled={false}
+              hasDropdown={true}
+              isMulti={true}
+            />
+          </>
+        )}
+
         {enableAssessmentDropdowns && (
           <>
             <FilterCardItem
@@ -774,25 +919,34 @@ export const VendorFilterCard = ({
       >
         <button
           onClick={handleApply}
+          disabled={isApplying}
           style={{
-            backgroundColor: "#1A1A1A",
+            backgroundColor: isApplying ? "#444" : "#1A1A1A",
             color: "white",
             border: "none",
             padding: "10px 24px",
             borderRadius: "6px",
             fontSize: "14px",
             fontWeight: "600",
-            cursor: "pointer",
+            cursor: isApplying ? "not-allowed" : "pointer",
             transition: "background-color 0.2s",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "8px",
           }}
           onMouseEnter={(e) => {
+            if (isApplying) return;
             e.target.style.backgroundColor = "#333";
           }}
           onMouseLeave={(e) => {
+            if (isApplying) return;
             e.target.style.backgroundColor = "#1A1A1A";
           }}
         >
-          Apply Filters
+          {isApplying && (
+            <Loader2 className="w-4 h-4 animate-spin" style={{ color: "#fff" }} />
+          )}
+          {isApplying ? "Applying..." : "Apply Filters"}
         </button>
       </div>
     </div>

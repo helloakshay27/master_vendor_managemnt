@@ -220,6 +220,8 @@ const VendersAssesmentDashboard = () => {
       siteId: "",
       categoryId: "",
       subCategoryId: "",
+      fiscal_year: "",
+      assessment_half: "",
     };
   });
   const [chartOrder, setChartOrder] = useState(ALL_CHART_IDS);
@@ -390,6 +392,10 @@ const VendersAssesmentDashboard = () => {
     if (activeFilters.categoryId) params.append("category_ids", activeFilters.categoryId);
     if (activeFilters.subCategoryId)
       params.append("sub_category_ids", activeFilters.subCategoryId);
+    if (activeFilters.fiscal_year)
+      params.append("fiscal_year", String(activeFilters.fiscal_year));
+    if (activeFilters.assessment_half)
+      params.append("assessment_half", String(activeFilters.assessment_half));
 
     Object.entries(extra).forEach(([k, v]) => {
       if (v !== undefined && v !== null && v !== "") params.append(k, v);
@@ -428,6 +434,8 @@ const VendersAssesmentDashboard = () => {
       activeFilters.siteId,
       activeFilters.categoryId,
       activeFilters.subCategoryId,
+      activeFilters.fiscal_year,
+      activeFilters.assessment_half,
     ],
   );
 
@@ -518,6 +526,8 @@ const VendersAssesmentDashboard = () => {
       activeFilters.siteId,
       activeFilters.categoryId,
       activeFilters.subCategoryId,
+      activeFilters.fiscal_year,
+      activeFilters.assessment_half,
     ],
   );
 
@@ -591,6 +601,7 @@ const VendersAssesmentDashboard = () => {
       })(),
       submitted: Number(r.submitted_count ?? 0),
       pending: Number(r.pending_count ?? 0),
+      submitted_percentage: Number(r.submitted_percentage ?? 0),
     }));
   }, [subcategoryOverviewResponse]);
 
@@ -627,8 +638,13 @@ const VendersAssesmentDashboard = () => {
       const submitted = Number(r.submitted_count ?? 0);
       const total = Number(r.total_count ?? 0);
       const pct = total > 0 ? Math.round((submitted / total) * 100) : 0;
+      let category = String(r.category ?? r.category_name ?? "").trim();
+      category = category.replace(/^assessment\s*/i, "").trim();
+      const sub = String(r.sub_category_name ?? "").trim();
+      const label =
+        category && sub ? `${category} - ${sub}` : sub || category || "-";
       return {
-        department: r.sub_category_name,
+        department: label,
         percentage: pct,
       };
     });
@@ -746,6 +762,8 @@ const VendersAssesmentDashboard = () => {
       activeFilters.siteId,
       activeFilters.categoryId,
       activeFilters.subCategoryId,
+      activeFilters.fiscal_year,
+      activeFilters.assessment_half,
     ],
   );
 
@@ -785,6 +803,8 @@ const VendersAssesmentDashboard = () => {
       activeFilters.siteId,
       activeFilters.categoryId,
       activeFilters.subCategoryId,
+      activeFilters.fiscal_year,
+      activeFilters.assessment_half,
     ],
   );
 
@@ -971,6 +991,8 @@ const VendersAssesmentDashboard = () => {
     activeFilters.siteId,
     activeFilters.categoryId,
     activeFilters.subCategoryId,
+    activeFilters.fiscal_year,
+    activeFilters.assessment_half,
   ]);
 
   useEffect(() => {
@@ -1008,6 +1030,8 @@ const VendersAssesmentDashboard = () => {
     activeFilters.siteId,
     activeFilters.categoryId,
     activeFilters.subCategoryId,
+    activeFilters.fiscal_year,
+    activeFilters.assessment_half,
   ]);
 
   return (
@@ -1056,12 +1080,15 @@ const VendersAssesmentDashboard = () => {
                       siteId: filters.siteId || "",
                       categoryId: filters.categoryId || "",
                       subCategoryId: filters.subCategoryId || "",
+                      fiscal_year: filters.fiscal_year || "",
+                      assessment_half: filters.assessment_half || "",
                     });
                   }}
                   currentStartDate={dateRange.startDate}
                   currentEndDate={dateRange.endDate}
                   token={token}
                   enableAssessmentDropdowns={true}
+                  showAssessmentPeriodFilters={true}
                 />
 
                 {/* Stat Cards */}

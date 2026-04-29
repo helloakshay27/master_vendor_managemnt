@@ -150,17 +150,7 @@ const SubmittedPendingOverview = ({ data = [], onDownload, onRefresh }) => {
               stackId="a"
               fill={COLORS.SUBMITTED}
               radius={[0, 0, 0, 0]}
-            >
-              <LabelList
-                dataKey="submitted"
-                position="right"
-                style={{
-                  fill: "#5c4033",
-                  fontWeight: 600,
-                  fontSize: 11,
-                }}
-              />
-            </Bar>
+            />
 
             {/* Pending */}
             <Bar
@@ -168,7 +158,18 @@ const SubmittedPendingOverview = ({ data = [], onDownload, onRefresh }) => {
               stackId="a"
               fill={COLORS.PENDING}
               radius={[0, 6, 6, 0]}
-            />
+            >
+              <LabelList
+                dataKey="submitted_percentage"
+                position="right"
+                formatter={(val) => (val ? `${val}%` : "0%")}
+                style={{
+                  fill: "#5c4033",
+                  fontWeight: 600,
+                  fontSize: 11,
+                }}
+              />
+            </Bar>
           </BarChart>
         </ResponsiveContainer>
       </div>
