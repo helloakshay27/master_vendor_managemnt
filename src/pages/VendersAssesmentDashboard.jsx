@@ -474,12 +474,15 @@ const VendersAssesmentDashboard = () => {
         };
 
         setNoRatingRows(
-          (noRating || []).map((r) => ({
-            organizationName: r.vendor_name,
-            siteName: r.project_name,
-            approverName: r.approver_name || "",
-            category: r.category_name,
-          })),
+          (noRating || []).map((r) => {
+            console.log("Approver Name from API:", r.approver_name);
+            return {
+              organizationName: r.vendor_name,
+              siteName: r.project_name,
+              approverName: r.approver_name || "",
+              category: r.category_name,
+            };
+          }),
         );
         setWatchlistRows(
           (watchlist || []).map((r) => ({
