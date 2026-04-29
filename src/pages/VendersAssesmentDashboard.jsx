@@ -477,22 +477,7 @@ const VendersAssesmentDashboard = () => {
           (noRating || []).map((r) => ({
             organizationName: r.vendor_name,
             siteName: r.project_name,
-            approverName: (() => {
-              const f = String(
-                r.approver_firstname ||
-                  r.approver_first_name ||
-                  r.approverFirstName ||
-                  "",
-              ).trim();
-              const l = String(
-                r.approver_lastname ||
-                  r.approver_last_name ||
-                  r.approverLastName ||
-                  "",
-              ).trim();
-              const full = String(r.approver_name || "").trim();
-              return [f, l].filter(Boolean).join(" ") || full || "";
-            })(),
+            approverName: r.approver_name || "",
             category: r.category_name,
           })),
         );
@@ -1350,22 +1335,7 @@ const VendersAssesmentDashboard = () => {
                                           const mapped = (rows || []).map((r) => ({
                                             organizationName: r.vendor_name,
                                             siteName: r.project_name,
-                                            approverName: (() => {
-                                              const f = String(
-                                                r.approver_firstname ||
-                                                  r.approver_first_name ||
-                                                  r.approverFirstName ||
-                                                  "",
-                                              ).trim();
-                                              const l = String(
-                                                r.approver_lastname ||
-                                                  r.approver_last_name ||
-                                                  r.approverLastName ||
-                                                  "",
-                                              ).trim();
-                                              const full = String(r.approver_name || "").trim();
-                                              return [f, l].filter(Boolean).join(" ") || full || "";
-                                            })(),
+                                            approverName: r.approver_name || "",
                                             category: r.category_name,
                                           }));
                                           exportTableToCsv(
