@@ -65,6 +65,9 @@ const SCORES_COLUMNS = [
   { key: "organizationName", label: "Organization Name" },
   { key: "siteName", label: "Site Name" },
   { key: "category", label: "Category" },
+  {
+     key: "subCategory" , label :"Sub Category"
+  },
   { key: "firstName", label: "First Name" },
   { key: "lastName", label: "Last Name" },
   { key: "riskCategory", label: "Risk Category" },
@@ -872,6 +875,7 @@ const VendersAssesmentDashboard = () => {
         organizationName: r.organization_name,
         siteName: r.site_name,
         category: r.category,
+        subCategory: r.sub_category_name,
         firstName: r.first_name,
         lastName: r.last_name,
         riskCategory: r.risk_category,
