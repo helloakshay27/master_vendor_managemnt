@@ -1603,6 +1603,7 @@ const VendersAssesmentDashboard = () => {
                                       organizationName: r.organization_name,
                                       siteName: r.site_name,
                                       category: r.category,
+                                      subCategory: r.sub_category_name,
                                       firstName: r.first_name,
                                       lastName: r.last_name,
                                       riskCategory: r.risk_category,
