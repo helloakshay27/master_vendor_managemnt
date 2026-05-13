@@ -79,8 +79,10 @@ const SCORES_COLUMNS = [
 
 const LEADERBOARD_COLUMNS = [
   { key: "organizationName", label: "Organization Name" },
-  { key: "siteName", label: "Site Name" },
-  { key: "bestSiteScore", label: "Best Site Score" },
+  { key: "bestSiteName", label: " Best Site Name" },
+   { key: "bestSiteScore", label: "Best Site Score" },
+  { key: "worstSiteName", label: " Worst Site Name" },
+ 
   { key: "worstSiteScore", label: "Worst Site Score" },
   { key: "avgScore", label: "Avg Score" },
   { key: "variancePct", label: "Variance %" },
@@ -926,6 +928,9 @@ const VendersAssesmentDashboard = () => {
       supplierId: r.supplier_id,
         organizationName: r.organization_name,
         siteName: r.site_name,
+        bestSiteName: r.best_site_name,
+        worstSiteName: r.worst_site_name,
+        
         bestSiteScore: r.best_site_score,
         worstSiteScore: r.worst_site_score,
         avgScore: r.avg_score,
