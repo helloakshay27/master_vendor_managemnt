@@ -1841,8 +1841,11 @@ const VendersAssesmentDashboard = () => {
                                               supplierId: r.supplier_id,
                                               organizationName:
                                                 r.organization_name,
-                                              siteName: r.site_name,
+                                            
+                                              bestSiteName: r.best_site_name,
+
                                               bestSiteScore: r.best_site_score,
+                                              worstSiteName: r.worst_site_name,
                                               worstSiteScore:
                                                 r.worst_site_score,
                                               avgScore: r.avg_score,
