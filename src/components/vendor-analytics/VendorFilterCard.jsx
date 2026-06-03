@@ -277,8 +277,8 @@ export const VendorFilterCard = ({
       if (parts.length === 3) return `${parts[2]}-${parts[1]}-${parts[0]}`;
       return dateStr;
     };
-    const defaultStart = "01/01/2024";
-    setStartDate(formatForInput(currentStartDate || defaultStart));
+    
+    setStartDate(formatForInput(currentStartDate));
     setEndDate(formatForInput(currentEndDate));
     setPqType(currentPqType || "with_pq");
   }, [currentStartDate, currentEndDate, currentPqType]);
@@ -566,17 +566,17 @@ export const VendorFilterCard = ({
   }, [enableAssessmentDropdowns, token, companyIdsKey, category]);
 
   const handleApply = async () => {
-    if (startDate && endDate) {
-      const formatOutput = (date) => {
-        const parts = date.split("-");
-        if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
-        return date;
-      };
+    const formatOutput = (date) => {
+      if (!date) return "";
+      const parts = date.split("-");
+      if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+      return date;
+    };
 
-      const payload = {
-        startDate: formatOutput(startDate),
-        endDate: formatOutput(endDate),
-        companyName: companyName.map((c) => c.value).join(","),
+    const payload = {
+      startDate: formatOutput(startDate),
+      endDate: formatOutput(endDate),
+      companyName: companyName.map((c) => c.value).join(","),
         departmentName: departmentName.map((d) => d.value).join(","),
         vendors: vendors.map((v) => v.value).join(","),
         pqType,
@@ -611,12 +611,11 @@ export const VendorFilterCard = ({
           : {}),
       };
 
-      setIsApplying(true);
-      try {
-        await Promise.resolve(onApplyFilters(payload));
-      } finally {
-        setIsApplying(false);
-      }
+    setIsApplying(true);
+    try {
+      await Promise.resolve(onApplyFilters(payload));
+    } finally {
+      setIsApplying(false);
     }
   };
 

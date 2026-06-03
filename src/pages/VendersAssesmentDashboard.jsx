@@ -412,7 +412,6 @@ const VendersAssesmentDashboard = () => {
   const refreshKpisAndGrades = useCallback(
     async (signal) => {
       if (!token) return;
-      if (!dateRange?.startDate || !dateRange?.endDate) return;
       setIsKpiLoading(true);
       try {
         const params = buildAssessmentQueryParams();
@@ -468,7 +467,6 @@ const VendersAssesmentDashboard = () => {
   const refreshTables = useCallback(
     async (signal) => {
       if (!token) return;
-      if (!dateRange?.startDate || !dateRange?.endDate) return;
       setIsNoRatingLoading(true);
       setIsWatchlistLoading(true);
       setIsDisqualifiedLoading(true);
@@ -740,7 +738,6 @@ const VendersAssesmentDashboard = () => {
   const refreshTopBottom = useCallback(
     async (signal) => {
       if (!token) return;
-      if (!dateRange?.startDate || !dateRange?.endDate) return;
       setIsTopBottomLoading(true);
       try {
         const params = buildAssessmentQueryParams();
@@ -781,7 +778,6 @@ const VendersAssesmentDashboard = () => {
   const refreshVendorsByGrade = useCallback(
     async (signal) => {
       if (!token) return;
-      if (!dateRange?.startDate || !dateRange?.endDate) return;
       setIsVendorsByGradeLoading(true);
       try {
         const params = buildAssessmentQueryParams();
@@ -822,7 +818,6 @@ const VendersAssesmentDashboard = () => {
   const refreshSubcategoryOverview = useCallback(
     async (signal) => {
       if (!token) return;
-      if (!dateRange?.startDate || !dateRange?.endDate) return;
       setIsSubcategoryOverviewLoading(true);
       try {
         const params = buildAssessmentQueryParams();
@@ -967,7 +962,6 @@ const VendersAssesmentDashboard = () => {
 
   useEffect(() => {
     if (!token) return;
-    if (!dateRange?.startDate || !dateRange?.endDate) return;
     const controller = new AbortController();
 
     const run = async () => {
@@ -1006,7 +1000,6 @@ const VendersAssesmentDashboard = () => {
 
   useEffect(() => {
     if (!token) return;
-    if (!dateRange?.startDate || !dateRange?.endDate) return;
     const controller = new AbortController();
 
     const run = async () => {
