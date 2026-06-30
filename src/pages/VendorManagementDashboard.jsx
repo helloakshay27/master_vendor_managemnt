@@ -27,6 +27,8 @@ import {
   PendingApprovalsByLevelChart,
   VendorDataTable,
   TopBottomVendorsChart,
+  DepartmentWiseWithoutPQChart,
+  ProceedWithoutPQReasonsChart,
 } from "@/components/vendor-analytics";
 import { VendorSectionSelector } from "@/components/vendor-analytics/VendorSectionSelector";
 import { VendorFilterCard } from "@/components/vendor-analytics/VendorFilterCard";
@@ -648,9 +650,13 @@ function VendorManagementDashboard() {
     "detailsSubmitted",
     "onboardingInProcess",
     "resubmissionRequests",
+    "deptWiseWithoutPQ",
+    "proceedWithoutPQReasons",
   ]);
   const [chartOrder, setChartOrder] = useState([
     "departmentPreQual",
+    "deptWiseWithoutPQChart",
+    "proceedWithoutPQReasonsChart",
     "departmentDistribution",
     "yearWise",
     "quarterWise",
@@ -741,6 +747,11 @@ function VendorManagementDashboard() {
   const [verificationPendingPagination, setVerificationPendingPagination] = useState(null);
   const [verificationPendingPage, setVerificationPendingPage] = useState(1);
   const [isVerificationPendingLoading, setIsVerificationPendingLoading] = useState(false);
+
+  const [deptWiseWithoutPQData, setDeptWiseWithoutPQData] = useState([]);
+  const [isDeptWiseWithoutPQLoading, setIsDeptWiseWithoutPQLoading] = useState(false);
+  const [proceedWithoutPQReasonsData, setProceedWithoutPQReasonsData] = useState([]);
+  const [isProceedWithoutPQReasonsLoading, setIsProceedWithoutPQReasonsLoading] = useState(false);
 
   const exportTableToCsv = (rows, columns, filename) => {
     if (!rows || rows.length === 0) return;
@@ -1162,6 +1173,61 @@ function VendorManagementDashboard() {
       setIsTopBottomVendorsLoading(false);
     }
   }, [activeFilters.companyName, tokenFromUrl]);
+
+  const refreshDeptWiseWithoutPQ = useCallback(async () => {
+    setIsDeptWiseWithoutPQLoading(true);
+    try {
+      const queryParams = buildCommonQueryParams({ status: "approved" });
+      const response = await fetch(
+        `${baseURL}vendor_pq_dashboard/department_wise_without_pq.json?${queryParams}`,
+      );
+      const json = await response.json();
+      let rawData = Array.isArray(json?.data) ? json.data :
+        json?.data?.departments ||
+        Object.values(json?.data || {}).find((val) => Array.isArray(val)) ||
+        Object.values(json).find((val) => Array.isArray(val)) ||
+        [];
+      setDeptWiseWithoutPQData(
+        rawData.map((item) => ({
+          name: item.department_name || item.name || "Unknown",
+          total_approved: Number(item.total_approved || 0),
+          with_pq: Number(item.with_pq || 0),
+          without_pq: Number(item.without_pq || 0),
+        }))
+      );
+    } catch (e) {
+      setDeptWiseWithoutPQData([]);
+    } finally {
+      setIsDeptWiseWithoutPQLoading(false);
+    }
+  }, [buildCommonQueryParams]);
+
+  const refreshProceedWithoutPQReasons = useCallback(async () => {
+    setIsProceedWithoutPQReasonsLoading(true);
+    try {
+      const queryParams = buildCommonQueryParams({ status: "approved" });
+      const response = await fetch(
+        `${baseURL}vendor_pq_dashboard/proceed_without_pq_reasons.json?${queryParams}`,
+      );
+      const json = await response.json();
+      let rawData =
+        json?.data?.reasons ||
+        json?.data ||
+        Object.values(json?.data || {}).find((val) => Array.isArray(val)) ||
+        Object.values(json).find((val) => Array.isArray(val)) ||
+        [];
+      setProceedWithoutPQReasonsData(
+        rawData.map((item) => ({
+          reason: item.reason || item.proceed_remark_reason || item.name || item.label || "Unknown",
+          count: Number(item.vendor_count || item.count || item.value || 0),
+        }))
+      );
+    } catch (e) {
+      setProceedWithoutPQReasonsData([]);
+    } finally {
+      setIsProceedWithoutPQReasonsLoading(false);
+    }
+  }, [buildCommonQueryParams]);
 
   const refreshPqVendorStatsTable = useCallback(
     async ({
@@ -1938,6 +2004,79 @@ function VendorManagementDashboard() {
       }
     };
 
+    const fetchDeptWiseWithoutPQ = async () => {
+      setIsDeptWiseWithoutPQLoading(true);
+      try {
+        const queryParams = new URLSearchParams();
+        queryParams.append("token", tokenFromUrl);
+        queryParams.append("status", "approved");
+        if (activeFilters.companyName) queryParams.append("company_ids", activeFilters.companyName);
+        if (activeFilters.departmentName) queryParams.append("department_ids", activeFilters.departmentName);
+        if (activeFilters.vendors) queryParams.append("vendor_ids", activeFilters.vendors);
+        if (activeFilters.startDate) queryParams.append("from_date", formatDtForAPI(activeFilters.startDate));
+        if (activeFilters.endDate) queryParams.append("end_date", formatDtForAPI(activeFilters.endDate));
+
+        const response = await fetch(
+          `${baseURL}vendor_pq_dashboard/department_wise_without_pq.json?${queryParams}`,
+        );
+        const json = await response.json();
+        let rawData = Array.isArray(json?.data) ? json.data :
+          json?.data?.departments ||
+          Object.values(json?.data || {}).find((val) => Array.isArray(val)) ||
+          Object.values(json).find((val) => Array.isArray(val)) ||
+          [];
+        setDeptWiseWithoutPQData(
+          rawData.map((item) => ({
+            name: item.department_name || item.name || "Unknown",
+            total_approved: Number(item.total_approved || 0),
+            with_pq: Number(item.with_pq || 0),
+            without_pq: Number(item.without_pq || 0),
+          }))
+        );
+      } catch (error) {
+        console.error("Error fetching Dept Wise Without PQ:", error);
+        setDeptWiseWithoutPQData([]);
+      } finally {
+        setIsDeptWiseWithoutPQLoading(false);
+      }
+    };
+
+    const fetchProceedWithoutPQReasons = async () => {
+      setIsProceedWithoutPQReasonsLoading(true);
+      try {
+        const queryParams = new URLSearchParams();
+        queryParams.append("token", tokenFromUrl);
+        queryParams.append("status", "approved");
+        if (activeFilters.companyName) queryParams.append("company_ids", activeFilters.companyName);
+        if (activeFilters.departmentName) queryParams.append("department_ids", activeFilters.departmentName);
+        if (activeFilters.vendors) queryParams.append("vendor_ids", activeFilters.vendors);
+        if (activeFilters.startDate) queryParams.append("from_date", formatDtForAPI(activeFilters.startDate));
+        if (activeFilters.endDate) queryParams.append("end_date", formatDtForAPI(activeFilters.endDate));
+
+        const response = await fetch(
+          `${baseURL}vendor_pq_dashboard/proceed_without_pq_reasons.json?${queryParams}`,
+        );
+        const json = await response.json();
+        let rawData =
+          json?.data?.reasons ||
+          json?.data ||
+          Object.values(json?.data || {}).find((val) => Array.isArray(val)) ||
+          Object.values(json).find((val) => Array.isArray(val)) ||
+          [];
+        setProceedWithoutPQReasonsData(
+          rawData.map((item) => ({
+            reason: item.reason || item.proceed_remark_reason || item.name || item.label || "Unknown",
+            count: Number(item.vendor_count || item.count || item.value || 0),
+          }))
+        );
+      } catch (error) {
+        console.error("Error fetching Proceed Without PQ Reasons:", error);
+        setProceedWithoutPQReasonsData([]);
+      } finally {
+        setIsProceedWithoutPQReasonsLoading(false);
+      }
+    };
+
     fetchStatCards();
     fetchDeptDistribution();
     fetchYearWiseData();
@@ -1956,6 +2095,8 @@ function VendorManagementDashboard() {
     fetchVerificationPending();
     fetchTopVendors();
     fetchBottomVendors();
+    fetchDeptWiseWithoutPQ();
+    fetchProceedWithoutPQReasons();
   }, [activeFilters, filtersInitialized]);
 
   // =========================================================================
@@ -2396,6 +2537,8 @@ function VendorManagementDashboard() {
           label: "Department-Wise Supplier Performance",
         },
         { id: "approvedVendors", label: "Approved Vendors" },
+        { id: "deptWiseWithoutPQ", label: "Department-Wise Vendors Without PQ" },
+        { id: "proceedWithoutPQReasons", label: "Proceed Without PQ – Reasons" },
       ],
     },
     stats: {
@@ -3260,6 +3403,68 @@ function VendorManagementDashboard() {
                                       }}
                                       pagination={onboardingInProcessPagination}
                                       onPageChange={setOnboardingInProcessPage}
+                                    />
+                                  )}
+                                </SortableChartItem>
+                              </div>
+                            );
+                          }
+
+                          if (
+                            chartId === "deptWiseWithoutPQChart" &&
+                            visibleSections.includes("deptWiseWithoutPQ")
+                          ) {
+                            return (
+                              <div key={chartId} className="mt-4">
+                                <SortableChartItem id={chartId}>
+                                  {isDeptWiseWithoutPQLoading ? (
+                                    <div className="card go-shadow bg-white rounded-lg w-100">
+                                      <div className="vendor-card-header">
+                                        <h3 className="vendor-card-title">Department-Wise Vendors Without PQ</h3>
+                                      </div>
+                                      <div className="card-body" style={{ height: "300px", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center" }}>
+                                        <div className="spinner-border text-primary mb-2" role="status">
+                                          <span className="visually-hidden">Loading...</span>
+                                        </div>
+                                        <span className="text-muted fw-medium">Loading Department-Wise Vendors Without PQ...</span>
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <DepartmentWiseWithoutPQChart
+                                      data={deptWiseWithoutPQData}
+                                      onRefresh={refreshDeptWiseWithoutPQ}
+                                      onDownload={() => exportChartData(deptWiseWithoutPQData, "department_wise_without_pq")}
+                                    />
+                                  )}
+                                </SortableChartItem>
+                              </div>
+                            );
+                          }
+
+                          if (
+                            chartId === "proceedWithoutPQReasonsChart" &&
+                            visibleSections.includes("proceedWithoutPQReasons")
+                          ) {
+                            return (
+                              <div key={chartId} className="mt-4">
+                                <SortableChartItem id={chartId}>
+                                  {isProceedWithoutPQReasonsLoading ? (
+                                    <div className="card go-shadow bg-white rounded-lg w-100">
+                                      <div className="vendor-card-header">
+                                        <h3 className="vendor-card-title">Proceed Without PQ – Reasons</h3>
+                                      </div>
+                                      <div className="card-body" style={{ height: "300px", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center" }}>
+                                        <div className="spinner-border text-primary mb-2" role="status">
+                                          <span className="visually-hidden">Loading...</span>
+                                        </div>
+                                        <span className="text-muted fw-medium">Loading Proceed Without PQ Reasons...</span>
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <ProceedWithoutPQReasonsChart
+                                      data={proceedWithoutPQReasonsData}
+                                      onRefresh={refreshProceedWithoutPQReasons}
+                                      onDownload={() => exportChartData(proceedWithoutPQReasonsData, "proceed_without_pq_reasons")}
                                     />
                                   )}
                                 </SortableChartItem>

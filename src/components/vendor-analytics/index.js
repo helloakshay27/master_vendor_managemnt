@@ -8,3 +8,5 @@ export { MonthWiseRegistrationChart } from './MonthWiseRegistrationChart';
 export { PendingApprovalsByLevelChart } from './PendingApprovalsByLevelChart';
 export { VendorDataTable } from './VendorDataTable';
 export { TopBottomVendorsChart } from './TopBottomVendorsChart';
+export { DepartmentWiseWithoutPQChart } from './DepartmentWiseWithoutPQChart';
+export { ProceedWithoutPQReasonsChart } from './ProceedWithoutPQReasonsChart';
