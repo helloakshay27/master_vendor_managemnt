@@ -561,6 +561,8 @@ const SUPPLIER_PERFORMANCE_COLUMNS = [
   { key: "approvedVendors", label: "Approved Vendors" },
   { key: "invitedVendors", label: "Invited Vendors" },
   { key: "avgTat", label: "Avg TAT (Dept)" },
+  {  key: "avgvendortatdays", label: "Avg Vendor TAT (Days)" },
+ { key: "avginternaltatdays", label: "Avg Internal TAT (Days)" }
 ];
 
 const APPROVED_VENDORS_COLUMNS = [
@@ -1131,6 +1133,8 @@ function VendorManagementDashboard() {
           approvedVendors: item.approved_vendor_count ?? 0,
           invitedVendors: item.invited_vendor_count ?? 0,
           avgTat: item.avg_tat_days ?? "0.00",
+          avgvendortatdays: item.avg_vendor_tat_days ?? "0.00",
+          avginternaltatdays: item.avg_internal_tat_days ?? "0.00",
         })),
       );
     } catch (e) {
@@ -1593,6 +1597,9 @@ function VendorManagementDashboard() {
             approvedVendors: item.approved_vendor_count ?? 0,
             invitedVendors: item.invited_vendor_count ?? 0,
             avgTat: item.avg_tat_days ?? "0.00",
+            avgvendortatdays: item.avg_vendor_tat_days ?? "0.00",
+            avginternaltatdays: item.avg_internal_tat_days ?? "0.00",
+
           })),
         );
       } catch (error) {
