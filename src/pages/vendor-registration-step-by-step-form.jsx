@@ -485,6 +485,32 @@ const VendorRegistrationStepByStepForm = () => {
 
     // console.log("annual turn over:", annualTurnover)
 
+    // PnL Statement state
+    const [pnlStatement, setPnlStatement] = useState([
+        { year: '2024-2025', netProfitLoss: '', attachment: null },
+        { year: '2023-2024', netProfitLoss: '', attachment: null },
+        { year: '2022-2023', netProfitLoss: '', attachment: null },
+    ]);
+
+    const handlePnlChange = (index, value) => {
+        setPnlStatement(prev => prev.map((item, i) => i === index ? { ...item, netProfitLoss: value } : item));
+    };
+
+    const handlePnlFileChange = (index, file) => {
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            const base64String = reader.result.split(',')[1];
+            const attachment = {
+                filename: file.name,
+                content: base64String,
+                content_type: file.type,
+            };
+            setPnlStatement(prev => prev.map((item, i) => i === index ? { ...item, attachment } : item));
+        };
+        reader.readAsDataURL(file);
+    };
+
     // Name Title options for contact person
     // const nameTitleOptions = [
     //     { label: 'Select', value: '' },
@@ -5230,6 +5256,13 @@ const VendorRegistrationStepByStepForm = () => {
                 _destroy: false
             })),
 
+            audited_financial_statements_attributes: pnlStatement.map(item => ({
+                id: item.idPre || null,
+                financial_year: parseInt(item.year.split('-')[0], 10),
+                net_profit_loss: item.netProfitLoss !== '' ? Number(item.netProfitLoss) : null,
+                attachment: item.attachment ? [item.attachment] : [],
+            })),
+
 
 
             // vendor_re_kyc: {
@@ -5724,6 +5757,13 @@ const VendorRegistrationStepByStepForm = () => {
                     turnover: item.turnover,
                     attachment: [item.attachment],
                     _destroy: false
+                })),
+
+                audited_financial_statements_attributes: pnlStatement.map(item => ({
+                    id: item.idPre || null,
+                    financial_year: parseInt(item.year.split('-')[0], 10),
+                    net_profit_loss: item.netProfitLoss !== '' ? Number(item.netProfitLoss) : null,
+                    attachment: item.attachment ? [item.attachment] : [],
                 })),
             }
         };
@@ -11510,6 +11550,57 @@ const VendorRegistrationStepByStepForm = () => {
                                         </>
                                     )}
 
+                                    {/* PnL Statement Table */}
+                                    {isSectionVisible('annual turnover') && (
+                                        <>
+                                            <div className="mx-3 mt-4">
+                                                <div className="col-md-12">
+                                                    <h5 className="mb-3"> Audited Financial Statements</h5>
+                                                </div>
+                                                <div className="tbl-container mt-3">
+                                                    <table className="w-100">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>FY</th>
+                                                                <th>Net Profit / Loss</th>
+                                                                <th>Attachment</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            {pnlStatement.map((item, idx) => (
+                                                                <tr key={item.year}>
+                                                                    <td>{item.year}</td>
+                                                                    <td>
+                                                                        <input
+                                                                            className="form-control"
+                                                                            type="text"
+                                                                            placeholder="Enter Net Profit / Loss"
+                                                                            value={item.netProfitLoss}
+                                                                            onChange={e => handlePnlChange(idx, e.target.value)}
+                                                                        />
+                                                                    </td>
+                                                                    <td>
+                                                                        {item?.attachment?.filename && (
+                                                                            <span className="d-flex align-items-center mb-1">
+                                                                                <span className="me-2">Selected File:</span>
+                                                                                <span className="text-muted">{item.attachment.filename}</span>
+                                                                            </span>
+                                                                        )}
+                                                                        <input
+                                                                            className="form-control"
+                                                                            type="file"
+                                                                            onChange={e => handlePnlFileChange(idx, e.target.files[0])}
+                                                                        />
+                                                                    </td>
+                                                                </tr>
+                                                            ))}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </>
+                                    )}
+
                                 </div>
                             )}
 
@@ -15217,6 +15308,59 @@ const VendorRegistrationStepByStepForm = () => {
                                                     </div>
                                                 </div>
                                             </>)}
+
+                                        {/* Preview: PnL Statement Table (readonly) */}
+                                        {isSectionVisible('annual turnover') && (
+                                            <>
+                                                <div className="mx-3 mt-4">
+                                                    <div className="col-md-12">
+                                                        <h5 className="mb-3">PnL Statement</h5>
+                                                    </div>
+                                                    <div className="tbl-container mt-3">
+                                                        <table className="w-100">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th>FY</th>
+                                                                    <th>Net Profit / Loss</th>
+                                                                    <th>Attachment</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                {pnlStatement.map((item, idx) => (
+                                                                    <tr key={item.year}>
+                                                                        <td>{item.year}</td>
+                                                                        <td>
+                                                                            <input
+                                                                                disabled
+                                                                                className="form-control"
+                                                                                type="text"
+                                                                                placeholder="Enter Net Profit / Loss"
+                                                                                value={item.netProfitLoss}
+                                                                                onChange={e => handlePnlChange(idx, e.target.value)}
+                                                                            />
+                                                                        </td>
+                                                                        <td>
+                                                                            {item?.attachment?.filename && (
+                                                                                <span className="d-flex align-items-center mb-1">
+                                                                                    <span className="me-2">Selected File:</span>
+                                                                                    <span className="text-muted">{item.attachment.filename}</span>
+                                                                                </span>
+                                                                            )}
+                                                                            <input
+                                                                                disabled
+                                                                                className="form-control"
+                                                                                type="file"
+                                                                                onChange={e => handlePnlFileChange(idx, e.target.files[0])}
+                                                                            />
+                                                                        </td>
+                                                                    </tr>
+                                                                ))}
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </>
+                                        )}
 
                                         {/* ****** */}
 
