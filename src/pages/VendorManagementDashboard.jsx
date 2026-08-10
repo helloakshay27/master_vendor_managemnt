@@ -654,6 +654,7 @@ function VendorManagementDashboard() {
     "resubmissionRequests",
     "deptWiseWithoutPQ",
     "proceedWithoutPQReasons",
+    "pqViaRekyc"
   ]);
   const [chartOrder, setChartOrder] = useState([
     "departmentPreQual",
@@ -674,6 +675,7 @@ function VendorManagementDashboard() {
     "detailsSubmittedTable",
     "onboardingInProcessTable",
     "resubmissionRequestsTable",
+    "pqViaRekycTable",
   ]);
 
   // States for Stat Cards
@@ -686,6 +688,7 @@ function VendorManagementDashboard() {
     details_submitted_by_vendor: 0,
     verification_pending: 0,
     request_for_resubmission: 0,
+    pq_via_rekyc: 0,
   });
 
   // States for API fetched data
@@ -1308,6 +1311,7 @@ function VendorManagementDashboard() {
             verification_pending: 0,
             request_for_resubmission: 0,
             rejected: 0,
+            pq_via_rekyc: 0,
           };
           
           dataArray.forEach((item) => {
@@ -2673,6 +2677,15 @@ function VendorManagementDashboard() {
                       <VendorStatCard
                         title="Request for Resubmission"
                         value={vendorStats.request_for_resubmission}
+                      />
+                    </div>
+                  )}
+
+                   {visibleSections.includes("pqViaRekyc") && (
+                    <div className="col-lg-3 col-md-6 col-sm-12">
+                      <VendorStatCard
+                        title="PQ via ReKYC"
+                        value={vendorStats.pq_via_rekyc}
                       />
                     </div>
                   )}
