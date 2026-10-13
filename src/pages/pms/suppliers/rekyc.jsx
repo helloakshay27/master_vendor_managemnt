@@ -15,15 +15,38 @@ import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import TooltipIcon from "../../../components/common/Icon/TooltipIcon";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { Trash2 } from "lucide-react";
 // import ReactTooltip from "react-tooltip";
+
+const getMsmeRecords = (data) => {
+  if (Array.isArray(data?.msme_records)) {
+    return data.msme_records;
+  }
+  if (Array.isArray(data?.msme_details)) {
+    return data.msme_details;
+  }
+  return data?.msme_details ? [data.msme_details] : [];
+};
+
+const getLatestMsmeRecord = (records) => records[records.length - 1] || {};
 
 const SectionReKYCDetails = () => {
   const navigate = useNavigate(); // Initialize navigate
   const fileInputRef = useRef(null);
+  const msmeFileInputRef = useRef(null);
+  const normalizeMajorActivity = (activity) => {
+    const normalizedActivity = activity?.trim().toLowerCase();
+    return normalizedActivity === "manufacturing" ? "manufacture" : normalizedActivity || "";
+  };
 
   const { id } = useParams();
   // console.log("id:", id);
   const [supplierData, setSupplierData] = useState({});
+  const msmeRecords = getMsmeRecords(supplierData);
+  const latestMsmeRecord = getLatestMsmeRecord(msmeRecords);
+  const previousMsmeRecords = msmeRecords.filter(
+    (record) => record.id !== latestMsmeRecord.id
+  );
   const [eInvoicingApplicable, setEInvoicingApplicable] = useState("");
   const [searchParams] = useSearchParams(); // Access query parameters
   const rekyc_id = searchParams.get("rekyc_id");
@@ -205,6 +228,12 @@ const SectionReKYCDetails = () => {
   const [majorActivity, setMajorActivity] = useState("");
   const [classificationYear, setClassificationYear] = useState("");
   const [classificationDate, setClassificationDate] = useState("");
+  const originalClassificationYear = latestMsmeRecord.classification_year || "";
+  const isClassificationYearChanged =
+    classificationYear !== originalClassificationYear;
+  const msmeRecordsToShow = isClassificationYearChanged
+    ? msmeRecords
+    : previousMsmeRecords;
 
   // Function to fetch supplier data
   const fetchSupplierData = async () => {
@@ -216,9 +245,11 @@ const SectionReKYCDetails = () => {
 
       // Update the state with the response data
       setSupplierData(response.data);
+      const apiMsmeRecords = getMsmeRecords(response.data);
+      const latestApiMsmeRecord = getLatestMsmeRecord(apiMsmeRecords);
       setEInvoicingApplicable(response.data?.einvoicing);
-      setMsmeUdyamApplicable(response.data?.msme_details?.msme);
-      setMsmeEnterpriseType(response.data?.msme_details?.enterprise);
+      setMsmeUdyamApplicable(latestApiMsmeRecord.msme || "");
+      setMsmeEnterpriseType(latestApiMsmeRecord.enterprise || "");
       // setBankDetailsList(response.data?.bank_details);
 
 const normalizedBankDetails = response.data?.bank_details?.map(detail => ({
@@ -230,20 +261,18 @@ const normalizedBankDetails = response.data?.bank_details?.map(detail => ({
 setBankDetailsList(normalizedBankDetails);
 
 
-      setMsmeNo(response.data?.msme_details?.msme_no);
-      setUdyamRegistrationDate(response.data?.msme_details?.udyam_registration_date || "");
-      setValidFrom(response.data?.msme_details?.valid_from);
-      setValidTill(response.data?.msme_details?.valid_till);
-      setMajorActivity(response.data?.msme_details?.major_activity);
-      setClassificationYear(response.data?.msme_details?.classification_year);
+      setMsmeNo(latestApiMsmeRecord.msme_no || "");
+      setUdyamRegistrationDate(latestApiMsmeRecord.udyam_registration_date || "");
+      setValidFrom(latestApiMsmeRecord.valid_from || "");
+      setValidTill(latestApiMsmeRecord.valid_till || "");
+      setMajorActivity(normalizeMajorActivity(latestApiMsmeRecord.major_activity));
+      setClassificationYear(latestApiMsmeRecord.classification_year || "");
       setRekycStatus(response.data?.rekyc_status);
       // setStatutoryDetails(response.data.statutory_details)
       // setClassificationDate(response.data?.msme_details?.classification_date);
-      setClassificationDate(
-        response.data?.msme_details?.classification_date
-          ? response.data.msme_details.classification_date.split("T")[0]
-          : ""
-      );
+      setClassificationDate(latestApiMsmeRecord.classification_date
+        ? latestApiMsmeRecord.classification_date.split("T")[0]
+        : "");
 
       setRekycId(response.data?.id);
       setRekycType(response.data?.rekyc_type);
@@ -851,15 +880,51 @@ setBankDetailsList(normalizedBankDetails);
   };
 
   const handleClassificationYearChange = (selectedOption) => {
-    if (!selectedOption) {
-      setClassificationYear("");
-      setValidFrom("");
-      setValidTill("");
+    const selectedYear = selectedOption?.value || "";
+    const originalDetails = latestMsmeRecord;
+    const isEditingNewYear = classificationYear !== originalClassificationYear;
+
+    setClassificationYear(selectedYear);
+
+    if (selectedYear === originalClassificationYear) {
+      setMsmeUdyamApplicable(originalDetails.msme || "");
+      setMsmeNo(originalDetails.msme_no || "");
+      setUdyamRegistrationDate(originalDetails.udyam_registration_date || "");
+      setValidFrom(originalDetails.valid_from || "");
+      setValidTill(originalDetails.valid_till || "");
+      setMsmeEnterpriseType(originalDetails.enterprise || "");
+      setMajorActivity(normalizeMajorActivity(originalDetails.major_activity));
+      setClassificationDate(
+        originalDetails.classification_date
+          ? originalDetails.classification_date.split("T")[0]
+          : ""
+      );
+      setMsmeAttachments([]);
       return;
     }
 
-    const selectedYear = selectedOption.value; // ✅ Correct way to get value
-    setClassificationYear(selectedYear);
+    // Start a clean record the first time the user changes the API-provided year.
+    if (!isEditingNewYear) {
+      setMsmeNo(originalDetails.msme_no || "");
+      setUdyamRegistrationDate("");
+      setMsmeEnterpriseType("");
+      setMajorActivity("");
+      setClassificationDate("");
+      setMsmeAttachments([]);
+      setErrors((prev) => {
+        const updated = { ...prev };
+        [
+          "msmeNo",
+          "udyamRegistrationDate",
+          "msmeEnterpriseType",
+          "majorActivity",
+          "classificationDate",
+          "msmeAttachments",
+          "msmeDeclaration",
+        ].forEach((key) => delete updated[key]);
+        return updated;
+      });
+    }
 
     let validFromDate = "";
     let validTillDate = "";
@@ -872,6 +937,48 @@ setBankDetailsList(normalizedBankDetails);
 
     setValidFrom(validFromDate);
     setValidTill(validTillDate);
+  };
+
+  const handleRemoveNewMsmeRecord = () => {
+    if (!window.confirm("Remove only the new MSME record? The existing record will be kept.")) {
+      return;
+    }
+
+    const originalDetails = latestMsmeRecord;
+
+    setClassificationYear(originalClassificationYear);
+    setMsmeUdyamApplicable(originalDetails.msme || "");
+    setMsmeNo(originalDetails.msme_no || "");
+    setUdyamRegistrationDate(originalDetails.udyam_registration_date || "");
+    setValidFrom(originalDetails.valid_from || "");
+    setValidTill(originalDetails.valid_till || "");
+    setMsmeEnterpriseType(originalDetails.enterprise || "");
+    setMajorActivity(normalizeMajorActivity(originalDetails.major_activity));
+    setClassificationDate(
+      originalDetails.classification_date
+        ? originalDetails.classification_date.split("T")[0]
+        : ""
+    );
+    setMsmeAttachments([]);
+    if (msmeFileInputRef.current) {
+      msmeFileInputRef.current.value = "";
+    }
+    setErrors((prev) => {
+      const updated = { ...prev };
+      [
+        "msmeNo",
+        "udyamRegistrationDate",
+        "validFrom",
+        "validTill",
+        "classificationYear",
+        "classificationDate",
+        "msmeEnterpriseType",
+        "majorActivity",
+        "msmeAttachments",
+        "msmeDeclaration",
+      ].forEach((key) => delete updated[key]);
+      return updated;
+    });
   };
 
   const handleValidFromChange = (e) => {
@@ -1491,12 +1598,12 @@ setBankDetailsList(normalizedBankDetails);
       }
 
       // Validate MSME/Udyam Valid From if MSME/Udyam is applicable
-      if ((msmeUdyamApplicable === "Yes" || msmeUdyamApplicable === "No")  && !validFrom) {
+      if (msmeUdyamApplicable === "Yes" && !validFrom) {
         validationErrors.validFrom = "MSME/Udyam Valid From date is required.";
       }
 
       // Validate MSME/Udyam Valid Till if MSME/Udyam is applicable
-      if ((msmeUdyamApplicable === "Yes" || msmeUdyamApplicable === "No") && !validTill) {
+      if (msmeUdyamApplicable === "Yes" && !validTill) {
         validationErrors.validTill = "MSME/Udyam Valid Till date is required.";
       }
 
@@ -1511,7 +1618,7 @@ setBankDetailsList(normalizedBankDetails);
         validationErrors.majorActivity = "Major Activity is required.";
       }
 
-      if ((msmeUdyamApplicable === "Yes" || msmeUdyamApplicable === "No") && !classificationYear) {
+      if (!classificationYear) {
         validationErrors.classificationYear =
           "Classification Year is required.";
       }
@@ -1544,29 +1651,21 @@ setBankDetailsList(normalizedBankDetails);
 
 
       // Get initial value from supplierData
-      const initialMsmeApplicable = supplierData?.msme_details?.msme;
-
       // Get existing attachments from supplierData
-      const existingMsmeAttachments = supplierData?.msme_details?.msme_attachments || [];
+      const existingMsmeAttachments = isClassificationYearChanged
+        ? []
+        : latestMsmeRecord?.attachment || latestMsmeRecord?.declaration_msme
+          ? [latestMsmeRecord.attachment || latestMsmeRecord.declaration_msme]
+          : latestMsmeRecord?.msme_attachments || [];
 
       // MSME/Udyam Attachment/Declaration validation (robust)
-      if (msmeUdyamApplicable === "Yes") {
-        // If changed from No to Yes, require MSME attachment
-        const hasNewMsmeAttachment = msmeAttachments && msmeAttachments.length > 0;
-        if (
-          (initialMsmeApplicable === "No" && msmeUdyamApplicable === "Yes" && !hasNewMsmeAttachment) ||
-          (initialMsmeApplicable === "Yes" && msmeUdyamApplicable === "Yes" && existingMsmeAttachments.length === 0 && !hasNewMsmeAttachment)
-        ) {
-          validationErrors.msmeAttachments = "MSME/Udyam Attachment is required.";
-        }
-      } else if (msmeUdyamApplicable === "No") {
-        // If changed from Yes to No, require declaration attachment
-        const hasDeclaration = msmeAttachments && msmeAttachments.length > 0;
-        if (
-          (initialMsmeApplicable === "Yes" && msmeUdyamApplicable === "No" && !hasDeclaration) ||
-          (initialMsmeApplicable === "No" && msmeUdyamApplicable === "No" && existingMsmeAttachments.length === 0 && !hasDeclaration)
-        ) {
+      const hasNewMsmeAttachment = msmeAttachments.length > 0;
+      const hasExistingMsmeAttachment = existingMsmeAttachments.length > 0;
+      if (!hasNewMsmeAttachment && !hasExistingMsmeAttachment) {
+        if (msmeUdyamApplicable === "No") {
           validationErrors.msmeDeclaration = "MSME/Udyam Declaration Attachment is required.";
+        } else if (msmeUdyamApplicable === "Yes") {
+          validationErrors.msmeAttachments = "MSME/Udyam Attachment is required.";
         }
       }
 
@@ -1837,26 +1936,18 @@ setBankDetailsList(normalizedBankDetails);
         };
       }
 
-      // If the condition is met, include only MSME-related fields
-      if (isRekycTypeEmpty || isMsmeRekyc) {
+      // Preserve the legacy all-sections request when no specific re-kyc type is set.
+      if (isRekycTypeEmpty) {
         payload.pms_supplier = {
-          ...payload.pms_supplier, // Keep existing keys
+          ...payload.pms_supplier,
           msme: msmeUdyamApplicable || "",
           msme_no: msmeUdyamApplicable === "No" ? "" : msmeNo || null,
-          udyam_registration_date: msmeUdyamApplicable === "Yes" ? udyamRegistrationDate || null : null,
-          // valid_from: msmeUdyamApplicable === "No" ? "" : validFrom || null,
-          // valid_till: msmeUdyamApplicable === "No" ? "" : validTill || null,
-          enterprise:
-            msmeUdyamApplicable === "No" ? "" : msmeEnterpriseType || null,
-          major_activity:
-            msmeUdyamApplicable === "No" ? "" : majorActivity || null,
-          // classification_year:
-          //   msmeUdyamApplicable === "No" ? "" : classificationYear || null,
-          classification_date:
-            msmeUdyamApplicable === "No" ? "" : classificationDate || null,
-          msme_attachments: msmeUdyamApplicable === "No" ? msmeAttachments
-            : msmeAttachments,
-
+          udyam_registration_date:
+            msmeUdyamApplicable === "Yes" ? udyamRegistrationDate || null : null,
+          enterprise: msmeUdyamApplicable === "No" ? "" : msmeEnterpriseType || null,
+          major_activity: msmeUdyamApplicable === "No" ? "" : majorActivity || null,
+          classification_date: msmeUdyamApplicable === "No" ? "" : classificationDate || null,
+          msme_attachments: msmeAttachments,
           valid_from: validFrom || null,
           valid_till: validTill || null,
           classification_year: classificationYear || null,
@@ -1900,14 +1991,68 @@ setBankDetailsList(normalizedBankDetails);
       console.log("payload submition with conditions************:", payload);
 
       try {
-        const response = await axios.patch(
-          `${baseURL}/pms/suppliers/${id}/update_rekyc_by_sections.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&rekyc_id=${rekyc_id}`,
-          payload
-        );
+        let response;
 
-        console.log("Response:", response.data); // Check the response data
+        if (isMsmeRekyc) {
+          const existingMsmeId = latestMsmeRecord.id;
+          const uploadedAttachment = msmeAttachments[0];
+          const msmeRecord = {
+            msme: msmeUdyamApplicable,
+            classification_year: classificationYear,
+          };
+
+          if (msmeUdyamApplicable === "Yes") {
+            const activityLabels = {
+              services: "Services",
+              trader: "Trader",
+              manufacture: "Manufacture",
+              others: "Others",
+            };
+            Object.assign(msmeRecord, {
+              msme_no: msmeNo,
+              valid_from: validFrom,
+              valid_till: validTill,
+              classification_date: classificationDate,
+              udyam_registration_date: udyamRegistrationDate,
+              major_activity: activityLabels[majorActivity] || majorActivity,
+              enterprise: msmeEnterpriseType,
+            });
+          }
+
+          if (uploadedAttachment) {
+            msmeRecord.attachment = uploadedAttachment;
+          }
+
+          console.log("MSME Rekyc payload:", { msme_details: [msmeRecord] });
+
+          if (isClassificationYearChanged) {
+            response = await axios.post(
+              `${baseURL}/pms/suppliers/${id}/msme_rekyc.json?rekyc_id=${rekyc_id}`,
+              { msme_details: [msmeRecord] }
+            );
+          } else {
+            if (!existingMsmeId) {
+              throw new Error("The existing MSME record ID is missing.");
+            }
+            response = await axios.patch(
+              `${baseURL}/pms/suppliers/${id}/msme_rekyc.json?rekyc_id=${rekyc_id}`,
+              { msme_details: [{ id: existingMsmeId, ...msmeRecord }] }
+            );
+          }
+        }
+
+        const hasOtherRekycSections =
+          isRekycTypeEmpty || isGstinRekyc || isBankRekyc || isEnvoiceRekyc || isNameRekyc || !isMsmeRekyc;
+        if (hasOtherRekycSections) {
+          response = await axios.patch(
+            `${baseURL}/pms/suppliers/${id}/update_rekyc_by_sections.json?token=bfa5004e7b0175622be8f7e69b37d01290b737f82e078414&rekyc_id=${rekyc_id}`,
+            payload
+          );
+        }
+
+        console.log("Response:", response?.data); // Check the response data
         // await fetchSupplierData();
-        if (response.status === 200) {
+        if (response?.status >= 200 && response?.status < 300) {
           // console.log('Update successful:', data);
           // alert("Updated successfully");
           toast.success("Updated successfully");
@@ -2722,6 +2867,84 @@ setBankDetailsList(normalizedBankDetails);
                   </div>
                   {/* <CardBodyMsme /> */}
 
+                  {msmeRecordsToShow.length > 0 && (
+                    <div className="card-body pb-0">
+                      <h5 className="mb-3">
+                        {isClassificationYearChanged ? "Existing MSME Records" : "Previous MSME Records"}
+                      </h5>
+                      {msmeRecordsToShow.map((record) => (
+                        <fieldset className="border rounded p-3 mb-3" disabled key={record.id || record.classification_year}>
+                          <div className="row">
+                            <div className="col-md-4 mt-2">
+                              <label>MSME Applicable</label>
+                              <input className="form-control" value={record.msme || ""} readOnly />
+                            </div>
+                            <div className="col-md-4 mt-2">
+                              <label>Classification Year</label>
+                              <input className="form-control" value={record.classification_year || ""} readOnly />
+                            </div>
+                            <div className="col-md-4 mt-2">
+                              <label>Major Activity</label>
+                              <input className="form-control" value={record.major_activity || ""} readOnly />
+                            </div>
+                            <div className="col-md-4 mt-2">
+                              <label>MSME/Udyam Number</label>
+                              <input className="form-control" value={record.msme_no || ""} readOnly />
+                            </div>
+                            <div className="col-md-4 mt-2">
+                              <label>Valid From</label>
+                              <input className="form-control" value={record.valid_from || ""} readOnly />
+                            </div>
+                            <div className="col-md-4 mt-2">
+                              <label>Valid Till</label>
+                              <input className="form-control" value={record.valid_till || ""} readOnly />
+                            </div>
+                            <div className="col-md-4 mt-2">
+                              <label>Enterprise</label>
+                              <input className="form-control" value={record.enterprise || ""} readOnly />
+                            </div>
+                            <div className="col-md-4 mt-2">
+                              <label>Udyam Registration Date</label>
+                              <input className="form-control" value={record.udyam_registration_date || ""} readOnly />
+                            </div>
+                            <div className="col-md-4 mt-2">
+                              <label>Classification Date</label>
+                              <input className="form-control" value={record.classification_date?.split("T")[0] || ""} readOnly />
+                            </div>
+                            <div className="col-md-4 mt-2">
+                              <label>Attachment</label>
+                              {record.attachment?.url ? (
+                                <a className="d-block text-primary" href={`${baseURL}${record.attachment.url}`} download>
+                                  {record.attachment.filename || "Download attachment"}
+                                </a>
+                              ) : (
+                                <input className="form-control" value={record.declaration_msme?.filename || "No attachment"} readOnly />
+                              )}
+                          </div>
+                        </div>
+                      </fieldset>
+                    ))}
+                    </div>
+                  )}
+
+                  <div className="d-flex justify-content-between align-items-center mx-3 mt-3">
+                      <h5 className="mb-0">
+                        {isClassificationYearChanged ? "New MSME Details" : "Latest MSME Record"}
+                      </h5>
+                      {isClassificationYearChanged && (
+                      <button
+                        type="button"
+                        className="btn btn-link p-0"
+                        style={{ color: "#DE7008" }}
+                        onClick={handleRemoveNewMsmeRecord}
+                        aria-label="Remove new MSME record"
+                        title="Remove new MSME record"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                      )}
+                  </div>
+
                   <div className="card-body mt-0">
                     <div className="row">
                       {/* MSME/Udyam Number Applicable */}
@@ -3122,10 +3345,10 @@ setBankDetailsList(normalizedBankDetails);
                               MSME/Udyam Attachment <span>*</span>
                               <TooltipIcon message="Attach a clear, scanned copy or digital image of your MSME/Udyam registration certificate to verify your organization's classification under the MSME scheme. The document must be uploaded in PDF format." />
                             </label>
-                            {supplierData?.msme_details?.msme_attachments?.length > 0 && (
+                            {!isClassificationYearChanged && latestMsmeRecord?.attachment?.url && (
                               <span className="ms-2">
                                 <a
-                                  href={`${baseURL}${supplierData?.msme_details?.msme_attachments[0]?.file_url}`}
+                                  href={`${baseURL}${latestMsmeRecord.attachment.url}`}
                                   download
                                   className="text-primary d-flex align-items-center"
                                 >
@@ -3141,9 +3364,7 @@ setBankDetailsList(normalizedBankDetails);
                                     <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
                                     <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
                                   </svg>
-                                  {supplierData?.msme_details?.msme_attachments?.length > 0
-                                    ? supplierData?.msme_details?.msme_attachments[0]?.document_name
-                                    : "No Document Available"}
+                                  {latestMsmeRecord.attachment.filename || "Download attachment"}
                                 </a>
                               </span>
                             )}
@@ -3163,7 +3384,7 @@ setBankDetailsList(normalizedBankDetails);
                                   return updated;
                                 });
                               }}
-                              ref={fileInputRef}
+                              ref={msmeFileInputRef}
                               multiple
                               accept=".pdf"
                             />
@@ -3229,19 +3450,17 @@ setBankDetailsList(normalizedBankDetails);
                           <label>
                             Upload Declaration <span>*</span>
                           </label>
-                          <span className="ms-2">
+                          {!isClassificationYearChanged && latestMsmeRecord?.attachment?.url && <span className="ms-2">
                             <a
-                              href={`${baseURL}${supplierData?.msme_details?.msme_attachments[0]?.file_url}`}
+                              href={`${baseURL}${latestMsmeRecord.attachment.url}`}
                               download
                               className="text-primary d-flex align-items-center"
                             >
                               <span className="me-2">Existing Files:</span>
                               <TooltipIcon message="If you choose E-Invoice applicable 'No', please upload a signed declaration document to verify the details you have submitted. The document must be uploaded in PDF format.Ensure that the document is clear, legible, and properly signed." />
-                              {supplierData?.msme_details?.msme_attachments?.length > 0
-                                ? supplierData?.msme_details?.msme_attachments[0]?.document_name
-                                : "No Document Available"}
+                              {latestMsmeRecord.attachment.filename || "Download declaration"}
                             </a>
-                          </span>
+                          </span>}
                           <input
                             className="form-control"
                             type="file"
