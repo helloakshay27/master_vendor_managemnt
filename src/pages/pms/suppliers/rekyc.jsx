@@ -906,7 +906,7 @@ setBankDetailsList(normalizedBankDetails);
     // Start a clean record the first time the user changes the API-provided year.
     if (!isEditingNewYear) {
       setMsmeNo(originalDetails.msme_no || "");
-      setUdyamRegistrationDate("");
+      setUdyamRegistrationDate(originalDetails.udyam_registration_date || "");
       setMsmeEnterpriseType("");
       setMajorActivity("");
       setClassificationDate("");
@@ -2139,7 +2139,7 @@ setBankDetailsList(normalizedBankDetails);
           <p>Loading...</p>
         </div>
       ) :
-        rekycStatus === "pending" ? (
+        rekycStatus === "pending" || rekycStatus === "rejected" ? (
           <div className="website-content overflowY-auto">
             <div className="card mx-4 pb-4 mt-4">
               <div className="card-header3">
